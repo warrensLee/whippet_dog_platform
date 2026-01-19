@@ -1,117 +1,166 @@
-USE cwa_db;
+use cwa_db;
 
 CREATE TABLE `Dog` (
-  `CWANumber` varchar(10) PRIMARY KEY NOT NULL,
-  `AKCNumber` varchar(10),
-  `CKCNumber` varchar(10),
-  `ForeignNumber` varchar(50),
-  `ForeignType` varchar(50),
-  `CallName` varchar(50),
-  `RegisteredName` varchar(100) NOT NULL,
-  `Birthdate` date NOT NULL,
-  `PedigreeLink` varchar(500),
-  `Status` varchar(10) NOT NULL,
-  `Average` char(3),
-  `CurrentGrade` varchar(3) NOT NULL,
-  `MeetPoints` decimal(5,2),
-  `ARXPoints` decimal(5,2),
-  `NARXPoints` decimal(5,2),
-  `ShowPoints` smallint,
-  `DPCLegs` smallint,
-  `MeetWins` decimal(5,2),
-  `Notes` varchar(250)
-);
-
-CREATE TABLE `DogTitles` (
-  `CWANumber` varchar(10) NOT NULL,
-  `Title` varchar(10) NOT NULL,
-  `TitleNumber` varchar(10) NOT NULL,
-  `TitleDate` date,
-  `NamePrefix` char(1) NOT NULL,
-  `NameSuffix` char(1) NOT NULL,
-  PRIMARY KEY (`CWANumber`, `Title`)
+  `CWANumber` VARCHAR(10) PRIMARY KEY,
+  `AKCNumber` VARCHAR(10),
+  `CKCNumber` VARCHAR(10),
+  `ForeignNumber` VARCHAR(50),
+  `ForeignType` VARCHAR(50),
+  `CallName` VARCHAR(50),
+  `RegisteredName` VARCHAR(100) NOT NULL,
+  `Birthdate` DATE NOT NULL,
+  `PedigreeLink` VARCHAR(500),
+  `Status` VARCHAR(10) NOT NULL,
+  `Average` CHAR(3),
+  `CurrentGrade` VARCHAR(3) NOT NULL,
+  `MeetPoints` DECIMAL(5,2),
+  `ARXPoints` DECIMAL(5,2),
+  `NARXPoints` DECIMAL(5,2),
+  `ShowPoints` SMALLINT,
+  `DPCLegs` SMALLINT,
+  `MeetWins` DECIMAL(5,2),
+  `Notes` VARCHAR(250),
+  `LastEditedBy` VARCHAR(20),
+  `LastEditedAt` TIMESTAMP
 );
 
 CREATE TABLE `TitleType` (
-  `Title` varchar(10) PRIMARY KEY NOT NULL,
-  `TitleDescription` varchar(200) NOT NULL
+  `Title` VARCHAR(10) PRIMARY KEY,
+  `TitleDescription` VARCHAR(200) NOT NULL,
+  `LastEditedBy` VARCHAR(20),
+  `LastEditedAt` TIMESTAMP
 );
 
-CREATE TABLE `DogOwner` (
-  `CWAID` varchar(10) NOT NULL,
-  `PersonID` varchar(20) NOT NULL,
-  PRIMARY KEY (`CWAID`, `PersonID`)
+CREATE TABLE `UserRole` (
+  `RoleID` INT PRIMARY KEY AUTO_INCREMENT,
+  `Title` VARCHAR(10) NOT NULL UNIQUE,
+  `LastEditedBy` VARCHAR(20),
+  `LastEditedAt` TIMESTAMP
+);
+
+CREATE TABLE `News` (
+  `NewsID` INT PRIMARY KEY AUTO_INCREMENT,
+  `Title` VARCHAR(100) NOT NULL,
+  `Content` TEXT NOT NULL,
+  `CreatedAt` TIMESTAMP NOT NULL,
+  `UpdatedAt` TIMESTAMP,
+  `AuthorID` VARCHAR(20),
+  `LastEditedBy` VARCHAR(20),
+  `LastEditedAt` TIMESTAMP
+);
+
+CREATE TABLE `DogTitles` (
+  `CWANumber` VARCHAR(10) NOT NULL,
+  `Title` VARCHAR(10) NOT NULL,
+  `TitleNumber` VARCHAR(10) NOT NULL,
+  `TitleDate` DATE,
+  `NamePrefix` CHAR(1) NOT NULL,
+  `NameSuffix` CHAR(1) NOT NULL,
+  `LastEditedBy` VARCHAR(20),
+  `LastEditedAt` TIMESTAMP,
+  PRIMARY KEY (`CWANumber`, `Title`)
 );
 
 CREATE TABLE `Person` (
-  `PersonID` varchar(20) PRIMARY KEY NOT NULL,
-  `FirstName` varchar(50) NOT NULL,
-  `LastName` varchar(50) NOT NULL,
-  `EmailAddress` varchar(50),
-  `AddressLineOne` varchar(50),
-  `AddressLineTwo` varchar(50),
-  `City` varchar(50),
-  `StateProvince` varchar(50),
-  `ZipCode` varchar(10),
-  `Country` varchar(6),
-  `PrimaryPhone` varchar(10),
-  `SecondaryPhone` varchar(10),
-  `SystemRole` varchar(10) NOT NULL,
-  `Notes` varchar(250)
+  `PersonID` VARCHAR(20) PRIMARY KEY,
+  `FirstName` VARCHAR(50) NOT NULL,
+  `LastName` VARCHAR(50) NOT NULL,
+  `EmailAddress` VARCHAR(50),
+  `AddressLineOne` VARCHAR(50),
+  `AddressLineTwo` VARCHAR(50),
+  `City` VARCHAR(50),
+  `StateProvince` VARCHAR(50),
+  `ZipCode` VARCHAR(10),
+  `Country` VARCHAR(6),
+  `PrimaryPhone` VARCHAR(10),
+  `SecondaryPhone` VARCHAR(10),
+  `SystemRole` VARCHAR(10) NOT NULL,
+  `PasswordHash` VARCHAR(255) NOT NULL,
+  `Notes` VARCHAR(250),
+  `LastEditedBy` VARCHAR(20),
+  `LastEditedAt` TIMESTAMP
+);
+
+CREATE TABLE `DogOwner` (
+  `CWAID` VARCHAR(10) NOT NULL,
+  `PersonID` VARCHAR(20) NOT NULL,
+  `LastEditedBy` VARCHAR(20),
+  `LastEditedAt` TIMESTAMP,
+  PRIMARY KEY (`CWAID`, `PersonID`)
 );
 
 CREATE TABLE `Club` (
-  `ClubAbbreviation` varchar(20) PRIMARY KEY NOT NULL,
-  `ClubName` varchar(50) NOT NULL,
-  `ClubStatus` varchar(8) NOT NULL,
-  `BeginDate` date,
-  `EndDate` date,
-  `BoardMember1` varchar(20),
-  `BoardMember2` varchar(20),
-  `DefaultRaceSecretary` varchar(20),
-  `Notes` varchar(250)
+  `ClubAbbreviation` VARCHAR(20) PRIMARY KEY,
+  `ClubName` VARCHAR(50) NOT NULL,
+  `ClubStatus` VARCHAR(8) NOT NULL,
+  `BeginDate` DATE,
+  `EndDate` DATE,
+  `BoardMember1` VARCHAR(20),
+  `BoardMember2` VARCHAR(20),
+  `DefaultRaceSecretary` VARCHAR(20),
+  `Notes` VARCHAR(250),
+  `LastEditedBy` VARCHAR(20),
+  `LastEditedAt` TIMESTAMP
 );
 
 CREATE TABLE `Meet` (
-  `MeetNumber` varchar(20) NOT NULL,
-  `ClubAbbreviation` varchar(10) NOT NULL,
-  `MeetDate` date NOT NULL,
-  `RaceSecretary` varchar(20),
-  `Judge` varchar(20),
-  `Location` varchar(20) NOT NULL,
-  `Yards` int(3) NOT NULL,
+  `MeetNumber` VARCHAR(20) NOT NULL,
+  `ClubAbbreviation` VARCHAR(10) NOT NULL,
+  `MeetDate` DATE NOT NULL,
+  `RaceSecretary` VARCHAR(20),
+  `Judge` VARCHAR(20),
+  `Location` VARCHAR(20) NOT NULL,
+  `Yards` INT NOT NULL,
+  `LastEditedBy` VARCHAR(20),
+  `LastEditedAt` TIMESTAMP,
   PRIMARY KEY (`MeetNumber`, `ClubAbbreviation`)
 );
 
 CREATE TABLE `RaceResults` (
-  `MeetNumber` varchar(20) NOT NULL,
-  `CWANumber` varchar(10) NOT NULL,
-  `Program` varchar(1) NOT NULL,
-  `RaceNumber` varchar(10) NOT NULL,
-  `EntryType` varchar(5),
-  `Box` int(1) NOT NULL,
-  `Placement` int(1) NOT NULL,
-  `MeetPoints` decimal(3,2) NOT NULL,
-  `Incident` varchar(5),
+  `MeetNumber` VARCHAR(20) NOT NULL,
+  `CWANumber` VARCHAR(10) NOT NULL,
+  `Program` VARCHAR(1) NOT NULL,
+  `RaceNumber` VARCHAR(10) NOT NULL,
+  `EntryType` VARCHAR(5),
+  `Box` INT NOT NULL,
+  `Placement` INT NOT NULL,
+  `MeetPoints` DECIMAL(3,2) NOT NULL,
+  `Incident` VARCHAR(5),
+  `LastEditedBy` VARCHAR(20),
+  `LastEditedAt` TIMESTAMP,
   PRIMARY KEY (`MeetNumber`, `CWANumber`, `Program`, `RaceNumber`)
 );
 
 CREATE TABLE `MeetResults` (
-  `MeetNumber` varchar(20) NOT NULL,
-  `CWANumber` varchar(10) NOT NULL,
-  `Average` decimal(3,2) NOT NULL,
-  `Grade` varchar(3) NOT NULL,
-  `MeetPlacement` int(2) NOT NULL,
-  `MeetPoints` decimal(5,2) NOT NULL,
-  `ARXEarned` decimal(5,2) NOT NULL,
-  `NARXEarned` decimal(5,2) NOT NULL,
-  `Shown` char(1) NOT NULL,
-  `ShowPlacement` int(2),
-  `ShowPoints` int(1),
-  `DPCLeg` char(1),
-  `HCScore` int(3),
-  `HCLegEarned` char(1),
+  `MeetNumber` VARCHAR(20) NOT NULL,
+  `CWANumber` VARCHAR(10) NOT NULL,
+  `Average` DECIMAL(3,2) NOT NULL,
+  `Grade` VARCHAR(3) NOT NULL,
+  `MeetPlacement` INT NOT NULL,
+  `MeetPoints` DECIMAL(5,2) NOT NULL,
+  `ARXEarned` DECIMAL(5,2) NOT NULL,
+  `NARXEarned` DECIMAL(5,2) NOT NULL,
+  `Shown` CHAR(1) NOT NULL,
+  `ShowPlacement` INT,
+  `ShowPoints` INT,
+  `DPCLeg` CHAR(1),
+  `HCScore` INT,
+  `HCLegEarned` CHAR(1),
+  `LastEditedBy` VARCHAR(20),
+  `LastEditedAt` TIMESTAMP,
   PRIMARY KEY (`MeetNumber`, `CWANumber`)
+);
+
+CREATE TABLE `ChangeLog` (
+  `LogID` INT PRIMARY KEY AUTO_INCREMENT,
+  `ChangedTable` VARCHAR(50) NOT NULL,
+  `RecordPK` VARCHAR(50) NOT NULL,
+  `Operation` VARCHAR(10) NOT NULL,
+  `ChangedBy` VARCHAR(20),
+  `ChangedAt` TIMESTAMP NOT NULL,
+  `Source` VARCHAR(32),
+  `BeforeData` TEXT,
+  `AfterData` TEXT
 );
 
 ALTER TABLE `DogTitles` ADD FOREIGN KEY (`CWANumber`) REFERENCES `Dog` (`CWANumber`);
@@ -141,3 +190,9 @@ ALTER TABLE `RaceResults` ADD FOREIGN KEY (`CWANumber`) REFERENCES `Dog` (`CWANu
 ALTER TABLE `MeetResults` ADD FOREIGN KEY (`MeetNumber`) REFERENCES `Meet` (`MeetNumber`);
 
 ALTER TABLE `MeetResults` ADD FOREIGN KEY (`CWANumber`) REFERENCES `Dog` (`CWANumber`);
+
+ALTER TABLE `News` ADD FOREIGN KEY (`AuthorID`) REFERENCES `Person` (`PersonID`);
+
+ALTER TABLE `Person` ADD FOREIGN KEY (`SystemRole`) REFERENCES `UserRole` (`Title`);
+
+ALTER TABLE `ChangeLog` ADD FOREIGN KEY (`ChangedBy`) REFERENCES `Person` (`PersonID`);
