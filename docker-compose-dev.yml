@@ -1,0 +1,38 @@
+
+services:
+  db:
+    image: mysql:8.0.44
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: dogs
+      MYSQL_DATABASE: cwa_db
+    user: 1000:1000
+    ports:
+      - 127.0.0.1:3306:3306
+    volumes:
+      - data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d
+  frontend:
+    image: node:20-alpine
+    container_name: nextjs-dev
+    working_dir: /app
+    user: 1000:1000
+    command: sh -c "npm install && npm run dev"
+    ports:
+      - 127.0.0.1:3000:3000
+    volumes:
+      - ./web:/app
+    environment:
+      - NODE_ENV=development
+
+  backend:
+    image: python:3.12
+    working_dir: /app
+    user: 1000:1000
+    volumes:
+      - ./backend:/app
+    command: sh -c "python main.py"
+    depends_on: [db]
+  
+volumes:
+  data:
