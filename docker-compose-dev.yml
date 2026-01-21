@@ -17,6 +17,7 @@ services:
     container_name: nextjs-dev
     working_dir: /app
     user: 1000:1000
+    shm_size: 1g
     command: sh -c "npm install && npm run dev"
     ports:
       - 127.0.0.1:3000:3000
