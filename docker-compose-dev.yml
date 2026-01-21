@@ -34,7 +34,7 @@ services:
     user: 1000:1000
     volumes:
       - ./backend:/app
-    command: sh -c "pip install flask gunicorn && gunicorn -b 0.0.0.0:8000 main:app"
+    command: sh -c "pip install flask gunicorn mysql-connector-python && gunicorn -b 0.0.0.0:8000 main:app"
     depends_on: [db]
     environment:
       - FLASK_ENV=development
