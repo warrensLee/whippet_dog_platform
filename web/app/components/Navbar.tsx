@@ -3,7 +3,7 @@ import Link from 'next/link'
 
 const Navbar = () => {
     return (
-        <nav className="fixed top-0 w-full flex items-center justify-around py-3 px-24 border-b border-gray-700 bg-transparent backdrop-blur-md z-50">
+        <nav className="fixed top-0 w-full flex items-center justify-around py-1 px-12 border-b border-gray-500 bg-transparent backdrop-blur-md z-50">
 
             <Link
 
@@ -22,21 +22,14 @@ const Navbar = () => {
 
             {/* Each of these links is a page that can be routed to from the navbar */}
 
-            <ul className="flex gap-10 text-xl font-medium text-black">
+            <ul className="flex gap-10 text-xl font-medium text-white">
 
-                <Link
 
-                    href="/stats_and_titles"
-                    className="text-black-300 hover:text-white transition-colors">
-
-                    Stats & Titles
-
-                </Link>
 
                 <Link
 
                     href="/getting_started"
-                    className="text-black-300 hover:text-white transition-colors">
+                    className="text-black-300 hover:text-black transition-colors">
 
                     Getting Started
 
@@ -44,17 +37,8 @@ const Navbar = () => {
 
                 <Link
 
-                    href="/news"
-                    className="text-black-300 hover:text-white transition-colors">
-
-                    News
-
-                </Link>
-
-                <Link
-
                     href="/events"
-                    className="text-black-300 hover:text-white transition-colors">
+                    className="text-black-300 hover:text-black transition-colors">
 
                     Events
 
@@ -62,10 +46,40 @@ const Navbar = () => {
 
                 <Link
 
+                    href="/news"
+                    className="text-black-300 hover:text-black transition-colors">
+
+                    News
+
+                </Link>
+
+
+                <Link
+
+                    href="/stats_and_titles"
+                    className="text-black-300 hover:text-black transition-colors">
+
+                    Stats & Titles
+
+                </Link>
+
+
+
+                <Link
+
                     href="/rules_and_grading"
-                    className="text-black-300 hover:text-white transition-colors">
+                    className="text-black-300 hover:text-black transition-colors">
 
                     Rules & Grading
+
+                </Link>
+
+                <Link
+
+                    href="/contact"
+                    className="text-black-300 hover:text-black transition-colors">
+
+                    Contact
 
                 </Link>
             </ul>
