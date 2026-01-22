@@ -38,6 +38,10 @@ CREATE TABLE `UserRole` (
   `LastEditedAt` TIMESTAMP
 );
 
+INSERT INTO `UserRole` (`Title`)
+VALUES ('Admin'), ('Public')
+ON DUPLICATE KEY UPDATE `Title` = `Title`;
+
 CREATE TABLE `News` (
   `NewsID` INT PRIMARY KEY AUTO_INCREMENT,
   `Title` VARCHAR(100) NOT NULL,

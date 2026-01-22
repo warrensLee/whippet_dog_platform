@@ -1,10 +1,17 @@
+import os
 from flask import Flask, jsonify
 from database import fetch_all, fetch_one
-app = Flask(__name__)
+from authentication import auth_bp
 
-@app.get("/")
-def home():
-    return jsonify(status="ok", message="Flask is running")
+app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
+
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+)
+
+app.register_blueprint(auth_bp)
 
 @app.get("/health")
 def health():
