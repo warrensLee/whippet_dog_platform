@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, session
 from mysql.connector import Error
-from person import Person
+from classes.person import Person
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
