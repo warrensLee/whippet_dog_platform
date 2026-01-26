@@ -81,6 +81,14 @@ CREATE TABLE `Person` (
   `LastEditedAt` TIMESTAMP
 );
 
+CREATE TABLE OfficerRole (
+  RoleName VARCHAR(50) PRIMARY KEY,  
+  PersonID VARCHAR(20) NOT NULL,
+  DisplayOrder INT NOT NULL,
+  Active BOOLEAN DEFAULT TRUE,
+  FOREIGN KEY (PersonID) REFERENCES Person(PersonID)
+);
+
 CREATE TABLE `DogOwner` (
   `CWAID` VARCHAR(10) NOT NULL,
   `PersonID` VARCHAR(20) NOT NULL,

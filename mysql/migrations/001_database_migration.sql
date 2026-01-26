@@ -3,6 +3,7 @@ USE cwa_db;
 START TRANSACTION;
 
 SET FOREIGN_KEY_CHECKS=0;
+DELETE FROM OfficerRole;
 DELETE FROM Club;
 DELETE FROM Person;
 SET FOREIGN_KEY_CHECKS=1;
@@ -18,11 +19,11 @@ INSERT INTO Person (
   SystemRole, PasswordHash, Notes, LastEditedBy, LastEditedAt
 ) VALUES
 -- Officers
-('P0001','Krista','Siehndel','ksiehndel@gmail.com',NULL,NULL,NULL,'WI',NULL,'US',NULL,NULL,'ADMIN','TEMP_RESET_ME','Officer: President/Statistician','seed',NOW()),
-('P0002','Julie','Poole','llpoolej@gmail.com',NULL,NULL,NULL,'TN',NULL,'US',NULL,NULL,'PUBLIC','TEMP_RESET_ME','Officer: Vice President','seed',NOW()),
-('P0003','Kristal','Couch','kcouch76@gmail.com',NULL,NULL,NULL,'OK',NULL,'US',NULL,NULL,'PUBLIC','TEMP_RESET_ME','Officer: Secretary','seed',NOW()),
-('P0004','Beth','Levine','serendipitywhippets@gmail.com',NULL,NULL,NULL,'BC',NULL,'CA',NULL,NULL,'PUBLIC','TEMP_RESET_ME','Officer: Treasurer/Website','seed',NOW()),
-('P0005','Liz','Aiello','bobookitty@aol.com',NULL,NULL,NULL,'MA',NULL,'US',NULL,NULL,'PUBLIC','TEMP_RESET_ME','Officer: Registrar','seed',NOW()),
+('P0001','Krista','Siehndel','ksiehndel@gmail.com',NULL,NULL,NULL,'WI',NULL,'US',NULL,NULL,'ADMIN','TEMP_RESET_ME','','seed',NOW()),
+('P0002','Julie','Poole','llpoolej@gmail.com',NULL,NULL,NULL,'TN',NULL,'US',NULL,NULL,'PUBLIC','TEMP_RESET_ME','','seed',NOW()),
+('P0003','Kristal','Couch','kcouch76@gmail.com',NULL,NULL,NULL,'OK',NULL,'US',NULL,NULL,'PUBLIC','TEMP_RESET_ME','','seed',NOW()),
+('P0004','Beth','Levine','serendipitywhippets@gmail.com',NULL,NULL,NULL,'BC',NULL,'CA',NULL,NULL,'PUBLIC','TEMP_RESET_ME','','seed',NOW()),
+('P0005','Liz','Aiello','bobookitty@aol.com',NULL,NULL,NULL,'MA',NULL,'US',NULL,NULL,'PUBLIC','TEMP_RESET_ME','','seed',NOW()),
 
 -- Board / Directors
 ('P0101','Nancy','Colson','dorae_nrc@consolidated.net',NULL,NULL,NULL,'TX',NULL,'US',NULL,NULL,'PUBLIC','TEMP_RESET_ME','AAWC BoardMember1','seed',NOW()),
@@ -64,6 +65,15 @@ INSERT INTO Person (
 
 ('P0124','Elizabeth','Rockwell','elizabeth.rockwell@gmail.com',NULL,NULL,NULL,'MA',NULL,'US',NULL,NULL,'PUBLIC','TEMP_RESET_ME','WINE BoardMember1','seed',NOW()),
 ('P0125','Donna','Miner','dominodogs@charter.net',NULL,NULL,NULL,'MA',NULL,'US',NULL,NULL,'PUBLIC','TEMP_RESET_ME','WINE BoardMember2','seed',NOW());
+
+INSERT INTO OfficerRole (RoleName, PersonID, DisplayOrder, Active) VALUES
+('President', 'P0001', 1, TRUE),
+('Vice President', 'P0002', 2, TRUE),
+('Secretary', 'P0003', 3, TRUE),
+('Treasurer', 'P0004', 4, TRUE),
+('Registrar', 'P0005', 5, TRUE),
+('Statistician', 'P0001', 6, TRUE),
+('Website', 'P0004', 7, TRUE);
 
 -- -----------------------
 -- 2) Clubs
