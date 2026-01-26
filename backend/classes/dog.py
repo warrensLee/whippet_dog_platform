@@ -362,6 +362,93 @@ class Dog:
         except Error as e:
             raise e
 
+    def update(self):
+        """Update existing dog in database. Returns True on success, raises Error on failure."""
+        try:
+            execute(
+                """
+                UPDATE Dog
+                SET AKCNumber = %s,
+                    CKCNumber = %s,
+                    ForeignNumber = %s,
+                    ForeignType = %s,
+                    CallName = %s,
+                    RegisteredName = %s,
+                    Birthdate = %s,
+                    PedigreeLink = %s,
+                    Status = %s,
+                    Average = %s,
+                    CurrentGrade = %s,
+                    MeetPoints = %s,
+                    ARXPoints = %s,
+                    NARXPoints = %s,
+                    ShowPoints = %s,
+                    DPCLegs = %s,
+                    MeetWins = %s,
+                    Notes = %s,
+                    LastEditedBy = %s,
+                    LastEditedAt = %s
+                WHERE CWANumber = %s
+                """,
+                (
+                    self.akc_number,
+                    self.ckc_number,
+                    self.foreign_number,
+                    self.foreign_type,
+                    self.call_name,
+                    self.registered_name,
+                    self.birthdate,
+                    self.pedigree_link,
+                    self.status,
+                    self.average,
+                    self.current_grade,
+                    self.meet_points,
+                    self.arx_points,
+                    self.narx_points,
+                    self.show_points,
+                    self.dpc_legs,
+                    self.meet_wins,
+                    self.notes or None,
+                    self.last_edited_by,
+                    self.last_edited_at,
+                    self.cwa_number
+                ),
+            )
+            return True
+        except Error as e:
+            raise e
+        
+    def delete(self, cwa_number):
+        """Delete dog from database. Returns True on success, raises Error on failure."""
+        try:
+            execute(
+                """
+                DELETE FROM Dog
+                WHERE CWANumber = %s
+                """,
+                (cwa_number,),
+            )
+            return True
+        except Error as e:
+            raise e
+    
+    def list_all_dogs(self):
+        """List all dogs from database. Returns list of Dog instances."""
+        rows = fetch_all(
+            """
+            SELECT CWANumber, AKCNumber, CKCNumber, ForeignNumber, ForeignType,
+                    CallName, RegisteredName, Birthdate, PedigreeLink,
+                    Status, Average, CurrentGrade,
+                    MeetPoints, ARXPoints, NARXPoints, ShowPoints,
+                    DPCLegs, MeetWins, Notes,
+                    LastEditedBy, LastEditedAt
+            FROM Dog
+            ORDER BY RegisteredName
+            """,
+        )
+        dogs = [Dog.from_db_row(row) for row in rows]
+        return dogs
+
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""
         return {
