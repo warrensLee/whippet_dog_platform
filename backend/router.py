@@ -3,6 +3,7 @@ from flask import Blueprint, jsonify
 from database import fetch_all, fetch_one
 from controller.authentication import auth_bp
 from controller.contact import contact_bp
+from controller.club import club_bp
 
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
@@ -33,5 +34,6 @@ def register_routes(app):
     """Register all blueprints with the Flask app"""
     app.register_blueprint(auth_bp)
     app.register_blueprint(contact_bp)
+    app.register_blueprint(club_bp)
     app.register_blueprint(api_bp)
     app.register_blueprint(main_bp)

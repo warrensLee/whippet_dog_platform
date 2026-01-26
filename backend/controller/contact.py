@@ -1,6 +1,8 @@
 import os
 import smtplib
 import time
+import re
+from database import fetch_all
 from email.message import EmailMessage
 from typing import Dict, Any
 from flask import Blueprint, request, jsonify
@@ -112,6 +114,49 @@ def submit_contact():
             return _json_error("Unable to send your message right now. Please try again later.", 500)
 
     return jsonify({"ok": True}), 200
+
+ROLE_ORDER = [
+    "President",
+    "Vice President",
+    "Secretary",
+    "Treasurer",
+    "Registrar",
+    "Statistician",
+    "Website",
+]
+
+ROLE_INDEX = {r: i for i, r in enumerate(ROLE_ORDER)}
+
+OFFICER_RE = re.compile(r"Officer:\s*([^\n\r;|,]+)", re.IGNORECASE)
+
+@contact_bp.get("/api/contact/officers")
+def club_officers():
+    rows = fetch_all("""
+        SELECT FirstName, LastName, EmailAddress, Notes
+        FROM Person
+        WHERE Notes LIKE '%Officer:%'
+    """)
+
+    officers = []
+
+    for r in rows:
+        notes = r.get("Notes") or ""
+        match = OFFICER_RE.search(notes)
+        if not match:
+            continue
+
+        raw_roles = match.group(1)
+        roles = [role.strip() for role in raw_roles.split("/") if role.strip()]
+
+        for role in roles:
+            officers.append({
+                "role": role,
+                "name": f"{r['FirstName']} {r['LastName']}".strip(),
+                "email": r.get("EmailAddress") or None,
+            })
+
+    officers.sort(key=lambda x: ROLE_INDEX.get(x["role"], 999))
+    return jsonify(officers)
 
 
 @contact_bp.route("/api/contact/health", methods=["GET"])

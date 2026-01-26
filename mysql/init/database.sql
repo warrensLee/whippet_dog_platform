@@ -38,10 +38,6 @@ CREATE TABLE `UserRole` (
   `LastEditedAt` TIMESTAMP
 );
 
-INSERT INTO `UserRole` (`Title`)
-VALUES ('Admin'), ('Public')
-ON DUPLICATE KEY UPDATE `Title` = `Title`;
-
 CREATE TABLE `News` (
   `NewsID` INT PRIMARY KEY AUTO_INCREMENT,
   `Title` VARCHAR(100) NOT NULL,
@@ -95,7 +91,7 @@ CREATE TABLE `DogOwner` (
 
 CREATE TABLE `Club` (
   `ClubAbbreviation` VARCHAR(20) PRIMARY KEY,
-  `ClubName` VARCHAR(50) NOT NULL,
+  `ClubName` VARCHAR(100) NOT NULL,
   `ClubStatus` VARCHAR(8) NOT NULL,
   `BeginDate` DATE,
   `EndDate` DATE,
@@ -165,6 +161,11 @@ CREATE TABLE `ChangeLog` (
   `Source` VARCHAR(32),
   `BeforeData` TEXT,
   `AfterData` TEXT
+);
+
+CREATE TABLE SchemaMigrations (
+  Version VARCHAR(50) PRIMARY KEY,
+  AppliedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 ALTER TABLE `DogTitles` ADD FOREIGN KEY (`CWANumber`) REFERENCES `Dog` (`CWANumber`);

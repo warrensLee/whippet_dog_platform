@@ -4,8 +4,7 @@ Docstring for club
 TODO:
 '''
 
-from werkzeug.security import generate_password_hash, check_password_hash
-from database import fetch_one, execute
+from database import fetch_one, execute, fetch_all
 from mysql.connector import Error
 
 class Club:
@@ -87,6 +86,41 @@ class Club:
             (club_abbreviation,),
         )
         return existing is not None
+    
+    @classmethod
+    def list_board_roster(cls):
+        """
+        Flatten board members from Club.BoardMember1 and Club.BoardMember2 into a list.
+        """
+        return fetch_all(
+        """
+        SELECT
+          c.ClubName              AS club,
+          p.StateProvince         AS location,
+          p.Country               AS country,
+          CONCAT(p.FirstName, ' ', p.LastName) AS name,
+          p.EmailAddress          AS email,
+          'BoardMember1'          AS slot
+        FROM Club c
+        JOIN Person p ON p.PersonID = c.BoardMember1
+        WHERE c.BoardMember1 IS NOT NULL
+
+        UNION ALL
+
+        SELECT
+          c.ClubName              AS club,
+          p.StateProvince         AS location,
+          p.Country               AS country,
+          CONCAT(p.FirstName, ' ', p.LastName) AS name,
+          p.EmailAddress          AS email,
+          'BoardMember2'          AS slot
+        FROM Club c
+        JOIN Person p ON p.PersonID = c.BoardMember2
+        WHERE c.BoardMember2 IS NOT NULL
+
+        ORDER BY club, slot
+        """
+        )
 
     def validate(self):
         """Validate required fields. Returns list of errors (empty if valid)."""
