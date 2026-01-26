@@ -1,8 +1,8 @@
 
 from flask import Blueprint, jsonify
 from database import fetch_all, fetch_one
-from authentication import auth_bp
-from contact import contact_bp
+from controller.authentication import auth_bp
+from controller.contact import contact_bp
 
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
