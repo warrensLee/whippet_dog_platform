@@ -133,6 +133,56 @@ class Club:
         except Error as e:
             raise e
 
+    def update(self):
+        """Update club in database. Returns True on success, raises Error on failure."""
+        try:
+            execute(
+                """
+                UPDATE Club
+                SET ClubName = %s,
+                    ClubStatus = %s,
+                    BeginDate = %s,
+                    EndDate = %s,
+                    BoardMember1 = %s,
+                    BoardMember2 = %s,
+                    DefaultRaceSecretary = %s,
+                    Notes = %s,
+                    LastEditedBy = %s,
+                    LastEditedAt = %s
+                WHERE ClubAbbreviation = %s
+                """,
+                (
+                    self.club_name,
+                    self.club_status,
+                    self.begin_date,
+                    self.end_date,
+                    self.board_member1,
+                    self.board_member2,
+                    self.default_race_secretary,
+                    self.notes,
+                    self.last_edited_by,
+                    self.last_edited_at,
+                    self.club_abbreviation
+                ),
+            )
+            return True
+        except Error as e:
+            raise e
+
+    def delete(self, club_abbreviation):
+        """Delete club from database. Returns True on success, raises Error on failure."""
+        try:
+            execute(
+                """
+                DELETE FROM Club
+                WHERE ClubAbbreviation = %s
+                """,
+                (self.club_abbreviation,),
+            )
+            return True
+        except Error as e:
+            raise e
+
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""
         return {
