@@ -155,6 +155,56 @@ class Person:
         except Error as e:
             raise e
 
+    def update(self):
+        """Update existing person in database. Returns True on success, raises Error on failure."""
+        try:
+            execute(
+                """
+                UPDATE Person
+                SET FirstName = %s,
+                    LastName = %s,
+                    EmailAddress = %s,
+                    AddressLineOne = %s,
+                    AddressLineTwo = %s,
+                    City = %s,
+                    StateProvince = %s,
+                    ZipCode = %s,
+                    Country = %s,
+                    PrimaryPhone = %s,
+                    SecondaryPhone = %s,
+                    SystemRole = %s,
+                    PasswordHash = %s,
+                    Notes = %s,
+                    LastEditedBy = %s,
+                    LastEditedAt = %s,
+                WHERE PersonID = %s
+                """,
+                (
+                    self.first_name, self.last_name, self.email,
+                    self.address_line_one, self.address_line_two, self.city, self.state_province,
+                    self.zip_code, self.country, self.primary_phone, self.secondary_phone,
+                    self.system_role, self.password_hash, self.notes,
+                    self.last_edited_by, self.person_id
+                ),
+            )
+            return True
+        except Error as e:
+            raise e
+    
+    def delete(self, person_id):
+        """Delete person from database. Returns True on success, raises Error on failure."""
+        try:
+            execute(
+                """
+                DELETE FROM Person
+                WHERE PersonID = %s
+                """,
+                (person_id,),
+            )
+            return True
+        except Error as e:
+            raise e
+
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""
         return {
