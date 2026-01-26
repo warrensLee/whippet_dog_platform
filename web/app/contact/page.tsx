@@ -29,54 +29,59 @@ const flagForCountry = (code: string) => {
 };
 
 export default function Home() {
-  const officers: OfficerRoster[] = useMemo(
-    () => [
-      { role: "President", name: "Krista Siehndel", email: "ksiehndel@gmail.com" },
-      { role: "Vice President", name: "Julie Poole", email: "llpoolej@gmail.com" },
-      { role: "Secretary", name: "Kristal Couch", email: "kcouch76@gmail.com" },
-      { role: "Treasurer", name: "Beth Levvine", email: "serendipitywhippets@gmail.com" },
-      { role: "Registrar", name: "Liz Aiel", email: "bobookitty@aol.com" },
-      { role: "Statistician", name: "Krista Siehndel", email: "ksiehndel@gmail.com" },
-      { role: "Website", name: "Beth Levvine", email: "serendipitywhippets@gmail.com" },
-    ],
-    []
-  );
+  type OfficerRoster = {
+  role: string;
+  name: string;
+  email?: string;
+};
 
-  const board: DirectorRoster[] = useMemo(
-    () => [
-        { club: "Alamo Area Whippet Club (AAWC)", location: "TX", country: "US", name: "Nancy Colson", email: "dorae_nrc@consolidated.net" },
-        { club: "Alamo Area Whippet Club (AAWC)", location: "TX", country: "US", name: "Sami Hirko", email: "dediciwhippets@yahoo.com" },
-        { club: "Badgerland Whippet Association (BWA)", location: "WI", country: "US", name: "Janet Siehndel", email: "noralor100@yahoo.com" },
-        { club: "Badgerland Whippet Association (BWA)", location: "WI", country: "US", name: "Peggy Berg", email: "shineberg@gmail.com" },
-        { club: "CT/MA/NY Whippet Society (CMANYWHIPS)", location: "MA", country: "US", name: "Liz Aiello", email: "bobookitty@aol.com" },
-        { club: "CT/MA/NY Whippet Society (CMANYWHIPS)", location: "MA", country: "US", name: "Phoebe Booth", email: "shamasan@aol.com" },
-        { club: "Dairyland Whippet Club (DWC)", location: "WI", country: "US", name: "Mary Beth Arthur", email: "marialwhippets@gmail.com" },
-        { club: "Dairyland Whippet Club (DWC)", location: "WI", country: "US", name: "Tom Moran", email: "lmoranthomas@gmail.com" },
-        { club: "Georgia Rag Racing (GRR)", location: "GA", country: "US", name: "Chris Durance-Watkins", email: "georgiaragracing@gmail.com" },
-        { club: "Georgia Rag Racing (GRR)", location: "GA", country: "US", name: "Jennifer Kempey", email: "Skylinewhippets@gmail.com" },
-        { club: "Mid-Atlantic Whippet Racing Association (MAWRA)", location: "NJ & VA", country: "US", name: "Annie Andrews", email: "andrewsmysticrun@gmail.com" },
-        { club: "Mid-Atlantic Whippet Racing Association (MAWRA)", location: "NJ & VA", country: "US", name: "Kristen Fredericks", email: "cofeature@gmail.com" },
-        { club: "North Star Racing (NSR)", location: "MN", country: "US", name: "Barb Hearley", email: "bhearley@yahoo.com" },
-        { club: "North Star Racing (NSR)", location: "MN", country: "US", name: "Fran Hearley", email: "fhearley@yahoo.com" },
-        { club: "Northern California Whippet Fanciers Association (NCWFA)", location: "CA", country: "US", name: "Bonnie Moore", email: "bonnie.moore@gmail.com" },
-        { club: "Northern California Whippet Fanciers Association (NCWFA)", location: "CA", country: "US", name: "Jenifer Haas", email: "whippetmom@me.com" },
-        { club: "Oklahoma Racing and Coursing Association (ORCA)", location: "OK", country: "US", name: "Kristal Couch", email: "kcouch76@gmail.com" },
-        { club: "Oklahoma Racing and Coursing Association (ORCA)", location: "OK", country: "US", name: "Lisa Costello", email: "mtncow100@gmail.com" },
-        { club: "Pretty Darn Quick Whippet Club (PDQWC)", location: "WI", country: "US", name: "Krista Siehndel", email: "ksiehndel@gmail.com" },
-        { club: "Pretty Darn Quick Whippet Club (PDQWC)", location: "WI", country: "US", name: "Kristy Thomas", email: "messyparrot@yahoo.com" },
-        { club: "Racing For Fun (RFF)", location: "BC", country: "CA", name: "Beth Levine", email: "serendipitywhippets@gmail.com" },
-        { club: "Racing For Fun (RFF)", location: "BC", country: "CA", name: "Lorna Leinbach", email: "leinbach@shaw.ca" },
-        { club: "River City Racing Association (RCRA)", location: "CA", country: "US", name: "Charlotte Fielder", email: "charlottefielder@me.com" },
-        { club: "River City Racing Association (RCRA)", location: "CA", country: "US", name: "Diane Johnson", email: "diane.r.johnson@sbcglobal.net" },
-        { club: "Rock and Roll Whippet Association (RNRWA)", location: "OH", country: "US", name: "Carl Morgan", email: "cmorgan215@att.net" },
-        { club: "Rock and Roll Whippet Association (RNRWA)", location: "OH", country: "US", name: "Brooklyn Canfield", email: "samorakennel@gmail.com" },
-        { club: "Smokey Mountain Area Racing Tennessee (SMART)", location: "TN", country: "US", name: "Julie Poole", email: "llpoolej@gmail.com" },
-        { club: "Smokey Mountain Area Racing Tennessee (SMART)", location: "TN", country: "US", name: "Phyllis Brown", email: "smartwhippet@gmail.com" },
-        { club: "Whippets in New England (WINE)", location: "MA", country: "US", name: "Elizabeth Rockwell", email: "elizabeth.rockwell@gmail.com" },
-        { club: "Whippets in New England (WINE)", location: "MA", country: "US", name: "Donna Miner", email: "dominodogs@charter.net" },
-    ],
-    []
-  );
+const [officers, setOfficers] = useState<OfficerRoster[]>([]);
+
+useEffect(() => {
+  let cancelled = false;
+
+  (async () => {
+    try {
+      const res = await fetch("/api/contact/officers");
+      if (!res.ok) throw new Error(`Failed to load officers (${res.status})`);
+      const data: OfficerRoster[] = await res.json();
+      if (!cancelled) setOfficers(data);
+    } catch (e) {
+      console.error("Officers fetch failed:", e);
+      if (!cancelled) setOfficers([]);
+    }
+  })();
+
+  return () => {
+    cancelled = true;
+  };
+}, []);
+
+  const [board, setBoard] = useState<DirectorRoster[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await fetch("/api/club/board");
+        if (!res.ok) throw new Error(`Failed to load board (${res.status})`);
+
+        const data = await res.json();
+
+        if (!cancelled) {
+          setBoard(data);
+        }
+      } catch (e) {
+        console.error("Board fetch failed:", e);
+        if (!cancelled) setBoard([]);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -209,7 +214,8 @@ export default function Home() {
         officersDt = $(officersTableRef.current).DataTable();
       }
 
-      if (boardTableRef.current) {
+      // Only init board table once it actually has rows (prevents empty init)
+      if (boardTableRef.current && board.length > 0) {
         initOne({ $, tableEl: boardTableRef.current });
         boardDt = $(boardTableRef.current).DataTable();
       }
@@ -222,7 +228,7 @@ export default function Home() {
       if (officersDt) officersDt.destroy(true);
       if (boardDt) boardDt.destroy(true);
     };
-  }, []);
+  }, [board.length]);
 
   return (
     <main>

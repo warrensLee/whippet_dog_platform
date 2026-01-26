@@ -11,7 +11,7 @@ from mysql.connector import Error
 class UserRole:
 
     #VALID_SYSTEM_ROLES = {"Admin", "Editor", "Viewer"}
-    VALID_USER_ROLES = {"Admin, Public"}
+    VALID_USER_ROLES = {"ADMIN", "PUBLIC"}
 
 
     def __init__(self, role_id, title, last_edited_by=None, last_edited_at=None):

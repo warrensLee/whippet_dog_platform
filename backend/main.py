@@ -1,6 +1,7 @@
 from flask import Flask
 from config import get_config
 from router import register_routes
+from migrate import run_migrations
 
 def create_app(config_name='development'):
     """Application factory pattern"""
@@ -10,6 +11,7 @@ def create_app(config_name='development'):
     
     return app
 
+run_migrations()
 app = create_app()
 
 if __name__ == "__main__":

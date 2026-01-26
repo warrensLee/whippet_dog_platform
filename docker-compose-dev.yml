@@ -19,6 +19,9 @@ services:
     user: 1000:1000
     shm_size: 1g
     command: sh -c "npm install && npm run dev"
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
       - 127.0.0.1:3000:3000
     volumes:
@@ -34,9 +37,11 @@ services:
     user: 1000:1000
     volumes:
       - ./backend:/app
+      - ./mysql/migrations:/app/mysql/migrations:ro
     command: sh -c "pip install flask gunicorn mysql-connector-python && gunicorn -b 0.0.0.0:8000 main:app"
     depends_on: [db]
     environment:
+      - DB_POOL_SIZE=10
       - FLASK_ENV=development
       - FLASK_RUN_HOST=0.0.0.0
       - FLASK_RUN_PORT=8000 
