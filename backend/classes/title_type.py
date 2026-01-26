@@ -106,6 +106,42 @@ class TitleType:
         except Error as e:
             raise e
 
+    def update(self):
+        """Update title type in database. Returns True on success, raises Error on failure."""
+        try:
+            execute(
+                """
+                UPDATE TitleType
+                SET TitleDescription = %s,
+                    LastEditedBy = %s,
+                    LastEditedAt = %s
+                WHERE Title = %s
+                """,
+                (
+                    self.title_description,
+                    self.last_edited_by,
+                    self.last_edited_at,
+                    self.title
+                ),
+            )
+            return True
+        except Error as e:
+            raise e
+        
+    def delete(self, title):
+        """Delete title type from database. Returns True on success, raises Error on failure."""
+        try:
+            execute(
+                """
+                DELETE FROM TitleType
+                WHERE Title = %s
+                """,
+                (title,),
+            )
+            return True
+        except Error as e:
+            raise e
+            
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""
         return {
