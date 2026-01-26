@@ -99,6 +99,42 @@ class UserRole:
         except Error as e:
             raise e
 
+    def update(self):
+        """Update user role in database. Returns True on success, raises Error on failure."""
+        try:
+            execute(
+                """
+                UPDATE UserRole
+                SET Title = %s,
+                    LastEditedBy = %s,
+                    LastEditedAt = %s
+                WHERE RoleID = %s
+                """,
+                (
+                    self.title,
+                    self.last_edited_by,
+                    self.last_edited_at,
+                    self.role_id
+                ),
+            )
+            return True
+        except Error as e:
+            raise e
+
+    def delete(self, role_id):
+        """Delete user role from database. Returns True on success, raises Error on failure."""
+        try:
+            execute(
+                """
+                DELETE FROM UserRole
+                WHERE RoleID = %s
+                """,
+                (role_id,),
+            )
+            return True
+        except Error as e:
+            raise e
+            
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""
         return {
