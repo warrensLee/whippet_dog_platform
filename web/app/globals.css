@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "datatables.net-dt/css/dataTables.dataTables.css";
+@import "flag-icons/css/flag-icons.min.css";
 
 :root {
   --background: #ffffff;
@@ -23,4 +25,166 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+table.dataTable tbody td {
+  color: #000000 !important;
+}
+
+table.dataTable {
+  width: 100% !important;
+  table-layout: auto !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+
+table.dataTable thead tr:first-child th {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border-bottom: none !important;
+}
+
+table.dataTable thead tr:first-child th:first-child {
+  border-top-left-radius: 0.75rem;
+}
+
+table.dataTable thead tr:first-child th:last-child {
+  border-top-right-radius: 0.75rem;
+}
+
+table.dataTable tbody td {
+  border-radius: 0 !important;
+}
+
+table.dataTable thead {
+  overflow: hidden;
+}
+
+table.dataTable tbody tr:first-child td {
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.dt-col-input {
+  color: #000000 !important;
+  background-color: #ffffff !important;
+}
+
+.dt-col-input::placeholder {
+  color: rgba(0, 0, 0, 0.45);
+  opacity: 1;
+}
+
+.dt-col-input:focus {
+  outline: none;
+  border-color: rgba(0, 0, 0, 0.4);
+}
+
+.dataTables_wrapper .dt-search,
+.dataTables_wrapper .dataTables_filter {
+  display: none !important;
+}
+
+.dataTables_wrapper {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+table.dataTable {
+  width: 100% !important;
+  max-width: 100% !important;
+  table-layout: auto !important;
+}
+
+table.dataTable th,
+table.dataTable td {
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+}
+
+.dt-col-input {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  color: #000000 !important;        
+  background-color: #ffffff !important;
+}
+
+.dt-col-input::placeholder {
+  color: rgba(0, 0, 0, 0.5) !important;
+  opacity: 1 !important;
+}
+
+.dt-col-input:focus {
+  outline: none;
+  border-color: rgba(0, 0, 0, 0.4);
+}
+
+
+/* =========================
+   Showing # of # Entries
+   ========================= */
+div.dt-container .dt-info {
+  color: black !important;
+}
+
+/* =========================
+   PAGING — NORMAL
+   ========================= */
+div.dt-container .dt-paging .dt-paging-button {
+  background: #2563eb !important;
+  background-image: none !important;
+  border: 1px solid #2563eb !important;
+  color: #ffffff !important;
+  border-radius: 0.375rem !important;
+  padding: 0.25rem 0.6rem !important;
+  margin: 0 0.125rem !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+}
+
+/* =========================
+   PAGING — HOVER
+   ========================= */
+div.dt-container .dt-paging .dt-paging-button:hover:not(.disabled):not(.current) {
+  background: #1d4ed8 !important;
+  background-image: none !important;
+  border-color: #1d4ed8 !important;
+  color: #ffffff !important;
+}
+
+/* =========================
+   PAGING — CURRENT (ACTIVE)
+   ========================= */
+div.dt-container .dt-paging .dt-paging-button.current {
+  background: #0a51e9 !important;
+  background-image: none !important;
+  border-color: #0a51e9 !important;
+  color: #ffffff !important;
+  font-weight: 600;
+}
+
+/* =========================
+   PAGING — DISABLED
+   ========================= */
+div.dt-container .dt-paging .dt-paging-button.disabled,
+div.dt-container .dt-paging .dt-paging-button.disabled:hover,
+div.dt-container .dt-paging .dt-paging-button.disabled:active {
+  background: #6491f3 !important;
+  background-image: none !important;
+  border-color: #6491f3 !important;
+  color: #ffffff !important;
+  cursor: default !important;
+  opacity: 0.7 !important;
+  box-shadow: none !important;
+}
+
+/* =========================
+   LINKS INSIDE DATATABLES
+   ========================= */
+table.dataTable tbody td a,
+table.dataTable tbody a.dt-link {
+  color: #2563eb !important;
+  text-decoration: underline !important;
 }

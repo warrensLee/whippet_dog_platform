@@ -13,13 +13,19 @@
     "next": "16.1.2",
     "prisma": "^6.19.2",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "jquery": "^3.7.1",
+    "datatables.net": "^2.2.2",
+    "datatables.net-dt": "^2.2.2",
+    "flag-icons": "^7.x.x"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/jquery": "^3.5.31",
+    "@types/datatables.net": "^1.10.28",
     "eslint": "^9",
     "eslint-config-next": "16.1.2",
     "tailwindcss": "^4",
