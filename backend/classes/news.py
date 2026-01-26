@@ -118,6 +118,48 @@ class News:
         except Error as e:
             raise e
 
+    def update(self):
+        """Update existing news in database. Returns True on success, raises Error on failure."""
+        try:
+            execute(
+                """
+                UPDATE News
+                SET Title = %s,
+                    Content = %s,
+                    UpdatedAt = %s,
+                    AuthorID = %s,
+                    LastEditedBy = %s,
+                    LastEditedAt = %s
+                WHERE NewsID = %s
+                """,
+                (
+                    self.title,
+                    self.content,
+                    self.updated_at,
+                    self.author_id,
+                    self.last_edited_by,
+                    self.last_edited_at,
+                    self.news_id
+                ),
+            )
+            return True
+        except Error as e:
+            raise e
+
+    def delete(self, news_id):   
+        """Delete news from database. Returns True on success, raises Error on failure."""
+        try:
+            execute(
+                """
+                DELETE FROM News
+                WHERE NewsID = %s
+                """,
+                (news_id,),
+            )
+            return True
+        except Error as e:
+            raise e
+
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""
         return {

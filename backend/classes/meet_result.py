@@ -147,6 +147,65 @@ class MeetResult:
         except Error as e:
             raise e
 
+    def update(self):
+        """Update meet result in database. Returns True on success, raises Error on failure."""
+        try:
+            execute(
+                """
+                UPDATE MeetResults
+                SET Average = %s,
+                    Grade = %s,
+                    MeetPlacement = %s,
+                    MeetPoints = %s,
+                    ARXEarned = %s,
+                    NARXEarned = %s,
+                    Shown = %s,
+                    ShowPlacement = %s,
+                    ShowPoints = %s,
+                    DPCLeg = %s,
+                    HCScore = %s,
+                    HCLegEarned = %s,
+                    LastEditedBy = %s,
+                    LastEditedAt = %s
+                WHERE MeetNumber = %s AND CWANumber = %s
+                """,
+                (
+                    self.average,
+                    self.grade,
+                    self.meet_placement,
+                    self.meet_points,
+                    self.arx_earned,
+                    self.narx_earned,
+                    self.shown,
+                    self.show_placement,
+                    self.show_points,
+                    self.dpc_leg,
+                    self.hc_score,
+                    self.hc_leg_earned,
+                    self.last_edited_by,
+                    self.last_edited_at,
+                    self.meet_number,
+                    self.cwa_number
+                ),
+            )
+            return True
+        except Error as e:
+            raise e
+    
+    def delete(self, meet_number, cwa_number):
+        """Delete meet result from database. Returns True on success, raises Error on failure."""
+        try:
+            execute(
+                """
+                DELETE FROM MeetResults
+                WHERE MeetNumber = %s AND CWANumber = %s
+                """,
+                (meet_number, cwa_number),
+            )
+            return True
+        except Error as e:
+            raise e
+
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""
         return {
