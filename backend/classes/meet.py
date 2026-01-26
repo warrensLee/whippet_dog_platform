@@ -131,6 +131,52 @@ class Meet:
         except Error as e:
             raise e
 
+    def update(self):
+        """Update meet in database. Returns True on success, raises Error on failure."""
+        try:
+            execute(
+                """
+                UPDATE Meet
+                SET ClubAbbreviation = %s,
+                    MeetDate = %s,
+                    RaceSecretary = %s,
+                    Judge = %s,
+                    Location = %s,
+                    Yards = %s,
+                    LastEditedBy = %s,
+                    LastEditedAt = %s
+                WHERE MeetNumber = %s
+                """,
+                (
+                    self.club_abbreviation,
+                    self.meet_date,
+                    self.race_secretary,
+                    self.judge,
+                    self.location,
+                    self.yards,
+                    self.last_edited_by,
+                    self.last_edited_at,
+                    self.meet_number
+                ),
+            )
+            return True
+        except Error as e:
+            raise e
+    
+    def delete(self, meet_number):
+        """Delete meet from database. Returns True on success, raises Error on failure."""
+        try:
+            execute(
+                """
+                DELETE FROM Meet
+                WHERE MeetNumber = %s
+                """,
+                (meet_number,),
+            )
+            return True
+        except Error as e:
+            raise e
+            
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""
         return {

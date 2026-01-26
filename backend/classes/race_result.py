@@ -137,6 +137,45 @@ class RaceResult:
         except Error as e:
             raise e
 
+    def update(self):
+        """Update race result in database. Returns True on success, raises Error on failure."""
+        try:
+            execute(
+                """
+                UPDATE RaceResult
+                SET EntryType = %s,
+                    Box = %s,
+                    Placement = %s,
+                    MeetPoints = %s,
+                    Incident = %s,
+                    LastEditedBy = %s,
+                    LastEditedAt = %s
+                WHERE MeetNumber = %s AND CWANumber = %s AND Program = %s AND RaceNumber = %s
+                """,
+                (
+                    self.entry_type, self.box, self.placement, self.meet_points,
+                    self.incident, self.last_edited_by, self.last_edited_at,
+                    self.meet_number, self.cwa_number, self.program , self.race_number
+                ),      
+            )
+            return True
+        except Error as e:
+            raise e
+    
+    def delete(self, meet_number, cwa_number, program, race_number):
+        """Delete race result from database. Returns True on success, raises Error on failure."""
+        try:
+            execute(
+                """
+                DELETE FROM RaceResult
+                WHERE MeetNumber = %s AND CWANumber = %s AND Program = %s AND RaceNumber = %s
+                """,
+                (meet_number, cwa_number, program, race_number),
+            )
+            return True
+        except Error as e:
+            raise e
+            
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""
         return {
