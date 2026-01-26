@@ -124,6 +124,49 @@ class DogTitle:
         except Error as e:
             raise e
 
+    def update(self):
+        """Update dog title in database. Returns True on success, raises Error on failure."""
+        try:
+            execute(
+                """
+                UPDATE DogTitle
+                SET TitleNumber = %s,
+                    TitleDate = %s,
+                    NamePrefix = %s,
+                    NameSuffix = %s,
+                    LastEditedBy = %s,
+                    LastEditedAt = %s
+                WHERE CWANumber = %s AND Title = %s
+                """,
+                (
+                    self.title_number,
+                    self.title_date,
+                    self.name_prefix,
+                    self.name_suffix,
+                    self.last_edited_by,
+                    self.last_edited_at,
+                    self.cwa_number,
+                    self.title
+                ),
+            )
+            return True
+        except Error as e:
+            raise e
+
+    def delete(self, cwa_number, title):
+        """Delete dog title from database. Returns True on success, raises Error on failure."""
+        try:
+            execute(
+                """
+                DELETE FROM DogTitle
+                WHERE CWANumber = %s AND Title = %s
+                """,
+                (cwa_number, title),
+            )
+            return True
+        except Error as e:
+            raise e
+
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""
         return {
