@@ -95,6 +95,39 @@ class DogOwner:
         except Error as e:
             raise e
 
+    def update(self):
+        """Update dog owner in database. Returns True on success, raises Error on failure."""
+        try:
+            execute(
+                """
+                UPDATE DogOwner
+                SET LastEditedBy = %s,
+                    LastEditedAt = %s
+                WHERE CWA_ID = %s AND PersonID = %s
+                """,
+                (
+                    self.last_edited_by, self.last_edited_at,
+                    self.cwa_id, self.person_id
+                ),
+            )
+            return True
+        except Error as e:
+            raise e
+
+    def delete(self, cwa_id, person_id):
+        """Delete dog owner from database. Returns True on success, raises Error on failure."""
+        try:
+            execute(
+                """
+                DELETE FROM DogOwner
+                WHERE CWA_ID = %s AND PersonID = %s
+                """,
+                (cwa_id, person_id),
+            )
+            return True
+        except Error as e:
+            raise e
+    
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""
         return {
