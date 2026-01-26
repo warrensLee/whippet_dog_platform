@@ -115,47 +115,29 @@ def submit_contact():
 
     return jsonify({"ok": True}), 200
 
-ROLE_ORDER = [
-    "President",
-    "Vice President",
-    "Secretary",
-    "Treasurer",
-    "Registrar",
-    "Statistician",
-    "Website",
-]
-
-ROLE_INDEX = {r: i for i, r in enumerate(ROLE_ORDER)}
-
-OFFICER_RE = re.compile(r"Officer:\s*([^\n\r;|,]+)", re.IGNORECASE)
-
 @contact_bp.get("/api/contact/officers")
 def club_officers():
     rows = fetch_all("""
-        SELECT FirstName, LastName, EmailAddress, Notes
-        FROM Person
-        WHERE Notes LIKE '%Officer:%'
+        SELECT
+            o.RoleName AS role,
+            CONCAT(p.FirstName, ' ', p.LastName) AS name,
+            p.EmailAddress AS email,
+            o.DisplayOrder AS display_order
+        FROM OfficerRole o
+        JOIN Person p ON p.PersonID = o.PersonID
+        WHERE o.Active = TRUE
+        ORDER BY o.DisplayOrder ASC, o.RoleName ASC, p.LastName ASC, p.FirstName ASC
     """)
 
-    officers = []
+    officers = [
+        {
+            "role": r["role"],
+            "name": (r.get("name") or "").strip(),
+            "email": r.get("email") or None,
+        }
+        for r in rows
+    ]
 
-    for r in rows:
-        notes = r.get("Notes") or ""
-        match = OFFICER_RE.search(notes)
-        if not match:
-            continue
-
-        raw_roles = match.group(1)
-        roles = [role.strip() for role in raw_roles.split("/") if role.strip()]
-
-        for role in roles:
-            officers.append({
-                "role": role,
-                "name": f"{r['FirstName']} {r['LastName']}".strip(),
-                "email": r.get("EmailAddress") or None,
-            })
-
-    officers.sort(key=lambda x: ROLE_INDEX.get(x["role"], 999))
     return jsonify(officers)
 
 
