@@ -122,6 +122,52 @@ class ChangeLog:
         except Error as e:
             raise e
 
+    def update(self):
+        """Update change log in database. Returns True on success, raises Error on failure."""
+        try:
+            execute(
+                """
+                UPDATE ChangeLog
+                SET ChangedTable = %s,
+                    RecordPK = %s,
+                    Operation = %s,
+                    ChangedBy = %s,
+                    ChangedAt = %s,
+                    Sources = %s,
+                    BeforeData = %s,
+                    AfterData = %s
+                WHERE LogID = %s
+                """,
+                (
+                    self.changed_table,
+                    self.record_pk,
+                    self.operation,
+                    self.changed_by,
+                    self.changed_at,
+                    self.sources,
+                    self.before_data,
+                    self.after_data,
+                    self.log_id
+                ),
+            )
+            return True
+        except Error as e:
+            raise e
+        
+    def delete(self, log_id):
+        """Delete change log from database. Returns True on success, raises Error on failure."""
+        try:
+            execute(
+                """
+                DELETE FROM ChangeLog
+                WHERE LogID = %s
+                """,
+                (log_id,),
+            )
+            return True
+        except Error as e:
+            raise e
+            
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""
         return {
