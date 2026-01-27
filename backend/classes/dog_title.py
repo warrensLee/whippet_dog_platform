@@ -167,7 +167,7 @@ class DogTitle:
         except Error as e:
             raise e
 
-    def show_all_dog_titles():
+    def list_all_dog_titles():
         """Retrieve all dog titles from the database."""
         rows = fetch_all(
             """
