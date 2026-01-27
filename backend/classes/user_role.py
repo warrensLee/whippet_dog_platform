@@ -135,7 +135,7 @@ class UserRole:
         except Error as e:
             raise e
 
-    def show_all_user_roles():
+    def list_all_user_roles():
         """Retrieve all user roles from the database."""
         rows = fetch_all(
             """
