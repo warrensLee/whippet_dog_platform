@@ -4,7 +4,7 @@ Docstring for dog title
 TODO:
 '''
 from werkzeug.security import generate_password_hash, check_password_hash
-from database import fetch_one, execute
+from database import fetch_all, fetch_one, execute
 from mysql.connector import Error
 
 class DogTitle:
@@ -166,6 +166,16 @@ class DogTitle:
             return True
         except Error as e:
             raise e
+
+    def list_all_dog_titles():
+        """Retrieve all dog titles from the database."""
+        rows = fetch_all(
+            """
+            SELECT CWANumber, Title, TitleNumber, TitleDate, NamePrefix, NameSuffix, LastEditedBy, LastEditedAt
+            FROM DogTitle
+            """
+        )
+        return [DogTitle.from_db_row(row) for row in rows]
 
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""

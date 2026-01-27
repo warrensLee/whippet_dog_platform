@@ -1,5 +1,5 @@
 from werkzeug.security import generate_password_hash, check_password_hash
-from database import fetch_one, execute
+from database import fetch_all, fetch_one, execute
 from mysql.connector import Error
 
 class MeetResult:
@@ -205,6 +205,18 @@ class MeetResult:
             return True
         except Error as e:
             raise e
+
+    def list_all_meet_results():
+        """Retrieve all meet results from the database."""
+        rows = fetch_all(
+            """
+            SELECT MeetNumber, CWANumber, Average, Grade, MeetPlacement, MeetPoints,
+                    ARXEarned, NARXEarned, Shown, ShowPlacement, ShowPoints, DPCLeg,
+                    HCScore, HCLegEarned, LastEditedBy, LastEditedAt
+            FROM MeetResults
+            """
+        )
+        return [MeetResult.from_db_row(row) for row in rows]
 
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""
