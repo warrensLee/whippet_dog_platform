@@ -205,8 +205,8 @@ class Person:
         except Error as e:
             raise e
 
-    def list_all_people():
-        """Retrieve all people from the database."""
+    def list_all_persons():
+        """Retrieve all persons from the database."""
         rows = fetch_all(
             """
             SELECT PersonID, FirstName, LastName, EmailAddress, AddressLineOne,
