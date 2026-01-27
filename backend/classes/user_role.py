@@ -5,7 +5,7 @@ TODO:
 '''
 
 from werkzeug.security import generate_password_hash, check_password_hash
-from database import fetch_one, execute
+from database import fetch_all, fetch_one, execute
 from mysql.connector import Error
 
 class UserRole:
@@ -134,7 +134,17 @@ class UserRole:
             return True
         except Error as e:
             raise e
-            
+
+    def show_all_user_roles():
+        """Retrieve all user roles from the database."""
+        rows = fetch_all(
+            """
+            SELECT RoleID, Title, LastEditedBy, LastEditedAt
+            FROM UserRole
+            """
+        )
+        return [UserRole.from_db_row(row) for row in rows]
+        
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""
         return {
