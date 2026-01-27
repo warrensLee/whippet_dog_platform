@@ -12,7 +12,7 @@ Add physical attributes and check qualifications method?
 '''
 
 from werkzeug.security import generate_password_hash, check_password_hash
-from database import fetch_one, execute
+from database import fetch_all, fetch_one, execute
 from mysql.connector import Error
 
 class Dog:
