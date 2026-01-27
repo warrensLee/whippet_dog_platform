@@ -174,7 +174,7 @@ class RaceResult:
         except Error as e:
             raise e
 
-    def show_all_race_results():
+    def list_all_race_results():
         """Retrieve all race results from the database."""
         rows = fetch_all(
             """
