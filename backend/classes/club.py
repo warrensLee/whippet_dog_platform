@@ -211,7 +211,7 @@ class Club:
                 DELETE FROM Club
                 WHERE ClubAbbreviation = %s
                 """,
-                (self.club_abbreviation,),
+                (club_abbreviation,),
             )
             return True
         except Error as e:
