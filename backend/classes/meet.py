@@ -177,7 +177,7 @@ class Meet:
         except Error as e:
             raise e
 
-    def show_all_meets():
+    def list_all_meets():
         """Retrieve all meets from the database."""
         rows = fetch_all(
             """
