@@ -128,7 +128,7 @@ class DogOwner:
         except Error as e:
             raise e
 
-    def show_all_dog_owners():
+    def list_all_dog_owners():
         """Retrieve all dog owners from the database."""
         rows = fetch_all(
             """
