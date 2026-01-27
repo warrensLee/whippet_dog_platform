@@ -168,7 +168,7 @@ class ChangeLog:
         except Error as e:
             raise e
 
-    def show_all_change_logs():
+    def list_all_change_logs():
         """Retrieve all change logs from the database."""
         rows = fetch_all(
             """
