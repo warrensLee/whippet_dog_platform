@@ -1,7 +1,6 @@
 import os
 import smtplib
 import time
-import re
 from database import fetch_all
 from email.message import EmailMessage
 from typing import Dict, Any

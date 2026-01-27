@@ -29,59 +29,9 @@ const flagForCountry = (code: string) => {
 };
 
 export default function Home() {
-  type OfficerRoster = {
-  role: string;
-  name: string;
-  email?: string;
-};
-
-const [officers, setOfficers] = useState<OfficerRoster[]>([]);
-
-useEffect(() => {
-  let cancelled = false;
-
-  (async () => {
-    try {
-      const res = await fetch("/api/contact/officers");
-      if (!res.ok) throw new Error(`Failed to load officers (${res.status})`);
-      const data: OfficerRoster[] = await res.json();
-      if (!cancelled) setOfficers(data);
-    } catch (e) {
-      console.error("Officers fetch failed:", e);
-      if (!cancelled) setOfficers([]);
-    }
-  })();
-
-  return () => {
-    cancelled = true;
-  };
-}, []);
-
-  const [board, setBoard] = useState<DirectorRoster[]>([]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const res = await fetch("/api/club/board");
-        if (!res.ok) throw new Error(`Failed to load board (${res.status})`);
-
-        const data = await res.json();
-
-        if (!cancelled) {
-          setBoard(data);
-        }
-      } catch (e) {
-        console.error("Board fetch failed:", e);
-        if (!cancelled) setBoard([]);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const [data, setData] = useState<{ officers: OfficerRoster[]; board: DirectorRoster[] } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -91,6 +41,50 @@ useEffect(() => {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState("");
+
+  const officersTableRef = useRef<HTMLTableElement>(null);
+  const boardTableRef = useRef<HTMLTableElement>(null);
+  
+   // Fetch both datasets
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const [officersRes, boardRes] = await Promise.all([
+          fetch("/api/contact/officers", { cache: "no-store" }),
+          fetch("/api/club/board", { cache: "no-store" }),
+        ]);
+
+        if (!officersRes.ok) throw new Error(`Failed to load officers (${officersRes.status})`);
+        if (!boardRes.ok) throw new Error(`Failed to load board (${boardRes.status})`);
+
+        const [officers, board] = await Promise.all([officersRes.json(), boardRes.json()]);
+
+        if (!cancelled) {
+          setData({
+            officers: Array.isArray(officers) ? (officers as OfficerRoster[]) : [],
+            board: Array.isArray(board) ? (board as DirectorRoster[]) : [],
+          });
+        }
+      } catch (e: any) {
+        console.error("Data fetch failed:", e);
+        if (!cancelled) {
+          setData({ officers: [], board: [] });
+          setError(e?.message ?? "Failed to load data");
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const resetMessages = () => {
     setSubmitError("");
@@ -124,11 +118,9 @@ useEffect(() => {
       if (!res.ok) {
         let detail = "";
         try {
-          const data = await res.json();
-          detail = data?.error || data?.message || "";
-        } catch {
-          // ignore
-        }
+          const payload = await res.json();
+          detail = payload?.error || payload?.message || "";
+        } catch {}
         throw new Error(detail || `Request failed (${res.status})`);
       }
 
@@ -145,10 +137,11 @@ useEffect(() => {
     }
   }
 
-  const officersTableRef = useRef<HTMLTableElement>(null);
-  const boardTableRef = useRef<HTMLTableElement>(null);
+  const dataReady = !!data && !loading && !error;
 
   useEffect(() => {
+    if (!dataReady) return;
+
     let destroyed = false;
     let officersDt: any | null = null;
     let boardDt: any | null = null;
@@ -161,22 +154,17 @@ useEffect(() => {
         const column = this;
         const th = filterRow.find("th").eq(colIdx);
         const input = th.find("input");
-
         if (!input.length) return;
 
         input.off(".dtcol");
         input.on("input.dtcol change.dtcol", function (this: HTMLInputElement) {
           const val = this.value ?? "";
-          if (column.search() !== val) {
-            column.search(val).draw();
-          }
+          if (column.search() !== val) column.search(val).draw();
         });
       });
     };
 
-    const initOne = (args: { $: any; tableEl: HTMLTableElement }) => {
-      const { $, tableEl } = args;
-
+    const initOne = ({ $, tableEl }: { $: any; tableEl: HTMLTableElement }) => {
       if ($.fn.dataTable.isDataTable(tableEl)) {
         $(tableEl).DataTable().destroy(true);
       }
@@ -192,10 +180,6 @@ useEffect(() => {
         orderCellsTop: true,
         autoWidth: false,
         destroy: true,
-        createdRow: function (row: HTMLTableRowElement) {
-          row.classList.add("dt-row");
-          row.querySelectorAll("td").forEach((td) => td.classList.add("dt-cell"));
-        },
       };
 
       const api = $(tableEl).DataTable(options);
@@ -203,7 +187,7 @@ useEffect(() => {
       api.columns.adjust();
     };
 
-    const init = async () => {
+    (async () => {
       const $ = (await import("jquery")).default as any;
       await import("datatables.net-dt");
 
@@ -214,21 +198,24 @@ useEffect(() => {
         officersDt = $(officersTableRef.current).DataTable();
       }
 
-      // Only init board table once it actually has rows (prevents empty init)
-      if (boardTableRef.current && board.length > 0) {
+      if (boardTableRef.current && (data?.board?.length ?? 0) > 0) {
         initOne({ $, tableEl: boardTableRef.current });
         boardDt = $(boardTableRef.current).DataTable();
       }
-    };
-
-    init();
+    })();
 
     return () => {
       destroyed = true;
       if (officersDt) officersDt.destroy(true);
       if (boardDt) boardDt.destroy(true);
     };
-  }, [board.length]);
+  }, [dataReady, data?.board?.length]);
+
+  if (loading) return <div className="loading">Loading contact information...</div>;
+  if (error) return <div className="error">Error: {error}</div>;
+  if (!data) return <div className="loading">Loading...</div>;
+
+  const { officers, board } = data;
 
   return (
     <main>
