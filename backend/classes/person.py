@@ -205,7 +205,7 @@ class Person:
         except Error as e:
             raise e
 
-    def show_all_people():
+    def list_all_people():
         """Retrieve all people from the database."""
         rows = fetch_all(
             """
