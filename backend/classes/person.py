@@ -4,7 +4,7 @@ Docstring for person
 TODO:
 '''
 from werkzeug.security import generate_password_hash, check_password_hash
-from database import fetch_one, execute
+from database import fetch_all, fetch_one, execute
 from mysql.connector import Error
 
 class Person:
@@ -205,6 +205,19 @@ class Person:
         except Error as e:
             raise e
 
+    def list_all_persons():
+        """Retrieve all persons from the database."""
+        rows = fetch_all(
+            """
+            SELECT PersonID, FirstName, LastName, EmailAddress, AddressLineOne,
+                   AddressLineTwo, City, StateProvince, ZipCode, Country,
+                   PrimaryPhone, SecondaryPhone, SystemRole, Notes,
+                   LastEditedBy, LastEditedAt
+            FROM Person
+            """
+        )
+        return [Person.from_db_row(row) for row in rows]
+        
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""
         return {
