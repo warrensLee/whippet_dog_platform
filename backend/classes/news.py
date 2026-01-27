@@ -5,7 +5,7 @@ TODO:
 '''
 
 from werkzeug.security import generate_password_hash, check_password_hash
-from database import fetch_one, execute
+from database import fetch_all, fetch_one, execute
 from mysql.connector import Error
 
 class News:
@@ -160,6 +160,16 @@ class News:
         except Error as e:
             raise e
 
+    def show_all_news():
+        """Retrieve all news from the database."""
+        rows = fetch_all(
+            """
+            SELECT NewsID, Title, Content, CreatedAt, UpdatedAt, AuthorID, LastEditedBy, LastEditedAt
+            FROM News
+            """
+        )
+        return [News.from_db_row(row) for row in rows]
+        
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""
         return {
