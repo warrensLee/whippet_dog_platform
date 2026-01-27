@@ -160,7 +160,7 @@ class News:
         except Error as e:
             raise e
 
-    def show_all_news():
+    def list_all_news():
         """Retrieve all news from the database."""
         rows = fetch_all(
             """
