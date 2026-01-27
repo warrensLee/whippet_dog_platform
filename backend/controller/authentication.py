@@ -59,4 +59,15 @@ def logout():
 
 @auth_bp.get("/me")
 def me():
-    return jsonify({"ok": True, "user": session.get("user")}), 200
+    u = session.get("user")
+    if not u or not u.get("PersonID"):
+        return jsonify({"ok": True, "user": None}), 200
+
+    person = Person.find_by_identifier(u["PersonID"])
+    if not person:
+        session.clear()
+        return jsonify({"ok": True, "user": None}), 200
+
+    session["user"] = person.to_session_dict()
+
+    return jsonify({"ok": True, "user": session["user"]}), 200

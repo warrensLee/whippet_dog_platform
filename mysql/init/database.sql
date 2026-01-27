@@ -38,6 +38,17 @@ CREATE TABLE `UserRole` (
   `LastEditedAt` TIMESTAMP
 );
 
+CREATE TABLE `NewsletterSubscription` (
+  `SubscriptionID` INT AUTO_INCREMENT PRIMARY KEY,
+  `EmailAddress` VARCHAR(50) NOT NULL,
+  `IsActive` TINYINT(1) NOT NULL DEFAULT 1,
+  `SubscribedAt` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `UnsubscribedAt` TIMESTAMP NULL,
+  `LastEditedBy` VARCHAR(20),
+  `LastEditedAt` TIMESTAMP,
+  UNIQUE KEY `uq_NewsletterSubscription_EmailAddress` (`EmailAddress`)
+);
+
 CREATE TABLE `News` (
   `NewsID` INT PRIMARY KEY AUTO_INCREMENT,
   `Title` VARCHAR(100) NOT NULL,

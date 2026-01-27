@@ -4,6 +4,7 @@ from database import fetch_all, fetch_one
 from controller.authentication import auth_bp
 from controller.contact import contact_bp
 from controller.club import club_bp
+from controller.news import news_bp
 
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
@@ -35,5 +36,6 @@ def register_routes(app):
     app.register_blueprint(auth_bp)
     app.register_blueprint(contact_bp)
     app.register_blueprint(club_bp)
+    app.register_blueprint(news_bp)
     app.register_blueprint(api_bp)
     app.register_blueprint(main_bp)

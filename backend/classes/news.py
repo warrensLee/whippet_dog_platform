@@ -1,42 +1,52 @@
-'''
-Docstring for news
-
-TODO:
-'''
-
-from werkzeug.security import generate_password_hash, check_password_hash
-from database import fetch_one, execute
+from database import fetch_one, fetch_all, execute
+from datetime import datetime
 from mysql.connector import Error
 
 class News:
-
-    def __init__(self, news_id, title, content, created_at, updated_at, author_id, last_edited_by=None, last_edited_at=None):
+    def __init__(
+        self,
+        news_id,
+        title,
+        content,
+        created_at,
+        updated_at,
+        author_id,
+        author_name=None,
+        last_edited_by=None,
+        last_edited_at=None,
+    ):
         self.news_id = news_id
         self.title = title
         self.content = content
         self.created_at = created_at
         self.updated_at = updated_at
         self.author_id = author_id
+        self.author_name = author_name
         self.last_edited_by = last_edited_by
         self.last_edited_at = last_edited_at
 
     @classmethod
     def from_request_data(cls, data):
-        """Create a News instance from request JSON data."""
+        def pick(*keys, default=None):
+            for k in keys:
+                if k in data and data[k] is not None:
+                    return data[k]
+            return default
+
         return cls(
-            news_id=(data.get("newsId") or "").strip(),
-            title=(data.get("title") or "").strip(),
-            content=(data.get("content") or "").strip(),
-            created_at=data.get("createdAt"),
-            updated_at=data.get("updatedAt"),
-            author_id=(data.get("authorId") or "").strip(),
-            last_edited_by=data.get("lastEditedBy"),
-            last_edited_at=data.get("lastEditedAt")
+            news_id=None,
+            title=str(pick("Title", "title", default="")).strip(),
+            content=str(pick("Content", "content", default="")).strip(),
+            created_at=None,
+            updated_at=None,
+            author_id=str(pick("AuthorID", "authorId", default=None)) if pick("AuthorID", "authorId", default=None) else None,
+            author_name=None,
+            last_edited_by=None,
+            last_edited_at=None,
         )
-    
+
     @classmethod
     def from_db_row(cls, row):
-        """Create a News instance from a database row."""
         if not row:
             return None
         return cls(
@@ -46,18 +56,28 @@ class News:
             created_at=row.get("CreatedAt"),
             updated_at=row.get("UpdatedAt"),
             author_id=row.get("AuthorID"),
+            author_name=row.get("AuthorName"), 
             last_edited_by=row.get("LastEditedBy"),
-            last_edited_at=row.get("LastEditedAt")
+            last_edited_at=row.get("LastEditedAt"),
         )
 
     @classmethod
     def find_by_identifier(cls, identifier):
-        """Find news by news_id."""
         row = fetch_one(
             """
-            SELECT NewsID, Title, Content, CreatedAt, UpdatedAt, AuthorID, LastEditedBy, LastEditedAt
-            FROM News
-            WHERE NewsID = %s
+            SELECT
+                n.NewsID,
+                n.Title,
+                n.Content,
+                n.CreatedAt,
+                n.UpdatedAt,
+                n.AuthorID,
+                CONCAT(p.FirstName, ' ', p.LastName) AS AuthorName,
+                n.LastEditedBy,
+                n.LastEditedAt
+            FROM News n
+            LEFT JOIN Person p ON p.PersonID = n.AuthorID
+            WHERE n.NewsID = %s
             LIMIT 1
             """,
             (identifier,),
@@ -65,119 +85,73 @@ class News:
         return cls.from_db_row(row)
 
     @classmethod
-    def exists(cls, news_id):
-        """Check if a news item with given ID already exists."""
-        existing = fetch_one(
+    def find_all(cls, limit=500):
+        rows = fetch_all(
             """
-            SELECT NewsID
-            FROM News
-            WHERE NewsID = %s
-            LIMIT 1
+            SELECT
+                n.NewsID,
+                n.Title,
+                n.Content,
+                n.CreatedAt,
+                n.UpdatedAt,
+                n.AuthorID,
+                CONCAT(p.FirstName, ' ', p.LastName) AS AuthorName,
+                n.LastEditedBy,
+                n.LastEditedAt
+            FROM News n
+            LEFT JOIN Person p ON p.PersonID = n.AuthorID
+            ORDER BY n.CreatedAt DESC
+            LIMIT %s
             """,
-            (news_id,),
+            (limit,),
         )
-        return existing is not None
+        return [cls.from_db_row(r) for r in (rows or [])]
 
     def validate(self):
-        """Validate required fields. Returns list of errors (empty if valid)."""
         errors = []
-        if not self.news_id:
-            errors.append("NewsID is required")
         if not self.title:
             errors.append("Title is required")
         if not self.content:
             errors.append("Content is required")
-        if not self.created_at:
-            errors.append("CreatedAt is required")
         if len(self.title) > 100:
             errors.append("Title must be 100 characters or less")
         return errors
 
     def save(self):
-        """Save news to database. Returns True on success, raises Error on failure."""
-        try:
-            execute(
-                """
-                INSERT INTO News (
-                    NewsID, Title, Content, CreatedAt, UpdatedAt, AuthorID, LastEditedBy, LastEditedAt
-                )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                """,
-                (
-                    self.news_id,
-                    self.title,
-                    self.content,
-                    self.created_at,
-                    self.updated_at,
-                    self.author_id,
-                    self.last_edited_by,
-                    self.last_edited_at
-                ),
-            )
-            return True
-        except Error as e:
-            raise e
+        if not self.author_id:
+            raise ValueError("AuthorID is required before saving News")
 
-    def update(self):
-        """Update existing news in database. Returns True on success, raises Error on failure."""
-        try:
-            execute(
-                """
-                UPDATE News
-                SET Title = %s,
-                    Content = %s,
-                    UpdatedAt = %s,
-                    AuthorID = %s,
-                    LastEditedBy = %s,
-                    LastEditedAt = %s
-                WHERE NewsID = %s
-                """,
-                (
-                    self.title,
-                    self.content,
-                    self.updated_at,
-                    self.author_id,
-                    self.last_edited_by,
-                    self.last_edited_at,
-                    self.news_id
-                ),
-            )
-            return True
-        except Error as e:
-            raise e
+        now = datetime.now()
+        created_at = self.created_at or now
+        updated_at = self.updated_at or now
+        last_edited_at = self.last_edited_at or now
 
-    def delete(self, news_id):   
-        """Delete news from database. Returns True on success, raises Error on failure."""
-        try:
-            execute(
-                """
-                DELETE FROM News
-                WHERE NewsID = %s
-                """,
-                (news_id,),
-            )
-            return True
-        except Error as e:
-            raise e
+        execute(
+            """
+            INSERT INTO News (Title, Content, CreatedAt, UpdatedAt, AuthorID, LastEditedBy, LastEditedAt)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                self.title,
+                self.content,
+                created_at,
+                updated_at,
+                self.author_id,
+                self.last_edited_by,
+                last_edited_at,
+            ),
+        )
+        return True
 
-    def to_session_dict(self):
-        """Convert to minimal dictionary for session storage."""
+    def to_dict(self):
         return {
-            "NewsID": self.news_id,
-            "Title": self.title,
-            "CreatedAt": self.created_at,
-        }
-
-    def to_dict(self, include_sensitive=False):
-        """Convert to dictionary for JSON responses."""
-        data = {
             "newsId": self.news_id,
             "title": self.title,
             "content": self.content,
             "createdAt": self.created_at,
             "updatedAt": self.updated_at,
             "authorId": self.author_id,
+            "authorName": self.author_name, 
             "lastEditedBy": self.last_edited_by,
-            "lastEditedAt": self.last_edited_at.isoformat() if self.last_edited_at else None
+            "lastEditedAt": self.last_edited_at.isoformat() if self.last_edited_at else None,
         }
-        return data
