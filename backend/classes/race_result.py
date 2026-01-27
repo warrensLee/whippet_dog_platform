@@ -5,7 +5,7 @@ TODO:
 '''
 
 from werkzeug.security import generate_password_hash, check_password_hash
-from database import fetch_one, execute
+from database import fetch_all, fetch_one, execute
 from mysql.connector import Error
 
 class RaceResult:
@@ -75,8 +75,6 @@ class RaceResult:
             (meet_number, cwa_number, program, race_number),
         )
         return cls.from_db_row(row)
-
-
 
     @classmethod
     def exists(cls, meet_number, cwa_number, program, race_number):
@@ -175,6 +173,18 @@ class RaceResult:
             return True
         except Error as e:
             raise e
+
+    def show_all_race_results():
+        """Retrieve all race results from the database."""
+        rows = fetch_all(
+            """
+            SELECT MeetNumber, CWANumber, Program, RaceNumber, EntryType, Box,
+                   Placement, MeetPoints, Incident,
+                   LastEditedBy, LastEditedAt
+            FROM RaceResult
+            """
+        )
+        return [RaceResult.from_db_row(row) for row in rows]
             
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""
