@@ -217,6 +217,22 @@ class Club:
         except Error as e:
             raise e
 
+    def list_all_clubs():
+        """List all clubs from database. Returns list of Club instances."""
+        try:
+            rows = fetch_all(
+                """
+                SELECT ClubAbbreviation, ClubName, ClubStatus, BeginDate, EndDate,
+                       BoardMember1, BoardMember2, DefaultRaceSecretary, Notes,
+                       LastEditedBy, LastEditedAt
+                FROM Club
+                """
+            )
+            clubs = [Club.from_db_row(row) for row in rows]
+            return clubs
+        except Error as e:
+            raise e
+            
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""
         return {
