@@ -206,7 +206,7 @@ class MeetResult:
         except Error as e:
             raise e
 
-    def show_all_meet_results():
+    def list_all_meet_results():
         """Retrieve all meet results from the database."""
         rows = fetch_all(
             """
