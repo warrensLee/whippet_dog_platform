@@ -1,18 +1,4 @@
-'''
-Docstring for dog
-
-TODO:
-Need a way to dynamically add and remove titles and check them
-Finish check_trp_title
-    Add meet_appearences attribute?
-Finish check_dpc_title
-    Add akc_championships attribute?
-    Add ckc_championships attribute?
-Add physical attributes and check qualifications method?
-'''
-
-from werkzeug.security import generate_password_hash, check_password_hash
-from database import fetch_all, fetch_one, execute
+from database import fetch_one, fetch_all, execute
 from mysql.connector import Error
 
 class Dog:
@@ -27,7 +13,7 @@ class Dog:
 
     def __init__(self, cwa_number, akc_number, ckc_number, foreign_number, foreign_type, call_name,
                  registered_name, birthdate, pedigree_link, status, average, current_grade, meet_points, arx_points,
-                 narx_points, show_points, dpc_legs, meet_wins, notes, last_edited_by=None, last_edited_at=None):
+                 narx_points, show_points, dpc_legs, meet_wins, meet_appearences, high_combined_wins, notes, last_edited_by=None, last_edited_at=None):
         self.cwa_number = cwa_number
         self.akc_number = akc_number
         self.ckc_number = ckc_number
@@ -46,6 +32,8 @@ class Dog:
         self.show_points = show_points
         self.dpc_legs = dpc_legs
         self.meet_wins = meet_wins
+        self.meet_appearences = meet_appearences
+        self.high_combined_wins = high_combined_wins
         self.notes = notes
         self.last_edited_by = last_edited_by
         self.last_edited_at = last_edited_at
@@ -54,22 +42,22 @@ class Dog:
     def check_grade(self):
         '''Check grade of dog based on point average and status.'''
         pass
-        # if is_puppy() or number of meets == 0:
-            # return "FTE"
-        # average = get point average
-        # if average >= 15.0:
-            # if self.status == "Inactive":
-                # return "B"
-            # return "A"
-        # if average >= 10.0:
-            # if self.status == "Inactive":
-                # return "C"
-            # return "B"
-        # if average >= 5.0:
-            # if self.status == "Inactive":
-                # return "D"
-            # return "C"
-        # return "D"
+        if self.is_puppy() or self.meet_appearences == 0:
+            return "FTE"
+        average = self.get_point_average()
+        if average >= 15.0:
+            if self.status == "Inactive":
+                return "B"
+            return "A"
+        if average >= 10.0:
+            if self.status == "Inactive":
+                return "C"
+            return "B"
+        if average >= 5.0:
+            if self.status == "Inactive":
+                return "D"
+            return "C"
+        return "D"
 
     @classmethod
     def get_point_average(selfs):
@@ -113,23 +101,18 @@ class Dog:
     def check_trp_title(self):
         '''Check if dog is eligible for Title of Racing Proficiency (TRP).'''
         pass
-        # if race meets >= 10:
-            # return "TRP"
-        # return none
+        if self.meet_appearences >= 10:
+            return "TRP"
+        return None
 
     @classmethod
     def check_pr_title(self):
         '''Check if dog is eligible for Performance (PR) titles.'''
-        if self.meet_points >= 450:
-            return "PRX"
-        if self.meet_points >= 350:
-            return "PR4"
-        if self.meet_points >= 250:
-            return "PR3"
-        if self.meet_points >= 150:
-            return "PR2"
         if self.meet_points >= 50:
-            return "PR"
+            if self.meet_points < 150:
+                return "PR"
+            pr_level = int((self.meet_points - 50) / 100) + 1
+            return f"PR{pr_level}"
         return None
 
     @classmethod
@@ -158,23 +141,22 @@ class Dog:
     def check_dpc_title(self):
         '''Check if dog is eligible for Dual Purpose Championship (DPC) titles.'''
         pass
-        # if self.check_trp_title() == "TRP" and 
-        # ((has AKC or CKC championship) or (self.dpc_legs >= 5)):
-            # if self.check_arx_title() == "ARX":
-                # return "DPCX"
-            # return "DPC"
-        # return None
+        if self.check_trp_title() == "TRP" and ((self.akc_number > 0 or self.ckc_number > 0) or (self.dpc_legs >= 5)):
+            if self.check_arx_title() == "ARX":
+                return "DPCX"
+            return "DPC"
+        return None
     
     @classmethod
     def check_hc_title(self):
         '''Check if dog is eligible for High Combined (HC) titles.'''
         pass
-        # if is_adult():
-            # if high combined wins >= 10:
-                # return "HCX"
-            # if high combined wins >= 5:
-                # return "HC"
-        # return None
+        if self.is_adult() and self.high_combined_wins >= 5:
+            if self.high_combined_wins < 10:
+                return "HC"
+            hcx_level = int((self.high_combined_wins - 5) / 5) + 1
+            return f"HC{hcx_level}"
+        return None
     
     @classmethod
     def is_puppy(self):
@@ -232,6 +214,8 @@ class Dog:
             show_points=(data.get("showPoints") or "").strip() or "0",
             dpc_legs=(data.get("dpcLegs") or "").strip() or "0",
             meet_wins=(data.get("meetWins") or "").strip() or "0",
+            meet_appearences=(data.get("meetAppearences") or "").strip() or "0",
+            high_combined_wins=(data.get("highCombinedWins") or "").strip() or "0",
             notes=(data.get("notes") or "").strip() or None,
             last_edited_by=data.get("lastEditedBy"),
             last_edited_at=data.get("lastEditedAt")
@@ -261,6 +245,8 @@ class Dog:
             show_points=row.get("ShowPoints"),
             dpc_legs=row.get("DPCLegs"),
             meet_wins=row.get("MeetWins"),
+            meet_appearences=row.get("MeetAppearences"),
+            high_combined_wins=row.get("HighCombinedWins"),
             notes=row.get("Notes"),
             last_edited_by=row.get("LastEditedBy"),
             last_edited_at=row.get("LastEditedAt")
@@ -275,7 +261,7 @@ class Dog:
                     CallName, RegisteredName, Birthdate, PedigreeLink,
                     Status, Average, CurrentGrade,
                     MeetPoints, ARXPoints, NARXPoints, ShowPoints,
-                    DPCLegs, MeetWins, Notes,
+                    DPCLegs, MeetWins, MeetAppearences, HighCombinedWins, Notes,
                     LastEditedBy, LastEditedAt
             FROM Dog
             WHERE CWANumber = %s
@@ -330,11 +316,11 @@ class Dog:
                     CallName, RegisteredName, Birthdate, PedigreeLink,
                     Status, Average, CurrentGrade,
                     MeetPoints, ARXPoints, NARXPoints, ShowPoints,
-                    DPCLegs, MeetWins, Notes,
+                    DPCLegs, MeetWins, MeetAppearences, HighCombinedWins, Notes,
                     LastEditedBy, LastEditedAt
                 )
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
                     self.cwa_number,
@@ -355,13 +341,15 @@ class Dog:
                     self.show_points,
                     self.dpc_legs,
                     self.meet_wins,
-                    self.notes or None
+                    self.meet_appearences,
+                    self.high_combined_wins,
+                    self.notes or None,
                 ),
             )
             return True
         except Error as e:
             raise e
-
+        
     def update(self):
         """Update existing dog in database. Returns True on success, raises Error on failure."""
         try:
@@ -385,6 +373,8 @@ class Dog:
                     ShowPoints = %s,
                     DPCLegs = %s,
                     MeetWins = %s,
+                    MeetAppearences = %s,
+                    HighCombinedWins = %s,
                     Notes = %s,
                     LastEditedBy = %s,
                     LastEditedAt = %s
@@ -408,6 +398,8 @@ class Dog:
                     self.show_points,
                     self.dpc_legs,
                     self.meet_wins,
+                    self.meet_appearences,
+                    self.high_combined_wins,
                     self.notes or None,
                     self.last_edited_by,
                     self.last_edited_at,
@@ -440,7 +432,7 @@ class Dog:
                     CallName, RegisteredName, Birthdate, PedigreeLink,
                     Status, Average, CurrentGrade,
                     MeetPoints, ARXPoints, NARXPoints, ShowPoints,
-                    DPCLegs, MeetWins, Notes,
+                    DPCLegs, MeetWins, MeetAppearences, HighCombinedWins, Notes,
                     LastEditedBy, LastEditedAt
             FROM Dog
             ORDER BY RegisteredName
@@ -448,7 +440,7 @@ class Dog:
         )
         dogs = [Dog.from_db_row(row) for row in rows]
         return dogs
-
+    
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""
         return {
@@ -479,6 +471,8 @@ class Dog:
             "showPoints": self.show_points,
             "dpcLegs": self.dpc_legs,
             "meetWins": self.meet_wins,
+            "meetAppearences": self.meet_appearences,
+            "highCombinedWins": self.high_combined_wins,
             "notes": self.notes,
             "lastEditedBy": self.last_edited_by,
             "lastEditedAt": self.last_edited_at.isoformat() if self.last_edited_at else None
