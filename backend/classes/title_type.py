@@ -142,7 +142,7 @@ class TitleType:
         except Error as e:
             raise e
 
-    def show_all_title_types():
+    def list_all_title_types():
         """Retrieve all title types from the database."""
         rows = fetch_all(
             """
