@@ -5,7 +5,7 @@ TODO:
 '''
 
 from werkzeug.security import generate_password_hash, check_password_hash
-from database import fetch_one, execute
+from database import fetch_all, fetch_one, execute
 from mysql.connector import Error
 
 class Meet:
@@ -176,7 +176,18 @@ class Meet:
             return True
         except Error as e:
             raise e
-            
+
+    def show_all_meets():
+        """Retrieve all meets from the database."""
+        rows = fetch_all(
+            """
+            SELECT MeetNumber, ClubAbbreviation, MeetDate, RaceSecretary, Judge,
+                   Location, Yards, LastEditedBy, LastEditedAt
+            FROM Meet
+            """
+        )
+        return [Meet.from_db_row(row) for row in rows]
+        
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""
         return {
