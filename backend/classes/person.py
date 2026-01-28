@@ -125,11 +125,12 @@ class Person:
         """Hash and set the password."""
         self.password_hash = generate_password_hash(password)
 
-    def check_password(self, password):
-        """Verify password against stored hash."""
+    def check_password(self, password: str) -> bool:
+        from werkzeug.security import check_password_hash
         if not self.password_hash:
             return False
         return check_password_hash(self.password_hash, password)
+
 
     def save(self):
         """Save person to database. Returns True on success, raises Error on failure."""
@@ -176,7 +177,7 @@ class Person:
                     PasswordHash = %s,
                     Notes = %s,
                     LastEditedBy = %s,
-                    LastEditedAt = %s,
+                    LastEditedAt = %s
                 WHERE PersonID = %s
                 """,
                 (
@@ -184,7 +185,7 @@ class Person:
                     self.address_line_one, self.address_line_two, self.city, self.state_province,
                     self.zip_code, self.country, self.primary_phone, self.secondary_phone,
                     self.system_role, self.password_hash, self.notes,
-                    self.last_edited_by, self.person_id
+                    self.last_edited_by, self.last_edited_at, self.person_id  # Added last_edited_at
                 ),
             )
             return True
