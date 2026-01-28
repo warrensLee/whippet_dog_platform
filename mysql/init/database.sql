@@ -19,6 +19,8 @@ CREATE TABLE `Dog` (
   `ShowPoints` SMALLINT,
   `DPCLegs` SMALLINT,
   `MeetWins` DECIMAL(5,2),
+  `MeetAppearences` DECIMAL(5,2),
+  `HighCombinedWins` DECIMAL(5,2),
   `Notes` VARCHAR(250),
   `LastEditedBy` VARCHAR(20),
   `LastEditedAt` TIMESTAMP

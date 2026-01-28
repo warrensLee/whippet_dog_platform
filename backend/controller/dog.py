@@ -86,4 +86,15 @@ def list_all_dogs():
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
     dogs_data = [dog.to_dict() for dog in dogs]
+
     return jsonify(dogs_data), 200
+
+@dog_bp.get("/titles/<cwa_number>")
+def list_dog_titles(cwa_number):
+    dog = Dog.find_by_identifier(cwa_number)
+    try:
+        dog_titles = dog.check_titles()
+    except Error as e:
+        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+
+    return jsonify(dog_titles), 200
