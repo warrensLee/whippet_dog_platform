@@ -42,6 +42,9 @@ next-env.d.ts
 
 /app/generated/prisma
 
+# Node lock files
+package-lock.json*
+
 # Python cache
 __pycache__/
 *.py[cod]
