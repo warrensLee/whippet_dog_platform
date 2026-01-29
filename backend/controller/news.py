@@ -1,21 +1,25 @@
 """
 News API routes
-Handles CRUD operations for news items
 """
-import re
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, session, current_app
+from flask_mail import Message
 from datetime import datetime
 from classes.news import News
 from database import fetch_all, execute, fetch_one
 from mysql.connector import Error
+from email_validator import validate_email, EmailNotValidError
 
 news_bp = Blueprint('news', __name__, url_prefix="/api")
 
-_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+def is_valid_email(email):
+    try:
+        validate_email(email)
+        return True
+    except EmailNotValidError:
+        return False
 
 @news_bp.route('/news', methods=['GET'])
 def get_all_news():
-    """Get all news items, ordered by created date (newest first)."""
     try:
         rows = fetch_all(
             """
@@ -52,14 +56,6 @@ def get_all_news():
     
 @news_bp.route("/news/subscribe", methods=["POST"])
 def subscribe_newsletter():
-    """
-    Newsletter subscription endpoint.
-
-    Body:
-      {
-        "email": "user@example.com"
-      }
-    """
     try:
         data = request.get_json(silent=True) or {}
         email = (data.get("email") or "").strip().lower()
@@ -67,7 +63,7 @@ def subscribe_newsletter():
         if not email:
             return jsonify({"error": "Email is required"}), 400
 
-        if not _EMAIL_RE.match(email):
+        if not is_valid_email(email):
             return jsonify({"error": "Invalid email address"}), 400
 
         execute(
@@ -93,14 +89,6 @@ def subscribe_newsletter():
     
 @news_bp.route("/news/unsubscribe", methods=["POST"])
 def unsubscribe_newsletter():
-    """
-    Newsletter unsubscribe endpoint.
-
-    Body:
-      {
-        "email": "user@example.com"
-      }
-    """
     try:
         data = request.get_json(silent=True) or {}
         email = (data.get("email") or "").strip().lower()
@@ -108,7 +96,7 @@ def unsubscribe_newsletter():
         if not email:
             return jsonify({"error": "Email is required"}), 400
 
-        if not _EMAIL_RE.match(email):
+        if not is_valid_email(email):
             return jsonify({"error": "Invalid email address"}), 400
 
         rows = execute(
@@ -136,20 +124,11 @@ def unsubscribe_newsletter():
     
 @news_bp.route("/news/subscription-status", methods=["GET"])
 def newsletter_subscription_status():
-    """
-    Returns whether an email is currently subscribed (IsActive=1).
-
-    Query:
-      /api/news/subscription-status?email=user@example.com
-
-    Response:
-      { "isSubscribed": true }
-    """
     try:
         email = (request.args.get("email") or "").strip().lower()
         if not email:
             return jsonify({"error": "Email is required"}), 400
-        if not _EMAIL_RE.match(email):
+        if not is_valid_email(email):
             return jsonify({"error": "Invalid email address"}), 400
 
         row = fetch_one(
@@ -173,7 +152,6 @@ def newsletter_subscription_status():
         return jsonify({"error": "An unexpected error occurred"}), 500
 
 
-
 @news_bp.route('/news/<news_id>', methods=['GET'])
 def get_news_by_id(news_id):
     """Get a specific news item by ID."""
@@ -195,30 +173,84 @@ def get_news_by_id(news_id):
 
 @news_bp.route('/news', methods=['POST'])
 def create_news():
+    """Create a new news item and automatically send newsletter to subscribers."""
     try:
+        from main import mail  # Import mail
+        
+        user = session.get("user")
+        if not user:
+            return jsonify({"ok": False, "error": "Not signed in"}), 401
+        
         data = request.get_json(silent=True) or {}
-        title = (data.get("title") or "").strip()
-        content = (data.get("content") or "").strip()
-        author_id = (data.get("authorId") or "").strip()
-
-        if not title or not content:
-            return jsonify({"error": "Title and content are required"}), 400
-
+        
         news_item = News.from_request_data(data)
-        # Ensure timestamps exist (and that your save() actually writes them)
-        if not getattr(news_item, "created_at", None):
-            news_item.created_at = datetime.now()
-        if not getattr(news_item, "updated_at", None):
-            news_item.updated_at = datetime.now()
-
+        news_item.author_id = user["PersonID"]
+        news_item.last_edited_by = user["PersonID"]
+        
         errors = news_item.validate()
         if errors:
             return jsonify({"error": "Validation failed", "details": errors}), 400
-
+        
         news_item.save()
-
-        return jsonify({"message": "News item created successfully", "news": news_item.to_dict()}), 201
-
+        
+        # Automatically send newsletter to all subscribers
+        newsletter_result = None
+        try:
+            # Get all active subscribers
+            rows = fetch_all(
+                """
+                SELECT EmailAddress
+                FROM NewsletterSubscription
+                WHERE IsActive = 1
+                ORDER BY SubscribedAt DESC
+                """
+            )
+            
+            if rows:
+                recipients = [row["EmailAddress"] for row in rows]
+                sent_count = 0
+                failed_count = 0
+                
+                for recipient in recipients:
+                    try:
+                        msg = Message(
+                            subject=f"New Post: {news_item.title}",
+                            recipients=[recipient],
+                            sender=current_app.config['MAIL_DEFAULT_SENDER']
+                        )
+                        
+                        # Use the news content as the email body
+                        if news_item.content.strip().startswith("<") and ("</html>" in news_item.content or "</div>" in news_item.content or "</p>" in news_item.content):
+                            msg.html = news_item.content
+                        else:
+                            msg.body = news_item.content
+                        
+                        mail.send(msg)
+                        sent_count += 1
+                    except Exception as e:
+                        print(f"Failed to send to {recipient}: {e}")
+                        failed_count += 1
+                
+                newsletter_result = {
+                    "sent": sent_count,
+                    "failed": failed_count,
+                    "total": len(recipients)
+                }
+        except Exception as e:
+            print(f"Newsletter sending error: {e}")
+            # Don't fail the whole request if newsletter fails
+            newsletter_result = {"error": "Failed to send newsletter"}
+        
+        response_data = {
+            "message": "News item created successfully",
+            "news": news_item.to_dict()
+        }
+        
+        if newsletter_result:
+            response_data["newsletter"] = newsletter_result
+        
+        return jsonify(response_data), 201
+        
     except Error as e:
         print(f"Database error: {e}")
         return jsonify({"error": "Failed to create news item", "dbError": str(e)}), 500

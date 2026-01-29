@@ -1,6 +1,5 @@
 from database import fetch_one, fetch_all, execute
 from datetime import datetime
-from mysql.connector import Error
 
 class News:
     def __init__(
@@ -27,19 +26,13 @@ class News:
 
     @classmethod
     def from_request_data(cls, data):
-        def pick(*keys, default=None):
-            for k in keys:
-                if k in data and data[k] is not None:
-                    return data[k]
-            return default
-
         return cls(
             news_id=None,
-            title=str(pick("Title", "title", default="")).strip(),
-            content=str(pick("Content", "content", default="")).strip(),
+            title=(data.get("title") or "").strip(),
+            content=(data.get("content") or "").strip(),
             created_at=None,
             updated_at=None,
-            author_id=str(pick("AuthorID", "authorId", default=None)) if pick("AuthorID", "authorId", default=None) else None,
+            author_id=None,
             author_name=None,
             last_edited_by=None,
             last_edited_at=None,
@@ -113,6 +106,8 @@ class News:
             errors.append("Title is required")
         if not self.content:
             errors.append("Content is required")
+        if not self.author_id:
+            errors.append("AuthorID is required")
         if len(self.title) > 100:
             errors.append("Title must be 100 characters or less")
         return errors

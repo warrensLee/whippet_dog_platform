@@ -1,20 +1,10 @@
-import os
-import smtplib
+from flask import Blueprint, request, jsonify, current_app
+from flask_mail import Message
 import time
 from database import fetch_all
-from email.message import EmailMessage
 from typing import Dict, Any
-from flask import Blueprint, request, jsonify
 
 contact_bp = Blueprint("contact_bp", __name__)
-
-CONTACT_TO_EMAIL = os.getenv("CONTACT_TO_EMAIL", "##YOUR_CONTACT_EMAIL_HERE##")
-FROM_EMAIL = os.getenv("FROM_EMAIL", os.getenv("SMTP_USER", ""))
-SMTP_HOST = os.getenv("SMTP_HOST", "")
-SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
-SMTP_USER = os.getenv("SMTP_USER", "")
-SMTP_PASS = os.getenv("SMTP_PASS", "")
-CONTACT_SEND_EMAIL = os.getenv("CONTACT_SEND_EMAIL", "true").lower() in ("1", "true", "yes", "on")
 
 _RATE_LIMIT_WINDOW_SEC = 60
 _RATE_LIMIT_MAX_REQ = 10
@@ -66,15 +56,21 @@ def _validate_payload(data: Dict[str, Any]) -> Dict[str, str]:
     }
 
 def _send_email(payload: Dict[str, str]) -> None:
-    if not (SMTP_HOST and SMTP_PORT and SMTP_USER and SMTP_PASS and FROM_EMAIL):
+    from main import mail 
+    
+    if not (current_app.config.get('MAIL_SERVER') and 
+            current_app.config.get('MAIL_USERNAME') and 
+            current_app.config.get('MAIL_PASSWORD') and 
+            current_app.config.get('MAIL_DEFAULT_SENDER')):
         raise RuntimeError("Email is not configured on the server (missing SMTP settings).")
 
-    msg = EmailMessage()
-    msg["Subject"] = f"[CWA Contact] {payload['subject']}"
-    msg["From"] = FROM_EMAIL
-    msg["To"] = CONTACT_TO_EMAIL
-    msg["Reply-To"] = payload["email"]
-
+    msg = Message(
+        subject=f"[CWA Contact] {payload['subject']}",
+        sender=current_app.config['MAIL_DEFAULT_SENDER'],
+        recipients=[current_app.config['CONTACT_TO_EMAIL']],
+        reply_to=payload['email']
+    )
+    
     body = (
         f"New contact submission:\n\n"
         f"Name: {payload['firstName']} {payload['lastName']}\n"
@@ -82,13 +78,9 @@ def _send_email(payload: Dict[str, str]) -> None:
         f"Subject: {payload['subject']}\n\n"
         f"Message:\n{payload['message']}\n"
     )
-    msg.set_content(body)
-
-    with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as server:
-        server.ehlo()
-        server.starttls()
-        server.login(SMTP_USER, SMTP_PASS)
-        server.send_message(msg)
+    msg.body = body
+    
+    mail.send(msg)
 
 
 @contact_bp.route("/api/contact", methods=["POST"])
@@ -106,11 +98,11 @@ def submit_contact():
     except ValueError as e:
         return _json_error(str(e), 400)
 
-    if CONTACT_SEND_EMAIL:
-        try:
-            _send_email(payload)
-        except Exception as e:
-            return _json_error("Unable to send your message right now. Please try again later.", 500)
+    try:
+        _send_email(payload)
+    except Exception as e:
+        print(f"Email error: {e}")
+        return _json_error("Unable to send your message right now. Please try again later.", 500)
 
     return jsonify({"ok": True}), 200
 
@@ -145,7 +137,6 @@ def contact_health():
     return jsonify(
         {
             "ok": True,
-            "emailEnabled": CONTACT_SEND_EMAIL,
-            "to": CONTACT_TO_EMAIL,
+            "to": current_app.config.get('CONTACT_TO_EMAIL', ''),
         }
     ), 200
