@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { Box, Paper, TextField, Button, Typography, Grid } from "@mui/material";
 
 export default function RegisterPage() {
   const [personId, setPersonId] = useState("");
@@ -45,17 +46,6 @@ export default function RegisterPage() {
     };
   }, []);
 
-  const canSubmit = useMemo(() => {
-    return (
-      personId.trim().length > 0 &&
-      firstName.trim().length > 0 &&
-      lastName.trim().length > 0 &&
-      email.trim().length > 0 &&
-      password.trim().length >= 6 &&
-      !submitting
-    );
-  }, [personId, firstName, lastName, email, password, submitting]);
-
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setMessage("");
@@ -81,7 +71,7 @@ export default function RegisterPage() {
       if (res.ok && data?.ok) {
         setStatus("success");
         setMessage("Registered! Redirecting to login…");
-        window.location.assign("/login");
+        window.location.assign("/admin/login");
         return;
       }
 
@@ -100,131 +90,135 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-neutral-100 to-neutral-200 flex items-center justify-center p-6">
-      <div className="w-full max-w-md">
-        <div className="rounded-3xl bg-white/80 backdrop-blur shadow-xl border border-neutral-200 p-8">
-          <div className="mb-6">
-            <h1 className="text-2xl font-semibold text-neutral-900">
-              Create account
-            </h1>
-            <p className="text-sm text-neutral-600 mt-1">
-              Register with your username and contact details.
-            </p>
-          </div>
+    <Box
+  sx={{
+    minHeight: "100vh",
+    pt: "120px",              
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "flex-start",
+    backgroundColor: "background.default",
+    boxSizing: "border-box",
+  }}
+>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Field
-              label="User name"
-              value={personId}
-              onChange={setPersonId}
-              placeholder="e.g., user_name"
-              autoComplete="username"
-            />
+      <Paper
+        elevation={3}
+        sx={{
+          p: 4,
+          width: 500,
+          minWidth: 280,
+          maxWidth: "90%",
+        }}
+      >
+        <Typography variant="h5" component="h1" gutterBottom align="center">
+          Create Account
+        </Typography>
+        <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 2 }}>
+          Register with your username and contact details
+        </Typography>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field
-                label="First name"
+        <Box component="form" onSubmit={handleSubmit}>
+          <TextField
+            label="Username"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            value={personId}
+            onChange={(e) => setPersonId(e.target.value)}
+            placeholder="e.g., user_name"
+            autoComplete="username"
+            required
+          />
+
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="First Name"
+                variant="outlined"
+                fullWidth
+                margin="normal"
                 value={firstName}
-                onChange={setFirstName}
+                onChange={(e) => setFirstName(e.target.value)}
                 placeholder="John"
                 autoComplete="given-name"
+                required
               />
-              <Field
-                label="Last name"
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Last Name"
+                variant="outlined"
+                fullWidth
+                margin="normal"
                 value={lastName}
-                onChange={setLastName}
+                onChange={(e) => setLastName(e.target.value)}
                 placeholder="Doe"
                 autoComplete="family-name"
+                required
               />
-            </div>
+            </Grid>
+          </Grid>
 
-            <Field
-              label="Email"
-              value={email}
-              onChange={setEmail}
-              placeholder="you@example.com"
-              autoComplete="email"
-              type="email"
-            />
+          <TextField
+            label="Email"
+            variant="outlined"
+            type="email"
+            fullWidth
+            margin="normal"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            autoComplete="email"
+            required
+          />
 
-            <Field
-              label="Password"
-              value={password}
-              onChange={setPassword}
-              placeholder="At least 6 characters"
-              autoComplete="new-password"
-              type="password"
-            />
+          <TextField
+            label="Password"
+            variant="outlined"
+            type="password"
+            fullWidth
+            margin="normal"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="At least 6 characters"
+            autoComplete="new-password"
+            required
+          />
 
-            <button
-              type="submit"
-              disabled={!canSubmit}
-              className="w-full rounded-xl px-4 py-2.5 font-medium text-white
-                         bg-neutral-900 hover:bg-neutral-800
-                         disabled:bg-neutral-400 disabled:cursor-not-allowed
-                         transition"
+          {message && (
+            <Typography
+              color={status === "success" ? "success.main" : "error.main"}
+              sx={{ mt: 1, mb: 1 }}
             >
-              {submitting ? "Registering…" : "Register"}
-            </button>
+              {message}
+            </Typography>
+          )}
 
-            {message && (
-              <div
-                className={[
-                  "rounded-xl border px-3 py-2 text-sm",
-                  status === "success"
-                    ? "border-green-200 bg-green-50 text-green-800"
-                    : status === "error"
-                    ? "border-red-200 bg-red-50 text-red-800"
-                    : "border-neutral-200 bg-neutral-50 text-neutral-700",
-                ].join(" ")}
-                role="status"
-              >
-                {message}
-              </div>
-            )}
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            sx={{ mt: 2 }}
+          >
+            {submitting ? "Registering…" : "Register"}
+          </Button>
 
-            <p className="text-sm text-neutral-600">
-              Already have an account?{" "}
-              <a
-                className="text-neutral-900 underline hover:no-underline"
-                href="/login"
-              >
-                Log in
-              </a>
-            </p>
-          </form>
-        </div>
-      </div>
-    </main>
-  );
-}
-
-function Field(props: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-  type?: string;
-  autoComplete?: string;
-}) {
-  const { label, value, onChange, placeholder, type = "text", autoComplete } =
-    props;
-
-  return (
-    <label className="block">
-      <span className="block text-sm font-medium text-neutral-800">
-        {label}
-      </span>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        autoComplete={autoComplete}
-        className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2
-                   text-neutral-900 placeholder:text-neutral-400
-                   focus:outline-none focus:ring-2 focus:ring-neutral-900/20 focus:border-neutral-300"
-      />
-    </label>
+          <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 2 }}>
+            Already have an account?{" "}
+            <Typography
+              component="a"
+              href="admin/login"
+              variant="body2"
+              color="primary"
+              sx={{ textDecoration: "underline", cursor: "pointer" }}
+            >
+              Log in
+            </Typography>
+          </Typography>
+        </Box>
+      </Paper>
+    </Box>
   );
 }
