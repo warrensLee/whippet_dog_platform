@@ -20,8 +20,7 @@ services:
     shm_size: 1g
     command: sh -c "npm install && npm run dev"
     depends_on:
-      db:
-        condition: service_healthy
+      - db
     ports:
       - 127.0.0.1:3000:3000
     volumes:
