@@ -31,11 +31,13 @@ export default function LoginPage() {
       if (res.ok && data?.ok) {
         window.location.assign("/admin");
         return;
+      } else {
+        setMessage("Incorrect username or password");
       }
 
-      setMessage(data?.error || "Incorrect username or password");
     } catch (err: any) {
-      setMessage(err?.message || "Login failed");
+      setMessage("Error has occured");
+      console.log(err);
     } finally {
       setSubmitting(false);
     }
