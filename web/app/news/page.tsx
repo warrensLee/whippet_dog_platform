@@ -417,8 +417,7 @@ export default function NewsPage() {
         credentials: "include",
         body: JSON.stringify({
           title: newsTitle.trim(),
-          content: newsContent.trim(),
-          authorId: meUser?.PersonID || "",
+          content: newsContent.trim()
         }),
       });
 

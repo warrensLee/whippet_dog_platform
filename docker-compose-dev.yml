@@ -45,7 +45,6 @@ services:
       - FLASK_RUN_HOST=0.0.0.0
       - FLASK_RUN_PORT=8000 
       # ===== EMAIL CONFIG =====
-      - CONTACT_SEND_EMAIL=true
       - CONTACT_TO_EMAIL=##YOUR_CONTACT_EMAIL_HERE##
       - SMTP_HOST=smtp.gmail.com
       - SMTP_PORT=587
