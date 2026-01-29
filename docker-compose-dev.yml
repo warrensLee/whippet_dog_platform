@@ -30,14 +30,14 @@ services:
 
   backend:
     image: python:3.12
+    user: 1000:1000
     working_dir: /app
     ports:
       - 127.0.0.1:8000:8000
-    user: 1000:1000
     volumes:
       - ./backend:/app
       - ./mysql/migrations:/app/mysql/migrations:ro
-    command: sh -c "pip install flask gunicorn mysql-connector-python && gunicorn -b 0.0.0.0:8000 main:app"
+    command: /bin/bash -c "python -m venv venv && source venv/bin/activate && pip install -r requirements.txt && gunicorn -b 0.0.0.0:8000 main:app"
     depends_on: [db]
     environment:
       - DB_POOL_SIZE=10
