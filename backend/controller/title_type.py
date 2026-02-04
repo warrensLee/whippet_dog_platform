@@ -1,6 +1,8 @@
 from flask import Blueprint, jsonify, request
 from mysql.connector import Error
 from classes.title_type import TitleType
+from classes.change_log import ChangeLog
+from datetime import datetime
 
 title_type_bp = Blueprint("title_type", __name__, url_prefix="/api/title_type")
 
@@ -10,14 +12,27 @@ def register_title_type():
     data = request.get_json(silent=True) or {}
     title_type = TitleType.from_request_data(data)
 
+    title_type.last_edited_by = current_id
+    title_type.last_edited_at = datetime.utcnow()
+
     validation_errors = title_type.validate()
     if validation_errors:
         return jsonify({"ok": False, "error": ", ".join(validation_errors)}), 400
 
-    if TitleType.exists(title_type.title_type_id):
+    if TitleType.exists(title_type.title):
         return jsonify({"ok": False, "error": "Title type already exists"}), 409
     try:
         title_type.save()
+
+        ChangeLog.log(
+            changed_table="TitleType",
+            record_pk=title_type.title,
+            operation="INSERT",
+            changed_by=current_id,
+            source="api/title_type/register POST",
+            before_obj=None,
+            after_obj=title_type.to_dict(),
+        )
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
@@ -27,22 +42,40 @@ def register_title_type():
 @title_type_bp.post("/edit")
 def edit_title_type():
     data = request.get_json(silent=True) or {}
-
     title = (data.get("title") or "").strip()
+
     if not title:
         return jsonify({"ok": False, "error": "Title is required"}), 400
 
+    existing = TitleType.find_by_identifier(title)
+    if not existing:
+        return jsonify({"ok": False, "error": "Title type does not exist"}), 404
+    
+    before_snapshot = existing.to_dict()
     title_type = TitleType.from_request_data(data)
     title_type.title = title
+
+    title_type.last_edited_by = current_id
+    title_type.last_edited_at = datetime.utcnow()
+
     validation_errors = title_type.validate()
     if validation_errors:
         return jsonify({"ok": False, "error": ", ".join(validation_errors)}), 400
 
-    if not TitleType.exists(title_type.title):
-        return jsonify({"ok": False, "error": "Title type does not exist"}), 404
-
     try:
         title_type.update()
+        refreshed = TitleType.find_by_identifier(title)
+        after_snapshot = refreshed.to_dict() if refreshed else title_type.to_dict()
+        
+        ChangeLog.log(
+            changed_table="TitleType",
+            record_pk=title,
+            operation="UPDATE",
+            changed_by=current_id,
+            source="api/title_type/edit POST",
+            before_obj=before_snapshot,
+            after_obj=after_snapshot,
+        )
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
@@ -54,17 +87,29 @@ def delete_title_type():
     data = request.get_json(silent=True) or {}
     title = (data.get("title") or "").strip()
 
+    if data.get("confirm") is not True:
+        return jsonify({"ok": False, "error": "Confirmation required"}), 400
     if not title:
         return jsonify({"ok": False, "error": "Title is required"}), 400
-
-    if not TitleType.exists(title):
-        return jsonify({"ok": False, "error": "Title type does not exist"}), 404
 
     try:
         title_type = TitleType.find_by_identifier(title)
         if not title_type:
             return jsonify({"ok": False, "error": "Title type does not exist"}), 404
+        
+        before_snapshot = title_type.to_dict()
         title_type.delete(title)
+
+        ChangeLog.log(
+            changed_table="TitleType",
+            record_pk=title,
+            operation="DELETE",
+            changed_by=current_id,
+            source="api/title_type/delete POST",
+            before_obj=before_snapshot,
+            after_obj=None,
+        )
+        
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
