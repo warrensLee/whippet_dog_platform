@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 from mysql.connector import Error
 from classes.club import Club
 from classes.person import Person
@@ -7,12 +7,16 @@ from datetime import datetime
 
 club_bp = Blueprint("club", __name__, url_prefix="/api/club")
 
+def _current_editor_id() -> str | None:
+    u = session.get("user") or {}
+    return (u.get("PersonID") or u.get("personId") or u.get("id") or None)
+
 @club_bp.post("/register")
 def register_club():
     data = request.get_json(silent=True) or {}
     club = Club.from_request_data(data)
 
-    club.last_edited_by = current_id
+    club.last_edited_by = _current_editor_id()
     club.last_edited_at = datetime.utcnow()
 
     validation_errors = club.validate()
@@ -29,7 +33,7 @@ def register_club():
             changed_table="Club",
             record_pk=club.club_abbreviation,
             operation="INSERT",
-            changed_by=current_id,
+            changed_by=_current_editor_id(),
             source="api/club/register POST",
             before_obj=None,
             after_obj=club.to_dict(),
@@ -56,7 +60,7 @@ def edit_club():
     club = Club.from_request_data(data)
     club.club_abbreviation = club_abbreviation  
 
-    club.last_edited_by = current_id
+    club.last_edited_by = _current_editor_id()
     club.last_edited_at = datetime.utcnow()
 
     validation_errors = club.validate()
@@ -72,7 +76,7 @@ def edit_club():
             changed_table="Club",
             record_pk=club_abbreviation,
             operation="UPDATE",
-            changed_by=current_id,
+            changed_by=_current_editor_id(),
             source="api/club/edit POST",
             before_obj=before_snapshot,
             after_obj=after_snapshot,
@@ -105,7 +109,7 @@ def delete_club():
             changed_table="Club",
             record_pk=club_abbreviation,
             operation="DELETE",
-            changed_by=current_id,
+            changed_by=_current_editor_id(),
             source="api/club/delete POST",
             before_obj=before_snapshot,
             after_obj=None,
