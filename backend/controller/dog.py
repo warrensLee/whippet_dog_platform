@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 from mysql.connector import Error
 from classes.dog import Dog
 from classes.change_log import ChangeLog
@@ -6,12 +6,16 @@ from datetime import datetime
 
 dog_bp = Blueprint("dog", __name__, url_prefix="/api/dog")
 
+def _current_editor_id() -> str | None:
+    u = session.get("user") or {}
+    return (u.get("PersonID") or u.get("personId") or u.get("id") or None)
+
 @dog_bp.post("/register")
 def register_dog():
     data = request.get_json(silent=True) or {}
     dog = Dog.from_request_data(data)
     
-    dog.last_edited_by = current_id
+    dog.last_edited_by = _current_editor_id()
     dog.last_edited_at = datetime.utcnow()
 
     validation_errors = dog.validate()
@@ -28,7 +32,7 @@ def register_dog():
             changed_table="Dog",
             record_pk=dog.cwa_number,
             operation="INSERT",
-            changed_by=current_id,
+            changed_by=_current_editor_id(),
             source="api/dog/register POST",
             before_obj=None,
             after_obj=dog.to_dict(),
@@ -54,7 +58,7 @@ def edit_dog():
     dog = Dog.from_request_data(data)
     dog.cwa_number = cwa_number
 
-    dog.last_edited_by = current_id
+    dog.last_edited_by = _current_editor_id()
     dog.last_edited_at = datetime.utcnow()
     
     validation_errors = dog.validate()
@@ -70,7 +74,7 @@ def edit_dog():
             changed_table="Dog",
             record_pk=cwa_number,
             operation="UPDATE",
-            changed_by=current_id,
+            changed_by=_current_editor_id(),
             source="api/dog/edit POST",
             before_obj=before_snapshot,
             after_obj=after_snapshot,
@@ -102,7 +106,7 @@ def delete_dog():
             changed_table="Dog",
             record_pk=cwa_number,
             operation="DELETE",
-            changed_by=current_id,
+            changed_by=_current_editor_id(),
             source="api/dog/delete POST",
             before_obj=before_snapshot,
             after_obj=None,
