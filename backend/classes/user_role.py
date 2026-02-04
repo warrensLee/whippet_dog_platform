@@ -1,11 +1,12 @@
 from database import fetch_all, fetch_one, execute
 from mysql.connector import Error
+from flask import session
 
 class UserRole:
     def __init__(
         self,
         title: str,
-        role_id: int | None = None,
+        id: int | None = None,
         can_edit_dog: bool = False,
         can_edit_person: bool = False,
         can_edit_dog_owner: bool = False,
@@ -20,7 +21,7 @@ class UserRole:
         last_edited_by=None,
         last_edited_at=None,
     ):
-        self.role_id = role_id
+        self.id = id
         self.title = (title or "").strip().upper()
         self.can_edit_dog = bool(can_edit_dog)
         self.can_edit_person = bool(can_edit_person)
@@ -61,7 +62,6 @@ class UserRole:
         if not row:
             return None
         return cls(
-            role_id=row.get("RoleID"),
             title=row.get("Title"),
             can_edit_dog=bool(row.get("CanEditDog")),
             can_edit_person=bool(row.get("CanEditPerson")),
@@ -82,12 +82,28 @@ class UserRole:
     def find_by_identifier(cls, identifier):
         row = fetch_one(
             """
-            SELECT RoleID, Title, CanEditDog, CanEditPerson, CanEditDogOwner,
+            SELECT ID, Title, CanEditDog, CanEditPerson, CanEditDogOwner,
                    CanEditOfficerRole, CanEditUserRole, CanEditClub, CanEditMeet,
                    CanEditMeetResults, CanEditRaceResults, CanEditDogTitles,
                    CanEditNews, LastEditedBy, LastEditedAt
             FROM UserRole
-            WHERE RoleID = %s
+            WHERE ID = %s
+            LIMIT 1
+            """,
+            (identifier,),
+        )
+        return cls.from_db_row(row)
+    
+    @classmethod
+    def find_by_title(cls, identifier):
+        row = fetch_one(
+            """
+            SELECT ID, Title, CanEditDog, CanEditPerson, CanEditDogOwner,
+                   CanEditOfficerRole, CanEditUserRole, CanEditClub, CanEditMeet,
+                   CanEditMeetResults, CanEditRaceResults, CanEditDogTitles,
+                   CanEditNews, LastEditedBy, LastEditedAt
+            FROM UserRole
+            WHERE Title = %s
             LIMIT 1
             """,
             (identifier,),
@@ -197,7 +213,7 @@ class UserRole:
     def list_all_user_roles():
         rows = fetch_all(
             """
-            SELECT RoleID, Title, CanEditDog, CanEditPerson, CanEditDogOwner,
+            SELECT ID, Title, CanEditDog, CanEditPerson, CanEditDogOwner,
                    CanEditOfficerRole, CanEditUserRole, CanEditClub, CanEditMeet,
                    CanEditMeetResults, CanEditRaceResults, CanEditDogTitles,
                    CanEditNews, LastEditedBy, LastEditedAt
@@ -212,7 +228,7 @@ class UserRole:
 
     def to_dict(self):
         return {
-            "roleId": self.role_id,   
+            "id": self.id,   
             "title": self.title,
             "canEditDog": self.can_edit_dog,
             "canEditPerson": self.can_edit_person,
@@ -228,3 +244,17 @@ class UserRole:
             "lastEditedBy": self.last_edited_by,
             "lastEditedAt": self.last_edited_at.isoformat() if self.last_edited_at else None,
         }
+    
+    @classmethod
+    def can_user_modify(cls, resource: str) -> bool:
+        user = session.get("user")
+        if not user:
+            return False
+
+        role_title = (user.get("SystemRole") or "").strip().upper()
+        role = cls.find_by_title(role_title)
+        if not role:
+            return False
+
+        attr = f"can_edit_{resource.lower()}"
+        return bool(getattr(role, attr, False))
