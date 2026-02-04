@@ -24,7 +24,7 @@ def get_all_news():
         rows = fetch_all(
             """
             SELECT
-                n.NewsID,
+                n.ID,
                 n.Title,
                 n.Content,
                 n.CreatedAt,
@@ -49,7 +49,7 @@ def get_all_news():
         
     except Error as e:
         print(f"Database error: {e}")
-        return jsonify({"error": "Failed to fetch news"}), 500
+        return jsonify({"error": str(e)}), 500
     except Exception as e:
         print(f"Unexpected error: {e}")
         return jsonify({"error": "An unexpected error occurred"}), 500
@@ -312,7 +312,7 @@ def delete_news(news_id):
         
         return jsonify({
             "message": "News item deleted successfully",
-            "newsId": news_id
+            "Id": news_id
         }), 200
         
     except Error as e:
@@ -334,7 +334,7 @@ def search_news():
         
         rows = fetch_all(
             """
-            SELECT NewsID, Title, Content, CreatedAt, UpdatedAt, AuthorID, LastEditedBy, LastEditedAt
+            SELECT ID, Title, Content, CreatedAt, UpdatedAt, AuthorID, LastEditedBy, LastEditedAt
             FROM News
             WHERE Title LIKE %s OR Content LIKE %s
             ORDER BY CreatedAt DESC
