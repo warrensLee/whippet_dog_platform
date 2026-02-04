@@ -1,6 +1,8 @@
 from flask import Blueprint, jsonify, request
 from mysql.connector import Error
 from classes.dog_owner import DogOwner
+from classes.change_log import ChangeLog
+from datetime import datetime
 
 dog_owner_bp = Blueprint("dog_owner", __name__, url_prefix="/api/dog_owner")
 
@@ -9,6 +11,9 @@ dog_owner_bp = Blueprint("dog_owner", __name__, url_prefix="/api/dog_owner")
 def register_dog_owner():
     data = request.get_json(silent=True) or {}
     dog_owner = DogOwner.from_request_data(data)
+
+    dog_owner.last_edited_by = current_id
+    dog_owner.last_edited_at = datetime.utcnow()
 
     validation_errors = dog_owner.validate()
     if validation_errors:
@@ -19,6 +24,16 @@ def register_dog_owner():
 
     try:
         dog_owner.save()
+        
+        ChangeLog.log(
+            changed_table="DogOwner",
+            record_pk=f"{dog_owner.cwa_id}|{dog_owner.person_id}",
+            operation="INSERT",
+            changed_by=current_id,
+            source="api/dog_owner/register POST",
+            before_obj=None,
+            after_obj=dog_owner.to_dict(),
+        )
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
@@ -28,27 +43,44 @@ def register_dog_owner():
 @dog_owner_bp.post("/edit")
 def edit_dog_owner():
     data = request.get_json(silent=True) or {}
-
     cwa_id = (data.get("cwaId") or "").strip()
     person_id = (data.get("personId") or "").strip()
+    
     if not cwa_id:
         return jsonify({"ok": False, "error": "CWA ID is required"}), 400
     if not person_id:
         return jsonify({"ok": False, "error": "Person ID is required"}), 400
 
+    existing = DogOwner.find_by_identifier(cwa_id, person_id)
+    if not existing:
+        return jsonify({"ok": False, "error": "Dog owner does not exist"}), 404
+    
+    before_snapshot = existing.to_dict()
     dog_owner = DogOwner.from_request_data(data)
     dog_owner.cwa_id = cwa_id
     dog_owner.person_id = person_id
+
+    dog_owner.last_edited_by = current_id
+    dog_owner.last_edited_at = datetime.utcnow()
 
     validation_errors = dog_owner.validate()
     if validation_errors:
         return jsonify({"ok": False, "error": ", ".join(validation_errors)}), 400
 
-    if not DogOwner.exists(cwa_id, person_id):
-        return jsonify({"ok": False, "error": "Dog owner does not exist"}), 404
-
     try:
         dog_owner.update()
+        refreshed = DogOwner.find_by_identifier(cwa_id, person_id)
+        after_snapshot = refreshed.to_dict() if refreshed else dog_owner.to_dict()
+
+        ChangeLog.log(
+            changed_table="DogOwner",
+            record_pk=f"{cwa_id}|{person_id}",
+            operation="UPDATE",
+            changed_by=current_id,
+            source="api/dog_owner/edit POST",
+            before_obj=before_snapshot,
+            after_obj=after_snapshot,
+        )
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
@@ -61,19 +93,31 @@ def delete_dog_owner():
     cwa_id = (data.get("cwaId") or "").strip()
     person_id = (data.get("personId") or "").strip()
 
+    if data.get("confirm") is not True:
+        return jsonify({"ok": False, "error": "Confirmation required"}), 400
     if not cwa_id:
         return jsonify({"ok": False, "error": "CWA ID is required"}), 400
     if not person_id:
         return jsonify({"ok": False, "error": "Person ID is required"}), 400        
 
-    if not DogOwner.exists(cwa_id, person_id):
-        return jsonify({"ok": False, "error": "Dog owner does not exist"}), 404
-
     try:
         dog_owner = DogOwner.find_by_identifier(cwa_id, person_id)
         if not dog_owner:
             return jsonify({"ok": False, "error": "Dog owner does not exist"}), 404
+        
+        before_snapshot = dog_owner.to_dict()
         dog_owner.delete(cwa_id, person_id)
+        
+        ChangeLog.log(
+            changed_table="DogOwner",
+            record_pk=f"{cwa_id}|{person_id}",
+            operation="DELETE",
+            changed_by=current_id,
+            source="api/dog_owner/delete POST",
+            before_obj=before_snapshot,
+            after_obj=None,
+        )
+
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
