@@ -1,14 +1,19 @@
 from flask import Blueprint, jsonify, request
 from mysql.connector import Error
 from classes.club import Club
+from classes.person import Person
+from classes.change_log import ChangeLog
+from datetime import datetime
 
 club_bp = Blueprint("club", __name__, url_prefix="/api/club")
-
 
 @club_bp.post("/register")
 def register_club():
     data = request.get_json(silent=True) or {}
     club = Club.from_request_data(data)
+
+    club.last_edited_by = current_id
+    club.last_edited_at = datetime.utcnow()
 
     validation_errors = club.validate()
     if validation_errors:
@@ -19,6 +24,16 @@ def register_club():
 
     try:
         club.save()
+        
+        ChangeLog.log(
+            changed_table="Club",
+            record_pk=club.club_abbreviation,
+            operation="INSERT",
+            changed_by=current_id,
+            source="api/club/register POST",
+            before_obj=None,
+            after_obj=club.to_dict(),
+        )
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
@@ -28,23 +43,40 @@ def register_club():
 @club_bp.post("/edit")
 def edit_club():
     data = request.get_json(silent=True) or {}
-
     club_abbreviation = (data.get("clubAbbreviation") or "").strip()
+    
     if not club_abbreviation:
         return jsonify({"ok": False, "error": "Club abbreviation is required"}), 400
 
+    existing = Club.find_by_identifier(club_abbreviation)
+    if not existing:
+        return jsonify({"ok": False, "error": "Club does not exist"}), 404
+
+    before_snapshot = existing.to_dict()
     club = Club.from_request_data(data)
     club.club_abbreviation = club_abbreviation  
+
+    club.last_edited_by = current_id
+    club.last_edited_at = datetime.utcnow()
 
     validation_errors = club.validate()
     if validation_errors:
         return jsonify({"ok": False, "error": ", ".join(validation_errors)}), 400
 
-    if not Club.exists(club_abbreviation):
-        return jsonify({"ok": False, "error": "Club does not exist"}), 404
-
     try:
         club.update()
+        refreshed = Club.find_by_identifier(club_abbreviation)
+        after_snapshot = refreshed.to_dict() if refreshed else club.to_dict()
+        
+        ChangeLog.log(
+            changed_table="Club",
+            record_pk=club_abbreviation,
+            operation="UPDATE",
+            changed_by=current_id,
+            source="api/club/edit POST",
+            before_obj=before_snapshot,
+            after_obj=after_snapshot,
+        )
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
@@ -56,17 +88,29 @@ def delete_club():
     data = request.get_json(silent=True) or {}
     club_abbreviation = (data.get("clubAbbreviation") or "").strip()
 
+    if data.get("confirm") is not True:
+        return jsonify({"ok": False, "error": "Confirmation required"}), 400
     if not club_abbreviation:
         return jsonify({"ok": False, "error": "Club abbreviation is required"}), 400
-
-    if not Club.exists(club_abbreviation):
-        return jsonify({"ok": False, "error": "Club does not exist"}), 404
 
     try:
         club = Club.find_by_identifier(club_abbreviation)
         if not club:
             return jsonify({"ok": False, "error": "Club does not exist"}), 404
+        
+        before_snapshot = club.to_dict()
         club.delete(club_abbreviation)
+        
+        ChangeLog.log(
+            changed_table="Club",
+            record_pk=club_abbreviation,
+            operation="DELETE",
+            changed_by=current_id,
+            source="api/club/delete POST",
+            before_obj=before_snapshot,
+            after_obj=None,
+        )
+
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
