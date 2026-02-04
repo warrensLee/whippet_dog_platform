@@ -1,6 +1,8 @@
 from flask import Blueprint, jsonify, request
 from mysql.connector import Error
 from classes.dog import Dog
+from classes.change_log import ChangeLog
+from datetime import datetime
 
 dog_bp = Blueprint("dog", __name__, url_prefix="/api/dog")
 
@@ -9,6 +11,9 @@ def register_dog():
     data = request.get_json(silent=True) or {}
     dog = Dog.from_request_data(data)
     
+    dog.last_edited_by = current_id
+    dog.last_edited_at = datetime.utcnow()
+
     validation_errors = dog.validate()
     if validation_errors:
         return jsonify({"ok": False, "error": ", ".join(validation_errors)}), 400
@@ -18,6 +23,16 @@ def register_dog():
 
     try:
         dog.save()
+        
+        ChangeLog.log(
+            changed_table="Dog",
+            record_pk=dog.cwa_number,
+            operation="INSERT",
+            changed_by=current_id,
+            source="api/dog/register POST",
+            before_obj=None,
+            after_obj=dog.to_dict(),
+        )
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
@@ -26,23 +41,40 @@ def register_dog():
 @dog_bp.post("/edit")
 def edit_dog():
     data = request.get_json(silent=True) or {}
-    
     cwa_number = (data.get("cwa_number") or "").strip()
+
     if not cwa_number:
         return jsonify({"ok": False, "error": "CWA Number is required"}), 400
     
+    existing = Dog.find_by_identifier(cwa_number)
+    if not existing:
+        return jsonify({"ok": False, "error": "Dog does not exist"}), 404
+    
+    before_snapshot = existing.to_dict()
     dog = Dog.from_request_data(data)
     dog.cwa_number = cwa_number
+
+    dog.last_edited_by = current_id
+    dog.last_edited_at = datetime.utcnow()
     
     validation_errors = dog.validate()
     if validation_errors:
         return jsonify({"ok": False, "error": ", ".join(validation_errors)}), 400
 
-    if not Dog.exists(cwa_number):
-        return jsonify({"ok": False, "error": "Dog does not exist"}), 404
-
     try:
         dog.update()
+        refreshed_dog = Dog.find_by_identifier(cwa_number)
+        after_snapshot = refreshed_dog.to_dict() if refreshed_dog else None
+        
+        ChangeLog.log(
+            changed_table="Dog",
+            record_pk=cwa_number,
+            operation="UPDATE",
+            changed_by=current_id,
+            source="api/dog/edit POST",
+            before_obj=before_snapshot,
+            after_obj=after_snapshot,
+        )
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
@@ -53,17 +85,29 @@ def delete_dog():
     data = request.get_json(silent=True) or {}
     cwa_number = (data.get("cwa_number") or "").strip()
 
+    if data.get("confirm") is not True:
+        return jsonify({"ok": False, "error": "Confirmation required"}), 400
     if not cwa_number:
         return jsonify({"ok": False, "error": "CWA Number is required"}), 400
-
-    if not Dog.exists(cwa_number):
-        return jsonify({"ok": False, "error": "Dog does not exist"}), 404
 
     try:
         dog = Dog.find_by_identifier(cwa_number)
         if not dog:
             return jsonify({"ok": False, "error": "Dog does not exist"}), 404
-        Dog.delete()
+        
+        before_snapshot = dog.to_dict()
+        Dog.delete(cwa_number)
+        
+        ChangeLog.log(
+            changed_table="Dog",
+            record_pk=cwa_number,
+            operation="DELETE",
+            changed_by=current_id,
+            source="api/dog/delete POST",
+            before_obj=before_snapshot,
+            after_obj=None,
+        )
+
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
@@ -86,7 +130,6 @@ def list_all_dogs():
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
     dogs_data = [dog.to_dict() for dog in dogs]
-
     return jsonify(dogs_data), 200
 
 @dog_bp.get("/titles/<cwa_number>")
