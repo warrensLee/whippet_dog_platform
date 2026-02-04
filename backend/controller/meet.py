@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 from mysql.connector import Error
 from classes.meet import Meet
 from classes.change_log import ChangeLog
@@ -6,13 +6,16 @@ from datetime import datetime
 
 meet_bp = Blueprint("meet", __name__, url_prefix="/api/meet")
 
+def _current_editor_id() -> str | None:
+    u = session.get("user") or {}
+    return (u.get("PersonID") or u.get("personId") or u.get("id") or None)
 
 @meet_bp.post("/register")
 def register_meet():
     data = request.get_json(silent=True) or {}
     meet = Meet.from_request_data(data)
 
-    meet.last_edited_by = current_id
+    meet.last_edited_by = _current_editor_id()
     meet.last_edited_at = datetime.utcnow()
 
     validation_errors = meet.validate()
@@ -29,7 +32,7 @@ def register_meet():
             changed_table="Meet",
             record_pk=meet.meet_number,
             operation="INSERT",
-            changed_by=current_id,
+            changed_by=_current_editor_id(),
             source="api/meet/register POST",
             before_obj=None,
             after_obj=meet.to_dict(),
@@ -56,7 +59,7 @@ def edit_meet():
     meet = Meet.from_request_data(data)
     meet.meet_number = meet_number
 
-    meet.last_edited_by = current_id
+    meet.last_edited_by = _current_editor_id()
     meet.last_edited_at = datetime.utcnow()
 
     validation_errors = meet.validate()
@@ -72,7 +75,7 @@ def edit_meet():
             changed_table="Meet",
             record_pk=meet_number,
             operation="UPDATE",
-            changed_by=current_id,
+            changed_by=_current_editor_id(),
             source="api/meet/edit POST",
             before_obj=before_snapshot,
             after_obj=after_snapshot,
@@ -105,7 +108,7 @@ def delete_meet():
             changed_table="Meet",
             record_pk=meet_number,
             operation="DELETE",
-            changed_by=current_id,
+            changed_by=_current_editor_id(),
             source="api/meet/delete POST",
             before_obj=before_snapshot,
             after_obj=None,
