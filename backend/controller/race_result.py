@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 from mysql.connector import Error
 from classes.race_result import RaceResult
 from classes.change_log import ChangeLog
@@ -6,16 +6,19 @@ from datetime import datetime
 
 race_result_bp = Blueprint("race_result", __name__, url_prefix="/api/race_result")
 
+def _current_editor_id() -> str | None:
+    u = session.get("user") or {}
+    return (u.get("PersonID") or u.get("personId") or u.get("id") or None)
 
 @race_result_bp.post("/register")
 def register_race_result():
     data = request.get_json(silent=True) or {}
     race_result = RaceResult.from_request_data(data)
 
-    race_result.last_edited_by = current_id
+    race_result.last_edited_by = _current_editor_id()
     race_result.last_edited_at = datetime.utcnow()
 
-    validation_errors = RaceResult.validate()
+    validation_errors = race_result.validate()
     if validation_errors:
         return jsonify({"ok": False, "error": ", ".join(validation_errors)}), 400
 
@@ -28,7 +31,7 @@ def register_race_result():
             changed_table="RaceResult",
             record_pk=f"{race_result.meet_number}|{race_result.cwa_number}|{race_result.program}|{race_result.race_number}",
             operation="INSERT",
-            changed_by=current_id,
+            changed_by=_current_editor_id(),
             source="api/race_result/register POST",
             before_obj=None,
             after_obj=race_result.to_dict(),
@@ -68,7 +71,7 @@ def edit_change_log():
     race_result.program = program
     race_result.race_number = race_number
 
-    race_result.last_edited_by = current_id
+    race_result.last_edited_by = _current_editor_id()
     race_result.last_edited_at = datetime.utcnow()
     
     validation_errors = race_result.validate()
@@ -84,7 +87,7 @@ def edit_change_log():
             changed_table="RaceResult",
             record_pk=f"{meet_number}|{cwa_number}|{program}|{race_number}",
             operation="UPDATE",
-            changed_by=current_id,
+            changed_by=_current_editor_id(),
             source="api/race_result/edit POST",
             before_obj=before_snapshot,
             after_obj=after_snapshot,
@@ -126,7 +129,7 @@ def delete_race_result():
             changed_table="RaceResult",
             record_pk=f"{meet_number}|{cwa_number}|{program}|{race_number}",
             operation="DELETE",
-            changed_by=current_id,
+            changed_by=_current_editor_id(),
             source="api/race_result/delete POST",
             before_obj=before_snapshot,
         )
