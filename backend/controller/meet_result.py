@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 from mysql.connector import Error
 from classes.meet_result import MeetResult
 from classes.change_log import ChangeLog
@@ -6,13 +6,16 @@ from datetime import datetime
 
 meet_result_bp = Blueprint("meet_result", __name__, url_prefix="/api/meet_result")
 
+def _current_editor_id() -> str | None:
+    u = session.get("user") or {}
+    return (u.get("PersonID") or u.get("personId") or u.get("id") or None)
 
 @meet_result_bp.post("/register")
 def register_meet_result():
     data = request.get_json(silent=True) or {}
     meet_result = MeetResult.from_request_data(data)
 
-    meet_result.last_edited_by = current_id
+    meet_result.last_edited_by = _current_editor_id()
     meet_result.last_edited_at = datetime.utcnow()
     
     validation_errors = meet_result.validate()
@@ -29,7 +32,7 @@ def register_meet_result():
             changed_table="MeetResult",
             record_pk=f"{meet_result.meet_number}|{meet_result.cwa_number}",
             operation="INSERT",
-            changed_by=current_id,
+            changed_by=_current_editor_id(),
             source="api/meet_result/register POST",
             before_obj=None,
             after_obj=meet_result.to_dict(),
@@ -60,7 +63,7 @@ def edit_meet_result():
     meet_result.meet_number = meet_number
     meet_result.cwa_number = cwa_number
 
-    meet_result.last_edited_by = current_id
+    meet_result.last_edited_by = _current_editor_id()
     meet_result.last_edited_at = datetime.utcnow()
 
     validation_errors = meet_result.validate()
@@ -76,7 +79,7 @@ def edit_meet_result():
             changed_table="MeetResult",
             record_pk=f"{meet_number}|{cwa_number}",
             operation="UPDATE",
-            changed_by=current_id,
+            changed_by=_current_editor_id(),
             source="api/meet_result/edit POST",
             before_obj=before_snapshot,
             after_obj=after_snapshot,
@@ -112,7 +115,7 @@ def delete_meet_result():
             changed_table="MeetResult",
             record_pk=f"{meet_number}|{cwa_number}",
             operation="DELETE",
-            changed_by=current_id,
+            changed_by=_current_editor_id(),
             source="api/meet_result/delete POST",
             before_obj=before_snapshot,
             after_obj=None,
