@@ -40,7 +40,6 @@ services:
     command: /bin/bash -c "python -m venv venv && source venv/bin/activate && pip install -r requirements.txt && gunicorn -b 0.0.0.0:8000 main:app"
     depends_on: [db]
     environment:
-      - DB_POOL_SIZE=10
       - FLASK_ENV=development
       - FLASK_RUN_HOST=0.0.0.0
       - FLASK_RUN_PORT=8000 
