@@ -2,15 +2,24 @@ USE cwa_db;
 
 START TRANSACTION;
 
-SET FOREIGN_KEY_CHECKS=0;
-DELETE FROM OfficerRole;
-DELETE FROM Club;
-DELETE FROM Person;
-SET FOREIGN_KEY_CHECKS=1;
-
-INSERT IGNORE INTO UserRole (Title) VALUES
-('ADMIN'),
-('PUBLIC');
+INSERT IGNORE INTO UserRole
+(
+  Title,
+  CanEditDog,
+  CanEditPerson,
+  CanEditDogOwner,
+  CanEditOfficerRole,
+  CanEditUserRole,
+  CanEditClub,
+  CanEditMeet,
+  CanEditMeetResults,
+  CanEditRaceResults,
+  CanEditDogTitles,
+  CanEditNews
+)
+VALUES
+('ADMIN', 1,1,1,1,1,1,1,1,1,1,1),
+('PUBLIC',0,0,0,0,0,0,0,0,0,0,0);
 
 INSERT INTO Person (
   PersonID, FirstName, LastName, EmailAddress,
@@ -75,11 +84,6 @@ INSERT INTO OfficerRole (RoleName, PersonID, DisplayOrder, Active) VALUES
 ('Statistician', 'P0001', 6, TRUE),
 ('Website', 'P0004', 7, TRUE);
 
--- -----------------------
--- 2) Clubs
--- This inserts all clubs with board members filled as strings.
--- Adjust ClubStatus/BeginDate/EndDate as needed.
--- -----------------------
 INSERT INTO Club (
   ClubAbbreviation, ClubName, ClubStatus, BeginDate, EndDate,
   BoardMember1, BoardMember2, DefaultRaceSecretary, Notes,

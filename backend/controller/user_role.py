@@ -1,91 +1,122 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 from mysql.connector import Error
 from classes.user_role import UserRole
 
-user_role_bp = Blueprint("user_role", __name__, url_prefix="/api/user_role")
 
+user_role_bp = Blueprint("user_role", __name__, url_prefix="/api/user_role")
+PROTECTED_ROLES = {"ADMIN", "PUBLIC"}
+
+def _current_editor_id() -> str | None:
+    u = session.get("user") or {}
+    return (u.get("PersonID") or u.get("personId") or u.get("id") or None)
 
 @user_role_bp.post("/register")
 def register_user_role():
     data = request.get_json(silent=True) or {}
     user_role = UserRole.from_request_data(data)
+    user_role.last_edited_by = _current_editor_id()
 
-    validation_errors = user_role.validate()
-    if validation_errors:
-        return jsonify({"ok": False, "error": ", ".join(validation_errors)}), 400
+    errors = user_role.validate()
+    if errors:
+        return jsonify({"ok": False, "error": ", ".join(errors)}), 400
 
-    if UserRole.exists(user_role.role_id):
+    if UserRole.exists(user_role.title):
         return jsonify({"ok": False, "error": "User role already exists"}), 409
+
     try:
         user_role.save()
+        saved = UserRole.find_by_identifier(user_role.title)
+        return jsonify({"ok": True, "data": saved.to_dict() if saved else user_role.to_dict()}), 201
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
-
-    return jsonify({"ok": True}), 201
 
 
 @user_role_bp.post("/edit")
 def edit_user_role():
     data = request.get_json(silent=True) or {}
+    role_id = data.get("roleId")
 
-    role_id = (data.get("roleId") or "").strip()
-    if not role_id:
-        return jsonify({"ok": False, "error": "Role ID is required"}), 400
+    if role_id is None:
+        return jsonify({"ok": False, "error": "roleId is required"}), 400
 
-    user_role = UserRole.from_request_data(data)
-    user_role.role_id = role_id
-    validation_errors = user_role.validate()
-    if validation_errors:
-        return jsonify({"ok": False, "error": ", ".join(validation_errors)}), 400
+    try:
+        role_id = int(role_id)
+    except (TypeError, ValueError):
+        return jsonify({"ok": False, "error": "roleId must be an integer"}), 400
 
-    if not UserRole.exists(role_id):
+    role = UserRole.find_by_identifier(role_id)
+    if not role:
         return jsonify({"ok": False, "error": "User role does not exist"}), 404
+
+    title = (role.title or "").strip().upper()
+
+    if title in PROTECTED_ROLES:
+        return jsonify({"ok": False, "error": f'Cannot edit protected role "{title}"'}), 403
+
+    user_role = UserRole.from_request_data({**data, "title": title})
+    user_role.last_edited_by = _current_editor_id()
+
+    errors = user_role.validate()
+    if errors:
+        return jsonify({"ok": False, "error": ", ".join(errors)}), 400
 
     try:
         user_role.update()
+        updated = UserRole.find_by_identifier(role_id)
+        return jsonify({"ok": True, "data": updated.to_dict() if updated else user_role.to_dict()}), 200
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
-
-    return jsonify({"ok": True}), 200
 
 
 @user_role_bp.post("/delete")
 def delete_user_role():
     data = request.get_json(silent=True) or {}
-    role_id = (data.get("roleId") or "").strip()
+    role_id = data.get("roleId")
 
-    if not role_id:
-        return jsonify({"ok": False, "error": "Role ID is required"}), 400
-
-    if not UserRole.exists(role_id):
-        return jsonify({"ok": False, "error": "User role does not exist"}), 404
+    if role_id is None:
+        return jsonify({"ok": False, "error": "roleId is required"}), 400
 
     try:
-        user_role = UserRole.find_by_identifier(role_id)
-        if not user_role:
-            return jsonify({"ok": False, "error": "User role does not exist"}), 404
-        user_role.delete(role_id)
-    except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        role_id = int(role_id)
+    except (TypeError, ValueError):
+        return jsonify({"ok": False, "error": "roleId must be an integer"}), 400
 
-    return jsonify({"ok": True}), 200
-
-
-@user_role_bp.get("/get/<role_id>")
-def get_user_role(role_id: str):
-    user_role = UserRole.find_by_identifier(role_id)
-    if not user_role:
+    role = UserRole.find_by_identifier(role_id)
+    if not role:
         return jsonify({"ok": False, "error": "User role does not exist"}), 404
 
-    return jsonify(user_role.to_dict()), 200
+    title = (role.title or "").strip().upper()
+
+    if title in PROTECTED_ROLES:
+        return jsonify({"ok": False, "error": f'Cannot delete protected role "{title}"'}), 403
+
+    try:
+        UserRole.delete(title)
+        return jsonify({"ok": True}), 200
+    except Error as e:
+        msg = str(e)
+        if "foreign key constraint fails" in msg.lower():
+            return jsonify(
+                {"ok": False, "error": "Cannot delete role: it is assigned to one or more people."},
+                409,
+            )
+        return jsonify({"ok": False, "error": f"Database error: {msg}"}), 500
+
+
+@user_role_bp.get("/get/<int:role_id>")
+def get_user_role(role_id: int):
+    role = UserRole.find_by_identifier(role_id)
+
+    if not role:
+        return jsonify({"ok": False, "error": "User role does not exist"}), 404
+
+    return jsonify({"ok": True, "data": role.to_dict()}), 200
 
 
 @user_role_bp.get("/list")
-def list_all_user_roles():
+def list_user_roles():
     try:
-        user_roles = UserRole.list_all_user_roles()
+        roles = UserRole.list_all_user_roles()
+        return jsonify({"ok": True, "data": [r.to_dict() for r in roles]}), 200
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
-
-    user_roles_data = [user_role.to_dict() for user_role in user_roles]
-    return jsonify(user_roles_data), 200           

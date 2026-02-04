@@ -1,7 +1,8 @@
 use cwa_db;
 
 CREATE TABLE `Dog` (
-  `CWANumber` VARCHAR(10) PRIMARY KEY,
+  `DogID` INT AUTO_INCREMENT,
+  `CWANumber` VARCHAR(10) UNIQUE NOT NULL,
   `AKCNumber` VARCHAR(10),
   `CKCNumber` VARCHAR(10),
   `ForeignNumber` VARCHAR(50),
@@ -23,21 +24,38 @@ CREATE TABLE `Dog` (
   `HighCombinedWins` DECIMAL(5,2),
   `Notes` VARCHAR(250),
   `LastEditedBy` VARCHAR(20),
-  `LastEditedAt` TIMESTAMP
+  `LastEditedAt` TIMESTAMP,
+  PRIMARY KEY (`DogID`),
+  KEY `idx_Dog_CWANumber` (`CWANumber`)
 );
 
 CREATE TABLE `TitleType` (
-  `Title` VARCHAR(10) PRIMARY KEY,
+  `TitleTypeID` INT AUTO_INCREMENT,
+  `Title` VARCHAR(10) UNIQUE NOT NULL,
   `TitleDescription` VARCHAR(200) NOT NULL,
   `LastEditedBy` VARCHAR(20),
-  `LastEditedAt` TIMESTAMP
+  `LastEditedAt` TIMESTAMP,
+  PRIMARY KEY (`TitleTypeID`),
+  KEY `idx_TitleType_Title` (`Title`)
 );
 
 CREATE TABLE `UserRole` (
-  `RoleID` INT PRIMARY KEY AUTO_INCREMENT,
-  `Title` VARCHAR(10) NOT NULL UNIQUE,
+  `RoleID` INT AUTO_INCREMENT PRIMARY KEY,
+  `Title` VARCHAR(20) NOT NULL UNIQUE,
+  `CanEditDog`           TINYINT(1) NOT NULL DEFAULT 0,
+  `CanEditPerson`        TINYINT(1) NOT NULL DEFAULT 0,
+  `CanEditDogOwner`      TINYINT(1) NOT NULL DEFAULT 0,
+  `CanEditOfficerRole`   TINYINT(1) NOT NULL DEFAULT 0,
+  `CanEditUserRole`      TINYINT(1) NOT NULL DEFAULT 0,
+  `CanEditClub`          TINYINT(1) NOT NULL DEFAULT 0,
+  `CanEditMeet`          TINYINT(1) NOT NULL DEFAULT 0,
+  `CanEditMeetResults`   TINYINT(1) NOT NULL DEFAULT 0,
+  `CanEditRaceResults`   TINYINT(1) NOT NULL DEFAULT 0,
+  `CanEditDogTitles`     TINYINT(1) NOT NULL DEFAULT 0,
+  `CanEditNews`          TINYINT(1) NOT NULL DEFAULT 0,
   `LastEditedBy` VARCHAR(20),
-  `LastEditedAt` TIMESTAMP
+  `LastEditedAt` TIMESTAMP,
+  KEY `idx_UserRole_Title` (`Title`)
 );
 
 CREATE TABLE `NewsletterSubscription` (
@@ -63,6 +81,7 @@ CREATE TABLE `News` (
 );
 
 CREATE TABLE `DogTitles` (
+  `DogTitleID` INT AUTO_INCREMENT,
   `CWANumber` VARCHAR(10) NOT NULL,
   `Title` VARCHAR(10) NOT NULL,
   `TitleNumber` VARCHAR(10) NOT NULL,
@@ -71,11 +90,13 @@ CREATE TABLE `DogTitles` (
   `NameSuffix` CHAR(1) NOT NULL,
   `LastEditedBy` VARCHAR(20),
   `LastEditedAt` TIMESTAMP,
-  PRIMARY KEY (`CWANumber`, `Title`)
+  PRIMARY KEY (`DogTitleID`),
+  UNIQUE KEY `uq_DogTitles_CWANumber_Title` (`CWANumber`, `Title`)
 );
 
 CREATE TABLE `Person` (
-  `PersonID` VARCHAR(20) PRIMARY KEY,
+  `PersonID` INT AUTO_INCREMENT,
+  `UserName` VARCHAR(20) UNIQUE NOT NULL,
   `FirstName` VARCHAR(50) NOT NULL,
   `LastName` VARCHAR(50) NOT NULL,
   `EmailAddress` VARCHAR(50),
@@ -87,31 +108,38 @@ CREATE TABLE `Person` (
   `Country` VARCHAR(6),
   `PrimaryPhone` VARCHAR(10),
   `SecondaryPhone` VARCHAR(10),
-  `SystemRole` VARCHAR(10) NOT NULL,
+  `SystemRole` VARCHAR(20) NOT NULL,   
   `PasswordHash` VARCHAR(255) NOT NULL,
   `Notes` VARCHAR(250),
   `LastEditedBy` VARCHAR(20),
-  `LastEditedAt` TIMESTAMP
+  `LastEditedAt` TIMESTAMP,
+  PRIMARY KEY (`PersonAutoID`),
+  KEY `idx_Person_PersonID` (`PersonID`)
 );
 
-CREATE TABLE OfficerRole (
-  RoleName VARCHAR(50) PRIMARY KEY,  
-  PersonID VARCHAR(20) NOT NULL,
-  DisplayOrder INT NOT NULL,
-  Active BOOLEAN DEFAULT TRUE,
-  FOREIGN KEY (PersonID) REFERENCES Person(PersonID)
+CREATE TABLE `OfficerRole` (
+  `OfficerRoleID` INT AUTO_INCREMENT,
+  `RoleName` VARCHAR(50) UNIQUE NOT NULL,
+  `PersonID` VARCHAR(20) NOT NULL,
+  `DisplayOrder` INT NOT NULL,
+  `Active` BOOLEAN DEFAULT TRUE,
+  PRIMARY KEY (`OfficerRoleID`),
+  KEY `idx_OfficerRole_RoleName` (`RoleName`)
 );
 
 CREATE TABLE `DogOwner` (
+  `DogOwnerID` INT AUTO_INCREMENT,
   `CWAID` VARCHAR(10) NOT NULL,
   `PersonID` VARCHAR(20) NOT NULL,
   `LastEditedBy` VARCHAR(20),
   `LastEditedAt` TIMESTAMP,
-  PRIMARY KEY (`CWAID`, `PersonID`)
+  PRIMARY KEY (`DogOwnerID`),
+  UNIQUE KEY `uq_DogOwner_CWAID_PersonID` (`CWAID`, `PersonID`)
 );
 
 CREATE TABLE `Club` (
-  `ClubAbbreviation` VARCHAR(20) PRIMARY KEY,
+  `ClubID` INT AUTO_INCREMENT,
+  `ClubAbbreviation` VARCHAR(20) UNIQUE NOT NULL,
   `ClubName` VARCHAR(100) NOT NULL,
   `ClubStatus` VARCHAR(8) NOT NULL,
   `BeginDate` DATE,
@@ -121,11 +149,14 @@ CREATE TABLE `Club` (
   `DefaultRaceSecretary` VARCHAR(20),
   `Notes` VARCHAR(250),
   `LastEditedBy` VARCHAR(20),
-  `LastEditedAt` TIMESTAMP
+  `LastEditedAt` TIMESTAMP,
+  PRIMARY KEY (`ClubID`),
+  KEY `idx_Club_ClubAbbreviation` (`ClubAbbreviation`)
 );
 
 CREATE TABLE `Meet` (
-  `MeetNumber` VARCHAR(20) NOT NULL,
+  `MeetAutoID` INT AUTO_INCREMENT,
+  `MeetNumber` VARCHAR(20) UNIQUE NOT NULL,
   `ClubAbbreviation` VARCHAR(10) NOT NULL,
   `MeetDate` DATE NOT NULL,
   `RaceSecretary` VARCHAR(20),
@@ -134,10 +165,13 @@ CREATE TABLE `Meet` (
   `Yards` INT NOT NULL,
   `LastEditedBy` VARCHAR(20),
   `LastEditedAt` TIMESTAMP,
-  PRIMARY KEY (`MeetNumber`, `ClubAbbreviation`)
+  PRIMARY KEY (`MeetAutoID`),
+  KEY `idx_Meet_MeetNumber` (`MeetNumber`),
+  KEY `idx_Meet_MeetNumber_ClubAbbreviation` (`MeetNumber`, `ClubAbbreviation`)
 );
 
 CREATE TABLE `RaceResults` (
+  `RaceResultID` INT AUTO_INCREMENT,
   `MeetNumber` VARCHAR(20) NOT NULL,
   `CWANumber` VARCHAR(10) NOT NULL,
   `Program` VARCHAR(1) NOT NULL,
@@ -149,10 +183,12 @@ CREATE TABLE `RaceResults` (
   `Incident` VARCHAR(5),
   `LastEditedBy` VARCHAR(20),
   `LastEditedAt` TIMESTAMP,
-  PRIMARY KEY (`MeetNumber`, `CWANumber`, `Program`, `RaceNumber`)
+  PRIMARY KEY (`RaceResultID`),
+  UNIQUE KEY `uq_RaceResults_MeetNumber_CWANumber_Program_RaceNumber` (`MeetNumber`, `CWANumber`, `Program`, `RaceNumber`)
 );
 
 CREATE TABLE `MeetResults` (
+  `MeetResultID` INT AUTO_INCREMENT,
   `MeetNumber` VARCHAR(20) NOT NULL,
   `CWANumber` VARCHAR(10) NOT NULL,
   `Average` DECIMAL(3,2) NOT NULL,
@@ -169,7 +205,8 @@ CREATE TABLE `MeetResults` (
   `HCLegEarned` CHAR(1),
   `LastEditedBy` VARCHAR(20),
   `LastEditedAt` TIMESTAMP,
-  PRIMARY KEY (`MeetNumber`, `CWANumber`)
+  PRIMARY KEY (`MeetResultID`),
+  UNIQUE KEY `uq_MeetResults_MeetNumber_CWANumber` (`MeetNumber`, `CWANumber`)
 );
 
 CREATE TABLE `ChangeLog` (
@@ -184,41 +221,83 @@ CREATE TABLE `ChangeLog` (
   `AfterData` TEXT
 );
 
-CREATE TABLE SchemaMigrations (
-  Version VARCHAR(50) PRIMARY KEY,
-  AppliedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE `SchemaMigrations` (
+  `MigrationID` INT AUTO_INCREMENT,
+  `Version` VARCHAR(50) UNIQUE NOT NULL,
+  `AppliedAt` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`MigrationID`),
+  KEY `idx_SchemaMigrations_Version` (`Version`)
 );
 
-ALTER TABLE `DogTitles` ADD FOREIGN KEY (`CWANumber`) REFERENCES `Dog` (`CWANumber`);
+-- Foreign Keys
+ALTER TABLE `DogTitles` 
+  ADD CONSTRAINT fk_DogTitles_Dog
+  FOREIGN KEY (`CWANumber`) REFERENCES `Dog` (`CWANumber`);
 
-ALTER TABLE `DogTitles` ADD FOREIGN KEY (`Title`) REFERENCES `TitleType` (`Title`);
+ALTER TABLE `DogTitles`
+  ADD CONSTRAINT fk_DogTitles_TitleType
+  FOREIGN KEY (`Title`) REFERENCES `TitleType` (`Title`);
 
-ALTER TABLE `DogOwner` ADD FOREIGN KEY (`CWAID`) REFERENCES `Dog` (`CWANumber`);
+ALTER TABLE `DogOwner`
+  ADD CONSTRAINT fk_DogOwner_Dog
+  FOREIGN KEY (`CWAID`) REFERENCES `Dog` (`CWANumber`);
 
-ALTER TABLE `DogOwner` ADD FOREIGN KEY (`PersonID`) REFERENCES `Person` (`PersonID`);
+ALTER TABLE `DogOwner`
+  ADD CONSTRAINT fk_DogOwner_Person
+  FOREIGN KEY (`PersonID`) REFERENCES `Person` (`PersonID`);
 
-ALTER TABLE `Club` ADD FOREIGN KEY (`BoardMember1`) REFERENCES `Person` (`PersonID`);
+ALTER TABLE `Club`
+  ADD CONSTRAINT fk_Club_BoardMember1
+  FOREIGN KEY (`BoardMember1`) REFERENCES `Person` (`PersonID`);
 
-ALTER TABLE `Club` ADD FOREIGN KEY (`BoardMember2`) REFERENCES `Person` (`PersonID`);
+ALTER TABLE `Club`
+  ADD CONSTRAINT fk_Club_BoardMember2
+  FOREIGN KEY (`BoardMember2`) REFERENCES `Person` (`PersonID`);
 
-ALTER TABLE `Club` ADD FOREIGN KEY (`DefaultRaceSecretary`) REFERENCES `Person` (`PersonID`);
+ALTER TABLE `Club`
+  ADD CONSTRAINT fk_Club_DefaultRaceSecretary
+  FOREIGN KEY (`DefaultRaceSecretary`) REFERENCES `Person` (`PersonID`);
 
-ALTER TABLE `Meet` ADD FOREIGN KEY (`ClubAbbreviation`) REFERENCES `Club` (`ClubAbbreviation`);
+ALTER TABLE `Meet`
+  ADD CONSTRAINT fk_Meet_Club
+  FOREIGN KEY (`ClubAbbreviation`) REFERENCES `Club` (`ClubAbbreviation`);
 
-ALTER TABLE `Meet` ADD FOREIGN KEY (`RaceSecretary`) REFERENCES `Person` (`PersonID`);
+ALTER TABLE `Meet`
+  ADD CONSTRAINT fk_Meet_RaceSecretary
+  FOREIGN KEY (`RaceSecretary`) REFERENCES `Person` (`PersonID`);
 
-ALTER TABLE `Meet` ADD FOREIGN KEY (`Judge`) REFERENCES `Person` (`PersonID`);
+ALTER TABLE `Meet`
+  ADD CONSTRAINT fk_Meet_Judge
+  FOREIGN KEY (`Judge`) REFERENCES `Person` (`PersonID`);
 
-ALTER TABLE `RaceResults` ADD FOREIGN KEY (`MeetNumber`) REFERENCES `Meet` (`MeetNumber`);
+ALTER TABLE `RaceResults`
+  ADD CONSTRAINT fk_RaceResults_Meet
+  FOREIGN KEY (`MeetNumber`) REFERENCES `Meet` (`MeetNumber`);
 
-ALTER TABLE `RaceResults` ADD FOREIGN KEY (`CWANumber`) REFERENCES `Dog` (`CWANumber`);
+ALTER TABLE `RaceResults`
+  ADD CONSTRAINT fk_RaceResults_Dog
+  FOREIGN KEY (`CWANumber`) REFERENCES `Dog` (`CWANumber`);
 
-ALTER TABLE `MeetResults` ADD FOREIGN KEY (`MeetNumber`) REFERENCES `Meet` (`MeetNumber`);
+ALTER TABLE `MeetResults`
+  ADD CONSTRAINT fk_MeetResults_Meet
+  FOREIGN KEY (`MeetNumber`) REFERENCES `Meet` (`MeetNumber`);
 
-ALTER TABLE `MeetResults` ADD FOREIGN KEY (`CWANumber`) REFERENCES `Dog` (`CWANumber`);
+ALTER TABLE `MeetResults`
+  ADD CONSTRAINT fk_MeetResults_Dog
+  FOREIGN KEY (`CWANumber`) REFERENCES `Dog` (`CWANumber`);
 
-ALTER TABLE `News` ADD FOREIGN KEY (`AuthorID`) REFERENCES `Person` (`PersonID`);
+ALTER TABLE `News`
+  ADD CONSTRAINT fk_News_Author
+  FOREIGN KEY (`AuthorID`) REFERENCES `Person` (`PersonID`);
 
-ALTER TABLE `Person` ADD FOREIGN KEY (`SystemRole`) REFERENCES `UserRole` (`Title`);
+ALTER TABLE `Person`
+  ADD CONSTRAINT fk_Person_SystemRole
+  FOREIGN KEY (`SystemRole`) REFERENCES `UserRole` (`Title`);
 
-ALTER TABLE `ChangeLog` ADD FOREIGN KEY (`ChangedBy`) REFERENCES `Person` (`PersonID`);
+ALTER TABLE `ChangeLog`
+  ADD CONSTRAINT fk_ChangeLog_ChangedBy
+  FOREIGN KEY (`ChangedBy`) REFERENCES `Person` (`PersonID`);
+
+ALTER TABLE `OfficerRole`
+  ADD CONSTRAINT fk_OfficerRole_Person
+  FOREIGN KEY (`PersonID`) REFERENCES `Person` (`PersonID`);
