@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 from mysql.connector import Error
 from classes.title_type import TitleType
 from classes.change_log import ChangeLog
@@ -6,13 +6,16 @@ from datetime import datetime
 
 title_type_bp = Blueprint("title_type", __name__, url_prefix="/api/title_type")
 
+def _current_editor_id() -> str | None:
+    u = session.get("user") or {}
+    return (u.get("PersonID") or u.get("personId") or u.get("id") or None)
 
 @title_type_bp.post("/register")
 def register_title_type():
     data = request.get_json(silent=True) or {}
     title_type = TitleType.from_request_data(data)
 
-    title_type.last_edited_by = current_id
+    title_type.last_edited_by = _current_editor_id()
     title_type.last_edited_at = datetime.utcnow()
 
     validation_errors = title_type.validate()
@@ -28,7 +31,7 @@ def register_title_type():
             changed_table="TitleType",
             record_pk=title_type.title,
             operation="INSERT",
-            changed_by=current_id,
+            changed_by=_current_editor_id(),
             source="api/title_type/register POST",
             before_obj=None,
             after_obj=title_type.to_dict(),
@@ -55,7 +58,7 @@ def edit_title_type():
     title_type = TitleType.from_request_data(data)
     title_type.title = title
 
-    title_type.last_edited_by = current_id
+    title_type.last_edited_by = _current_editor_id()
     title_type.last_edited_at = datetime.utcnow()
 
     validation_errors = title_type.validate()
@@ -71,7 +74,7 @@ def edit_title_type():
             changed_table="TitleType",
             record_pk=title,
             operation="UPDATE",
-            changed_by=current_id,
+            changed_by=_current_editor_id(),
             source="api/title_type/edit POST",
             before_obj=before_snapshot,
             after_obj=after_snapshot,
@@ -104,12 +107,12 @@ def delete_title_type():
             changed_table="TitleType",
             record_pk=title,
             operation="DELETE",
-            changed_by=current_id,
+            changed_by=_current_editor_id(),
             source="api/title_type/delete POST",
             before_obj=before_snapshot,
             after_obj=None,
         )
-        
+
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
