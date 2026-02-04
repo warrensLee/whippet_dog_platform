@@ -4,7 +4,7 @@ from datetime import datetime
 class News:
     def __init__(
         self,
-        news_id,
+        id,
         title,
         content,
         created_at,
@@ -14,7 +14,7 @@ class News:
         last_edited_by=None,
         last_edited_at=None,
     ):
-        self.news_id = news_id
+        self.id = id
         self.title = title
         self.content = content
         self.created_at = created_at
@@ -27,7 +27,7 @@ class News:
     @classmethod
     def from_request_data(cls, data):
         return cls(
-            news_id=None,
+            id=None,
             title=(data.get("title") or "").strip(),
             content=(data.get("content") or "").strip(),
             created_at=None,
@@ -43,7 +43,7 @@ class News:
         if not row:
             return None
         return cls(
-            news_id=row.get("NewsID"),
+            id=row.get("ID"),
             title=row.get("Title"),
             content=row.get("Content"),
             created_at=row.get("CreatedAt"),
@@ -59,7 +59,7 @@ class News:
         row = fetch_one(
             """
             SELECT
-                n.NewsID,
+                n.ID,
                 n.Title,
                 n.Content,
                 n.CreatedAt,
@@ -70,7 +70,7 @@ class News:
                 n.LastEditedAt
             FROM News n
             LEFT JOIN Person p ON p.PersonID = n.AuthorID
-            WHERE n.NewsID = %s
+            WHERE n.ID = %s
             LIMIT 1
             """,
             (identifier,),
@@ -82,7 +82,7 @@ class News:
         rows = fetch_all(
             """
             SELECT
-                n.NewsID,
+                n.ID,
                 n.Title,
                 n.Content,
                 n.CreatedAt,
@@ -117,36 +117,44 @@ class News:
             raise ValueError("AuthorID is required before saving News")
 
         now = datetime.now()
-        created_at = self.created_at or now
-        updated_at = self.updated_at or now
-        last_edited_at = self.last_edited_at or now
 
         execute(
             """
-            INSERT INTO News (Title, Content, CreatedAt, UpdatedAt, AuthorID, LastEditedBy, LastEditedAt)
+            INSERT INTO News (
+                Title,
+                Content,
+                CreatedAt,
+                UpdatedAt,
+                AuthorID,
+                LastEditedBy,
+                LastEditedAt
+            )
             VALUES (%s, %s, %s, %s, %s, %s, %s)
             """,
             (
                 self.title,
                 self.content,
-                created_at,
-                updated_at,
+                self.created_at or now,
+                self.updated_at or now,
                 self.author_id,
                 self.last_edited_by,
-                last_edited_at,
+                self.last_edited_at or now,
             ),
         )
+
         return True
 
     def to_dict(self):
         return {
-            "newsId": self.news_id,
+            "id": self.id,
             "title": self.title,
             "content": self.content,
             "createdAt": self.created_at,
             "updatedAt": self.updated_at,
             "authorId": self.author_id,
-            "authorName": self.author_name, 
+            "authorName": self.author_name,
             "lastEditedBy": self.last_edited_by,
-            "lastEditedAt": self.last_edited_at.isoformat() if self.last_edited_at else None,
+            "lastEditedAt": self.last_edited_at.isoformat()
+            if self.last_edited_at
+            else None,
         }

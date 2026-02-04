@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import $ from "jquery";
 
 type NewsItem = {
-  newsId: number | string;
+  id: number | string;
   title: string;
   content: string;
   authorName: string;
@@ -21,7 +21,7 @@ type AuthMeUser = {
 };
 
 function getId(n: NewsItem): string {
-  if (n.newsId != null) return String(n.newsId);   
+  if (n.id != null) return String(n.id);   
   throw new Error("News item is missing an ID");
 }
 function getTitle(n: NewsItem): string {
