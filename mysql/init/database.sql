@@ -95,8 +95,8 @@ CREATE TABLE `DogTitles` (
 );
 
 CREATE TABLE `Person` (
-  `PersonID` INT AUTO_INCREMENT,
-  `UserName` VARCHAR(20) UNIQUE NOT NULL,
+  `ID` INT AUTO_INCREMENT PRIMARY KEY,
+  `PersonID` VARCHAR(20) NOT NULL UNIQUE,
   `FirstName` VARCHAR(50) NOT NULL,
   `LastName` VARCHAR(50) NOT NULL,
   `EmailAddress` VARCHAR(50),
@@ -108,13 +108,9 @@ CREATE TABLE `Person` (
   `Country` VARCHAR(6),
   `PrimaryPhone` VARCHAR(10),
   `SecondaryPhone` VARCHAR(10),
-  `SystemRole` VARCHAR(20) NOT NULL,   
+  `SystemRole` VARCHAR(20) NOT NULL,
   `PasswordHash` VARCHAR(255) NOT NULL,
-  `Notes` VARCHAR(250),
-  `LastEditedBy` VARCHAR(20),
-  `LastEditedAt` TIMESTAMP,
-  PRIMARY KEY (`PersonAutoID`),
-  KEY `idx_Person_PersonID` (`PersonID`)
+  `Notes` VARCHAR(250)
 );
 
 CREATE TABLE `OfficerRole` (
@@ -157,7 +153,7 @@ CREATE TABLE `Club` (
 CREATE TABLE `Meet` (
   `MeetAutoID` INT AUTO_INCREMENT,
   `MeetNumber` VARCHAR(20) UNIQUE NOT NULL,
-  `ClubAbbreviation` VARCHAR(10) NOT NULL,
+  `ClubAbbreviation` VARCHAR(20) NOT NULL,
   `MeetDate` DATE NOT NULL,
   `RaceSecretary` VARCHAR(20),
   `Judge` VARCHAR(20),
