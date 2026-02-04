@@ -18,7 +18,7 @@ def register():
         return jsonify({"ok": False, "error": ", ".join(validation_errors)}), 400
 
     if Person.exists(person.person_id):
-        return jsonify({"ok": False, "error": "PersonID already exists"}), 409
+        return jsonify({"ok": False, "error": "Username already exists"}), 409
 
     person.set_password(password)
     
