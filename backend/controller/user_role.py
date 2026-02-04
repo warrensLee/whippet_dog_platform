@@ -1,7 +1,8 @@
 from flask import Blueprint, jsonify, request, session
 from mysql.connector import Error
 from classes.user_role import UserRole
-
+from classes.change_log import ChangeLog
+from datetime import datetime
 
 user_role_bp = Blueprint("user_role", __name__, url_prefix="/api/user_role")
 PROTECTED_ROLES = {"ADMIN", "PUBLIC"}
@@ -25,6 +26,16 @@ def register_user_role():
 
     try:
         user_role.save()
+
+        ChangeLog.log(
+            changed_table="UserRole",
+            record_pk=user_role.title,
+            operation="INSERT",
+            changed_by=_current_editor_id(),
+            source="api/user_role/register POST",
+            before_obj=None,
+            after_obj=user_role.to_dict(),
+        )
         saved = UserRole.find_by_identifier(user_role.title)
         return jsonify({"ok": True, "data": saved.to_dict() if saved else user_role.to_dict()}), 201
     except Error as e:
@@ -63,6 +74,17 @@ def edit_user_role():
     try:
         user_role.update()
         updated = UserRole.find_by_identifier(role_id)
+        
+        ChangeLog.log(
+            changed_table="UserRole",
+            record_pk=role_id,
+            operation="UPDATE",
+            changed_by=_current_editor_id(),
+            source="api/user_role/edit POST",
+            before_obj=role.to_dict(),
+            after_obj=updated.to_dict() if updated else user_role.to_dict(),
+        )
+
         return jsonify({"ok": True, "data": updated.to_dict() if updated else user_role.to_dict()}), 200
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
@@ -92,6 +114,17 @@ def delete_user_role():
 
     try:
         UserRole.delete(title)
+
+        ChangeLog.log(
+            changed_table="UserRole",
+            record_pk=role_id,
+            operation="DELETE",
+            changed_by=_current_editor_id(),
+            source="api/user_role/delete POST",
+            before_obj=role.to_dict(),
+            after_obj=None,
+        )
+
         return jsonify({"ok": True}), 200
     except Error as e:
         msg = str(e)
