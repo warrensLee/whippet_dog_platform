@@ -1,6 +1,8 @@
 from flask import Blueprint, jsonify, request
 from mysql.connector import Error
 from classes.meet import Meet
+from classes.change_log import ChangeLog
+from datetime import datetime
 
 meet_bp = Blueprint("meet", __name__, url_prefix="/api/meet")
 
@@ -10,14 +12,28 @@ def register_meet():
     data = request.get_json(silent=True) or {}
     meet = Meet.from_request_data(data)
 
+    meet.last_edited_by = current_id
+    meet.last_edited_at = datetime.utcnow()
+
     validation_errors = meet.validate()
     if validation_errors:
         return jsonify({"ok": False, "error": ", ".join(validation_errors)}), 400
 
     if Meet.exists(meet.meet_number):
         return jsonify({"ok": False, "error": "Meet already exists"}), 409
+    
     try:
         meet.save()
+        
+        ChangeLog.log(
+            changed_table="Meet",
+            record_pk=meet.meet_number,
+            operation="INSERT",
+            changed_by=current_id,
+            source="api/meet/register POST",
+            before_obj=None,
+            after_obj=meet.to_dict(),
+        )
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
@@ -32,17 +48,35 @@ def edit_meet():
     if not meet_number:
         return jsonify({"ok": False, "error": "Meet number is required"}), 400
 
+    existing = Meet.find_by_identifier(meet_number)
+    if not existing:
+        return jsonify({"ok": False, "error": "Meet does not exist"}), 404
+    
+    before_snapshot = existing.to_dict()
     meet = Meet.from_request_data(data)
     meet.meet_number = meet_number
+
+    meet.last_edited_by = current_id
+    meet.last_edited_at = datetime.utcnow()
+
     validation_errors = meet.validate()
     if validation_errors:
         return jsonify({"ok": False, "error": ", ".join(validation_errors)}), 400
 
-    if not Meet.exists(meet_number):
-        return jsonify({"ok": False, "error": "Meet does not exist"}), 404
-
     try:
         meet.update()
+        refreshed = Meet.find_by_identifier(meet_number)
+        after_snapshot = refreshed.to_dict() if refreshed else meet.to_dict()
+        
+        ChangeLog.log(
+            changed_table="Meet",
+            record_pk=meet_number,
+            operation="UPDATE",
+            changed_by=current_id,
+            source="api/meet/edit POST",
+            before_obj=before_snapshot,
+            after_obj=after_snapshot,
+        )
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
@@ -54,17 +88,29 @@ def delete_meet():
     data = request.get_json(silent=True) or {}
     meet_number = (data.get("meetNumber") or "").strip()
 
+    if data.get("confirm") is not True:
+        return jsonify({"ok": False, "error": "Confirmation required"}), 400
     if not meet_number:
         return jsonify({"ok": False, "error": "Meet number is required"}), 400
-
-    if not Meet.exists(meet_number):
-        return jsonify({"ok": False, "error": "Meet does not exist"}), 404
 
     try:
         meet = Meet.find_by_identifier(meet_number)
         if not meet:
             return jsonify({"ok": False, "error": "Meet does not exist"}), 404
+        
+        before_snapshot = meet.to_dict()
         meet.delete(meet_number)
+        
+        ChangeLog.log(
+            changed_table="Meet",
+            record_pk=meet_number,
+            operation="DELETE",
+            changed_by=current_id,
+            source="api/meet/delete POST",
+            before_obj=before_snapshot,
+            after_obj=None,
+        )
+
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
