@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 from mysql.connector import Error
 from classes.dog_owner import DogOwner
 from classes.change_log import ChangeLog
@@ -6,13 +6,16 @@ from datetime import datetime
 
 dog_owner_bp = Blueprint("dog_owner", __name__, url_prefix="/api/dog_owner")
 
+def _current_editor_id() -> str | None:
+    u = session.get("user") or {}
+    return (u.get("PersonID") or u.get("personId") or u.get("id") or None)
 
 @dog_owner_bp.post("/register")
 def register_dog_owner():
     data = request.get_json(silent=True) or {}
     dog_owner = DogOwner.from_request_data(data)
 
-    dog_owner.last_edited_by = current_id
+    dog_owner.last_edited_by = _current_editor_id()
     dog_owner.last_edited_at = datetime.utcnow()
 
     validation_errors = dog_owner.validate()
@@ -29,7 +32,7 @@ def register_dog_owner():
             changed_table="DogOwner",
             record_pk=f"{dog_owner.cwa_id}|{dog_owner.person_id}",
             operation="INSERT",
-            changed_by=current_id,
+            changed_by=_current_editor_id(),
             source="api/dog_owner/register POST",
             before_obj=None,
             after_obj=dog_owner.to_dict(),
@@ -60,7 +63,7 @@ def edit_dog_owner():
     dog_owner.cwa_id = cwa_id
     dog_owner.person_id = person_id
 
-    dog_owner.last_edited_by = current_id
+    dog_owner.last_edited_by = _current_editor_id()
     dog_owner.last_edited_at = datetime.utcnow()
 
     validation_errors = dog_owner.validate()
@@ -76,7 +79,7 @@ def edit_dog_owner():
             changed_table="DogOwner",
             record_pk=f"{cwa_id}|{person_id}",
             operation="UPDATE",
-            changed_by=current_id,
+            changed_by=_current_editor_id(),
             source="api/dog_owner/edit POST",
             before_obj=before_snapshot,
             after_obj=after_snapshot,
@@ -112,7 +115,7 @@ def delete_dog_owner():
             changed_table="DogOwner",
             record_pk=f"{cwa_id}|{person_id}",
             operation="DELETE",
-            changed_by=current_id,
+            changed_by=_current_editor_id(),
             source="api/dog_owner/delete POST",
             before_obj=before_snapshot,
             after_obj=None,
