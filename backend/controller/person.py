@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request, session
 from mysql.connector import Error
 from classes.person import Person
+from classes.change_log import ChangeLog
 from datetime import datetime
 
 person_bp = Blueprint("person", __name__, url_prefix="/api/person")
@@ -53,6 +54,15 @@ def register_person():
 
     try:
         person.save()
+        ChangeLog.log(
+            changed_table="Person",
+            record_pk=person.person_id,
+            operation="INSERT",
+            changed_by=person.person_id,
+            source="api/person/register POST",
+            before_obj=None,
+            after_obj=person.to_dict(),
+        )
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
@@ -75,19 +85,16 @@ def edit_person():
     if not is_admin and person_id != current_id:
         return jsonify({"ok": False, "error": "You can only edit your own profile"}), 403
 
-    # Get existing person first
     existing = Person.find_by_identifier(person_id)
     if not existing:
         return jsonify({"ok": False, "error": "Person does not exist"}), 404
 
-    # Create person from request data
+    before_snapshot = existing.to_dict()
     person = Person.from_request_data(data)
     person.person_id = person_id
 
-    # Always preserve password hash (changed via separate endpoint)
     person.password_hash = existing.password_hash
     
-    # Non-admins can't change their own role
     if not is_admin:
         person.system_role = existing.system_role
 
@@ -100,6 +107,18 @@ def edit_person():
 
     try:
         person.update()
+        refreshed = Person.find_by_identifier(person_id)
+        after_snapshot = refreshed.to_dict() if refreshed else person.to_dict()
+
+        ChangeLog.log(
+            changed_table="Person",
+            record_pk=person_id,
+            operation="UPDATE",
+            changed_by=current_id,
+            source="api/person/edit POST",
+            before_obj=before_snapshot,
+            after_obj=after_snapshot,
+        )
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
@@ -123,7 +142,18 @@ def delete_self():
         if not person:
             return jsonify({"ok": False, "error": "Person does not exist"}), 404
 
+        before_snapshot = person.to_dict()
         person.delete(current_id)
+        ChangeLog.log(
+            changed_table="Person",
+            record_pk=current_id,
+            operation="DELETE",
+            changed_by=current_id,
+            source="api/person/delete-self POST",
+            before_obj=before_snapshot,
+            after_obj=None,
+        )
+        
         session.clear()
 
     except Error as e:
@@ -153,7 +183,8 @@ def change_password():
         if not person:
             return jsonify({"ok": False, "error": "User not found"}), 404
 
-        # requires your Person class to have check_password()
+        before_snapshot = person.to_dict()
+
         if not person.check_password(current_password):
             return jsonify({"ok": False, "error": "Current password is incorrect"}), 400
 
@@ -161,6 +192,19 @@ def change_password():
         person.last_edited_by = current_id
         person.last_edited_at = datetime.utcnow()
         person.update()
+
+        refreshed = Person.find_by_identifier(current_id)
+        after_snapshot = refreshed.to_dict() if refreshed else person.to_dict()
+
+        ChangeLog.log(
+            changed_table="Person",
+            record_pk=current_id,
+            operation="UPDATE",
+            changed_by=current_id,
+            source="api/person/change-password POST",
+            before_obj=before_snapshot,
+            after_obj=after_snapshot,
+        )
 
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
