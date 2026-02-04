@@ -714,7 +714,7 @@ export default function NewsPage() {
               </button>
 
               <a
-                href="/login"
+                href="/admin/login"
                 className="rounded-xl px-5 py-2.5 font-semibold bg-gradient-to-r from-neutral-800 to-neutral-950 text-white hover:from-neutral-700 hover:to-neutral-900 transition-all"
               >
                 Sign in

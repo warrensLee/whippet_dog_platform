@@ -7,6 +7,7 @@ from controller.club import club_bp
 from controller.news import news_bp
 from controller.person import person_bp
 from controller.user_role import user_role_bp
+from controller.change_log import change_log_bp
 
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
@@ -16,15 +17,6 @@ def tables():
     """Get all database tables"""
     rows = fetch_all("SHOW TABLES")
     return jsonify(rows)
-
-# You can add more API routes here
-# Example:
-# @api_bp.get("/users")
-# def get_users():
-#     users = fetch_all("SELECT * FROM users")
-#     return jsonify(users)
-
-# Create a blueprint for general routes
 
 main_bp = Blueprint('main', __name__)
 
@@ -40,6 +32,7 @@ def register_routes(app):
     app.register_blueprint(club_bp)
     app.register_blueprint(person_bp)
     app.register_blueprint(user_role_bp)
+    app.register_blueprint(change_log_bp)
     app.register_blueprint(news_bp)
     app.register_blueprint(api_bp)
     app.register_blueprint(main_bp)

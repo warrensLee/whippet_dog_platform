@@ -118,30 +118,32 @@ class News:
 
         now = datetime.now()
 
-        execute(
-            """
-            INSERT INTO News (
-                Title,
-                Content,
-                CreatedAt,
-                UpdatedAt,
-                AuthorID,
-                LastEditedBy,
-                LastEditedAt
-            )
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-            """,
-            (
-                self.title,
-                self.content,
-                self.created_at or now,
-                self.updated_at or now,
-                self.author_id,
-                self.last_edited_by,
-                self.last_edited_at or now,
-            ),
+        new_id = execute(
+        """
+        INSERT INTO News (
+            Title,
+            Content,
+            CreatedAt,
+            UpdatedAt,
+            AuthorID,
+            LastEditedBy,
+            LastEditedAt
+        )
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """,
+        (
+            self.title,
+            self.content,
+            self.created_at or now,
+            self.updated_at or now,
+            self.author_id,
+            self.last_edited_by,
+            self.last_edited_at or now,
+        ),
+        return_lastrowid=True, 
         )
 
+        self.id = int(new_id)
         return True
 
     def to_dict(self):

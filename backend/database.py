@@ -1,34 +1,19 @@
 import os
 import time
-import mysql.connector
-from mysql.connector import pooling
-
-_POOL = None
-
-def _pool():
-    global _POOL
-    if _POOL is None:
-        _POOL = pooling.MySQLConnectionPool(
-            pool_name="cwa_pool",
-            pool_size=int(os.getenv("DB_POOL_SIZE", "10")),
-            pool_reset_session=True,
-            host=os.getenv("DB_HOST", "db"),
-            user=os.getenv("DB_USER", "root"),
-            password=os.getenv("DB_PASSWORD", "dogs"),
-            database=os.getenv("DB_NAME", "cwa_db"),
-            autocommit=True,
-            connect_timeout=10,
-            use_pure=False,  
-        )
-    return _POOL
+import mysql.connector 
+from mysql.connector import Error
 
 def get_conn():
-    start = time.time()
-    conn = _pool().get_connection()
-    elapsed = time.time() - start
-    if elapsed > 0.5:
-        print(f"[WARNING] get_conn took {elapsed:.2f}s - pool might be exhausted")
-    return conn
+    return mysql.connector.connect(
+        host=os.getenv("DB_HOST", "db"),
+        user=os.getenv("DB_USER", "root"),
+        password=os.getenv("DB_PASSWORD", "dogs"),
+        database=os.getenv("DB_NAME", "cwa_db"),
+        autocommit=True,
+        connect_timeout=10,
+        use_pure=False,
+    )
+
 
 def fetch_all(sql: str, params=()):
     start = time.time()
@@ -42,8 +27,11 @@ def fetch_all(sql: str, params=()):
             print(f"[SLOW QUERY] {elapsed:.2f}s - {sql[:100]}")
         return result
     finally:
-        cur.close()
-        conn.close()  # returns to pool
+        try:
+            cur.close()
+        finally:
+            conn.close()
+
 
 def fetch_one(sql: str, params=()):
     start = time.time()
@@ -57,35 +45,41 @@ def fetch_one(sql: str, params=()):
             print(f"[SLOW QUERY] {elapsed:.2f}s - {sql[:100]}")
         return result
     finally:
-        cur.close()
-        conn.close()
+        try:
+            cur.close()
+        finally:
+            conn.close()
 
-def execute(sql: str, params=()):
+
+def execute(sql: str, params=(), *, return_lastrowid: bool = False):
     start = time.time()
     conn = get_conn()
     cur = conn.cursor()
     try:
         cur.execute(sql, params)
-        result = cur.rowcount
         elapsed = time.time() - start
         if elapsed > 1.0:
             print(f"[SLOW QUERY] {elapsed:.2f}s - {sql[:100]}")
-        return result
-    finally:
-        cur.close()
-        conn.close()
 
-# Add this helper for batch operations to avoid N+1 queries
-def fetch_all_batch(sql: str, param_list):
-    """Execute same query with multiple parameter sets efficiently"""
-    conn = get_conn()
-    cur = conn.cursor(dictionary=True)
-    try:
-        results = []
-        for params in param_list:
-            cur.execute(sql, params)
-            results.extend(cur.fetchall())
-        return results
+        if return_lastrowid:
+            return cur.lastrowid
+
+        return cur.rowcount
     finally:
-        cur.close()
-        conn.close()
+        try:
+            cur.close()
+        finally:
+            conn.close()
+
+
+def execute_many(sql: str, param_list):
+    conn = get_conn()
+    cur = conn.cursor()
+    try:
+        cur.executemany(sql, param_list)
+        return cur.rowcount
+    finally:
+        try:
+            cur.close()
+        finally:
+            conn.close()

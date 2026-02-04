@@ -1,90 +1,95 @@
 '''
-Docstring for person
+Docstring for change_log
 
 TODO:
 '''
-from werkzeug.security import generate_password_hash, check_password_hash
+
 from database import fetch_all, fetch_one, execute
 from mysql.connector import Error
+import json
+from datetime import datetime
 
 class ChangeLog:
-    def __init__(self, log_id, changed_table, record_pk, operation, changed_by, changed_at, sources, before_data, after_data):
-        self.log_id = log_id
+    def __init__(
+        self,id=None,
+        changed_table=None,
+        record_pk=None,
+        operation=None,
+        changed_by=None,
+        changed_at=None,
+        source=None,
+        before_data=None,
+        after_data=None,
+    ):
+        self.id = id 
         self.changed_table = changed_table
         self.record_pk = record_pk
         self.operation = operation
         self.changed_by = changed_by
         self.changed_at = changed_at
-        self.sources = sources
+        self.source = source
         self.before_data = before_data
         self.after_data = after_data
 
     @classmethod
-    def from_request_data(cls, data):
-        """Create a ChangeLog instance from request JSON data."""
+    def from_request_data(cls, data: dict):
+        """Create a Change instance from request JSON data."""
+        data = data or {}
         return cls(
-            log_id=(data.get("logId") or "").strip(),
             changed_table=(data.get("changedTable") or "").strip(),
             record_pk=(data.get("recordPk") or "").strip(),
             operation=(data.get("operation") or "").strip(),
-            changed_by=(data.get("changedBy") or "").strip(),
+            changed_by=((data.get("changedBy") or "").strip() or None),
             changed_at=data.get("changedAt"),
-            sources=data.get("sources"),
+            source=data.get("source"),
             before_data=data.get("beforeData"),
-            after_data=data.get("afterData")
+            after_data=data.get("afterData"),
         )
 
     @classmethod
-    def from_db_row(cls, row):
-        """Create a ChangeLog instance from a database row."""
+    def from_db_row(cls, row: dict):
+        """Create a Change instance from a database row."""
         if not row:
             return None
         return cls(
-            log_id=row.get("LogID"),
+            id=row.get("ID"),
             changed_table=row.get("ChangedTable"),
             record_pk=row.get("RecordPK"),
             operation=row.get("Operation"),
             changed_by=row.get("ChangedBy"),
             changed_at=row.get("ChangedAt"),
-            sources=row.get("Sources"),
+            source=row.get("Source"),
             before_data=row.get("BeforeData"),
-            after_data=row.get("AfterData")
+            after_data=row.get("AfterData"),
         )
 
     @classmethod
-    def find_by_identifier(cls, identifier):
-        """Find a change log by log id."""
+    def find_by_identifier(cls, id):
+        """Find a Change instance from the database."""
         row = fetch_one(
             """
-            SELECT LogID, ChangedTable, RecordPK, Operation, ChangedBy, ChangedAt,
-                   Sources, BeforeData, AfterData
+            SELECT ID, ChangedTable, RecordPK, Operation, ChangedBy, ChangedAt,
+                   Source, BeforeData, AfterData
             FROM ChangeLog
-            WHERE LogID = %s
+            WHERE ID = %s
             LIMIT 1
             """,
-            (identifier,),
+            (id,),
         )
         return cls.from_db_row(row)
 
     @classmethod
-    def exists(cls, log_id):
-        """Check if a change log with given log ID already exists."""
-        existing = fetch_one(
-            """
-            SELECT LogID
-            FROM ChangeLog
-            WHERE LogID = %s
-            LIMIT 1
-            """,
-            (log_id,),
+    def exists(cls, id) -> bool:
+        """Find a Change instance from the database."""
+        row = fetch_one(
+            "SELECT ID FROM ChangeLog WHERE ID = %s LIMIT 1",
+            (id,),
         )
-        return existing is not None
+        return row is not None
 
     def validate(self):
-        """Validate required fields. Returns list of errors (empty if valid)."""
+        """List errors"""
         errors = []
-        if not self.log_id:
-            errors.append("Log ID is required")
         if not self.changed_table:
             errors.append("Changed table is required")
         if not self.record_pk:
@@ -96,26 +101,25 @@ class ChangeLog:
         return errors
 
     def save(self):
-        """Save change log to database. Returns True on success, raises Error on failure."""
+        """Insert Change instance into database"""
         try:
             execute(
                 """
                 INSERT INTO ChangeLog (
-                    LogID, ChangedTable, RecordPK, Operation, ChangedBy, ChangedAt,
-                    Sources, BeforeData, AfterData
+                    ChangedTable, RecordPK, Operation, ChangedBy, ChangedAt,
+                    Source, BeforeData, AfterData
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
-                    self.log_id,
                     self.changed_table,
                     self.record_pk,
                     self.operation,
                     self.changed_by,
                     self.changed_at,
-                    self.sources,
+                    self.source,
                     self.before_data,
-                    self.after_data
+                    self.after_data,
                 ),
             )
             return True
@@ -123,7 +127,10 @@ class ChangeLog:
             raise e
 
     def update(self):
-        """Update change log in database. Returns True on success, raises Error on failure."""
+        """Update Change instance into database"""
+        if not self.id:
+            raise ValueError("id is required to update a change log")
+
         try:
             execute(
                 """
@@ -133,10 +140,10 @@ class ChangeLog:
                     Operation = %s,
                     ChangedBy = %s,
                     ChangedAt = %s,
-                    Sources = %s,
+                    Source = %s,
                     BeforeData = %s,
                     AfterData = %s
-                WHERE LogID = %s
+                WHERE ID = %s
                 """,
                 (
                     self.changed_table,
@@ -144,67 +151,79 @@ class ChangeLog:
                     self.operation,
                     self.changed_by,
                     self.changed_at,
-                    self.sources,
+                    self.source,
                     self.before_data,
                     self.after_data,
-                    self.log_id
+                    self.id,
                 ),
             )
             return True
         except Error as e:
             raise e
         
-    def delete(self, log_id):
-        """Delete change log from database. Returns True on success, raises Error on failure."""
+    @classmethod
+    def delete(cls, id):
         try:
-            execute(
-                """
-                DELETE FROM ChangeLog
-                WHERE LogID = %s
-                """,
-                (log_id,),
-            )
+            execute("DELETE FROM ChangeLog WHERE ID = %s", (id,))
             return True
         except Error as e:
             raise e
 
-    def list_all_change_logs():
-        """Retrieve all change logs from the database."""
+    @classmethod
+    def list_all(cls):
         rows = fetch_all(
             """
-            SELECT LogID, ChangedTable, RecordPK, Operation, ChangedBy, ChangedAt,
-                   Sources, BeforeData, AfterData
+            SELECT ID, ChangedTable, RecordPK, Operation, ChangedBy, ChangedAt,
+                   Source, BeforeData, AfterData
             FROM ChangeLog
             ORDER BY ChangedAt DESC
             """
         )
-        return [ChangeLog.from_db_row(row) for row in rows]
-            
-    def to_session_dict(self):
-        """Convert to minimal dictionary for session storage."""
-        return {
-            "LogID": self.log_id,
-            "ChangedTable": self.changed_table,
-            "RecordPK": self.record_pk,
-            "Operation": self.operation,
-            "ChangedBy": self.changed_by,
-            "ChangedAt": self.changed_at,
-            "Sources": self.sources,
-            "BeforeData": self.before_data,
-            "AfterData": self.after_data
-        }
+        return [cls.from_db_row(r) for r in rows]
 
-    def to_dict(self, include_sensitive=False):
-        """Convert to dictionary for JSON responses."""
-        data = {
-            "logOd": self.log_id,
+    def to_dict(self):
+        return {
+            "id": self.id,
             "changedTable": self.changed_table,
-            "recordPK": self.record_pk,
+            "recordPk": self.record_pk,
             "operation": self.operation,
             "changedBy": self.changed_by,
             "changedAt": self.changed_at,
-            "sources": self.sources,
+            "source": self.source,
             "beforeData": self.before_data,
-            "afterData": self.after_data
+            "afterData": self.after_data,
         }
-        return data
+
+    @staticmethod
+    def _json_text(obj):
+        if obj is None:
+            return None
+        try:
+            return json.dumps(obj, default=str, ensure_ascii=False)
+        except Exception:
+            return None
+
+    @classmethod
+    def log(cls, *, changed_table: str, record_pk: str, operation: str,
+            changed_by: str | None, source: str,
+            before_obj=None, after_obj=None):
+        """
+        Centralized logger. Create + save ChangeLog row.
+        Does not throw (so it won't break the caller).
+        """
+        try:
+            entry = cls(
+                changed_table=changed_table,
+                record_pk=str(record_pk),
+                operation=operation,
+                changed_by=changed_by,
+                changed_at=datetime.now(),
+                source=source,
+                before_data=cls._json_text(before_obj),
+                after_data=cls._json_text(after_obj),
+            )
+            entry.save()
+            return True
+        except Exception as e:
+            print(f"ChangeLog.log failed: {e}")
+            return False
