@@ -209,7 +209,7 @@ export default function RegisterPage() {
             Already have an account?{" "}
             <Typography
               component="a"
-              href="/login"
+              href="/admin/login"
               variant="body2"
               color="primary"
               sx={{ textDecoration: "underline", cursor: "pointer" }}
