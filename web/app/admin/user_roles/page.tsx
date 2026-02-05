@@ -2,552 +2,431 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 
-interface UserRole {
-  roleId: number;
+type Scope = 0 | 1 | 2; // 0 none, 1 self, 2 all
+
+type UserRole = {
+  id: number;
   title: string;
 
-  canEditDog: boolean;
-  canEditPerson: boolean;
-  canEditDogOwner: boolean;
-  canEditOfficerRole: boolean;
-  canEditUserRole: boolean;
-  canEditClub: boolean;
-  canEditMeet: boolean;
-  canEditMeetResults: boolean;
-  canEditRaceResults: boolean;
-  canEditDogTitles: boolean;
-  canEditNews: boolean;
+  viewDogScope: Scope;
+  editDogScope: Scope;
 
-  lastEditedBy: string | null;
-  lastEditedAt: string | null;
-}
+  viewPersonScope: Scope;
+  editPersonScope: Scope;
 
-interface ApiResponse<T> {
-  ok: boolean;
-  data?: T;
-  error?: string;
-}
+  viewDogOwnerScope: Scope;
+  editDogOwnerScope: Scope;
 
-const permissionFields: Array<{ key: keyof UserRole; label: string }> = [
-  { key: "canEditDog", label: "Edit Dog" },
-  { key: "canEditPerson", label: "Edit Person" },
-  { key: "canEditDogOwner", label: "Edit Dog Owner" },
-  { key: "canEditOfficerRole", label: "Edit Officer Role" },
-  { key: "canEditUserRole", label: "Edit User Roles" },
-  { key: "canEditClub", label: "Edit Club" },
-  { key: "canEditMeet", label: "Edit Meet" },
-  { key: "canEditMeetResults", label: "Edit Meet Results" },
-  { key: "canEditRaceResults", label: "Edit Race Results" },
-  { key: "canEditDogTitles", label: "Edit Dog Titles" },
-  { key: "canEditNews", label: "Edit News" },
+  viewOfficerRoleScope: Scope;
+  editOfficerRoleScope: Scope;
+
+  viewUserRoleScope: Scope;
+  editUserRoleScope: Scope;
+
+  viewClubScope: Scope;
+  editClubScope: Scope;
+
+  viewMeetScope: Scope;
+  editMeetScope: Scope;
+
+  viewMeetResultsScope: Scope;
+  editMeetResultsScope: Scope;
+
+  viewRaceResultsScope: Scope;
+  editRaceResultsScope: Scope;
+
+  viewDogTitlesScope: Scope;
+  editDogTitlesScope: Scope;
+
+  viewNewsScope: Scope;
+  editNewsScope: Scope;
+
+  lastEditedBy?: string | null;
+  lastEditedAt?: string | null;
+};
+
+type ApiResponse<T> = { ok: boolean; data?: T; error?: string };
+
+const SCOPE_OPTIONS: Array<{ value: Scope; label: string }> = [
+  { value: 0, label: "None" },
+  { value: 1, label: "Self" },
+  { value: 2, label: "All" },
 ];
 
-const emptyRole = {
-  title: "",
-  canEditDog: false,
-  canEditPerson: false,
-  canEditDogOwner: false,
-  canEditOfficerRole: false,
-  canEditUserRole: false,
-  canEditClub: false,
-  canEditMeet: false,
-  canEditMeetResults: false,
-  canEditRaceResults: false,
-  canEditDogTitles: false,
-  canEditNews: false,
-} satisfies Partial<UserRole>;
+const ENTITIES: Array<{ label: string; viewKey: keyof UserRole; editKey: keyof UserRole }> = [
+  { label: "Dog", viewKey: "viewDogScope", editKey: "editDogScope" },
+  { label: "Person", viewKey: "viewPersonScope", editKey: "editPersonScope" },
+  { label: "Dog Owner", viewKey: "viewDogOwnerScope", editKey: "editDogOwnerScope" },
+  { label: "Officer Role", viewKey: "viewOfficerRoleScope", editKey: "editOfficerRoleScope" },
+  { label: "User Role", viewKey: "viewUserRoleScope", editKey: "editUserRoleScope" },
+  { label: "Club", viewKey: "viewClubScope", editKey: "editClubScope" },
+  { label: "Meet", viewKey: "viewMeetScope", editKey: "editMeetScope" },
+  { label: "Meet Results", viewKey: "viewMeetResultsScope", editKey: "editMeetResultsScope" },
+  { label: "Race Results", viewKey: "viewRaceResultsScope", editKey: "editRaceResultsScope" },
+  { label: "Dog Titles", viewKey: "viewDogTitlesScope", editKey: "editDogTitlesScope" },
+  { label: "News", viewKey: "viewNewsScope", editKey: "editNewsScope" },
+];
 
-function formatDateTime(s: string | null): string {
-  if (!s) return "";
-  const d = new Date(s);
-  if (Number.isNaN(d.getTime())) return s;
-  return d.toLocaleString();
+function emptyRoleDraft(): Omit<UserRole, "id"> {
+  return {
+    title: "",
+    viewDogScope: 0,
+    editDogScope: 0,
+    viewPersonScope: 0,
+    editPersonScope: 0,
+    viewDogOwnerScope: 0,
+    editDogOwnerScope: 0,
+    viewOfficerRoleScope: 0,
+    editOfficerRoleScope: 0,
+    viewUserRoleScope: 0,
+    editUserRoleScope: 0,
+    viewClubScope: 0,
+    editClubScope: 0,
+    viewMeetScope: 0,
+    editMeetScope: 0,
+    viewMeetResultsScope: 0,
+    editMeetResultsScope: 0,
+    viewRaceResultsScope: 0,
+    editRaceResultsScope: 0,
+    viewDogTitlesScope: 0,
+    editDogTitlesScope: 0,
+    viewNewsScope: 0,
+    editNewsScope: 0,
+    lastEditedBy: null,
+    lastEditedAt: null,
+  };
 }
 
-export default function Page() {
+function toScope(v: any): Scope {
+  const n = Number(v);
+  if (n === 0 || n === 1 || n === 2) return n;
+  return 0;
+}
+
+export default function UserRolesAdminPage() {
   const [roles, setRoles] = useState<UserRole[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [selectedId, setSelectedId] = useState<number | "new" | null>(null);
+
+  const [draft, setDraft] = useState<Omit<UserRole, "id">>(emptyRoleDraft());
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
-  const [formOpen, setFormOpen] = useState(false);
-  const [isCreating, setIsCreating] = useState(true);
-  const [editingRoleId, setEditingRoleId] = useState<number | null>(null);
+  const selectedRole = useMemo(() => {
+    if (selectedId === null || selectedId === "new") return null;
+    return roles.find((r) => r.id === selectedId) || null;
+  }, [roles, selectedId]);
 
-  const [formData, setFormData] = useState<Partial<UserRole>>(emptyRole);
-  const [saving, setSaving] = useState(false);
-  const [deletingId, setDeletingId] = useState<number | null>(null);
-
-  const enabledCount = useMemo(() => {
-    return permissionFields.reduce((acc, f) => acc + (formData[f.key] ? 1 : 0), 0);
-  }, [formData]);
-
-  useEffect(() => {
-    void fetchRoles();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Auto-hide toast
-  useEffect(() => {
-    if (!toast) return;
-    const t = setTimeout(() => setToast(null), 2500);
-    return () => clearTimeout(t);
-  }, [toast]);
-
-  async function fetchRoles() {
+  async function loadRoles() {
+    setLoading(true);
+    setError(null);
+    setNotice(null);
     try {
-      setLoading(true);
-      setError(null);
-
       const res = await fetch("/api/user_role/list", { cache: "no-store" });
-      const data: ApiResponse<UserRole[]> = await res.json();
-
-      if (!res.ok) {
-        setError(data?.error || `Request failed (${res.status})`);
-        return;
-      }
-
-      if (data.ok && Array.isArray(data.data)) {
-        setRoles(data.data);
-      } else {
-        setError(data.error || "Failed to fetch roles");
-      }
-    } catch {
-      setError("Network error: Unable to fetch roles");
+      const json: ApiResponse<UserRole[]> = await res.json();
+      if (!json.ok) throw new Error(json.error || "Failed to load roles");
+      setRoles(json.data || []);
+    } catch (e: any) {
+      setError(e?.message || "Failed to load roles");
     } finally {
       setLoading(false);
     }
   }
 
-  function openCreate() {
-    setIsCreating(true);
-    setEditingRoleId(null);
-    setFormData(emptyRole);
-    setFormOpen(true);
+  useEffect(() => {
+    loadRoles();
+  }, []);
+
+  // When selecting an existing role, populate draft
+  useEffect(() => {
+    if (selectedId === "new") {
+      setDraft(emptyRoleDraft());
+      setError(null);
+      setNotice(null);
+      return;
+    }
+    if (!selectedRole) return;
+
+    const { id, ...rest } = selectedRole;
+    setDraft(rest);
     setError(null);
+    setNotice(null);
+  }, [selectedId, selectedRole]);
+
+  function setField<K extends keyof Omit<UserRole, "id">>(key: K, value: Omit<UserRole, "id">[K]) {
+    setDraft((prev) => ({ ...prev, [key]: value }));
   }
 
-  function openEdit(role: UserRole) {
-    setIsCreating(false);
-    setEditingRoleId(role.roleId);
-    setFormData({
-      roleId: role.roleId,
-      title: role.title,
-      canEditDog: !!role.canEditDog,
-      canEditPerson: !!role.canEditPerson,
-      canEditDogOwner: !!role.canEditDogOwner,
-      canEditOfficerRole: !!role.canEditOfficerRole,
-      canEditUserRole: !!role.canEditUserRole,
-      canEditClub: !!role.canEditClub,
-      canEditMeet: !!role.canEditMeet,
-      canEditMeetResults: !!role.canEditMeetResults,
-      canEditRaceResults: !!role.canEditRaceResults,
-      canEditDogTitles: !!role.canEditDogTitles,
-      canEditNews: !!role.canEditNews,
-    });
-    setFormOpen(true);
-    setError(null);
+  function validateDraft(): string | null {
+    const title = String(draft.title || "").trim().toUpperCase();
+    if (!title) return "Title is required.";
+    if (title.length > 20) return "Title must be 20 characters or less.";
+
+    // Optional: enforce edit <= view for each entity
+    for (const ent of ENTITIES) {
+      const view = Number(draft[ent.viewKey]) as Scope;
+      const edit = Number(draft[ent.editKey]) as Scope;
+      if (edit > view) return `${ent.label}: Edit scope cannot be greater than View scope.`;
+    }
+    return null;
   }
 
-  function closeForm() {
-    setFormOpen(false);
-    setIsCreating(true);
-    setEditingRoleId(null);
-    setFormData(emptyRole);
-  }
+  async function saveExisting() {
+    if (selectedId === null || selectedId === "new") return;
 
-  function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (saving) return;
-
-    const title = String(formData.title || "").trim();
-    if (!title) {
-      setError("Title is required.");
+    const msg = validateDraft();
+    if (msg) {
+      setError(msg);
+      setNotice(null);
       return;
     }
 
+    setSaving(true);
+    setError(null);
+    setNotice(null);
+
     try {
-      setSaving(true);
-      setError(null);
-
-      const url = isCreating ? "/api/user_role/register" : "/api/user_role/edit";
-
-      // Send only the fields the API should care about
       const payload = {
-        ...(isCreating ? {} : { roleId: editingRoleId }),
-        title,
-        canEditDog: !!formData.canEditDog,
-        canEditPerson: !!formData.canEditPerson,
-        canEditDogOwner: !!formData.canEditDogOwner,
-        canEditOfficerRole: !!formData.canEditOfficerRole,
-        canEditUserRole: !!formData.canEditUserRole,
-        canEditClub: !!formData.canEditClub,
-        canEditMeet: !!formData.canEditMeet,
-        canEditMeetResults: !!formData.canEditMeetResults,
-        canEditRaceResults: !!formData.canEditRaceResults,
-        canEditDogTitles: !!formData.canEditDogTitles,
-        canEditNews: !!formData.canEditNews,
+        roleId: selectedId,
+        // title is ignored server-side if you keep protected titles, but we send it anyway
+        ...draft,
+        title: String(draft.title || "").trim().toUpperCase(),
       };
 
-      const res = await fetch(url, {
+      const res = await fetch("/api/user_role/edit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
-      const data: ApiResponse<UserRole> = await res.json().catch(() => ({ ok: false, error: "Invalid JSON response" }));
+      const json: ApiResponse<UserRole> = await res.json();
+      if (!json.ok) throw new Error(json.error || "Failed to save role");
 
-      if (!res.ok) {
-        setError(data?.error || `Request failed (${res.status})`);
-        return;
-      }
-
-      if (data.ok) {
-        await fetchRoles();
-        setToast(isCreating ? "Role created." : "Role updated.");
-        closeForm();
-      } else {
-        setError(data.error || "Failed to save role");
-      }
-    } catch {
-      setError("Network error: Unable to save role");
+      setNotice("Saved.");
+      await loadRoles();
+    } catch (e: any) {
+      setError(e?.message || "Failed to save role");
     } finally {
       setSaving(false);
     }
   }
 
-  async function handleDelete(role: UserRole) {
-    if (deletingId) return;
+  async function createNew() {
+    const msg = validateDraft();
+    if (msg) {
+      setError(msg);
+      setNotice(null);
+      return;
+    }
 
-    const ok = confirm(`Delete role "${role.title}"?`);
-    if (!ok) return;
+    setSaving(true);
+    setError(null);
+    setNotice(null);
 
     try {
-      setDeletingId(role.roleId);
-      setError(null);
+      const payload = {
+        ...draft,
+        title: String(draft.title || "").trim().toUpperCase(),
+      };
 
-      const res = await fetch("/api/user_role/delete", {
+      const res = await fetch("/api/user_role/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ roleId: role.roleId }),
+        body: JSON.stringify(payload),
       });
 
-      const data: ApiResponse<void> = await res.json().catch(() => ({ ok: false, error: "Invalid JSON response" }));
+      const json: ApiResponse<UserRole> = await res.json();
+      if (!json.ok) throw new Error(json.error || "Failed to create role");
 
-      if (!res.ok) {
-        setError(data?.error || `Request failed (${res.status})`);
-        return;
-      }
+      setNotice("Created.");
+      await loadRoles();
 
-      if (data.ok) {
-        await fetchRoles();
-        setToast("Role deleted.");
-        if (!isCreating && editingRoleId === role.roleId) closeForm();
-      } else {
-        setError(data.error || "Failed to delete role");
-      }
-    } catch {
-      setError("Network error: Unable to delete role");
+      // auto-select newly created role if returned
+      if (json.data?.id) setSelectedId(json.data.id);
+      else setSelectedId(null);
+    } catch (e: any) {
+      setError(e?.message || "Failed to create role");
     } finally {
-      setDeletingId(null);
+      setSaving(false);
     }
   }
 
   return (
-    <div className="min-h-screen pt-30 bg-gray-100">
-      <div className="mx-auto max-w-6xl px-4 py-8">
-        {/* Toast */}
-        {toast && (
-          <div className="mb-4 rounded-md bg-white border border-gray-200 px-4 py-3 text-sm text-gray-800 shadow-sm">
-            {toast}
-          </div>
-        )}
+    <div style={{ padding: 16, maxWidth: 1100, paddingTop: 150}}>
+      <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 12 }}>User Roles</h1>
 
-        {/* Header */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900">User Role Management</h1>
-            <p className="mt-1 text-gray-600">Create, edit, and manage roles and permissions.</p>
-          </div>
-
-          <button
-            type="button"
-            onClick={openCreate}
-            disabled={formOpen}
-            className={[
-              "rounded-md px-4 py-2 text-white",
-              formOpen ? "bg-blue-300 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700",
-            ].join(" ")}
-          >
-            New Role
-          </button>
-        </div>
-
-        {/* Error */}
-        {error && (
-          <div className="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-            {error}
-          </div>
-        )}
-
-        <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-          {/* Roles list */}
-          <div className="lg:col-span-2">
-            <div className="rounded-lg bg-white shadow border border-gray-200">
-              <div className="border-b border-gray-200 px-4 py-3">
-                <h2 className="text-sm font-semibold text-gray-900">Roles</h2>
-              </div>
-
-              {loading ? (
-                <div className="px-4 py-6 text-sm text-gray-600">Loading…</div>
-              ) : roles.length === 0 ? (
-                <div className="px-4 py-6 text-sm text-gray-600">No roles found.</div>
-              ) : (
-                <>
-                  {/* Desktop table */}
-                  <div className="hidden md:block">
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full text-left text-sm">
-                        <thead className="bg-gray-50 text-gray-700">
-                          <tr>
-                            <th className="px-4 py-3 font-medium">Title</th>
-                            <th className="px-4 py-3 font-medium">Permissions</th>
-                            <th className="px-4 py-3 font-medium">Last Edited</th>
-                            <th className="px-4 py-3 font-medium text-right">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-200">
-                          {roles.map((r) => {
-                            const enabledPerms = permissionFields.filter((f) => Boolean(r[f.key]));
-                            const active = r.roleId === editingRoleId;
-
-                            return (
-                              <tr key={r.roleId} className={active ? "bg-blue-50" : "bg-white"}>
-                                <td className="px-4 py-3 font-medium text-gray-900">{r.title}</td>
-
-                                <td className="px-4 py-3">
-                                  {enabledPerms.length === 0 ? (
-                                    <span className="text-gray-500">None</span>
-                                  ) : (
-                                    <div className="flex flex-wrap gap-1">
-                                      {enabledPerms.slice(0, 6).map((f) => (
-                                        <span
-                                          key={String(f.key)}
-                                          className="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs text-gray-700"
-                                        >
-                                          {f.label}
-                                        </span>
-                                      ))}
-                                      {enabledPerms.length > 6 && (
-                                        <span className="rounded-full bg-gray-800 px-2 py-0.5 text-xs text-white">
-                                          +{enabledPerms.length - 6}
-                                        </span>
-                                      )}
-                                    </div>
-                                  )}
-                                </td>
-
-                                <td className="px-4 py-3 text-gray-600">
-                                  {r.lastEditedBy ? (
-                                    <div>
-                                      <div className="text-gray-800">By: {r.lastEditedBy}</div>
-                                      <div className="text-xs text-gray-500">{formatDateTime(r.lastEditedAt)}</div>
-                                    </div>
-                                  ) : (
-                                    <span className="text-gray-500">—</span>
-                                  )}
-                                </td>
-
-                                <td className="px-4 py-3">
-                                  <div className="flex justify-end gap-2">
-                                    <button
-                                      type="button"
-                                      onClick={() => openEdit(r)}
-                                      className="rounded-md bg-yellow-500 px-3 py-1.5 text-sm text-white hover:bg-yellow-600"
-                                    >
-                                      Edit
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => handleDelete(r)}
-                                      disabled={deletingId === r.roleId}
-                                      className={[
-                                        "rounded-md px-3 py-1.5 text-sm text-white",
-                                        deletingId === r.roleId ? "bg-red-300 cursor-not-allowed" : "bg-red-600 hover:bg-red-700",
-                                      ].join(" ")}
-                                    >
-                                      Delete
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-
-                  {/* Mobile cards */}
-                  <div className="md:hidden divide-y divide-gray-200">
-                    {roles.map((r) => {
-                      const enabledPerms = permissionFields.filter((f) => Boolean(r[f.key]));
-                      const active = r.roleId === editingRoleId;
-
-                      return (
-                        <div key={r.roleId} className={["px-4 py-4", active ? "bg-blue-50" : "bg-white"].join(" ")}>
-                          <div className="flex items-start justify-between gap-3">
-                            <div>
-                              <div className="font-semibold text-gray-900">{r.title}</div>
-                              <div className="mt-1 text-sm text-gray-600">
-                                Permissions: <span className="font-medium">{enabledPerms.length}</span>
-                              </div>
-                              <div className="mt-1 text-xs text-gray-500">
-                                {r.lastEditedBy ? `By ${r.lastEditedBy} • ${formatDateTime(r.lastEditedAt)}` : "—"}
-                              </div>
-                            </div>
-
-                            <div className="flex flex-col gap-2">
-                              <button
-                                type="button"
-                                onClick={() => openEdit(r)}
-                                className="rounded-md bg-yellow-500 px-3 py-2 text-sm text-white hover:bg-yellow-600"
-                              >
-                                Edit
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleDelete(r)}
-                                disabled={deletingId === r.roleId}
-                                className={[
-                                  "rounded-md px-3 py-2 text-sm text-white",
-                                  deletingId === r.roleId ? "bg-red-300 cursor-not-allowed" : "bg-red-600 hover:bg-red-700",
-                                ].join(" ")}
-                              >
-                                Delete
-                              </button>
-                            </div>
-                          </div>
-
-                          {enabledPerms.length > 0 && (
-                            <div className="mt-3 flex flex-wrap gap-1">
-                              {enabledPerms.slice(0, 6).map((f) => (
-                                <span
-                                  key={String(f.key)}
-                                  className="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs text-gray-700"
-                                >
-                                  {f.label}
-                                </span>
-                              ))}
-                              {enabledPerms.length > 6 && (
-                                <span className="rounded-full bg-gray-800 px-2 py-0.5 text-xs text-white">
-                                  +{enabledPerms.length - 6}
-                                </span>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </>
-              )}
-            </div>
+      <div style={{ display: "grid", gridTemplateColumns: "320px 1fr", gap: 16 }}>
+        {/* Left: Role list */}
+        <div style={{ border: "1px solid #ddd", borderRadius: 8, padding: 12 }}>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 10 }}>
+            <button
+              type="button"
+              onClick={() => setSelectedId("new")}
+              style={{ padding: "6px 10px", border: "1px solid #ccc", borderRadius: 6 }}
+            >
+              + New Role
+            </button>
+            <button
+              type="button"
+              onClick={loadRoles}
+              disabled={loading}
+              style={{ padding: "6px 10px", border: "1px solid #ccc", borderRadius: 6 }}
+            >
+              Refresh
+            </button>
           </div>
 
-          {/* Editor */}
-          <div className="lg:col-span-1">
-            <div className="rounded-lg bg-white shadow border border-gray-200">
-              <div className="border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-                <h2 className="text-sm font-semibold text-gray-900">
-                  {formOpen ? (isCreating ? "Create Role" : "Edit Role") : "Role Editor"}
-                </h2>
-
-                {formOpen && (
-                  <button
-                    type="button"
-                    onClick={closeForm}
-                    className="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
-                  >
-                    Close
-                  </button>
-                )}
-              </div>
-
-              {!formOpen ? (
-                <div className="px-4 py-6 text-sm text-gray-600">
-                  Select a role to edit, or click <span className="font-medium">+ New Role</span>.
-                </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="px-4 py-4">
-                  <label className="block text-sm font-medium text-gray-900">Title</label>
-                  <input
-                    name="title"
-                    value={String(formData.title || "")}
-                    onChange={handleInputChange}
-                    maxLength={20}
-                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g., ADMIN"
-                  />
-                  <div className="mt-1 text-xs text-gray-500">
-                    Max 20 chars • Enabled permissions: <span className="font-medium">{enabledCount}</span>
-                  </div>
-
-                  <div className="mt-4">
-                    <div className="text-sm font-medium text-gray-900 mb-2">Permissions</div>
-                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                      {permissionFields.map((f) => (
-                        <label key={String(f.key)} className="flex items-center gap-2 text-sm text-gray-700">
-                          <input
-                            type="checkbox"
-                            name={String(f.key)}
-                            checked={!!formData[f.key]}
-                            onChange={handleInputChange}
-                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                          />
-                          {f.label}
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-                    <button
-                      type="submit"
-                      disabled={saving}
-                      className={[
-                        "rounded-md px-4 py-2 text-white",
-                        saving ? "bg-blue-300 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700",
-                      ].join(" ")}
-                    >
-                      {saving ? "Saving..." : isCreating ? "Create" : "Save"}
-                    </button>
-
+          {loading ? (
+            <div>Loading…</div>
+          ) : (
+            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+              {roles.map((r) => {
+                const active = selectedId === r.id;
+                return (
+                  <li key={r.id} style={{ marginBottom: 6 }}>
                     <button
                       type="button"
-                      onClick={closeForm}
-                      className="rounded-md bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600"
+                      onClick={() => setSelectedId(r.id)}
+                      style={{
+                        width: "100%",
+                        textAlign: "left",
+                        padding: "8px 10px",
+                        borderRadius: 6,
+                        border: "1px solid #ccc",
+                        background: active ? "#f2f2f2" : "white",
+                        color: "#000000",
+                        cursor: "pointer",
+                      }}
                     >
-                      Cancel
+                      <div style={{ fontWeight: 700 }}>{r.title}</div>
+                      <div style={{ fontSize: 12, opacity: 0.8 }}>ID: {r.id}</div>
                     </button>
-                  </div>
-                </form>
-              )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+
+        {/* Right: Editor */}
+        <div style={{ border: "1px solid #ddd", borderRadius: 8, padding: 12 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 10 }}>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 16 }}>
+                {selectedId === "new" ? "Create Role" : selectedRole ? `Edit Role: ${selectedRole.title}` : "Select a role"}
+              </div>
+              <div style={{ fontSize: 12, opacity: 0.8 }}>
+                Scope: 0 none • 1 self • 2 all
+              </div>
             </div>
 
-            <div className="mt-3 text-xs text-gray-500">
-              Tip: consider blocking deletion of core roles (like ADMIN) in both UI and backend.
+            <div style={{ display: "flex", gap: 8 }}>
+              {selectedId === "new" ? (
+                <button
+                  type="button"
+                  onClick={createNew}
+                  disabled={saving}
+                  style={{ padding: "8px 12px", border: "1px solid #ccc", borderRadius: 6 }}
+                >
+                  Create
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={saveExisting}
+                  disabled={saving || selectedId === null}
+                  style={{ padding: "8px 12px", border: "1px solid #ccc", borderRadius: 6 }}
+                >
+                  Save
+                </button>
+              )}
             </div>
           </div>
+
+          {error && (
+            <div style={{ background: "#ffecec", border: "1px solid #ffb3b3", padding: 10, borderRadius: 6, marginBottom: 10 }}>
+              {error}
+            </div>
+          )}
+          {notice && (
+            <div style={{ background: "#eef7ee", border: "1px solid #b9e2b9", padding: 10, borderRadius: 6, marginBottom: 10 }}>
+              {notice}
+            </div>
+          )}
+
+          {selectedId === null ? (
+            <div>Select a role on the left.</div>
+          ) : (
+            <>
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ display: "block", fontSize: 12, marginBottom: 4 }}>Title</label>
+                <input
+                  value={draft.title}
+                  onChange={(e) => setField("title", e.target.value)}
+                  placeholder="e.g. PUBLIC"
+                  style={{ width: "100%", padding: "8px 10px", border: "1px solid #ccc", borderRadius: 6 }}
+                />
+              </div>
+
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr>
+                      <th style={{ textAlign: "left", padding: 8, borderBottom: "1px solid #ddd" }}>Entity</th>
+                      <th style={{ textAlign: "left", padding: 8, borderBottom: "1px solid #ddd" }}>View</th>
+                      <th style={{ textAlign: "left", padding: 8, borderBottom: "1px solid #ddd" }}>Edit</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ENTITIES.map((ent) => {
+                      const viewVal = draft[ent.viewKey] as unknown as Scope;
+                      const editVal = draft[ent.editKey] as unknown as Scope;
+
+                      return (
+                        <tr key={ent.label}>
+                          <td style={{ padding: 8, borderBottom: "1px solid #eee", fontWeight: 600 }}>{ent.label}</td>
+
+                          <td style={{ padding: 8, borderBottom: "1px solid #eee" }}>
+                            <select
+                              value={viewVal}
+                              onChange={(e) => setField(ent.viewKey as any, toScope(e.target.value) as any)}
+                              style={{ padding: "6px 8px", border: "1px solid #ccc", borderRadius: 6 }}
+                            >
+                              {SCOPE_OPTIONS.map((o) => (
+                                <option key={o.value} value={o.value}>
+                                  {o.label}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+
+                          <td style={{ padding: 8, borderBottom: "1px solid #eee" }}>
+                            <select
+                              value={editVal}
+                              onChange={(e) => setField(ent.editKey as any, toScope(e.target.value) as any)}
+                              style={{ padding: "6px 8px", border: "1px solid #ccc", borderRadius: 6 }}
+                            >
+                              {SCOPE_OPTIONS.map((o) => (
+                                <option key={o.value} value={o.value}>
+                                  {o.label}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              <div style={{ marginTop: 10, fontSize: 12, opacity: 0.8 }}>
+                Tip: if you want, you can enforce “Edit cannot exceed View” (already validated before save).
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
