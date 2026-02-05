@@ -1,3 +1,17 @@
+'''
+Docstring for dog
+
+TODO:
+Need a way to dynamically add and remove titles and check them
+Finish check_trp_title
+    Add meet_appearences attribute?
+Finish check_dpc_title
+    Add akc_championships attribute?
+    Add ckc_championships attribute?
+Add physical attributes and check qualifications method?
+'''
+
+from werkzeug.security import generate_password_hash, check_password_hash
 from database import fetch_one, fetch_all, execute
 from mysql.connector import Error
 
@@ -41,30 +55,21 @@ class Dog:
     @classmethod
     def check_grade(self):
         '''Check grade of dog based on point average and status.'''
-        pass
         if self.is_puppy() or self.meet_appearences == 0:
             return "FTE"
-        average = self.get_point_average()
-        if average >= 15.0:
+        if self.average >= 15.0:
             if self.status == "Inactive":
                 return "B"
             return "A"
-        if average >= 10.0:
+        if self.average >= 10.0:
             if self.status == "Inactive":
                 return "C"
             return "B"
-        if average >= 5.0:
+        if self.average >= 5.0:
             if self.status == "Inactive":
                 return "D"
             return "C"
         return "D"
-
-    @classmethod
-    def get_point_average(selfs):
-        '''Calculate point average from last three meets.'''
-        pass
-        # get last three meet points
-        # return average points from last three meets
     
     @classmethod
     def check_titles(self):
@@ -100,7 +105,6 @@ class Dog:
     @classmethod
     def check_trp_title(self):
         '''Check if dog is eligible for Title of Racing Proficiency (TRP).'''
-        pass
         if self.meet_appearences >= 10:
             return "TRP"
         return None
@@ -140,7 +144,6 @@ class Dog:
     @classmethod
     def check_dpc_title(self):
         '''Check if dog is eligible for Dual Purpose Championship (DPC) titles.'''
-        pass
         if self.check_trp_title() == "TRP" and ((self.akc_number > 0 or self.ckc_number > 0) or (self.dpc_legs >= 5)):
             if self.check_arx_title() == "ARX":
                 return "DPCX"
@@ -150,12 +153,11 @@ class Dog:
     @classmethod
     def check_hc_title(self):
         '''Check if dog is eligible for High Combined (HC) titles.'''
-        pass
-        if self.is_adult() and self.high_combined_wins >= 5:
-            if self.high_combined_wins < 10:
+        if self.is_adult():
+            if self.high_combined_wins >= 10:
+                return "HCX"
+            if self.high_combined_wins >= 5:
                 return "HC"
-            hcx_level = int((self.high_combined_wins - 5) / 5) + 1
-            return f"HC{hcx_level}"
         return None
     
     @classmethod
