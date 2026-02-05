@@ -51,6 +51,24 @@ services:
       - SMTP_PASS=##GOOGLE_APP_PASSWORD##
       - FROM_EMAIL=##YOUR_CONTACT_EMAIL_HERE##
 
+  backup:
+    image: mysql:8.0.44
+    container_name: cwa-backup
+    depends_on:
+      - db
+    volumes:
+      - ./backups:/backups
+      - ./backup.sh:/backup.sh
+    entrypoint: >
+      sh -c "
+      chmod +x /backup.sh &&
+      while true; do
+        /backup.sh;
+        sleep 86400;
+      done
+      "
+
+
   nginx:
     image: nginx:alpine
     ports:
