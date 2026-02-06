@@ -11,7 +11,7 @@ curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/auth/register \
   -d '{
-    "personId": "test_6",
+    "personId": "test_1",
     "firstName": "Test",
     "lastName": "User",
     "email": "test1@test.com",

@@ -18,8 +18,9 @@ def register():
     if not person.system_role:
         person.system_role = "PUBLIC"
     
-    current_user = session.get("user") or {}    
-    person.last_edited_by = current_user.get("PersonID") or "SYSTEM"
+    current_user = session.get("user") or {} 
+    editor_id = current_user.get("PersonID")
+    person.last_edited_by = editor_id if editor_id else person.person_id
     person.last_edited_at = datetime.now(timezone.utc)
     
     validation_errors = person.validate()
