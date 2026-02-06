@@ -249,6 +249,15 @@ def list_officer_roles():
 
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+    
+@officer_role_bp.get("/public/list")
+def list_officer_roles_public():
+    try:
+        officers = OfficerRole.list_all()
+        return jsonify({"ok": True, "data": [o.to_dict() for o in officers]}), 200
+
+    except Error as e:
+        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
 
 @officer_role_bp.get("/mine")
