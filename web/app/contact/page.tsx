@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 type OfficerRoster = {
   role: string;
@@ -11,7 +11,7 @@ type OfficerRoster = {
 type DirectorRoster = {
   club: string;
   location: string;
-  country: string; 
+  country: string;
   name: string;
   email?: string;
 };
@@ -25,14 +25,89 @@ const flagForCountry = (code: string) => {
   if (c === "CA" || c === "CAN" || c === "CANADA") {
     return <span className="fi fi-ca mr-2" aria-label="Canada" />;
   }
-  return "";
+  return null;
 };
 
 export default function Home() {
-  const [data, setData] = useState<{ officers: OfficerRoster[]; board: DirectorRoster[] } | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // ---- Officers ----
+  const [officers, setOfficers] = useState<OfficerRoster[]>([]);
+  const [officersLoading, setOfficersLoading] = useState(true);
 
+  const [dtKick, setDtKick] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await fetch("/api/contact/officers");
+        if (!res.ok) {
+          console.warn("Officers fetch failed:", res.status);
+          if (!cancelled) setOfficers([]);
+          return;
+        }
+
+        const data = await res.json();
+
+        // Accept either an array OR { officers: [...] }
+        const rows: OfficerRoster[] = Array.isArray(data) ? data : data?.officers ?? [];
+        if (!cancelled) {
+          setOfficers(rows);
+          setDtKick((n) => n + 1);
+        }
+
+      } catch (e) {
+        console.warn("Officers fetch error:", e);
+        if (!cancelled) setOfficers([]);
+      } finally {
+        if (!cancelled) setOfficersLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // ---- Board ----
+  const [board, setBoard] = useState<DirectorRoster[]>([]);
+  const [boardLoading, setBoardLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await fetch("/api/club/board");
+        if (!res.ok) {
+          console.warn("Board fetch failed:", res.status);
+          if (!cancelled) setBoard([]);
+          return;
+        }
+
+        const data = await res.json();
+
+        // Accept either an array OR { board: [...] }
+        const rows: DirectorRoster[] = Array.isArray(data) ? data : data?.board ?? [];
+        if (!cancelled) {
+          setBoard(rows);
+          setDtKick((n) => n + 1);
+        }
+
+      } catch (e) {
+        console.warn("Board fetch error:", e);
+        if (!cancelled) setBoard([]);
+      } finally {
+        if (!cancelled) setBoardLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // ---- Contact form ----
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -41,50 +116,6 @@ export default function Home() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState("");
-
-  const officersTableRef = useRef<HTMLTableElement>(null);
-  const boardTableRef = useRef<HTMLTableElement>(null);
-  
-   // Fetch both datasets
-  useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const [officersRes, boardRes] = await Promise.all([
-          fetch("/api/contact/officers", { cache: "no-store" }),
-          fetch("/api/club/board", { cache: "no-store" }),
-        ]);
-
-        if (!officersRes.ok) throw new Error(`Failed to load officers (${officersRes.status})`);
-        if (!boardRes.ok) throw new Error(`Failed to load board (${boardRes.status})`);
-
-        const [officers, board] = await Promise.all([officersRes.json(), boardRes.json()]);
-
-        if (!cancelled) {
-          setData({
-            officers: Array.isArray(officers) ? (officers as OfficerRoster[]) : [],
-            board: Array.isArray(board) ? (board as DirectorRoster[]) : [],
-          });
-        }
-      } catch (e: any) {
-        console.error("Data fetch failed:", e);
-        if (!cancelled) {
-          setData({ officers: [], board: [] });
-          setError(e?.message ?? "Failed to load data");
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const resetMessages = () => {
     setSubmitError("");
@@ -95,7 +126,13 @@ export default function Home() {
     e.preventDefault();
     resetMessages();
 
-    if (!firstName.trim() || !lastName.trim() || !email.trim() || !subject.trim() || !message.trim()) {
+    if (
+      !firstName.trim() ||
+      !lastName.trim() ||
+      !email.trim() ||
+      !subject.trim() ||
+      !message.trim()
+    ) {
       setSubmitError("Please fill out all required fields.");
       return;
     }
@@ -118,9 +155,11 @@ export default function Home() {
       if (!res.ok) {
         let detail = "";
         try {
-          const payload = await res.json();
-          detail = payload?.error || payload?.message || "";
-        } catch {}
+          const data = await res.json();
+          detail = data?.error || data?.message || "";
+        } catch {
+          // ignore
+        }
         throw new Error(detail || `Request failed (${res.status})`);
       }
 
@@ -137,11 +176,11 @@ export default function Home() {
     }
   }
 
-  const dataReady = !!data && !loading && !error;
+  // ---- DataTables wiring ----
+  const officersTableRef = useRef<HTMLTableElement>(null);
+  const boardTableRef = useRef<HTMLTableElement>(null);
 
   useEffect(() => {
-    if (!dataReady) return;
-
     let destroyed = false;
     let officersDt: any | null = null;
     let boardDt: any | null = null;
@@ -154,19 +193,24 @@ export default function Home() {
         const column = this;
         const th = filterRow.find("th").eq(colIdx);
         const input = th.find("input");
+
         if (!input.length) return;
 
         input.off(".dtcol");
         input.on("input.dtcol change.dtcol", function (this: HTMLInputElement) {
           const val = this.value ?? "";
-          if (column.search() !== val) column.search(val).draw();
+          if (column.search() !== val) {
+            column.search(val).draw();
+          }
         });
       });
     };
 
-    const initOne = ({ $, tableEl }: { $: any; tableEl: HTMLTableElement }) => {
+    const initOne = (args: { $: any; tableEl: HTMLTableElement }) => {
+      const { $, tableEl } = args;
+
       if ($.fn.dataTable.isDataTable(tableEl)) {
-        $(tableEl).DataTable().destroy(true);
+        $(tableEl).DataTable().destroy(false);
       }
 
       const options = {
@@ -180,6 +224,10 @@ export default function Home() {
         orderCellsTop: true,
         autoWidth: false,
         destroy: true,
+        createdRow: function (row: HTMLTableRowElement) {
+          row.classList.add("dt-row");
+          row.querySelectorAll("td").forEach((td) => td.classList.add("dt-cell"));
+        },
       };
 
       const api = $(tableEl).DataTable(options);
@@ -187,35 +235,33 @@ export default function Home() {
       api.columns.adjust();
     };
 
-    (async () => {
+    const init = async () => {
       const $ = (await import("jquery")).default as any;
       await import("datatables.net-dt");
 
       if (destroyed) return;
 
-      if (officersTableRef.current) {
+      // Officers: only init when there are rows and the table is actually rendered
+      if (officersTableRef.current && officers.length > 0) {
         initOne({ $, tableEl: officersTableRef.current });
         officersDt = $(officersTableRef.current).DataTable();
       }
 
-      if (boardTableRef.current && (data?.board?.length ?? 0) > 0) {
+      // Board: only init when there are rows and the table is actually rendered
+      if (boardTableRef.current && board.length > 0) {
         initOne({ $, tableEl: boardTableRef.current });
         boardDt = $(boardTableRef.current).DataTable();
       }
-    })();
+    };
+
+    init();
 
     return () => {
       destroyed = true;
-      if (officersDt) officersDt.destroy(true);
-      if (boardDt) boardDt.destroy(true);
+      if (officersDt) officersDt.destroy(false);
+      if (boardDt) boardDt.destroy(false);
     };
-  }, [dataReady, data?.board?.length]);
-
-  if (loading) return <div className="loading">Loading contact information...</div>;
-  if (error) return <div className="error">Error: {error}</div>;
-  if (!data) return <div className="loading">Loading...</div>;
-
-  const { officers, board } = data;
+    }, [officers.length, board.length]);
 
   return (
     <main>
@@ -230,18 +276,39 @@ export default function Home() {
           flex-col
         "
       >
-        <div className="flex flex-1 items-end justify-end pb-56 pr-16">
-          <h1 className="text-white text-7xl font-bold">
+        <div className="relative z-10 flex flex-1 items-end justify-end pb-40 pr-16">
+          <h1
+            className="
+              text-white text-7xl font-bold
+              transition-transform duration-300
+              hover:scale-115
+              origin-bottom-right
+            "
+          >
             <span className="block">Showing what we race.</span>
             <span className="block pl-14">Racing what we show.</span>
           </h1>
         </div>
 
-        <svg viewBox="0 0 1440 100" className="absolute left-0 w-full h-24 -bottom-px" preserveAspectRatio="none">
+        {/* Curve */}
+        <svg
+          viewBox="0 0 1440 100"
+          preserveAspectRatio="none"
+          className="absolute left-0 bottom-0 w-full h-32"
+        >
           <path
             d="
-              M 0 100
-              C 480 60, 960 20, 1440 10
+              M 0 0
+              L 144 19
+              L 288 36
+              L 432 51
+              L 576 64
+              L 720 75
+              L 864 84
+              L 1008 91
+              L 1152 96
+              L 1296 99
+              L 1440 100
               L 1440 100
               L 0 100
               Z
@@ -251,20 +318,7 @@ export default function Home() {
         </svg>
       </section>
 
-      <section className="bg-neutral-200 py-24">
-        <div className="max-w-6xl mx-auto px-4">
-          <p className="text-center italic text-[24px] leading-7 text-black">
-            <span className="font-semibold">The Continental Whippet Alliance (CWA)</span>{" "}
-            was established in 1990. The primary mission of the CWA is to promote, protect and preserve purebred Whippet
-            racing and to provide a friendly and enjoyable environment for sportsmanlike competition. It is the
-            objective of the CWA to play a role in the preservation of the Whippet&apos;s athletic ability, sporting
-            instincts and functional breed characteristics; to foster future generations of fit, versatile individuals
-            that are true to the AKC Whippet Breed Standard.
-          </p>
-        </div>
-      </section>
-
-      <section className="bg-neutral-200 pb-24">
+      <section className="bg-neutral-200 pt-14 pb-24">
         <div className="max-w-6xl mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
             {/* LEFT: Contact form */}
@@ -275,7 +329,9 @@ export default function Home() {
                 <div
                   className={[
                     "mb-4 rounded-lg px-4 py-3 text-sm border",
-                    submitError ? "bg-red-50 text-red-900 border-red-200" : "bg-green-50 text-green-900 border-green-200",
+                    submitError
+                      ? "bg-red-50 text-red-900 border-red-200"
+                      : "bg-green-50 text-green-900 border-green-200",
                   ].join(" ")}
                   role="status"
                 >
@@ -379,7 +435,15 @@ export default function Home() {
                   <h3 className="text-2xl font-semibold text-black">2026 CWA Officers</h3>
                 </div>
 
-                <div>
+                {officersLoading ? (
+                  <div className="rounded-xl border border-black/10 bg-white px-4 py-6 text-sm text-black/60">
+                    Loading officers…
+                  </div>
+                ) : officers.length === 0 ? (
+                  <div className="rounded-xl border border-black/10 bg-white px-4 py-6 text-sm text-black/60">
+                    Officer roster will be posted here for the 2026 season.
+                  </div>
+                ) : (
                   <table ref={officersTableRef} className="display w-full text-sm">
                     <thead>
                       <tr className="bg-black text-white">
@@ -414,7 +478,7 @@ export default function Home() {
                       ))}
                     </tbody>
                   </table>
-                </div>
+                )}
               </div>
 
               {/* Board */}
@@ -423,7 +487,15 @@ export default function Home() {
                   <h3 className="text-2xl font-semibold text-black">2026 CWA Board of Directors</h3>
                 </div>
 
-                <div>
+                {boardLoading ? (
+                  <div className="rounded-xl border border-black/10 bg-white px-4 py-6 text-sm text-black/60">
+                    Loading board…
+                  </div>
+                ) : board.length === 0 ? (
+                  <div className="rounded-xl border border-black/10 bg-white px-4 py-6 text-sm text-black/60">
+                    Board roster will be posted here for the 2026 season.
+                  </div>
+                ) : (
                   <table ref={boardTableRef} className="display w-full text-sm">
                     <thead>
                       <tr className="bg-black text-white">
@@ -469,7 +541,7 @@ export default function Home() {
                       ))}
                     </tbody>
                   </table>
-                </div>
+                )}
               </div>
             </div>
           </div>
