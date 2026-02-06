@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request, session
 from mysql.connector import Error
 from classes.person import Person
 from classes.change_log import ChangeLog
-from datetime import datetime
+from datetime import datetime, timezone
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
@@ -19,7 +19,7 @@ def register():
         person.system_role = "Public"
     
     person.last_edited_by = person.person_id
-    person.last_edited_at = datetime.utcnow()
+    person.last_edited_at = datetime.now(timezone.utc)
     
     validation_errors = person.validate()
     if validation_errors:

@@ -126,7 +126,6 @@ class Person:
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password: str) -> bool:
-        from werkzeug.security import check_password_hash
         if not self.password_hash:
             return False
         return check_password_hash(self.password_hash, password)
@@ -141,20 +140,23 @@ class Person:
                     PersonID, FirstName, LastName, EmailAddress,
                     AddressLineOne, AddressLineTwo, City, StateProvince,
                     ZipCode, Country, PrimaryPhone, SecondaryPhone,
-                    SystemRole, PasswordHash, Notes
+                    SystemRole, PasswordHash, Notes,
+                    LastEditedBy, LastEditedAt
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
                     self.person_id, self.first_name, self.last_name, self.email,
                     self.address_line_one, self.address_line_two, self.city, self.state_province,
                     self.zip_code, self.country, self.primary_phone, self.secondary_phone,
-                    self.system_role, self.password_hash, self.notes
+                    self.system_role, self.password_hash, self.notes,
+                    self.last_edited_by, self.last_edited_at
                 ),
             )
             return True
         except Error as e:
             raise e
+
 
     def update(self):
         """Update existing person in database. Returns True on success, raises Error on failure."""
