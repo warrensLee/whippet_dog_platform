@@ -141,7 +141,15 @@ curl -i -b cookies.txt \
     "confirm": true
   }'
 
-
-GET /api/dog/get/{cwa_number} 
+GET /api/dog/grade/{cwa_number}
 curl -i -b cookies.txt \
-  http://localhost/api/dog/get/T12345
+http://localhost/api/dog/grade/T12345
+
+
+GET /api/dog/age/{cwa_number}
+curl -i -b cookies.txt \
+http://localhost/api/dog/age/T12345
+
+GET /api/dog/mine
+curl -i -b cookies.txt \
+http://localhost/api/dog/mine

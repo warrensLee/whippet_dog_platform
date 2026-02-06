@@ -259,3 +259,123 @@ def list_dog_titles(cwa_number):
         return jsonify({"ok": True, "data": dog_titles}), 200
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+
+@dog_bp.get("/grade/<cwa_number>")
+def get_dog_grade(cwa_number):
+    role = _current_role()
+    if not role:
+        return  jsonify({"ok": False, "error": "Not signed in"}), 401
+    
+    if role.view_dog_scope == UserRole.SELF and not _is_owner(cwa_number):
+        return jsonify({"ok": False, "error": "Not allowed to view this dog"}), 403
+
+    deny = _require_scope(role.view_dog_scope, "view dogs")
+    if deny:
+        return deny
+    
+    try:
+        dog = Dog.find_by_identifier(cwa_number)
+        if not dog:
+            return jsonify({"ok": False, "error": "Dog not found"}), 404
+
+        computed = dog.check_grade()
+        return jsonify(
+            {
+                "ok": True,
+                "data": {
+                    "cwaNumber": dog.cwa_number,
+                    "computedGrade": computed,
+                },
+            }
+        ), 200
+    except Error as e:
+        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@dog_bp.get("/age/<cwa_number>")
+def get_dog_age(cwa_number):
+    role = _current_role()
+    if not role:
+        return  jsonify({"ok": False, "error": "Not signed in"}), 401
+
+    deny = _require_scope(role.view_dog_scope, "view dogs")
+    if deny:
+        return deny
+    
+    if role.view_dog_scope == UserRole.SELF and not _is_owner(cwa_number):
+        return jsonify({"ok": False, "error": "Not allowed to view this dog"}), 403
+    
+    try:
+        dog = Dog.find_by_identifier(cwa_number)
+        if not dog:
+            return jsonify({"ok": False, "error": "Dog not found"}), 404
+
+        birthdate = dog.birthdate
+        if not birthdate:
+            return jsonify(
+                {"ok": True, "data": {"cwaNumber": dog.cwa_number, "birthdate": None}}
+            ), 200
+
+        if isinstance(birthdate, str):
+            birthdate = datetime.strptime(birthdate, "%Y-%m-%d")
+
+        today = datetime.today()
+        age_months = ((today.year - birthdate.year) * 12) + (today.month - birthdate.month)
+
+        is_puppy = dog.is_puppy()
+        is_adult = dog.is_adult()
+        is_veteran = dog.is_veteran()
+
+        if is_veteran:
+            category = "veteran"
+        elif is_adult:
+            category = "adult"
+        elif is_puppy:
+            category = "puppy"
+        else:
+            category = "unknown"
+
+        return jsonify(
+            {
+                "ok": True,
+                "data": {
+                    "cwaNumber": dog.cwa_number,
+                    "birthdate": dog.birthdate,
+                    "ageMonths": age_months,
+                    "category": category,
+                    "isPuppy": is_puppy,
+                    "isAdult": is_adult,
+                    "isVeteran": is_veteran,
+                },
+            }
+        ), 200
+    except Error as e:
+        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@dog_bp.get("/mine")
+def list_my_dogs():
+    role = _current_role()
+    if not role:
+        return  jsonify({"ok": False, "error": "Not signed in"}), 401
+
+    deny = _require_scope(role.view_dog_scope, "view dogs")
+    if deny:
+        return deny
+    
+    try:
+        u = session.get("user") or {}
+        person_id = u.get("PersonID") or u.get("personId") or u.get("id")
+        if not person_id:
+            return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+        dogs = Dog.list_dogs_for_owner(person_id)
+        return jsonify({"ok": True, "data": [d.to_dict() for d in dogs]}), 200
+    except Error as e:
+        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
