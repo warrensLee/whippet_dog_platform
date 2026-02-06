@@ -378,4 +378,192 @@ def list_my_dogs():
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
     except Exception as e:
+
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@dog_bp.post("/arx/<cwa_number>")
+def check_arx_title(cwa_number):
+    role = _current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+    
+    if role.view_dog_scope == UserRole.SELF and not _is_owner(cwa_number):
+        return jsonify({"ok": False, "error": "Not allowed to view this dog"}), 403
+
+    deny = _require_scope(role.view_dog_scope, "view dogs")
+    if deny:
+        return deny
+    
+    dog = Dog.find_by_identifier(cwa_number)
+    if not dog:
+        return jsonify({"ok": False, "error": "Dog does not exist"}), 404
+    try:
+        arx = dog.check_arx_title()
+    except Error as e:
+        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+
+    return jsonify({"ok": True, "arx": arx}), 200
+
+@dog_bp.post("/trp/<cwa_number>")
+def check_trp_title(cwa_number):
+    role = _current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+    
+    if role.view_dog_scope == UserRole.SELF and not _is_owner(cwa_number):
+        return jsonify({"ok": False, "error": "Not allowed to view this dog"}), 403
+
+    deny = _require_scope(role.view_dog_scope, "view dogs")
+    if deny:
+        return deny
+    
+    try:
+        dog = Dog.find_by_identifier(cwa_number)
+        if not dog:
+            return jsonify({"ok": False, "error": "Dog does not exist"}), 404
+        
+        trp = dog.check_trp_title()
+        return jsonify(
+            {
+                "ok": True,
+                "data": {
+                    "cwaNumber": dog.cwa_number,
+                    "trpTitle": trp,
+                },
+            }
+        ), 200
+    except Error as e:
+        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@dog_bp.post("/pr/<cwa_number>")
+def check_pr_title(cwa_number):
+    role = _current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+    
+    if role.view_dog_scope == UserRole.SELF and not _is_owner(cwa_number):
+        return jsonify({"ok": False, "error": "Not allowed to view this dog"}), 403
+
+    deny = _require_scope(role.view_dog_scope, "view dogs")
+    if deny:
+        return deny
+
+    try:
+        dog = Dog.find_by_identifier(cwa_number)
+        if not dog:
+            return jsonify({"ok": False, "error": "Dog does not exist"}), 404
+        
+        pr = dog.check_pr_title()
+        return jsonify(
+            {
+                "ok": True,
+                "data": {
+                    "cwaNumber": dog.cwa_number,
+                    "prTitle": pr,
+                },
+            }
+        ), 200
+    except Error as e:
+        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+
+
+@dog_bp.post("/narx/<cwa_number>")
+def check_narx_title(cwa_number):
+    role = _current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+    
+    if role.view_dog_scope == UserRole.SELF and not _is_owner(cwa_number):
+        return jsonify({"ok": False, "error": "Not allowed to view this dog"}), 403
+
+    deny = _require_scope(role.view_dog_scope, "view dogs")
+    if deny:
+        return deny
+    
+    try:
+        dog = Dog.find_by_identifier(cwa_number)
+        if not dog:
+            return jsonify({"ok": False, "error": "Dog does not exist"}), 404
+        
+        narx = dog.check_narx_title()
+        return jsonify(
+            {
+                "ok": True,
+                "data": {
+                    "cwaNumber": dog.cwa_number,
+                    "narxTitle": narx,
+                },
+            }
+        ), 200
+    except Error as e:
+        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@dog_bp.post("/dpc/<cwa_number>")
+def check_dpc_title(cwa_number):
+    role = _current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+    
+    if role.view_dog_scope == UserRole.SELF and not _is_owner(cwa_number):
+        return jsonify({"ok": False, "error": "Not allowed to view this dog"}), 403
+
+    deny = _require_scope(role.view_dog_scope, "view dogs")
+    if deny:
+        return deny
+    
+    try:
+        dog = Dog.find_by_identifier(cwa_number)
+        if not dog:
+            return jsonify({"ok": False, "error": "Dog does not exist"}), 404
+        
+        dpc = dog.check_dpc_title()
+        return jsonify(
+            {
+                "ok": True,
+                "data": {
+                    "cwaNumber": dog.cwa_number,
+                    "dpcTitle": dpc,
+                },
+            }
+        ), 200
+    except Error as e:
+        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@dog_bp.post("/hc/<cwa_number>")
+def check_hc_title(cwa_number):
+    role = _current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+    
+    if role.view_dog_scope == UserRole.SELF and not _is_owner(cwa_number):
+        return jsonify({"ok": False, "error": "Not allowed to view this dog"}), 403
+
+    deny = _require_scope(role.view_dog_scope, "view dogs")
+    if deny:
+        return deny
+    
+    try:
+        dog = Dog.find_by_identifier(cwa_number)
+        if not dog:
+            return jsonify({"ok": False, "error": "Dog does not exist"}), 404
+        
+        hc = dog.check_hc_title()
+        return jsonify(
+            {
+                "ok": True,
+                "data": {
+                    "cwaNumber": dog.cwa_number,
+                    "hcTitle": hc,
+                },
+            }
+        ), 200
+    except Error as e:
+        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+    except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
