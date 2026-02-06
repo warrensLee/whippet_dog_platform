@@ -154,6 +154,30 @@ GET /api/dog/mine
 curl -i -b cookies.txt \
 http://localhost/api/dog/mine
 
+POST /api/dog/arx/{cwa_number}
+curl -i -b cookies.txt \
+  -X POST http://localhost/api/dog/arx/T12345
+
+POST /api/dog/trp/{cwa_number}
+curl -i -b cookies.txt \
+  -X POST http://localhost/api/dog/trp/T12345
+
+POST /api/dog/pr/{cwa_number}
+curl -i -b cookies.txt \
+  -X POST http://localhost/api/dog/pr/T12345
+
+POST /api/dog/narx/{cwa_number}
+curl -i -b cookies.txt \
+  -X POST http://localhost/api/dog/narx/T12345
+
+POST /api/dog/dpc/{cwa_number}
+curl -i -b cookies.txt \
+  -X POST http://localhost/api/dog/dpc/T12345
+
+POST /api/dog/hc/{cwa_number}
+curl -i -b cookies.txt \
+  -X POST http://localhost/api/dog/hc/T12345
+
 
 --------------------------------------------------
 Change Log
@@ -163,3 +187,60 @@ curl -i -b cookies.txt http://localhost/api/change_log/get/1
 
 GET /list
 curl -i -b cookies.txt http://localhost/api/change_log/list
+
+--------------------------------------------------
+Club
+--------------------------------------------------
+
+POST /api/club/register
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST "http://localhost/api/club/register" \
+  -d "{
+    \"clubAbbreviation\": \"TCLUB\",
+    \"clubName\": \"TEST CLUB\",
+    \"clubStatus\": \"Active\",
+    \"beginDate\": \"2020-01-01\",
+    \"endDate\": null,
+    \"boardMember1\": \"SYSTEM\",
+    \"boardMember2\": null,
+    \"defaultRaceSecretary\": \"test_1\",
+    \"notes\": \"Created via curl\"
+  }"
+
+GET /api/club/get/{clubAbbreviation}
+curl -i -b cookies.txt \
+  "http://localhost/api/club/get/TCLUB"
+
+POST /api/club/edit
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST "http://localhost/api/club/edit" \
+  -d "{
+    \"clubAbbreviation\": \"TCLUB2\",
+    \"clubName\": \"TEST CLUB UPDATED\",
+    \"clubStatus\": \"Active\",
+    \"beginDate\": \"2020-01-01\",
+    \"endDate\": null,
+    \"boardMember1\": \"SYSTEM\",
+    \"boardMember2\": null,
+    \"defaultRaceSecretary\": \"test_1\",
+    \"notes\": \"Updated via curl\"
+  }"
+
+GET /api/club/list
+curl -i -b cookies.txt \
+  "http://localhost/api/club/list"
+
+GET /api/club/board
+curl -i -b cookies.txt \
+  "http://localhost/api/club/board"
+
+POST /api/club/delete
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST "http://localhost/api/club/delete" \
+  -d "{
+    \"clubAbbreviation\": \"TCLUB1\",
+    \"confirm\": true
+  }"
