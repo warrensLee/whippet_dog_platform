@@ -9,7 +9,7 @@ from mysql.connector import Error
 
 class Club:
     def __init__(self, club_abbreviation, club_name, club_status, begin_date, end_date,
-                 board_member1, board_member2, default_race_secretary, last_edited_by, last_edited_at):
+                 board_member1, board_member2, default_race_secretary, notes, last_edited_by, last_edited_at):
         self.club_abbreviation = club_abbreviation
         self.club_name = club_name
         self.club_status = club_status
@@ -18,6 +18,7 @@ class Club:
         self.board_member1 = board_member1
         self.board_member2 = board_member2
         self.default_race_secretary = default_race_secretary
+        self.notes = notes
         self.last_edited_by = last_edited_by
         self.last_edited_at = last_edited_at
 
@@ -30,9 +31,9 @@ class Club:
             club_status=(data.get("clubStatus") or "").strip(),
             begin_date=data.get("beginDate"),
             end_date=data.get("endDate"),
-            board_member1=(data.get("boardMember1") or "").strip(),
-            board_member2=(data.get("boardMember2") or "").strip(),
-            default_race_secretary=(data.get("defaultRaceSecretary") or "").strip(),
+            board_member1=(data.get("boardMember1") or "").strip() or None,
+            board_member2=(data.get("boardMember2") or "").strip() or None,
+            default_race_secretary=(data.get("defaultRaceSecretary") or "").strip() or None,
             notes=(data.get("notes") or "").strip() or None,
             last_edited_by=data.get("lastEditedBy"),
             last_edited_at=data.get("lastEditedAt")
@@ -217,6 +218,7 @@ class Club:
         except Error as e:
             raise e
 
+    @staticmethod
     def list_all_clubs():
         """List all clubs from database. Returns list of Club instances."""
         try:
@@ -232,6 +234,26 @@ class Club:
             return clubs
         except Error as e:
             raise e
+        
+    @classmethod    
+    def list_clubs_for_member(cls, person_id: str):
+        """
+        list clubs where person is BoardMember1 OR BoardMember2
+        """
+        rows = fetch_all(
+            """
+            SELECT ClubAbbreviation, ClubName, ClubStatus, BeginDate, EndDate,
+                   BoardMember1, BoardMember2, DefaultRaceSecretary, Notes,
+                   LastEditedBy, LastEditedAt
+            FROM Club
+            WHERE BoardMember1 = %s
+                OR BoardMember2 = %s
+                OR DefaultRaceSecretary = %s
+            ORDER BY ClubAbbreviation ASC
+            """,
+            (person_id, person_id, person_id),
+        )
+        return [cls.from_db_row(r) for r in rows]
             
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""
