@@ -52,6 +52,17 @@ class Dog:
         self.notes = notes
         self.last_edited_by = last_edited_by
         self.last_edited_at = last_edited_at
+
+        self.average = float(self.average) if self.average not in (None, "") else 0.0
+        self.meet_points = float(self.meet_points) if self.meet_points not in (None, "") else 0.0
+        self.arx_points = float(self.arx_points) if self.arx_points not in (None, "") else 0.0
+        self.narx_points = float(self.narx_points) if self.narx_points not in (None, "") else 0.0
+
+        self.show_points = int(float(self.show_points)) if self.show_points not in (None, "") else 0
+        self.dpc_legs = int(float(self.dpc_legs)) if self.dpc_legs not in (None, "") else 0
+        self.meet_wins = float(self.meet_wins) if self.meet_wins not in (None, "") else 0.0
+        self.meet_appearences = int(float(self.meet_appearences)) if self.meet_appearences not in (None, "") else 0
+        self.high_combined_wins = int(float(self.high_combined_wins)) if self.high_combined_wins not in (None, "") else 0
     
     def check_grade(self):
         '''Check grade of dog based on point average and status.'''
