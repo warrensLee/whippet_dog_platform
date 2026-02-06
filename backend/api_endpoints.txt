@@ -303,6 +303,10 @@ GET /api/officer_role/list
 curl -i -b cookies.txt \
   http://localhost/api/officer_role/list
 
+GET /api/officer_role/public/list
+curl -i -b cookies.txt \
+  http://localhost/api/officer_role/public/list
+
 GET /api/officer_role/mine
 curl -i -b cookies.txt \
   http://localhost/api/officer_role/mine
