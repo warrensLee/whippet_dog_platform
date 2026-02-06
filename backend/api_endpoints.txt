@@ -244,3 +244,65 @@ curl -i -b cookies.txt \
     \"clubAbbreviation\": \"TCLUB1\",
     \"confirm\": true
   }"
+
+--------------------------------------------------
+CONTACT
+--------------------------------------------------
+
+POST /api/contact
+curl -i -H "Content-Type: application/json" \
+  -X POST http://localhost/api/contact \
+  -d '{
+    "firstName": "Test",
+    "lastName": "User",
+    "email": "test@example.com",
+    "subject": "Hello",
+    "message": "Test message"
+  }'
+
+--------------------------------------------------
+OFFICER ROLE
+--------------------------------------------------
+
+POST /api/officer_role/register
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/officer_role/register \
+  -d '{
+    "roleName": "President1",
+    "personId": "test_1",
+    "displayOrder": 1,
+    "active": true
+  }'
+
+POST /api/officer_role/edit
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/officer_role/edit \
+  -d '{
+    "roleName": "President1",
+    "personId": "test_2",
+    "displayOrder": 2,
+    "active": true
+  }'
+
+POST /api/officer_role/delete
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/officer_role/delete \
+  -d '{
+    "roleName": "President1",
+    "confirm": true
+  }'
+
+GET /api/officer_role/get/{roleName}
+curl -i -b cookies.txt \
+  http://localhost/api/officer_role/get/President1
+
+GET /api/officer_role/list
+curl -i -b cookies.txt \
+  http://localhost/api/officer_role/list
+
+GET /api/officer_role/mine
+curl -i -b cookies.txt \
+  http://localhost/api/officer_role/mine
