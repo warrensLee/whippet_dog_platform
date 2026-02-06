@@ -83,7 +83,7 @@ class DogOwner:
             execute(
                 """
                 INSERT INTO DogOwner (
-                    CWA_ID, PersonID, LastEditedBy, LastEditedAt
+                    CWAID, PersonID, LastEditedBy, LastEditedAt
                 )
                 VALUES (%s, %s, %s, %s)
                 """,
@@ -103,7 +103,7 @@ class DogOwner:
                 UPDATE DogOwner
                 SET LastEditedBy = %s,
                     LastEditedAt = %s
-                WHERE CWA_ID = %s AND PersonID = %s
+                WHERE CWAID = %s AND PersonID = %s
                 """,
                 (
                     self.last_edited_by, self.last_edited_at,
@@ -120,7 +120,7 @@ class DogOwner:
             execute(
                 """
                 DELETE FROM DogOwner
-                WHERE CWA_ID = %s AND PersonID = %s
+                WHERE CWAID = %s AND PersonID = %s
                 """,
                 (cwa_id, person_id),
             )
@@ -154,3 +154,19 @@ class DogOwner:
             "lastEditedAt": self.last_edited_at.isoformat() if self.last_edited_at else None
         }
         return data
+    
+    @staticmethod
+    def delete_all_for_dog(cwa_id):
+        """Delete all ownership links for a dog. Returns True on success."""
+        try:
+            execute(
+                """
+                DELETE FROM DogOwner
+                WHERE CWAID = %s
+                """,
+                (cwa_id,),
+            )
+            return True
+        except Error as e:
+            raise e
+

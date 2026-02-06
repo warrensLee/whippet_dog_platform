@@ -1,0 +1,147 @@
+==============================
+ENDPOINT TESTS
+==============================
+
+--------------------------------------------------
+POST /api/auth/register
+--------------------------------------------------
+
+POST /api/auth/register
+curl -i \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/auth/register \
+  -d '{
+    "personId": "test_1",
+    "firstName": "Test",
+    "lastName": "User",
+    "email": "test1@test.com",
+    "addressLineOne": "123 Test St",
+    "addressLineTwo": "Apt 4",
+    "city": "Fayetteville",
+    "stateProvince": "AR",
+    "zipCode": "72701",
+    "country": "US",
+    "primaryPhone": "4795551234",
+    "secondaryPhone": null,
+    "systemRole": "PUBLIC",
+    "notes": "Created via auth register endpoint",
+    "password": "dog12345"
+  }'
+
+
+--------------------------------------------------
+POST /api/auth/login
+--------------------------------------------------
+
+curl -i -c cookies.txt -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/auth/login \
+  -d '{
+    "username": "test_1",
+    "password": "dog12345"
+  }'
+
+
+--------------------------------------------------
+GET /api/auth/me
+--------------------------------------------------
+
+curl -i -b cookies.txt \
+  http://localhost/api/auth/me
+
+
+--------------------------------------------------
+POST /api/auth/logout
+--------------------------------------------------
+curl -i -c cookies.txt -b cookies.txt \
+  -X POST http://localhost/api/auth/logout
+
+
+--------------------------------------------------
+DOG
+--------------------------------------------------
+
+GET /api/dog/list
+curl -i -b cookies.txt \
+  http://localhost/api/dog/list
+
+
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/dog/register \
+  -d '{
+    "cwaNumber": "T12345",
+    "registeredName": "TEST DOG",
+    "status": "Active",
+    "currentGrade": "A",
+    "callName": "TEST",
+    "birthdate": "2020-01-01",
+    "akcNumber": null,
+    "ckcNumber": null,
+    "foreignNumber": null,
+    "foreignType": null,
+    "pedigreeLink": null,
+    "average": null,
+    "meetPoints": "0",
+    "arxPoints": "0",
+    "narxPoints": "0",
+    "showPoints": "0",
+    "dpcLegs": "0",
+    "meetWins": "0",
+    "meetAppearences": "0",
+    "highCombinedWins": "0",
+    "notes": "Created via curl"
+  }'
+
+GET /api/dog/get/{cwa_number}
+curl -i -b cookies.txt \
+  http://localhost/api/dog/get/T12345
+
+
+POST /api/dog/edit
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/dog/edit \
+  -d '{
+    "cwaNumber": "T12345",
+    "registeredName": "TEST DOG UPDATED",
+    "callName": "TEST2",
+    "birthdate": "2020-01-01",
+    "status": "Inactive",
+    "currentGrade": "B",
+    "akcNumber": "AKC123",
+    "ckcNumber": "CKC123",
+    "foreignNumber": "FOREIGN-001",
+    "foreignType": "FCI",
+    "pedigreeLink": "https://example.com/pedigree/T12345",
+    "average": "9.5",
+    "meetPoints": "25",
+    "arxPoints": "5",
+    "narxPoints": "10",
+    "showPoints": "2",
+    "dpcLegs": "1",
+    "meetWins": "3",
+    "meetAppearences": "4",
+    "highCombinedWins": "1",
+    "notes": "Updated via curl edit test"
+  }'
+
+
+GET /api/dog/titles/{cwa_number}
+curl -i -b cookies.txt \
+  http://localhost/api/dog/titles/T12345
+
+
+POST /api/dog/delete
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/dog/delete \
+  -d '{
+    "cwaNumber": "T12345",
+    "confirm": true
+  }'
+
+
+GET /api/dog/get/{cwa_number} 
+curl -i -b cookies.txt \
+  http://localhost/api/dog/get/T12345

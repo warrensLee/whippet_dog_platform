@@ -11,9 +11,10 @@ Finish check_dpc_title
 Add physical attributes and check qualifications method?
 '''
 
-from werkzeug.security import generate_password_hash, check_password_hash
 from database import fetch_one, fetch_all, execute
 from mysql.connector import Error
+from datetime import datetime
+
 
 class Dog:
 
@@ -52,7 +53,6 @@ class Dog:
         self.last_edited_by = last_edited_by
         self.last_edited_at = last_edited_at
     
-    @classmethod
     def check_grade(self):
         '''Check grade of dog based on point average and status.'''
         if self.is_puppy() or self.meet_appearences == 0:
@@ -71,7 +71,6 @@ class Dog:
             return "C"
         return "D"
     
-    @classmethod
     def check_titles(self):
         '''Check eligibility for all titles and return a list of earned titles.'''
         titles = []
@@ -95,21 +94,18 @@ class Dog:
             titles.append(hc_title)
         return titles
 
-    @classmethod
     def check_arx_title(self):
         '''Check if dog is eligible for Title of Racing Excellence (ARX).'''
         if self.arx_points >= 15:
             return "ARX"
         return None
     
-    @classmethod
     def check_trp_title(self):
         '''Check if dog is eligible for Title of Racing Proficiency (TRP).'''
         if self.meet_appearences >= 10:
             return "TRP"
         return None
 
-    @classmethod
     def check_pr_title(self):
         '''Check if dog is eligible for Performance (PR) titles.'''
         if self.meet_points >= 50:
@@ -119,7 +115,6 @@ class Dog:
             return f"PR{pr_level}"
         return None
 
-    @classmethod
     def check_narx_title(self):
         '''Check if dog is eligible for National Racing Excellence (NRX)
         and Superior Racing Award (SRA) titles.'''
@@ -141,7 +136,6 @@ class Dog:
             return "NARX"
         return None
     
-    @classmethod
     def check_dpc_title(self):
         '''Check if dog is eligible for Dual Purpose Championship (DPC) titles.'''
         if self.check_trp_title() == "TRP" and ((self.akc_number > 0 or self.ckc_number > 0) or (self.dpc_legs >= 5)):
@@ -150,7 +144,6 @@ class Dog:
             return "DPC"
         return None
     
-    @classmethod
     def check_hc_title(self):
         '''Check if dog is eligible for High Combined (HC) titles.'''
         if self.is_adult():
@@ -160,37 +153,35 @@ class Dog:
                 return "HC"
         return None
     
-    @classmethod
     def is_puppy(self):
         '''Check if dog is a puppy (under PUPPY_AGE_MONTHS).'''
-        from datetime import datetime
         if not self.birthdate:
             return False
-        birth_date = datetime.strptime(self.birthdate, "%Y-%m-%d")
+        if isinstance(self.birthdate, str):
+            self.birthdate = datetime.strptime(self.birthdate, "%Y-%m-%d")
+
         today = datetime.today()
-        age_in_months = ((today.year - birth_date.year) * 12) + (today.month - birth_date.month)
+        age_in_months = ((today.year - self.birthdate.year) * 12) + (today.month - self.birthdate.month)
         
         return age_in_months < self.PUPPY_AGE_MONTHS
     
-    @classmethod
     def is_adult(self):
-        from datetime import datetime
         if not self.birthdate:
             return False
-        birth_date = datetime.strptime(self.birthdate, "%Y-%m-%d")
+        if isinstance(self.birthdate, str):
+            self.birthdate = datetime.strptime(self.birthdate, "%Y-%m-%d")
         today = datetime.today()
-        age_in_months = ((today.year - birth_date.year) * 12) + (today.month - birth_date.month)
+        age_in_months = ((today.year - self.birthdate.year) * 12) + (today.month - self.birthdate.month)
         
         return age_in_months >= self.ADULT_AGE_MONTHS
     
-    @classmethod
     def is_veteran(self):
-        from datetime import datetime
         if not self.birthdate:
             return False
-        birth_date = datetime.strptime(self.birthdate, "%Y-%m-%d")
+        if isinstance(self.birthdate, str):
+            self.birthdate = datetime.strptime(self.birthdate, "%Y-%m-%d")
         today = datetime.today()
-        age_in_months = ((today.year - birth_date.year) * 12) + (today.month - birth_date.month)
+        age_in_months = ((today.year - self.birthdate.year) * 12) + (today.month - self.birthdate.month)
         
         return age_in_months >= self.VETERAN_AGE_MONTHS
 
@@ -321,8 +312,9 @@ class Dog:
                     DPCLegs, MeetWins, MeetAppearences, HighCombinedWins, Notes,
                     LastEditedBy, LastEditedAt
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                        %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                        %s, %s, %s)
                 """,
                 (
                     self.cwa_number,
@@ -346,6 +338,8 @@ class Dog:
                     self.meet_appearences,
                     self.high_combined_wins,
                     self.notes or None,
+                    self.last_edited_by,
+                    self.last_edited_at,
                 ),
             )
             return True
@@ -412,7 +406,7 @@ class Dog:
         except Error as e:
             raise e
         
-    def delete(self, cwa_number):
+    def delete(cwa_number):
         """Delete dog from database. Returns True on success, raises Error on failure."""
         try:
             execute(
@@ -426,22 +420,35 @@ class Dog:
         except Error as e:
             raise e
     
-    def list_all_dogs(self):
-        """List all dogs from database. Returns list of Dog instances."""
+    @staticmethod
+    def list_all_dogs():
         rows = fetch_all(
             """
-            SELECT CWANumber, AKCNumber, CKCNumber, ForeignNumber, ForeignType,
-                    CallName, RegisteredName, Birthdate, PedigreeLink,
-                    Status, Average, CurrentGrade,
-                    MeetPoints, ARXPoints, NARXPoints, ShowPoints,
-                    DPCLegs, MeetWins, MeetAppearences, HighCombinedWins, Notes,
-                    LastEditedBy, LastEditedAt
+            SELECT *
             FROM Dog
-            ORDER BY RegisteredName
-            """,
+            ORDER BY CWANumber
+            """
         )
-        dogs = [Dog.from_db_row(row) for row in rows]
-        return dogs
+        return [Dog.from_db_row(row) for row in rows]
+    
+    @staticmethod
+    def list_dogs_for_owner(person_id: str):
+        """
+        Return all dogs owned by the given person_id.
+        """
+        rows = fetch_all(
+            """
+            SELECT d.*
+            FROM Dog d
+            JOIN DogOwner o ON o.CWAID = d.CWANumber
+            WHERE o.PersonID = %s
+            ORDER BY d.CWANumber
+            """,
+            (person_id,),
+        )
+
+        return [Dog.from_db_row(row) for row in rows]
+
     
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""
