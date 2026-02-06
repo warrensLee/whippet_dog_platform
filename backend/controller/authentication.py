@@ -16,16 +16,17 @@ def register():
         return jsonify({"ok": False, "error": "Password is required"}), 400
     
     if not person.system_role:
-        person.system_role = "Public"
+        person.system_role = "PUBLIC"
     
-    person.last_edited_by = person.person_id
+    current_user = session.get("user") or {}    
+    person.last_edited_by = current_user.get("PersonID") or "SYSTEM"
     person.last_edited_at = datetime.now(timezone.utc)
     
     validation_errors = person.validate()
     if validation_errors:
         return jsonify({"ok": False, "error": ", ".join(validation_errors)}), 400
     
-    if Person.exists(person.person_id):
+    if person.person_id != current_user.get("PersonID") and Person.exists(person.person_id):
         return jsonify({"ok": False, "error": "Username already exists"}), 409
     
     person.set_password(password)
@@ -38,7 +39,7 @@ def register():
             changed_table="Person",
             record_pk=person.person_id,
             operation="INSERT",
-            changed_by=person.person_id,
+            changed_by=person.last_edited_by,
             source="api/auth/register POST",
             before_obj=None,
             after_obj=person.to_dict(),

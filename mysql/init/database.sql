@@ -64,6 +64,7 @@ CREATE TABLE `UserRole` (
     `EditDogTitlesScope` TINYINT NOT NULL DEFAULT 0,
     `ViewNewsScope` TINYINT NOT NULL DEFAULT 0,
     `EditNewsScope` TINYINT NOT NULL DEFAULT 0,
+    `ViewChangeLogScope` TINYINT NOT NULL DEFAULT 0,
     `LastEditedBy` VARCHAR(20),
     `LastEditedAt` TIMESTAMP
 );

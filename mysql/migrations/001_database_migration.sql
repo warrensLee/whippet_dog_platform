@@ -16,7 +16,8 @@ INSERT IGNORE INTO UserRole
   ViewMeetResultsScope, EditMeetResultsScope,
   ViewRaceResultsScope, EditRaceResultsScope,
   ViewDogTitlesScope, EditDogTitlesScope,
-  ViewNewsScope, EditNewsScope
+  ViewNewsScope, EditNewsScope,
+  ViewChangeLogScope
 )
 VALUES
 (
@@ -31,21 +32,23 @@ VALUES
   2,2,  -- MeetResults
   2,2,  -- RaceResults
   2,2,  -- DogTitles
-  2,2   -- News
+  2,2,  -- News
+  2     -- ChangeLog
 ),
 (
   'PUBLIC',
-  2,1,  -- Dog: view all, edit self (or change to 2,0 if you want no edits)
-  1,1,  -- Person: typically self/self (adjust as you want)
+  2,1,  -- Dog
+  1,1,  -- Person
   1,1,  -- DogOwner
   0,0,  -- OfficerRole
   0,0,  -- UserRole
-  2,1,  -- Club: view all, edit self (board member check in controller)
-  2,1,  -- Meet: view all, edit self (race secretary / judge check)
+  2,1,  -- Club
+  2,1,  -- Meet
   2,1,  -- MeetResults
   2,1,  -- RaceResults
   2,1,  -- DogTitles
-  2,1   -- News: view all, edit self (author)
+  2,1,  -- News
+  0     -- ChangeLog
 );
 
 

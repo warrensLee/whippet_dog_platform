@@ -180,6 +180,21 @@ class ChangeLog:
             """
         )
         return [cls.from_db_row(r) for r in rows]
+    
+    @classmethod
+    def list_for_user(cls, person_id: str):
+        rows = fetch_all(
+            """
+            SELECT ID, ChangedTable, RecordPK, Operation, ChangedBy, ChangedAt,
+                Source, BeforeData, AfterData
+            FROM ChangeLog
+            WHERE ChangedBy = %s
+            ORDER BY ChangedAt DESC
+            """,
+            (person_id,),
+        )
+        return [cls.from_db_row(r) for r in rows]
+
 
     def to_dict(self):
         return {

@@ -7,11 +7,11 @@ POST /api/auth/register
 --------------------------------------------------
 
 POST /api/auth/register
-curl -i \
+curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/auth/register \
   -d '{
-    "personId": "test_1",
+    "personId": "test_6",
     "firstName": "Test",
     "lastName": "User",
     "email": "test1@test.com",
@@ -153,3 +153,13 @@ http://localhost/api/dog/age/T12345
 GET /api/dog/mine
 curl -i -b cookies.txt \
 http://localhost/api/dog/mine
+
+
+--------------------------------------------------
+Change Log
+--------------------------------------------------
+GET /get/<id>
+curl -i -b cookies.txt http://localhost/api/change_log/get/1
+
+GET /list
+curl -i -b cookies.txt http://localhost/api/change_log/list
