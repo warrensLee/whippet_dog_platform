@@ -44,13 +44,14 @@ class UserRole:
         view_news_scope: int = 0,
         edit_news_scope: int = 0,
 
+        view_change_log_scope: int = 0,
+
         last_edited_by=None,
         last_edited_at=None,
     ):
         self.id = id
         self.title = (title or "").strip().upper()
 
-        # store as ints 0/1/2
         self.view_dog_scope = int(view_dog_scope or 0)
         self.edit_dog_scope = int(edit_dog_scope or 0)
 
@@ -83,6 +84,8 @@ class UserRole:
 
         self.view_news_scope = int(view_news_scope or 0)
         self.edit_news_scope = int(edit_news_scope or 0)
+
+        self.view_change_log_scope = int(view_change_log_scope or 0)
 
         self.last_edited_by = last_edited_by
         self.last_edited_at = last_edited_at
@@ -125,6 +128,8 @@ class UserRole:
 
             view_news_scope=data.get("viewNewsScope", 0),
             edit_news_scope=data.get("editNewsScope", 0),
+
+            view_change_log_scope=data.get("viewChangeLogScope", 0),
 
             last_edited_by=data.get("lastEditedBy"),
             last_edited_at=data.get("lastEditedAt"),
@@ -170,6 +175,8 @@ class UserRole:
 
             view_news_scope=row.get("ViewNewsScope"),
             edit_news_scope=row.get("EditNewsScope"),
+
+            view_change_log_scope=row.get("ViewChangeLogScope"),
 
             last_edited_by=row.get("LastEditedBy"),
             last_edited_at=row.get("LastEditedAt"),
@@ -226,7 +233,7 @@ class UserRole:
             self.view_meet_results_scope, self.edit_meet_results_scope,
             self.view_race_results_scope, self.edit_race_results_scope,
             self.view_dog_titles_scope, self.edit_dog_titles_scope,
-            self.view_news_scope, self.edit_news_scope,
+            self.view_news_scope, self.edit_news_scope, self.view_change_log_scope,
         ]:
             if field not in (0, 1, 2):
                 errors.append("Permission scopes must be 0 (none), 1 (self), or 2 (all).")
@@ -254,7 +261,8 @@ class UserRole:
                 ViewMeetResultsScope, EditMeetResultsScope,
                 ViewRaceResultsScope, EditRaceResultsScope,
                 ViewDogTitlesScope, EditDogTitlesScope,
-                ViewNewsScope, EditNewsScope,
+                ViewNewsScope, EditNewsScope, 
+                ViewChangeLogScope,
                 LastEditedBy, LastEditedAt
             ) VALUES (
                 %s,
@@ -269,6 +277,7 @@ class UserRole:
                 %s, %s,
                 %s, %s,
                 %s, %s,
+                %s,
                 %s, NOW()
             )
             """,
@@ -285,6 +294,7 @@ class UserRole:
                 self.view_race_results_scope, self.edit_race_results_scope,
                 self.view_dog_titles_scope, self.edit_dog_titles_scope,
                 self.view_news_scope, self.edit_news_scope,
+                self.view_change_log_scope,
                 self.last_edited_by,
             ),
         )
@@ -309,6 +319,7 @@ class UserRole:
                 ViewRaceResultsScope = %s, EditRaceResultsScope = %s,
                 ViewDogTitlesScope = %s, EditDogTitlesScope = %s,
                 ViewNewsScope = %s, EditNewsScope = %s,
+                ViewChangeLogScope = %s
                 LastEditedBy = %s,
                 LastEditedAt = NOW()
             WHERE ID = %s
@@ -325,6 +336,7 @@ class UserRole:
                 self.view_race_results_scope, self.edit_race_results_scope,
                 self.view_dog_titles_scope, self.edit_dog_titles_scope,
                 self.view_news_scope, self.edit_news_scope,
+                self.view_change_log_scope,
                 self.last_edited_by,
                 self.id,
             ),
@@ -362,6 +374,7 @@ class UserRole:
             "editDogTitlesScope": self.edit_dog_titles_scope,
             "viewNewsScope": self.view_news_scope,
             "editNewsScope": self.edit_news_scope,
+            "viewChangeLogScope": self.view_change_log_scope,
             "lastEditedBy": self.last_edited_by,
             "lastEditedAt": self.last_edited_at.isoformat() if self.last_edited_at else None,
         }

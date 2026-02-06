@@ -1,89 +1,66 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, session
 from mysql.connector import Error
 from classes.change_log import ChangeLog
+from classes.user_role import UserRole
 
 change_log_bp = Blueprint("change_log", __name__, url_prefix="/api/change_log")
 
+def _current_editor_id() -> str | None:
+    u = session.get("user") or {}
+    return u.get("PersonID") or None
 
-@change_log_bp.post("/register")
-def register_change_log():
-    data = request.get_json(silent=True) or {}
-    change_log = ChangeLog.from_request_data(data)
+def _current_role() -> UserRole | None:
+    u = session.get("user") or {}
+    pid = u.get("PersonID")
+    if not pid:
+        return None
+    title = u.get("SystemRole")
+    if not title:
+        return None
+    return UserRole.find_by_title(title.strip().upper())
 
-    validation_errors = change_log.validate()
-    if validation_errors:
-        return jsonify({"ok": False, "error": ", ".join(validation_errors)}), 400
-    try:
-        change_log.save()
-        return jsonify({"ok": True}), 201
-    except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
-
-
-@change_log_bp.post("/edit")
-def edit_change_log():
-    data = request.get_json(silent=True) or {}
-    id_value = data.get("id", None)
-    if id_value in (None, ""):
-        return jsonify({"ok": False, "error": "id is required"}), 400
-
-    try:
-        id_value = int(id_value)
-    except (TypeError, ValueError):
-        return jsonify({"ok": False, "error": "id must be an integer"}), 400
-
-    if not ChangeLog.exists(id_value):
-        return jsonify({"ok": False, "error": "Change log does not exist"}), 404
-
-    change_log = ChangeLog.from_request_data(data)
-    change_log.id = id_value
-
-    validation_errors = change_log.validate()
-    if validation_errors:
-        return jsonify({"ok": False, "error": ", ".join(validation_errors)}), 400
-
-    try:
-        change_log.update()
-        return jsonify({"ok": True}), 200
-    except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
-
-
-@change_log_bp.post("/delete")
-def delete_change_log():
-    data = request.get_json(silent=True) or {}
-    id_value = data.get("id", None)
-
-    if id_value in (None, ""):
-        return jsonify({"ok": False, "error": "id is required"}), 400
-
-    try:
-        id_value = int(id_value)
-    except (TypeError, ValueError):
-        return jsonify({"ok": False, "error": "id must be an integer"}), 400
-
-    if not ChangeLog.exists(id_value):
-        return jsonify({"ok": False, "error": "Change log does not exist"}), 404
-
-    try:
-        ChangeLog.delete_by_id(id_value)
-        return jsonify({"ok": True}), 200
-    except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
-
+def _require_scope(scope_value: int, action: str):
+    if scope_value == UserRole.NONE:
+        return jsonify({"ok": False, "error": f"Not allowed to {action}"}), 403
+    return None
 
 @change_log_bp.get("/get/<int:id>")
 def get_change_log(id: int):
-    change_log = ChangeLog.find_by_id(id)
+    role = _current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+    deny = _require_scope(role.view_change_log_scope, "view change logs")
+    if deny:
+        return deny
+
+    change_log = ChangeLog.find_by_identifier(id)
     if not change_log:
         return jsonify({"ok": False, "error": "Change log does not exist"}), 404
-    return jsonify({"ok": True, "data": change_log.to_dict()}), 200
 
+    # SELF means: only logs you created (ChangedBy == your PersonID)
+    if role.view_change_log_scope == UserRole.SELF and change_log.changed_by != _current_editor_id():
+        return jsonify({"ok": False, "error": "Not allowed to view this change log"}), 403
+
+    return jsonify({"ok": True, "data": change_log.to_dict()}), 200
 
 @change_log_bp.get("/list")
 def list_all_change_logs():
+    role = _current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+    deny = _require_scope(role.view_change_log_scope, "view change logs")
+    if deny:
+        return deny
+
     try:
-        change_logs = ChangeLog.list_all()
+        if role.view_change_log_scope == UserRole.ALL:
+            change_logs = ChangeLog.list_all()
+        else:
+            pid = _current_editor_id()
+            change_logs = ChangeLog.list_for_user(pid)
+
         return jsonify({"ok": True, "data": [c.to_dict() for c in change_logs]}), 200
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
