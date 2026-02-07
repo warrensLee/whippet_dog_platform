@@ -44,7 +44,7 @@ def get_change_log(id: int):
 
     return jsonify({"ok": True, "data": change_log.to_dict()}), 200
 
-@change_log_bp.get("/list")
+@change_log_bp.get("/get")
 def list_all_change_logs():
     role = _current_role()
     if not role:

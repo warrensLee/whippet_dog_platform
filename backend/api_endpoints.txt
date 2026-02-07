@@ -5,8 +5,6 @@ ENDPOINT TESTS
 --------------------------------------------------
 POST /api/auth/register
 --------------------------------------------------
-
-POST /api/auth/register
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/auth/register \
@@ -32,7 +30,6 @@ curl -i -b cookies.txt \
 --------------------------------------------------
 POST /api/auth/login
 --------------------------------------------------
-
 curl -i -c cookies.txt -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/auth/login \
@@ -45,7 +42,6 @@ curl -i -c cookies.txt -b cookies.txt \
 --------------------------------------------------
 GET /api/auth/me
 --------------------------------------------------
-
 curl -i -b cookies.txt \
   http://localhost/api/auth/me
 
@@ -61,14 +57,19 @@ curl -i -c cookies.txt -b cookies.txt \
 DOG
 --------------------------------------------------
 
-GET /api/dog/list
+--------------------------------------------------
+GET /api/dog/get
+--------------------------------------------------
 curl -i -b cookies.txt \
-  http://localhost/api/dog/list
+  http://localhost/api/dog/get
 
 
+--------------------------------------------------
+POST /api/dog/add
+--------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
-  -X POST http://localhost/api/dog/register \
+  -X POST http://localhost/api/dog/add \
   -d '{
     "cwaNumber": "T12345",
     "registeredName": "TEST DOG",
@@ -93,12 +94,15 @@ curl -i -b cookies.txt \
     "notes": "Created via curl"
   }'
 
+--------------------------------------------------
 GET /api/dog/get/{cwa_number}
+--------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/dog/get/T12345
 
-
+--------------------------------------------------
 POST /api/dog/edit
+--------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/dog/edit \
@@ -126,13 +130,15 @@ curl -i -b cookies.txt \
     "notes": "Updated via curl edit test"
   }'
 
-
+--------------------------------------------------
 GET /api/dog/titles/{cwa_number}
+--------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/dog/titles/T12345
 
-
+--------------------------------------------------
 POST /api/dog/delete
+--------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/dog/delete \
@@ -141,40 +147,57 @@ curl -i -b cookies.txt \
     "confirm": true
   }'
 
+--------------------------------------------------
 GET /api/dog/grade/{cwa_number}
+--------------------------------------------------
 curl -i -b cookies.txt \
 http://localhost/api/dog/grade/T12345
 
-
+--------------------------------------------------
 GET /api/dog/age/{cwa_number}
+--------------------------------------------------
 curl -i -b cookies.txt \
 http://localhost/api/dog/age/T12345
 
+--------------------------------------------------
 GET /api/dog/mine
+--------------------------------------------------
 curl -i -b cookies.txt \
 http://localhost/api/dog/mine
 
+--------------------------------------------------
 POST /api/dog/arx/{cwa_number}
+--------------------------------------------------
 curl -i -b cookies.txt \
   -X POST http://localhost/api/dog/arx/T12345
 
+--------------------------------------------------
 POST /api/dog/trp/{cwa_number}
+--------------------------------------------------
 curl -i -b cookies.txt \
   -X POST http://localhost/api/dog/trp/T12345
 
+--------------------------------------------------
 POST /api/dog/pr/{cwa_number}
+--------------------------------------------------
 curl -i -b cookies.txt \
   -X POST http://localhost/api/dog/pr/T12345
 
+--------------------------------------------------
 POST /api/dog/narx/{cwa_number}
+--------------------------------------------------
 curl -i -b cookies.txt \
   -X POST http://localhost/api/dog/narx/T12345
 
+--------------------------------------------------
 POST /api/dog/dpc/{cwa_number}
+--------------------------------------------------
 curl -i -b cookies.txt \
   -X POST http://localhost/api/dog/dpc/T12345
 
+--------------------------------------------------
 POST /api/dog/hc/{cwa_number}
+--------------------------------------------------
 curl -i -b cookies.txt \
   -X POST http://localhost/api/dog/hc/T12345
 
@@ -182,20 +205,27 @@ curl -i -b cookies.txt \
 --------------------------------------------------
 Change Log
 --------------------------------------------------
+
+--------------------------------------------------
 GET /get/<id>
+--------------------------------------------------
 curl -i -b cookies.txt http://localhost/api/change_log/get/1
 
-GET /list
-curl -i -b cookies.txt http://localhost/api/change_log/list
+--------------------------------------------------
+GET /get
+--------------------------------------------------
+curl -i -b cookies.txt http://localhost/api/change_log/get
 
 --------------------------------------------------
 Club
 --------------------------------------------------
 
-POST /api/club/register
+--------------------------------------------------
+POST /api/club/add
+--------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
-  -X POST "http://localhost/api/club/register" \
+  -X POST "http://localhost/api/club/add" \
   -d "{
     \"clubAbbreviation\": \"TCLUB\",
     \"clubName\": \"TEST CLUB\",
@@ -208,40 +238,50 @@ curl -i -b cookies.txt \
     \"notes\": \"Created via curl\"
   }"
 
+--------------------------------------------------
 GET /api/club/get/{clubAbbreviation}
+--------------------------------------------------
 curl -i -b cookies.txt \
   "http://localhost/api/club/get/TCLUB"
 
+--------------------------------------------------
 POST /api/club/edit
+--------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST "http://localhost/api/club/edit" \
   -d "{
-    \"clubAbbreviation\": \"TCLUB2\",
+    \"clubAbbreviation\": \"TCLUB\",
     \"clubName\": \"TEST CLUB UPDATED\",
     \"clubStatus\": \"Active\",
     \"beginDate\": \"2020-01-01\",
     \"endDate\": null,
     \"boardMember1\": \"SYSTEM\",
     \"boardMember2\": null,
-    \"defaultRaceSecretary\": \"test_1\",
+    \"defaultRaceSecretary\": \"SYSTEM\",
     \"notes\": \"Updated via curl\"
   }"
 
-GET /api/club/list
+--------------------------------------------------
+GET /api/club/get
+--------------------------------------------------
 curl -i -b cookies.txt \
-  "http://localhost/api/club/list"
+  "http://localhost/api/club/get"
 
+--------------------------------------------------
 GET /api/club/board
+--------------------------------------------------
 curl -i -b cookies.txt \
   "http://localhost/api/club/board"
 
+--------------------------------------------------
 POST /api/club/delete
+--------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST "http://localhost/api/club/delete" \
   -d "{
-    \"clubAbbreviation\": \"TCLUB1\",
+    \"clubAbbreviation\": \"TCLUB\",
     \"confirm\": true
   }"
 
@@ -249,7 +289,9 @@ curl -i -b cookies.txt \
 CONTACT
 --------------------------------------------------
 
+--------------------------------------------------
 POST /api/contact
+--------------------------------------------------
 curl -i -H "Content-Type: application/json" \
   -X POST http://localhost/api/contact \
   -d '{
@@ -264,10 +306,12 @@ curl -i -H "Content-Type: application/json" \
 OFFICER ROLE
 --------------------------------------------------
 
-POST /api/officer_role/register
+--------------------------------------------------
+POST /api/officer_role/add
+--------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
-  -X POST http://localhost/api/officer_role/register \
+  -X POST http://localhost/api/officer_role/add \
   -d '{
     "roleName": "President1",
     "personId": "test_1",
@@ -275,18 +319,22 @@ curl -i -b cookies.txt \
     "active": true
   }'
 
+--------------------------------------------------
 POST /api/officer_role/edit
+--------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/officer_role/edit \
   -d '{
     "roleName": "President1",
-    "personId": "test_2",
+    "personId": "SYSTEM",
     "displayOrder": 2,
     "active": true
   }'
 
+--------------------------------------------------
 POST /api/officer_role/delete
+--------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/officer_role/delete \
@@ -295,18 +343,73 @@ curl -i -b cookies.txt \
     "confirm": true
   }'
 
+--------------------------------------------------
 GET /api/officer_role/get/{roleName}
+--------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/officer_role/get/President1
 
-GET /api/officer_role/list
+--------------------------------------------------
+GET /api/officer_role/get
+--------------------------------------------------
 curl -i -b cookies.txt \
-  http://localhost/api/officer_role/list
+  http://localhost/api/officer_role/get
 
-GET /api/officer_role/public/list
+--------------------------------------------------
+GET /api/officer_role/public/get
+--------------------------------------------------
 curl -i -b cookies.txt \
-  http://localhost/api/officer_role/public/list
+  http://localhost/api/officer_role/public/get
 
+--------------------------------------------------
 GET /api/officer_role/mine
+--------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/officer_role/mine
+
+
+--------------------------------------------------
+DOG OWNER
+--------------------------------------------------
+
+--------------------------------------------------
+POST /api/dog_owner/add
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/dog_owner/add \
+  -d '{
+    "cwaId": "T12345",
+    "personId": "SYSTEM"
+  }'
+
+
+--------------------------------------------------
+POST /api/dog_owner/delete
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/dog_owner/delete \
+  -d '{
+    "cwaId": "T12345",
+    "personId": "test_1",
+    "confirm": true
+  }'
+
+
+--------------------------------------------------
+POST /api/dog_owner/get
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/dog_owner/get \
+  -d '{
+    "cwaId": "T12345",
+    "personId": "test_1"
+  }'
+
+--------------------------------------------------
+GET /api/dog_owner/owners/<cwa_number>
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/dog_owner/owners/T12345
