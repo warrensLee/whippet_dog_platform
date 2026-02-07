@@ -413,3 +413,120 @@ GET /api/dog_owner/owners/<cwa_number>
 --------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/dog_owner/owners/T12345
+
+--------------------------------------------------
+DOG TITLE
+--------------------------------------------------
+
+--------------------------------------------------
+POST /api/dog_title/add
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/dog_title/add \
+  -d '{
+    "cwaNumber": "T12345",
+    "title": "ARX",
+    "titleDate": "2024-05-01",
+    "titleNumber": "1",
+    "namePrefix": "A",
+    "nameSuffix": "X"
+  }'
+
+
+
+--------------------------------------------------
+POST /api/dog_title/edit
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/dog_title/edit \
+  -d '{
+    "cwaNumber": "T12345",
+    "title": "ARX",
+    "titleDate": "2024-06-01",
+    "titleNumber": "2",
+    "namePrefix": "A",
+    "nameSuffix": "X"
+  }'
+
+
+--------------------------------------------------
+POST /api/dog_title/delete
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/dog_title/delete \
+  -d '{
+    "cwaNumber": "T12345",
+    "title": "ARX",
+    "confirm": true
+  }'
+
+
+--------------------------------------------------
+GET /api/dog_title/get/<cwa_number>/<title>
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/dog_title/get/T12345/ARX
+
+
+--------------------------------------------------
+GET /api/dog_title/get
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/dog_title/get
+
+
+--------------------------------------------------
+TITLE TYPE
+--------------------------------------------------
+
+--------------------------------------------------
+POST /api/title_type/add
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/title_type/add \
+  -d '{
+    "title": "ARX",
+    "titleDescription": "ARX title"
+  }'
+
+
+--------------------------------------------------
+POST /api/title_type/edit
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/title_type/edit \
+  -d '{
+    "title": "ARX",
+    "titleDescription": "Updated ARX description"
+  }'
+
+
+--------------------------------------------------
+POST /api/title_type/delete
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/title_type/delete \
+  -d '{
+    "title": "ARX",
+    "confirm": true
+  }'
+
+
+--------------------------------------------------
+GET /api/title_type/get/<title>
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/title_type/get/ARX
+
+
+--------------------------------------------------
+GET /api/title_type/get
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/title_type/get

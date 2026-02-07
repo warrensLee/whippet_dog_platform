@@ -16,6 +16,7 @@ INSERT IGNORE INTO UserRole
   ViewMeetResultsScope, EditMeetResultsScope,
   ViewRaceResultsScope, EditRaceResultsScope,
   ViewDogTitlesScope, EditDogTitlesScope,
+  ViewTitleTypeScope, EditTitleTypeScope,
   ViewNewsScope, EditNewsScope,
   ViewChangeLogScope
 )
@@ -32,6 +33,7 @@ VALUES
   2,2,  -- MeetResults
   2,2,  -- RaceResults
   2,2,  -- DogTitles
+  2,2,  -- TitleType
   2,2,  -- News
   2     -- ChangeLog
 ),
@@ -47,6 +49,7 @@ VALUES
   2,1,  -- MeetResults
   2,1,  -- RaceResults
   2,1,  -- DogTitles
+  2,1,  -- TitleType
   2,1,  -- News
   0     -- ChangeLog
 );

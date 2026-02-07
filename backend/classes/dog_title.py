@@ -3,7 +3,6 @@ Docstring for dog title
 
 TODO:
 '''
-from werkzeug.security import generate_password_hash, check_password_hash
 from database import fetch_all, fetch_one, execute
 from mysql.connector import Error
 
@@ -55,7 +54,7 @@ class DogTitle:
         row = fetch_one(
             """
             SELECT CWANumber, Title, TitleNumber, TitleDate, NamePrefix, NameSuffix, LastEditedBy, LastEditedAt
-            FROM DogTitle
+            FROM DogTitles
             WHERE CWANumber = %s AND Title = %s
             LIMIT 1
             """,
@@ -69,7 +68,7 @@ class DogTitle:
         existing = fetch_one(
             """
             SELECT CWANumber, Title
-            FROM DogTitle
+            FROM DogTitles
             WHERE CWANumber = %s AND Title = %s
             LIMIT 1
             """,
@@ -103,7 +102,7 @@ class DogTitle:
         try:
             execute(
                 """
-                INSERT INTO DogTitle (
+                INSERT INTO DogTitles (
                     CWANumber, Title, TitleNumber, TitleDate, NamePrefix, NameSuffix,
                     LastEditedBy, LastEditedAt
                 )
@@ -129,7 +128,7 @@ class DogTitle:
         try:
             execute(
                 """
-                UPDATE DogTitle
+                UPDATE DogTitles
                 SET TitleNumber = %s,
                     TitleDate = %s,
                     NamePrefix = %s,
@@ -158,7 +157,7 @@ class DogTitle:
         try:
             execute(
                 """
-                DELETE FROM DogTitle
+                DELETE FROM DogTitles
                 WHERE CWANumber = %s AND Title = %s
                 """,
                 (cwa_number, title),
@@ -172,7 +171,7 @@ class DogTitle:
         rows = fetch_all(
             """
             SELECT CWANumber, Title, TitleNumber, TitleDate, NamePrefix, NameSuffix, LastEditedBy, LastEditedAt
-            FROM DogTitle
+            FROM DogTitles
             """
         )
         return [DogTitle.from_db_row(row) for row in rows]
