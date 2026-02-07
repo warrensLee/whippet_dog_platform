@@ -9,10 +9,10 @@ curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/auth/register \
   -d '{
-    "personId": "test_1",
+    "personId": "test_2",
     "firstName": "Test",
     "lastName": "User",
-    "email": "test@example.com",
+    "email": "brayden.campbell100@gmail.com",
     "addressLineOne": "123 Test St",
     "addressLineTwo": "Apt 4",
     "city": "Fayetteville",
@@ -34,7 +34,7 @@ curl -i -c cookies.txt -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/auth/login \
   -d '{
-    "username": "test_1",
+    "username": "test_2",
     "password": "dog12345"
   }'
 
@@ -677,3 +677,68 @@ GET /api/person/get
 --------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/person/get
+
+  --------------------------------------------------
+USER ROLE
+--------------------------------------------------
+
+--------------------------------------------------
+GET /api/user_role/get
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/user_role/get
+
+
+--------------------------------------------------
+GET /api/user_role/get/<role_id>
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/user_role/get/1
+
+
+--------------------------------------------------
+POST /api/user_role/add
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/user_role/add \
+  -d '{
+    "title": "EDITOR",
+    "viewDogScope": 2,
+    "editDogScope": 1,
+    "viewPersonScope": 2,
+    "editPersonScope": 1,
+    "viewNewsScope": 2,
+    "editNewsScope": 1,
+    "viewChangeLogScope": 2
+  }'
+
+
+--------------------------------------------------
+POST /api/user_role/edit
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/user_role/edit \
+  -d '{
+    "roleId": 3,
+    "viewDogScope": 2,
+    "editDogScope": 2,
+    "viewPersonScope": 2,
+    "editPersonScope": 2,
+    "viewNewsScope": 2,
+    "editNewsScope": 2,
+    "viewChangeLogScope": 2
+  }'
+
+
+--------------------------------------------------
+POST /api/user_role/delete
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/user_role/delete \
+  -d '{
+    "roleId": 3,
+    "confirm": true
+  }'

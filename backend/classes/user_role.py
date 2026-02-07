@@ -226,6 +226,21 @@ class UserRole:
         t = (title or "").strip().upper()
         row = fetch_one("SELECT 1 FROM UserRole WHERE Title = %s LIMIT 1", (t,))
         return row is not None
+    
+    def delete_by_id(self):
+        if self.id is None:
+            raise ValueError("Cannot delete UserRole without an ID.")
+
+        execute(
+            """
+            DELETE FROM UserRole
+            WHERE ID = %s
+            """,
+            (self.id,)
+        )
+
+        return True
+
 
     def validate(self):
         errors = []
