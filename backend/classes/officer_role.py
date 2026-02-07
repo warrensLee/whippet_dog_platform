@@ -131,7 +131,6 @@ class OfficerRole:
                     self.last_edited_at,
                 ),
             )
-            # OPTIONAL: fetch ID back (Dog doesn't do this, so leaving it out)
             return True
         except Error as e:
             raise e
@@ -178,7 +177,6 @@ class OfficerRole:
         
     @staticmethod
     def delete_by_role_name(role_name: str):
-        """Delete officer role by RoleName."""
         try:
             execute(
                 """
@@ -219,12 +217,35 @@ class OfficerRole:
         return [OfficerRole.from_db_row(r) for r in rows]
 
     def to_dict(self):
+        officer_info = self.get_officer_name() 
         return {
             "id": self.role_id,
             "roleName": self.role_name,
             "personId": self.person_id,
+            "email": officer_info["email"],  
             "displayOrder": self.display_order,
             "active": bool(self.active),
             "lastEditedBy": self.last_edited_by,
             "lastEditedAt": self.last_edited_at.isoformat() if self.last_edited_at else None,
+            "officerName": officer_info["name"],  
         }
+
+
+    def get_officer_name(self):
+        row = fetch_one(
+            """
+            SELECT FirstName, LastName, EmailAddress
+            FROM Person 
+            WHERE PersonID = %s 
+            LIMIT 1
+            """,
+            (self.person_id,)
+        )
+        
+        if row:
+            return {
+                "name": f"{row['FirstName']} {row['LastName']}",
+                "email": row["EmailAddress"]
+            }
+        
+        return {"name": "Unknown", "email": "N/A"}

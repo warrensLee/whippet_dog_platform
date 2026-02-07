@@ -254,8 +254,11 @@ def list_officer_roles():
 def list_officer_roles_public():
     try:
         officers = OfficerRole.list_all()
-        return jsonify({"ok": True, "data": [o.to_dict() for o in officers]}), 200
+        officers_with_names = [
+            o.to_dict() for o in officers  
+        ]
 
+        return jsonify({"ok": True, "data": officers_with_names}), 200
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
