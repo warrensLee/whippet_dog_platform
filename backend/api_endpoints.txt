@@ -701,13 +701,31 @@ POST /api/user_role/add
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
-  -X POST http://localhost/api/user_role/add \
+  -X POST http://localhost/api/user_role/register \
   -d '{
     "title": "EDITOR",
     "viewDogScope": 2,
     "editDogScope": 1,
     "viewPersonScope": 2,
     "editPersonScope": 1,
+    "viewDogOwnerScope": 2,
+    "editDogOwnerScope": 1,
+    "viewOfficerRoleScope": 2,
+    "editOfficerRoleScope": 1,
+    "viewUserRoleScope": 2,
+    "editUserRoleScope": 1,
+    "viewClubScope": 2,
+    "editClubScope": 1,
+    "viewMeetScope": 2,
+    "editMeetScope": 1,
+    "viewMeetResultsScope": 2,
+    "editMeetResultsScope": 1,
+    "viewRaceResultsScope": 2,
+    "editRaceResultsScope": 1,
+    "viewDogTitlesScope": 2,
+    "editDogTitlesScope": 1,
+    "viewTitleTypeScope": 2,
+    "editTitleTypeScope": 1,
     "viewNewsScope": 2,
     "editNewsScope": 1,
     "viewChangeLogScope": 2

@@ -1,74 +1,68 @@
 "use client";
+import { useState, useEffect } from "react";
+import {
+  Box,
+  Typography,
+  CircularProgress,
+  Paper,
+  TextField,
+  Button,
+  Alert,
+  Card,
+  CardContent,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Checkbox,
+  MenuItem,
+} from "@mui/material";
 
-import React, { useEffect, useMemo, useState } from "react";
-
-type Scope = 0 | 1 | 2; // 0 none, 1 self, 2 all
-
-type UserRole = {
-  id: number;
-  title: string;
-
-  viewDogScope: Scope;
-  editDogScope: Scope;
-
-  viewPersonScope: Scope;
-  editPersonScope: Scope;
-
-  viewDogOwnerScope: Scope;
-  editDogOwnerScope: Scope;
-
-  viewOfficerRoleScope: Scope;
-  editOfficerRoleScope: Scope;
-
-  viewUserRoleScope: Scope;
-  editUserRoleScope: Scope;
-
-  viewClubScope: Scope;
-  editClubScope: Scope;
-
-  viewMeetScope: Scope;
-  editMeetScope: Scope;
-
-  viewMeetResultsScope: Scope;
-  editMeetResultsScope: Scope;
-
-  viewRaceResultsScope: Scope;
-  editRaceResultsScope: Scope;
-
-  viewDogTitlesScope: Scope;
-  editDogTitlesScope: Scope;
-
-  viewNewsScope: Scope;
-  editNewsScope: Scope;
-
-  lastEditedBy?: string | null;
-  lastEditedAt?: string | null;
+const scopeLabels: Record<number, string> = {
+  0: "None",
+  1: "SELF",
+  2: "ALL",
 };
 
-type ApiResponse<T> = { ok: boolean; data?: T; error?: string };
+interface UserRole {
+  id: number;
+  title: string;
+  viewDogScope: number;
+  editDogScope: number;
+  viewPersonScope: number;
+  editPersonScope: number;
+  viewDogOwnerScope: number;
+  editDogOwnerScope: number;
+  viewOfficerRoleScope: number;
+  editOfficerRoleScope: number;
+  viewUserRoleScope: number;
+  editUserRoleScope: number;
+  viewClubScope: number;
+  editClubScope: number;
+  viewMeetScope: number;
+  editMeetScope: number;
+  viewMeetResultsScope: number;
+  editMeetResultsScope: number;
+  viewRaceResultsScope: number;
+  editRaceResultsScope: number;
+  viewDogTitlesScope: number;
+  editDogTitlesScope: number;
+  viewTitleTypeScope: number;
+  editTitleTypeScope: number;
+  viewNewsScope: number;
+  editNewsScope: number;
+  viewChangeLogScope: number;
+  lastEditedAt: string | null;
+  lastEditedBy: string | null;
+}
 
-const SCOPE_OPTIONS: Array<{ value: Scope; label: string }> = [
-  { value: 0, label: "None" },
-  { value: 1, label: "Self" },
-  { value: 2, label: "All" },
-];
-
-const ENTITIES: Array<{ label: string; viewKey: keyof UserRole; editKey: keyof UserRole }> = [
-  { label: "Dog", viewKey: "viewDogScope", editKey: "editDogScope" },
-  { label: "Person", viewKey: "viewPersonScope", editKey: "editPersonScope" },
-  { label: "Dog Owner", viewKey: "viewDogOwnerScope", editKey: "editDogOwnerScope" },
-  { label: "Officer Role", viewKey: "viewOfficerRoleScope", editKey: "editOfficerRoleScope" },
-  { label: "User Role", viewKey: "viewUserRoleScope", editKey: "editUserRoleScope" },
-  { label: "Club", viewKey: "viewClubScope", editKey: "editClubScope" },
-  { label: "Meet", viewKey: "viewMeetScope", editKey: "editMeetScope" },
-  { label: "Meet Results", viewKey: "viewMeetResultsScope", editKey: "editMeetResultsScope" },
-  { label: "Race Results", viewKey: "viewRaceResultsScope", editKey: "editRaceResultsScope" },
-  { label: "Dog Titles", viewKey: "viewDogTitlesScope", editKey: "editDogTitlesScope" },
-  { label: "News", viewKey: "viewNewsScope", editKey: "editNewsScope" },
-];
-
-function emptyRoleDraft(): Omit<UserRole, "id"> {
-  return {
+const UserRoleManager = () => {
+  const [userRoles, setUserRoles] = useState<UserRole[]>([]);
+  const [selectedRows, setSelectedRows] = useState<number[]>([]);
+  const [isSignedIn, setIsSignedIn] = useState<boolean>(true);
+  const [roleData, setRoleData] = useState({
     title: "",
     viewDogScope: 0,
     editDogScope: 0,
@@ -90,345 +84,515 @@ function emptyRoleDraft(): Omit<UserRole, "id"> {
     editRaceResultsScope: 0,
     viewDogTitlesScope: 0,
     editDogTitlesScope: 0,
+    viewTitleTypeScope: 0,
+    editTitleTypeScope: 0,
     viewNewsScope: 0,
     editNewsScope: 0,
-    lastEditedBy: null,
-    lastEditedAt: null,
-  };
-}
-
-function toScope(v: any): Scope {
-  const n = Number(v);
-  if (n === 0 || n === 1 || n === 2) return n;
-  return 0;
-}
-
-export default function UserRolesAdminPage() {
-  const [roles, setRoles] = useState<UserRole[]>([]);
-  const [selectedId, setSelectedId] = useState<number | "new" | null>(null);
-
-  const [draft, setDraft] = useState<Omit<UserRole, "id">>(emptyRoleDraft());
+    viewChangeLogScope: 0,
+  });
+  const [editingRoleId, setEditingRoleId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
-
-  const selectedRole = useMemo(() => {
-    if (selectedId === null || selectedId === "new") return null;
-    return roles.find((r) => r.id === selectedId) || null;
-  }, [roles, selectedId]);
-
-  async function loadRoles() {
-    setLoading(true);
-    setError(null);
-    setNotice(null);
-    try {
-      const res = await fetch("/api/user_role/list", { cache: "no-store" });
-      const json: ApiResponse<UserRole[]> = await res.json();
-      if (!json.ok) throw new Error(json.error || "Failed to load roles");
-      setRoles(json.data || []);
-    } catch (e: any) {
-      setError(e?.message || "Failed to load roles");
-    } finally {
-      setLoading(false);
-    }
-  }
+  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     loadRoles();
   }, []);
 
-  // When selecting an existing role, populate draft
-  useEffect(() => {
-    if (selectedId === "new") {
-      setDraft(emptyRoleDraft());
-      setError(null);
-      setNotice(null);
-      return;
-    }
-    if (!selectedRole) return;
-
-    const { id, ...rest } = selectedRole;
-    setDraft(rest);
-    setError(null);
-    setNotice(null);
-  }, [selectedId, selectedRole]);
-
-  function setField<K extends keyof Omit<UserRole, "id">>(key: K, value: Omit<UserRole, "id">[K]) {
-    setDraft((prev) => ({ ...prev, [key]: value }));
-  }
-
-  function validateDraft(): string | null {
-    const title = String(draft.title || "").trim().toUpperCase();
-    if (!title) return "Title is required.";
-    if (title.length > 20) return "Title must be 20 characters or less.";
-
-    // Optional: enforce edit <= view for each entity
-    for (const ent of ENTITIES) {
-      const view = Number(draft[ent.viewKey]) as Scope;
-      const edit = Number(draft[ent.editKey]) as Scope;
-      if (edit > view) return `${ent.label}: Edit scope cannot be greater than View scope.`;
-    }
-    return null;
-  }
-
-  async function saveExisting() {
-    if (selectedId === null || selectedId === "new") return;
-
-    const msg = validateDraft();
-    if (msg) {
-      setError(msg);
-      setNotice(null);
-      return;
-    }
-
-    setSaving(true);
-    setError(null);
-    setNotice(null);
-
+  const loadRoles = async () => {
+    setLoading(true);
     try {
-      const payload = {
-        roleId: selectedId,
-        // title is ignored server-side if you keep protected titles, but we send it anyway
-        ...draft,
-        title: String(draft.title || "").trim().toUpperCase(),
-      };
-
-      const res = await fetch("/api/user_role/edit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const json: ApiResponse<UserRole> = await res.json();
-      if (!json.ok) throw new Error(json.error || "Failed to save role");
-
-      setNotice("Saved.");
-      await loadRoles();
-    } catch (e: any) {
-      setError(e?.message || "Failed to save role");
+      const response = await fetch("/api/user_role/get");
+      
+      if (response.status === 401 || response.status === 403) {
+        const result = await response.json();
+        if (result.error === "Not signed in") {
+          setIsSignedIn(false);
+        }
+        setUserRoles([]);
+        setLoading(false);
+        return;
+      }
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch roles");
+      }
+      
+      const result = await response.json();
+      
+      // Check if response indicates not signed in
+      if (result.error === "Not signed in") {
+        setIsSignedIn(false);
+        setUserRoles([]);
+        setLoading(false);
+        return;
+      }
+      
+      setIsSignedIn(true);
+      
+      // Extract data array from response
+      if (result.data && Array.isArray(result.data)) {
+        setUserRoles(result.data);
+      } else {
+        setUserRoles([]);
+      }
+    } catch (err) {
+      console.error("Load roles error:", err);
+      setError("Failed to load roles");
+      setUserRoles([]);
     } finally {
-      setSaving(false);
+      setLoading(false);
     }
-  }
+  };
 
-  async function createNew() {
-    const msg = validateDraft();
-    if (msg) {
-      setError(msg);
-      setNotice(null);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
+
+    if (!roleData.title.trim()) {
+      setError("Title is required");
       return;
     }
 
-    setSaving(true);
-    setError(null);
-    setNotice(null);
-
+    setLoading(true);
     try {
-      const payload = {
-        ...draft,
-        title: String(draft.title || "").trim().toUpperCase(),
-      };
-
-      const res = await fetch("/api/user_role/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const json: ApiResponse<UserRole> = await res.json();
-      if (!json.ok) throw new Error(json.error || "Failed to create role");
-
-      setNotice("Created.");
+      let response;
+      if (editingRoleId) {
+        response = await fetch("/api/user_role/edit", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            roleId: editingRoleId,
+            ...roleData,  
+          }),
+        });
+      } else {
+        response = await fetch("/api/user_role/add", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(roleData),
+        });
+      }
+      
+      const responseData = await response.json();
+      
+      // Check for authentication error first
+      if (responseData.error === "Not signed in") {
+        setIsSignedIn(false);
+        setError("Not signed in. Please sign in to continue.");
+        return;
+      }
+      
+      // Check for other errors (like protected roles)
+      if (!response.ok || !responseData.ok) {
+        setError(responseData.error || "Failed to save role");
+        return;
+      }
+      
+      setSuccess(editingRoleId ? "Role updated successfully!" : "Role created successfully!");
       await loadRoles();
-
-      // auto-select newly created role if returned
-      if (json.data?.id) setSelectedId(json.data.id);
-      else setSelectedId(null);
-    } catch (e: any) {
-      setError(e?.message || "Failed to create role");
+      resetForm();
+    } catch (err) {
+      console.error("Submit error:", err);
+      setError(err instanceof Error ? err.message : "Failed to save the role");
     } finally {
-      setSaving(false);
+      setLoading(false);
     }
+  };
+
+  const resetForm = () => {
+    setRoleData({
+      title: "",
+      viewDogScope: 0,
+      editDogScope: 0,
+      viewPersonScope: 0,
+      editPersonScope: 0,
+      viewDogOwnerScope: 0,
+      editDogOwnerScope: 0,
+      viewOfficerRoleScope: 0,
+      editOfficerRoleScope: 0,
+      viewUserRoleScope: 0,
+      editUserRoleScope: 0,
+      viewClubScope: 0,
+      editClubScope: 0,
+      viewMeetScope: 0,
+      editMeetScope: 0,
+      viewMeetResultsScope: 0,
+      editMeetResultsScope: 0,
+      viewRaceResultsScope: 0,
+      editRaceResultsScope: 0,
+      viewDogTitlesScope: 0,
+      editDogTitlesScope: 0,
+      viewTitleTypeScope: 0,
+      editTitleTypeScope: 0,
+      viewNewsScope: 0,
+      editNewsScope: 0,
+      viewChangeLogScope: 0,
+    });
+    setEditingRoleId(null);
+  };
+
+  const handleEdit = () => {
+    if (selectedRows.length === 1) {
+      const roleToEdit = userRoles.find((r) => r.id === selectedRows[0]);
+      if (roleToEdit) {
+        setRoleData({
+          title: roleToEdit.title,
+          viewDogScope: roleToEdit.viewDogScope ?? 0,
+          editDogScope: roleToEdit.editDogScope ?? 0,
+          viewPersonScope: roleToEdit.viewPersonScope ?? 0,
+          editPersonScope: roleToEdit.editPersonScope ?? 0,
+          viewDogOwnerScope: roleToEdit.viewDogOwnerScope ?? 0,
+          editDogOwnerScope: roleToEdit.editDogOwnerScope ?? 0,
+          viewOfficerRoleScope: roleToEdit.viewOfficerRoleScope ?? 0,
+          editOfficerRoleScope: roleToEdit.editOfficerRoleScope ?? 0,
+          viewUserRoleScope: roleToEdit.viewUserRoleScope ?? 0,
+          editUserRoleScope: roleToEdit.editUserRoleScope ?? 0,
+          viewClubScope: roleToEdit.viewClubScope ?? 0,
+          editClubScope: roleToEdit.editClubScope ?? 0,
+          viewMeetScope: roleToEdit.viewMeetScope ?? 0,
+          editMeetScope: roleToEdit.editMeetScope ?? 0,
+          viewMeetResultsScope: roleToEdit.viewMeetResultsScope ?? 0,
+          editMeetResultsScope: roleToEdit.editMeetResultsScope ?? 0,
+          viewRaceResultsScope: roleToEdit.viewRaceResultsScope ?? 0,
+          editRaceResultsScope: roleToEdit.editRaceResultsScope ?? 0,
+          viewDogTitlesScope: roleToEdit.viewDogTitlesScope ?? 0,
+          editDogTitlesScope: roleToEdit.editDogTitlesScope ?? 0,
+          viewTitleTypeScope: roleToEdit.viewTitleTypeScope ?? 0,
+          editTitleTypeScope: roleToEdit.editTitleTypeScope ?? 0,
+          viewNewsScope: roleToEdit.viewNewsScope ?? 0,
+          editNewsScope: roleToEdit.editNewsScope ?? 0,
+          viewChangeLogScope: roleToEdit.viewChangeLogScope ?? 0,
+        });
+        setEditingRoleId(roleToEdit.id);
+      }
+    } else {
+      setError("Please select exactly one role to edit.");
+    }
+  };
+
+  const handleDelete = async () => {
+    if (selectedRows.length > 0) {
+      setLoading(true);
+      try {
+        // Iterate over selected rows and send a POST request to delete each role
+        for (const id of selectedRows) {
+          const response = await fetch("/api/user_role/delete", { 
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              roleId: id,
+              confirm: true,
+            }),
+          });
+
+          const responseData = await response.json();
+
+          // Check for authentication error first
+          if (responseData.error === "Not signed in") {
+            setIsSignedIn(false);
+            setError("Not signed in. Please sign in to continue.");
+            return;
+          }
+
+          // Check for other errors (like protected roles)
+          if (!response.ok || !responseData.ok) {
+            setError(responseData.error || `Failed to delete role ${id}`);
+            return;
+          }
+        }
+
+        setSuccess(`Successfully deleted ${selectedRows.length} role(s)`);
+        
+        // Reload the roles
+        await loadRoles();
+        setSelectedRows([]);
+      } catch (err) {
+        console.error("Delete error:", err);
+        setError("Failed to delete roles");
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      setError("Please select roles to delete.");
+    }
+  };
+
+  const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked) {
+      setSelectedRows(userRoles.map((role) => role.id));
+    } else {
+      setSelectedRows([]);
+    }
+  };
+
+  const handleSelectRow = (id: number) => {
+    setSelectedRows((prev) =>
+      prev.includes(id)
+        ? prev.filter((rowId) => rowId !== id)
+        : [...prev, id]
+    );
+  };
+
+  const scopeFields = [
+    { label: "Dog", view: "viewDogScope", edit: "editDogScope" },
+    { label: "Person", view: "viewPersonScope", edit: "editPersonScope" },
+    { label: "Dog Owner", view: "viewDogOwnerScope", edit: "editDogOwnerScope" },
+    { label: "Officer Role", view: "viewOfficerRoleScope", edit: "editOfficerRoleScope" },
+    { label: "User Role", view: "viewUserRoleScope", edit: "editUserRoleScope" },
+    { label: "Club", view: "viewClubScope", edit: "editClubScope" },
+    { label: "Meet", view: "viewMeetScope", edit: "editMeetScope" },
+    { label: "Meet Results", view: "viewMeetResultsScope", edit: "editMeetResultsScope" },
+    { label: "Race Results", view: "viewRaceResultsScope", edit: "editRaceResultsScope" },
+    { label: "Dog Titles", view: "viewDogTitlesScope", edit: "editDogTitlesScope" },
+    { label: "Title Type", view: "viewTitleTypeScope", edit: "editTitleTypeScope" },
+    { label: "News", view: "viewNewsScope", edit: "editNewsScope" },
+    { label: "Change Log", view: "viewChangeLogScope" },
+  ];
+
+  // If not signed in, show sign-in message
+  if (!isSignedIn) {
+    return (
+      <Box sx={{ p: 3, pt: 15, textAlign: "center" }}>
+        <Typography variant="h4" gutterBottom>
+          User Roles Management
+        </Typography>
+        <Alert severity="warning" sx={{ mt: 2 }}>
+          You are not signed in. Please sign in to manage user roles.
+        </Alert>
+      </Box>
+    );
   }
 
   return (
-    <div style={{ padding: 16, maxWidth: 1100, paddingTop: 150}}>
-      <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 12 }}>User Roles</h1>
+    <Box sx={{ p: 3, pt: 15}}>
+      <Typography variant="h4" gutterBottom>
+        User Roles Management
+      </Typography>
 
-      <div style={{ display: "grid", gridTemplateColumns: "320px 1fr", gap: 16 }}>
-        {/* Left: Role list */}
-        <div style={{ border: "1px solid #ddd", borderRadius: 8, padding: 12 }}>
-          <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 10 }}>
-            <button
-              type="button"
-              onClick={() => setSelectedId("new")}
-              style={{ padding: "6px 10px", border: "1px solid #ccc", borderRadius: 6 }}
-            >
-              + New Role
-            </button>
-            <button
-              type="button"
-              onClick={loadRoles}
-              disabled={loading}
-              style={{ padding: "6px 10px", border: "1px solid #ccc", borderRadius: 6 }}
-            >
-              Refresh
-            </button>
-          </div>
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      )}
+      {success && (
+        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess(null)}>
+          {success}
+        </Alert>
+      )}
 
-          {loading ? (
-            <div>Loading…</div>
-          ) : (
-            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-              {roles.map((r) => {
-                const active = selectedId === r.id;
-                return (
-                  <li key={r.id} style={{ marginBottom: 6 }}>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedId(r.id)}
-                      style={{
-                        width: "100%",
-                        textAlign: "left",
-                        padding: "8px 10px",
-                        borderRadius: 6,
-                        border: "1px solid #ccc",
-                        background: active ? "#f2f2f2" : "white",
-                        color: "#000000",
-                        cursor: "pointer",
-                      }}
+      <Paper sx={{ mb: 3, p: 2 }}>
+        <Typography variant="h6" gutterBottom>
+          Existing Roles
+        </Typography>
+
+        {loading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
+            <CircularProgress />
+          </Box>
+        ) : userRoles.length === 0 ? (
+          <Typography sx={{ p: 2, textAlign: "center", color: "text.secondary" }}>
+            No roles found. Create your first role below.
+          </Typography>
+        ) : (
+          <>
+            <TableContainer sx={{ maxHeight: 440, mb: 2 }}>
+              <Table stickyHeader>
+                <TableHead>
+                  <TableRow>
+                    <TableCell padding="checkbox">
+                      <Checkbox
+                        indeterminate={
+                          selectedRows.length > 0 &&
+                          selectedRows.length < userRoles.length
+                        }
+                        checked={
+                          userRoles.length > 0 &&
+                          selectedRows.length === userRoles.length
+                        }
+                        onChange={handleSelectAll}
+                      />
+                    </TableCell>
+                    <TableCell>Title</TableCell>
+                    <TableCell>View Dog</TableCell>
+                    <TableCell>Edit Dog</TableCell>
+                    <TableCell>View Person</TableCell>
+                    <TableCell>Edit Person</TableCell>
+                    <TableCell>View Dog Owner</TableCell>
+                    <TableCell>Edit Dog Owner</TableCell>
+                    <TableCell>View Officer Role</TableCell>
+                    <TableCell>Edit Officer Role</TableCell>
+                    <TableCell>View User Role</TableCell>
+                    <TableCell>Edit User Role</TableCell>
+                    <TableCell>View Club</TableCell>
+                    <TableCell>Edit Club</TableCell>
+                    <TableCell>View Meet</TableCell>
+                    <TableCell>Edit Meet</TableCell>
+                    <TableCell>View Meet Results</TableCell>
+                    <TableCell>Edit Meet Results</TableCell>
+                    <TableCell>View Race Results</TableCell>
+                    <TableCell>Edit Race Results</TableCell>
+                    <TableCell>View Dog Titles</TableCell>
+                    <TableCell>Edit Dog Titles</TableCell>
+                    <TableCell>View Title Type</TableCell>
+                    <TableCell>Edit Title Type</TableCell>
+                    <TableCell>View News</TableCell>
+                    <TableCell>Edit News</TableCell>
+                    <TableCell>View Change Log</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {userRoles.map((role) => (
+                    <TableRow key={role.id} hover>
+                      <TableCell padding="checkbox">
+                        <Checkbox
+                          checked={selectedRows.includes(role.id)}
+                          onChange={() => handleSelectRow(role.id)}
+                        />
+                      </TableCell>
+                      <TableCell>{role.title}</TableCell>
+                      <TableCell>{scopeLabels[role.viewDogScope ?? 0]}</TableCell>
+                      <TableCell>{scopeLabels[role.editDogScope ?? 0]}</TableCell>
+                      <TableCell>{scopeLabels[role.viewPersonScope ?? 0]}</TableCell>
+                      <TableCell>{scopeLabels[role.editPersonScope ?? 0]}</TableCell>
+                      <TableCell>{scopeLabels[role.viewDogOwnerScope ?? 0]}</TableCell>
+                      <TableCell>{scopeLabels[role.editDogOwnerScope ?? 0]}</TableCell>
+                      <TableCell>{scopeLabels[role.viewOfficerRoleScope ?? 0]}</TableCell>
+                      <TableCell>{scopeLabels[role.editOfficerRoleScope ?? 0]}</TableCell>
+                      <TableCell>{scopeLabels[role.viewUserRoleScope ?? 0]}</TableCell>
+                      <TableCell>{scopeLabels[role.editUserRoleScope ?? 0]}</TableCell>
+                      <TableCell>{scopeLabels[role.viewClubScope ?? 0]}</TableCell>
+                      <TableCell>{scopeLabels[role.editClubScope ?? 0]}</TableCell>
+                      <TableCell>{scopeLabels[role.viewMeetScope ?? 0]}</TableCell>
+                      <TableCell>{scopeLabels[role.editMeetScope ?? 0]}</TableCell>
+                      <TableCell>{scopeLabels[role.viewMeetResultsScope ?? 0]}</TableCell>
+                      <TableCell>{scopeLabels[role.editMeetResultsScope ?? 0]}</TableCell>
+                      <TableCell>{scopeLabels[role.viewRaceResultsScope ?? 0]}</TableCell>
+                      <TableCell>{scopeLabels[role.editRaceResultsScope ?? 0]}</TableCell>
+                      <TableCell>{scopeLabels[role.viewDogTitlesScope ?? 0]}</TableCell>
+                      <TableCell>{scopeLabels[role.editDogTitlesScope ?? 0]}</TableCell>
+                      <TableCell>{scopeLabels[role.viewTitleTypeScope ?? 0]}</TableCell>
+                      <TableCell>{scopeLabels[role.editTitleTypeScope ?? 0]}</TableCell>
+                      <TableCell>{scopeLabels[role.viewNewsScope ?? 0]}</TableCell>
+                      <TableCell>{scopeLabels[role.editNewsScope ?? 0]}</TableCell>
+                      <TableCell>{scopeLabels[role.viewChangeLogScope ?? 0]}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <Button
+                variant="outlined"
+                disabled={selectedRows.length !== 1}
+                onClick={handleEdit}
+              >
+                Edit Selected
+              </Button>
+              <Button
+                variant="outlined"
+                color="error"
+                disabled={selectedRows.length === 0}
+                onClick={handleDelete}
+              >
+                Delete Selected ({selectedRows.length})
+              </Button>
+            </Box>
+          </>
+        )}
+      </Paper>
+
+      <Card>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            {editingRoleId ? "Edit Role" : "Create New Role"}
+          </Typography>
+
+          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+            <TextField
+              fullWidth
+              label="Title"
+              value={roleData.title}
+              onChange={(e) =>
+                setRoleData({ ...roleData, title: e.target.value })
+              }
+              required
+              sx={{ mb: 3 }}
+            />
+
+            <Typography variant="subtitle1" gutterBottom>
+              Permissions
+            </Typography>
+
+            <Box sx={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 2 }}>
+              {scopeFields.map((field) => (
+                <Box key={field.label}>
+                  <Typography variant="body2" sx={{ mb: 1, fontWeight: "bold" }}>
+                    {field.label}
+                  </Typography>
+                  <Box sx={{ display: "flex", gap: 1 }}>
+                    <TextField
+                      select
+                      label="View"
+                      value={roleData[field.view as keyof typeof roleData]}
+                      onChange={(e) =>
+                        setRoleData({
+                          ...roleData,
+                          [field.view]: Number(e.target.value),
+                        })
+                      }
+                      fullWidth
+                      size="small"
                     >
-                      <div style={{ fontWeight: 700 }}>{r.title}</div>
-                      <div style={{ fontSize: 12, opacity: 0.8 }}>ID: {r.id}</div>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </div>
+                      <MenuItem value={0}>None</MenuItem>
+                      <MenuItem value={1}>Self</MenuItem>
+                      <MenuItem value={2}>All</MenuItem>
+                    </TextField>
+                    {field.edit && (
+                      <TextField
+                        select
+                        label="Edit"
+                        value={roleData[field.edit as keyof typeof roleData]}
+                        onChange={(e) =>
+                          setRoleData({
+                            ...roleData,
+                            [field.edit]: Number(e.target.value),
+                          })
+                        }
+                        fullWidth
+                        size="small"
+                      >
+                        <MenuItem value={0}>None</MenuItem>
+                        <MenuItem value={1}>Self</MenuItem>
+                        <MenuItem value={2}>All</MenuItem>
+                      </TextField>
+                    )}
+                  </Box>
+                </Box>
+              ))}
+            </Box>
 
-        {/* Right: Editor */}
-        <div style={{ border: "1px solid #ddd", borderRadius: 8, padding: 12 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 10 }}>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: 16 }}>
-                {selectedId === "new" ? "Create Role" : selectedRole ? `Edit Role: ${selectedRole.title}` : "Select a role"}
-              </div>
-              <div style={{ fontSize: 12, opacity: 0.8 }}>
-                Scope: 0 none • 1 self • 2 all
-              </div>
-            </div>
-
-            <div style={{ display: "flex", gap: 8 }}>
-              {selectedId === "new" ? (
-                <button
-                  type="button"
-                  onClick={createNew}
-                  disabled={saving}
-                  style={{ padding: "8px 12px", border: "1px solid #ccc", borderRadius: 6 }}
-                >
-                  Create
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={saveExisting}
-                  disabled={saving || selectedId === null}
-                  style={{ padding: "8px 12px", border: "1px solid #ccc", borderRadius: 6 }}
-                >
-                  Save
-                </button>
+            <Box sx={{ display: "flex", gap: 2, mt: 3 }}>
+              {editingRoleId && (
+                <Button variant="outlined" onClick={resetForm}>
+                  Cancel
+                </Button>
               )}
-            </div>
-          </div>
-
-          {error && (
-            <div style={{ background: "#ffecec", border: "1px solid #ffb3b3", padding: 10, borderRadius: 6, marginBottom: 10 }}>
-              {error}
-            </div>
-          )}
-          {notice && (
-            <div style={{ background: "#eef7ee", border: "1px solid #b9e2b9", padding: 10, borderRadius: 6, marginBottom: 10 }}>
-              {notice}
-            </div>
-          )}
-
-          {selectedId === null ? (
-            <div>Select a role on the left.</div>
-          ) : (
-            <>
-              <div style={{ marginBottom: 12 }}>
-                <label style={{ display: "block", fontSize: 12, marginBottom: 4 }}>Title</label>
-                <input
-                  value={draft.title}
-                  onChange={(e) => setField("title", e.target.value)}
-                  placeholder="e.g. PUBLIC"
-                  style={{ width: "100%", padding: "8px 10px", border: "1px solid #ccc", borderRadius: 6 }}
-                />
-              </div>
-
-              <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                  <thead>
-                    <tr>
-                      <th style={{ textAlign: "left", padding: 8, borderBottom: "1px solid #ddd" }}>Entity</th>
-                      <th style={{ textAlign: "left", padding: 8, borderBottom: "1px solid #ddd" }}>View</th>
-                      <th style={{ textAlign: "left", padding: 8, borderBottom: "1px solid #ddd" }}>Edit</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {ENTITIES.map((ent) => {
-                      const viewVal = draft[ent.viewKey] as unknown as Scope;
-                      const editVal = draft[ent.editKey] as unknown as Scope;
-
-                      return (
-                        <tr key={ent.label}>
-                          <td style={{ padding: 8, borderBottom: "1px solid #eee", fontWeight: 600 }}>{ent.label}</td>
-
-                          <td style={{ padding: 8, borderBottom: "1px solid #eee" }}>
-                            <select
-                              value={viewVal}
-                              onChange={(e) => setField(ent.viewKey as any, toScope(e.target.value) as any)}
-                              style={{ padding: "6px 8px", border: "1px solid #ccc", borderRadius: 6 }}
-                            >
-                              {SCOPE_OPTIONS.map((o) => (
-                                <option key={o.value} value={o.value}>
-                                  {o.label}
-                                </option>
-                              ))}
-                            </select>
-                          </td>
-
-                          <td style={{ padding: 8, borderBottom: "1px solid #eee" }}>
-                            <select
-                              value={editVal}
-                              onChange={(e) => setField(ent.editKey as any, toScope(e.target.value) as any)}
-                              style={{ padding: "6px 8px", border: "1px solid #ccc", borderRadius: 6 }}
-                            >
-                              {SCOPE_OPTIONS.map((o) => (
-                                <option key={o.value} value={o.value}>
-                                  {o.label}
-                                </option>
-                              ))}
-                            </select>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              <div style={{ marginTop: 10, fontSize: 12, opacity: 0.8 }}>
-                Tip: if you want, you can enforce “Edit cannot exceed View” (already validated before save).
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
+              <Button type="submit" variant="contained" disabled={loading}>
+                {editingRoleId ? "Update Role" : "Create Role"}
+              </Button>
+            </Box>
+          </Box>
+        </CardContent>
+      </Card>
+    </Box>
   );
-}
+};
+
+export default UserRoleManager;
