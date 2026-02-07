@@ -51,12 +51,12 @@ def _is_news_owner(news_item: News) -> bool:
 def get_all_news():
     role = _current_role()
 
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
+    # if not role:
+    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = _require_scope(role.view_news_scope, "view news")
-    if deny:
-        return deny
+    # deny = _require_scope(role.view_news_scope, "view news")
+    # if deny:
+    #     return deny
 
     try:
         rows = fetch_all(
