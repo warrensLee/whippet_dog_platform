@@ -45,7 +45,7 @@ def _is_member(club_abbreviation: str) -> bool:
     )
 
 
-@club_bp.post("/register")
+@club_bp.post("/add")
 def register_club():
     role = _current_role()
     if not role:
@@ -218,7 +218,7 @@ def get_club(club_abbreviation: str):
     return jsonify({"ok": True, "data": club.to_dict()}), 200
 
 
-@club_bp.get("/list")
+@club_bp.get("/get")
 def list_all_clubs():
     role = _current_role()
     if not role:

@@ -319,7 +319,7 @@ class UserRole:
                 ViewRaceResultsScope = %s, EditRaceResultsScope = %s,
                 ViewDogTitlesScope = %s, EditDogTitlesScope = %s,
                 ViewNewsScope = %s, EditNewsScope = %s,
-                ViewChangeLogScope = %s
+                ViewChangeLogScope = %s,
                 LastEditedBy = %s,
                 LastEditedAt = NOW()
             WHERE ID = %s

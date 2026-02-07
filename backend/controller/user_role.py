@@ -29,7 +29,6 @@ def register_user_role():
     user_role = UserRole.from_request_data(data)
 
     editor_id = _current_editor_id()
-    # prevent FK 1452: only set LastEditedBy if person exists
     if editor_id:
         ok = fetch_one("SELECT 1 FROM Person WHERE PersonID = %s LIMIT 1", (editor_id,))
         if not ok:

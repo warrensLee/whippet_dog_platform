@@ -38,7 +38,7 @@ def _is_owner(cwa_number: str) -> bool:
     return DogOwner.exists(cwa_number, person_id)
 
 
-@dog_bp.post("/register")
+@dog_bp.post("/add")
 def register_dog():
     role = _current_role()
     if not role:
@@ -63,15 +63,6 @@ def register_dog():
 
     try:
         dog.save()
-
-        pid = _current_editor_id()
-        if pid and not DogOwner.exists(dog.cwa_number, pid):
-            DogOwner(
-                cwa_id=dog.cwa_number,
-                person_id=pid,
-                last_edited_by=pid,
-                last_edited_at=datetime.now(timezone.utc),
-            ).save()
 
         ChangeLog.log(
             changed_table="Dog",
@@ -211,7 +202,7 @@ def get_dog(cwa_number):
     return jsonify({"ok": True, "data": dog.to_dict()}), 200
 
 
-@dog_bp.get("/list")
+@dog_bp.get("/get")
 def list_all_dogs():
     role = _current_role()
     if not role:

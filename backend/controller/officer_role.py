@@ -41,7 +41,7 @@ def _is_owner(person_id: str) -> bool:
     return pid == person_id
 
 
-@officer_role_bp.post("/register")
+@officer_role_bp.post("/add")
 def register_officer_role():
     role = _current_role()
     if not role:
@@ -226,7 +226,7 @@ def get_officer_role(role_name):
 
 
 
-@officer_role_bp.get("/list")
+@officer_role_bp.get("/get")
 def list_officer_roles():
     role = _current_role()
     if not role:
@@ -250,7 +250,7 @@ def list_officer_roles():
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
     
-@officer_role_bp.get("/public/list")
+@officer_role_bp.get("/public/get")
 def list_officer_roles_public():
     try:
         officers = OfficerRole.list_all()
