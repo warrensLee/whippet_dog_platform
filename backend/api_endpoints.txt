@@ -398,6 +398,18 @@ curl -i -b cookies.txt \
 
 
 --------------------------------------------------
+POST /api/dog_owner/transfer
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/dog_owner/transfer \
+  -d '{
+    "cwaId": "T12345",
+    "newOwnerPersonId": "test_1"
+  }'
+
+
+--------------------------------------------------
 POST /api/dog_owner/get
 --------------------------------------------------
 curl -i -b cookies.txt \
