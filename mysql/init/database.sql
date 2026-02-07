@@ -62,6 +62,8 @@ CREATE TABLE `UserRole` (
     `EditRaceResultsScope` TINYINT NOT NULL DEFAULT 0,
     `ViewDogTitlesScope` TINYINT NOT NULL DEFAULT 0,
     `EditDogTitlesScope` TINYINT NOT NULL DEFAULT 0,
+    `ViewTitleTypeScope` TINYINT NOT NULL DEFAULT 0,
+    `EditTitleTypeScope` TINYINT NOT NULL DEFAULT 0,
     `ViewNewsScope` TINYINT NOT NULL DEFAULT 0,
     `EditNewsScope` TINYINT NOT NULL DEFAULT 0,
     `ViewChangeLogScope` TINYINT NOT NULL DEFAULT 0,

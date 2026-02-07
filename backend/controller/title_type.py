@@ -1,29 +1,59 @@
 from flask import Blueprint, jsonify, request, session
 from mysql.connector import Error
+from datetime import datetime, timezone
 from classes.title_type import TitleType
 from classes.change_log import ChangeLog
-from datetime import datetime
+from classes.user_role import UserRole
 
 title_type_bp = Blueprint("title_type", __name__, url_prefix="/api/title_type")
+
 
 def _current_editor_id() -> str | None:
     u = session.get("user") or {}
     return (u.get("PersonID") or u.get("personId") or u.get("id") or None)
 
-@title_type_bp.post("/register")
-def register_title_type():
+
+def _current_role() -> UserRole | None:
+    u = session.get("user") or {}
+    if not _current_editor_id():
+        return None
+
+    title = u.get("SystemRole")
+    if not title:
+        return None
+
+    return UserRole.find_by_title(title.strip().upper())
+
+
+def _require_scope(scope_value: int, action: str):
+    if int(scope_value or 0) == UserRole.NONE:
+        return jsonify({"ok": False, "error": f"Not allowed to {action}"}), 403
+    return None
+
+
+@title_type_bp.post("/add")
+def add_title_type():
+    role = _current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+    deny = _require_scope(role.edit_title_type_scope, "edit title types")
+    if deny:
+        return deny
+
     data = request.get_json(silent=True) or {}
     title_type = TitleType.from_request_data(data)
 
     title_type.last_edited_by = _current_editor_id()
-    title_type.last_edited_at = datetime.utcnow()
+    title_type.last_edited_at = datetime.now(timezone.utc)
 
-    validation_errors = title_type.validate()
-    if validation_errors:
-        return jsonify({"ok": False, "error": ", ".join(validation_errors)}), 400
+    errors = title_type.validate()
+    if errors:
+        return jsonify({"ok": False, "error": ", ".join(errors)}), 400
 
     if TitleType.exists(title_type.title):
         return jsonify({"ok": False, "error": "Title type already exists"}), 409
+
     try:
         title_type.save()
 
@@ -32,44 +62,53 @@ def register_title_type():
             record_pk=title_type.title,
             operation="INSERT",
             changed_by=_current_editor_id(),
-            source="api/title_type/register POST",
+            source="api/title_type/add POST",
             before_obj=None,
             after_obj=title_type.to_dict(),
         )
+
+        return jsonify({"ok": True, "data": title_type.to_dict()}), 201
+
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
-
-    return jsonify({"ok": True}), 201
 
 
 @title_type_bp.post("/edit")
 def edit_title_type():
+    role = _current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+    deny = _require_scope(role.edit_title_type_scope, "edit title types")
+    if deny:
+        return deny
+
     data = request.get_json(silent=True) or {}
     title = (data.get("title") or "").strip()
-
     if not title:
         return jsonify({"ok": False, "error": "Title is required"}), 400
 
     existing = TitleType.find_by_identifier(title)
     if not existing:
         return jsonify({"ok": False, "error": "Title type does not exist"}), 404
-    
+
     before_snapshot = existing.to_dict()
+
     title_type = TitleType.from_request_data(data)
     title_type.title = title
-
     title_type.last_edited_by = _current_editor_id()
-    title_type.last_edited_at = datetime.utcnow()
+    title_type.last_edited_at = datetime.now(timezone.utc)
 
-    validation_errors = title_type.validate()
-    if validation_errors:
-        return jsonify({"ok": False, "error": ", ".join(validation_errors)}), 400
+    errors = title_type.validate()
+    if errors:
+        return jsonify({"ok": False, "error": ", ".join(errors)}), 400
 
     try:
         title_type.update()
+
         refreshed = TitleType.find_by_identifier(title)
         after_snapshot = refreshed.to_dict() if refreshed else title_type.to_dict()
-        
+
         ChangeLog.log(
             changed_table="TitleType",
             record_pk=title,
@@ -79,14 +118,23 @@ def edit_title_type():
             before_obj=before_snapshot,
             after_obj=after_snapshot,
         )
+
+        return jsonify({"ok": True, "data": after_snapshot}), 200
+
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
-
-    return jsonify({"ok": True}), 200
 
 
 @title_type_bp.post("/delete")
 def delete_title_type():
+    role = _current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+    deny = _require_scope(role.edit_title_type_scope, "edit title types")
+    if deny:
+        return deny
+
     data = request.get_json(silent=True) or {}
     title = (data.get("title") or "").strip()
 
@@ -96,12 +144,12 @@ def delete_title_type():
         return jsonify({"ok": False, "error": "Title is required"}), 400
 
     try:
-        title_type = TitleType.find_by_identifier(title)
-        if not title_type:
+        existing = TitleType.find_by_identifier(title)
+        if not existing:
             return jsonify({"ok": False, "error": "Title type does not exist"}), 404
-        
-        before_snapshot = title_type.to_dict()
-        title_type.delete(title)
+
+        before_snapshot = existing.to_dict()
+        existing.delete(title)
 
         ChangeLog.log(
             changed_table="TitleType",
@@ -113,27 +161,41 @@ def delete_title_type():
             after_obj=None,
         )
 
+        return jsonify({"ok": True, "data": {"title": title}}), 200
+
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
-    return jsonify({"ok": True}), 200
-
-
 @title_type_bp.get("/get/<title>")
 def get_title_type(title: str):
+    role = _current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+    deny = _require_scope(role.view_title_type_scope, "view title types")
+    if deny:
+        return deny
+
     title_type = TitleType.find_by_identifier(title)
     if not title_type:
         return jsonify({"ok": False, "error": "Title type does not exist"}), 404
 
-    return jsonify(title_type.to_dict()), 200
+    return jsonify({"ok": True, "data": title_type.to_dict()}), 200
 
 
-@title_type_bp.get("/list")
-def list_all_title_types():
+@title_type_bp.get("/get")
+def get_all_title_types():
+    role = _current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+    deny = _require_scope(role.view_title_type_scope, "view title types")
+    if deny:
+        return deny
+
     try:
         title_types = TitleType.list_all_title_types()
+        data = [t.to_dict() for t in title_types]
+        return jsonify({"ok": True, "data": data}), 200
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
-
-    title_types_data = [title_type.to_dict() for title_type in title_types]
-    return jsonify(title_types_data), 200           

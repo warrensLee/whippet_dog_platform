@@ -41,6 +41,9 @@ class UserRole:
         view_dog_titles_scope: int = 0,
         edit_dog_titles_scope: int = 0,
 
+        view_title_type_scope: int = 0,
+        edit_title_type_scope: int = 0,
+
         view_news_scope: int = 0,
         edit_news_scope: int = 0,
 
@@ -81,6 +84,9 @@ class UserRole:
 
         self.view_dog_titles_scope = int(view_dog_titles_scope or 0)
         self.edit_dog_titles_scope = int(edit_dog_titles_scope or 0)
+
+        self.view_title_type_scope = int(view_title_type_scope or 0)
+        self.edit_title_type_scope = int(edit_title_type_scope or 0)
 
         self.view_news_scope = int(view_news_scope or 0)
         self.edit_news_scope = int(edit_news_scope or 0)
@@ -125,6 +131,9 @@ class UserRole:
 
             view_dog_titles_scope=data.get("viewDogTitlesScope", 0),
             edit_dog_titles_scope=data.get("editDogTitlesScope", 0),
+
+            view_title_type_scope=data.get("viewTitleTypeScope", 0),
+            edit_title_type_scope=data.get("editTitleTypeScope", 0),
 
             view_news_scope=data.get("viewNewsScope", 0),
             edit_news_scope=data.get("editNewsScope", 0),
@@ -172,6 +181,9 @@ class UserRole:
 
             view_dog_titles_scope=row.get("ViewDogTitlesScope"),
             edit_dog_titles_scope=row.get("EditDogTitlesScope"),
+
+            view_title_type_scope=row.get("ViewTitleTypeScope"),
+            edit_title_type_scope=row.get("EditTitleTypeScope"),
 
             view_news_scope=row.get("ViewNewsScope"),
             edit_news_scope=row.get("EditNewsScope"),
@@ -233,16 +245,33 @@ class UserRole:
             self.view_meet_results_scope, self.edit_meet_results_scope,
             self.view_race_results_scope, self.edit_race_results_scope,
             self.view_dog_titles_scope, self.edit_dog_titles_scope,
-            self.view_news_scope, self.edit_news_scope, self.view_change_log_scope,
+            self.view_title_type_scope, self.edit_title_type_scope,
+            self.view_news_scope, self.edit_news_scope, 
+            self.view_change_log_scope,
         ]:
             if field not in (0, 1, 2):
                 errors.append("Permission scopes must be 0 (none), 1 (self), or 2 (all).")
                 break
 
-        if self.edit_dog_scope > self.view_dog_scope:
-            errors.append("Dog edit scope cannot exceed dog view scope.")
-        if self.edit_club_scope > self.view_club_scope:
-            errors.append("Club edit scope cannot exceed club view scope.")
+        pairs = [
+            ("Dog", self.view_dog_scope, self.edit_dog_scope),
+            ("Person", self.view_person_scope, self.edit_person_scope),
+            ("DogOwner", self.view_dog_owner_scope, self.edit_dog_owner_scope),
+            ("OfficerRole", self.view_officer_role_scope, self.edit_officer_role_scope),
+            ("UserRole", self.view_user_role_scope, self.edit_user_role_scope),
+            ("Club", self.view_club_scope, self.edit_club_scope),
+            ("Meet", self.view_meet_scope, self.edit_meet_scope),
+            ("MeetResults", self.view_meet_results_scope, self.edit_meet_results_scope),
+            ("RaceResults", self.view_race_results_scope, self.edit_race_results_scope),
+            ("DogTitles", self.view_dog_titles_scope, self.edit_dog_titles_scope),
+            ("TitleType", self.view_title_type_scope, self.edit_title_type_scope),
+            ("News", self.view_news_scope, self.edit_news_scope),
+        ]
+
+        for name, view_scope, edit_scope in pairs:
+            if edit_scope > view_scope:
+                errors.append(f"{name} edit scope cannot exceed {name} view scope.")
+
 
         return errors
 
@@ -261,11 +290,13 @@ class UserRole:
                 ViewMeetResultsScope, EditMeetResultsScope,
                 ViewRaceResultsScope, EditRaceResultsScope,
                 ViewDogTitlesScope, EditDogTitlesScope,
+                ViewTitleTypeScope, EditTitleTypeScope,
                 ViewNewsScope, EditNewsScope, 
                 ViewChangeLogScope,
                 LastEditedBy, LastEditedAt
             ) VALUES (
                 %s,
+                %s, %s,
                 %s, %s,
                 %s, %s,
                 %s, %s,
@@ -293,6 +324,7 @@ class UserRole:
                 self.view_meet_results_scope, self.edit_meet_results_scope,
                 self.view_race_results_scope, self.edit_race_results_scope,
                 self.view_dog_titles_scope, self.edit_dog_titles_scope,
+                self.view_title_type_scope, self.edit_title_type_scope,
                 self.view_news_scope, self.edit_news_scope,
                 self.view_change_log_scope,
                 self.last_edited_by,
@@ -318,6 +350,7 @@ class UserRole:
                 ViewMeetResultsScope = %s, EditMeetResultsScope = %s,
                 ViewRaceResultsScope = %s, EditRaceResultsScope = %s,
                 ViewDogTitlesScope = %s, EditDogTitlesScope = %s,
+                ViewTitleTypeScope = %s, EditTitleTypeScope = %s,
                 ViewNewsScope = %s, EditNewsScope = %s,
                 ViewChangeLogScope = %s,
                 LastEditedBy = %s,
@@ -335,6 +368,7 @@ class UserRole:
                 self.view_meet_results_scope, self.edit_meet_results_scope,
                 self.view_race_results_scope, self.edit_race_results_scope,
                 self.view_dog_titles_scope, self.edit_dog_titles_scope,
+                self.view_title_type_scope, self.edit_title_type_scope,
                 self.view_news_scope, self.edit_news_scope,
                 self.view_change_log_scope,
                 self.last_edited_by,
@@ -372,6 +406,8 @@ class UserRole:
             "editRaceResultsScope": self.edit_race_results_scope,
             "viewDogTitlesScope": self.view_dog_titles_scope,
             "editDogTitlesScope": self.edit_dog_titles_scope,
+            "viewTitleTypeScope": self.view_title_type_scope,
+            "editTitleTypeScope": self.edit_title_type_scope,
             "viewNewsScope": self.view_news_scope,
             "editNewsScope": self.edit_news_scope,
             "viewChangeLogScope": self.view_change_log_scope,

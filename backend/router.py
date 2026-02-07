@@ -6,10 +6,12 @@ from controller.change_log import change_log_bp
 from controller.club import club_bp
 from controller.contact import contact_bp
 from controller.dog_owner import dog_owner_bp
+from controller.dog_title import dog_title_bp
 from controller.dog import dog_bp
 from controller.news import news_bp
 from controller.officer_role import officer_role_bp
 from controller.person import person_bp
+from controller.title_type import title_type_bp
 from controller.user_role import user_role_bp
 
 
@@ -38,9 +40,11 @@ def register_routes(app):
     app.register_blueprint(club_bp)
     app.register_blueprint(contact_bp)
     app.register_blueprint(dog_owner_bp)
+    app.register_blueprint(dog_title_bp)
     app.register_blueprint(dog_bp)
     app.register_blueprint(news_bp)
     app.register_blueprint(officer_role_bp)
     app.register_blueprint(person_bp)
+    app.register_blueprint(title_type_bp)
     app.register_blueprint(user_role_bp)
     app.register_blueprint(main_bp)
