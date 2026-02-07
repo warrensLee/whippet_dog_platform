@@ -257,16 +257,6 @@ def transfer_primary_ownership():
         
         ChangeLog.log(
             changed_table="DogOwner",
-            record_pk=f"{cwa_id}:{new_owner_person_id}",
-            operation="INSERT",
-            changed_by=_current_editor_id(),
-            source="api/dog_owner/transfer POST",
-            before_obj=None,
-            after_obj=owner.to_dict(),
-        )
-        
-        ChangeLog.log(
-            changed_table="DogOwner",
             record_pk=cwa_id,
             operation="TRANSFER",
             changed_by=_current_editor_id(),
