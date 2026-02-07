@@ -618,3 +618,62 @@ GET /api/news/subscription-status?email=<email>
 --------------------------------------------------
 curl -i \
   "http://localhost/api/news/subscription-status?email=test@example.com"
+
+--------------------------------------------------
+PERSON
+--------------------------------------------------
+
+--------------------------------------------------
+POST /api/person/add
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/person/add \
+  -d '{
+    "personId": "jdoe2",
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "jdoe@test.com",
+    "password": "password123"
+  }'
+
+
+
+--------------------------------------------------
+POST /api/person/edit
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/person/edit \
+  -d '{
+    "personId": "jdoe",
+    "firstName": "Johnny",
+    "lastName": "Doe",
+    "email": "johnny@test.com"
+  }'
+
+
+--------------------------------------------------
+POST /api/person/change-password
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/person/change-password \
+  -d '{
+    "currentPassword": "dogs12345",
+    "newPassword": "newpassword456"
+  }'
+
+
+--------------------------------------------------
+GET /api/person/get/<person_id>
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/person/get/jdoe
+
+
+--------------------------------------------------
+GET /api/person/get
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/person/get

@@ -1,36 +1,70 @@
 from flask import Blueprint, jsonify, request, session
 from mysql.connector import Error
+from datetime import datetime, timezone
 from classes.person import Person
 from classes.change_log import ChangeLog
-from datetime import datetime
+from classes.user_role import UserRole
 
 person_bp = Blueprint("person", __name__, url_prefix="/api/person")
 
-def _current_user_id() -> str | None:
-    user = session.get("user")
-    return user.get("PersonID") if user else None
+def _current_editor_id() -> str | None:
+    u = session.get("user") or {}
+    return u.get("PersonID") or None
 
 
-def _current_user_role() -> str | None:
-    user = session.get("user")
-    return user.get("SystemRole") if user else None
+def _current_role() -> UserRole | None:
+    u = session.get("user") or {}
+    pid = u.get("PersonID")
+    if not pid:
+        return None
+
+    title = u.get("SystemRole")
+    if not title:
+        return None
+
+    return UserRole.find_by_title(title.strip().upper())
 
 
 def _require_login():
-    if not _current_user_id():
+    if not _current_editor_id():
         return jsonify({"ok": False, "error": "Not signed in"}), 401
     return None
 
 
-def _require_admin():
-    role = (_current_user_role() or "").strip().upper()
-    if role != "ADMIN":
-        return jsonify({"ok": False, "error": "Admin access required"}), 403
+def _require_scope(scope_value: int, action: str):
+    if int(scope_value or 0) == UserRole.NONE:
+        return jsonify({"ok": False, "error": f"Not allowed to {action}"}), 403
     return None
 
 
-@person_bp.post("/register")
+def _is_owner(person_id: str) -> bool:
+    current_id = _current_editor_id()
+    if not current_id:
+        return False
+    return str(current_id) == str(person_id)
+
+
+@person_bp.post("/add")
 def register_person():
+    # must be logged in
+    login_err = _require_login()
+    if login_err:
+        return login_err
+
+    # must have role
+    role = _current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+    # must have edit_person_scope
+    deny = _require_scope(role.edit_person_scope, "create people")
+    if deny:
+        return deny
+
+    # creating a person requires ALL (SELF is not enough)
+    if role.edit_person_scope != UserRole.ALL:
+        return jsonify({"ok": False, "error": "Not allowed to create people"}), 403
+
     data = request.get_json(silent=True) or {}
     person = Person.from_request_data(data)
 
@@ -40,10 +74,14 @@ def register_person():
 
     person.set_password(password)
 
+    # default role if not provided
     if not person.system_role:
-        person.system_role = "Public"  
-    person.last_edited_by = person.person_id
-    person.last_edited_at = datetime.utcnow()
+        person.system_role = "Public"
+
+    # audit fields
+    editor_id = _current_editor_id()
+    person.last_edited_by = editor_id
+    person.last_edited_at = datetime.now(timezone.utc)
 
     validation_errors = person.validate()
     if validation_errors:
@@ -58,8 +96,8 @@ def register_person():
             changed_table="Person",
             record_pk=person.person_id,
             operation="INSERT",
-            changed_by=person.person_id,
-            source="api/person/register POST",
+            changed_by=editor_id,
+            source="api/person/add POST",
             before_obj=None,
             after_obj=person.to_dict(),
         )
@@ -75,14 +113,20 @@ def edit_person():
     if login_err:
         return login_err
 
+    role = _current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+    deny = _require_scope(role.edit_person_scope, "edit people")
+    if deny:
+        return deny
+
     data = request.get_json(silent=True) or {}
     person_id = (data.get("personId") or "").strip()
     if not person_id:
         return jsonify({"ok": False, "error": "Person ID is required"}), 400
 
-    current_id = _current_user_id()
-    is_admin = ((_current_user_role() or "").strip().upper() == "ADMIN")
-    if not is_admin and person_id != current_id:
+    if role.edit_person_scope == UserRole.SELF and not _is_owner(person_id):
         return jsonify({"ok": False, "error": "You can only edit your own profile"}), 403
 
     existing = Person.find_by_identifier(person_id)
@@ -90,16 +134,17 @@ def edit_person():
         return jsonify({"ok": False, "error": "Person does not exist"}), 404
 
     before_snapshot = existing.to_dict()
+
     person = Person.from_request_data(data)
     person.person_id = person_id
 
     person.password_hash = existing.password_hash
-    
-    if not is_admin:
+
+    if role.edit_person_scope != UserRole.ALL:
         person.system_role = existing.system_role
 
-    person.last_edited_by = current_id
-    person.last_edited_at = datetime.utcnow()
+    person.last_edited_by = _current_editor_id()
+    person.last_edited_at = datetime.now(timezone.utc)
 
     validation_errors = person.validate()
     if validation_errors:
@@ -114,7 +159,7 @@ def edit_person():
             changed_table="Person",
             record_pk=person_id,
             operation="UPDATE",
-            changed_by=current_id,
+            changed_by=_current_editor_id(),
             source="api/person/edit POST",
             before_obj=before_snapshot,
             after_obj=after_snapshot,
@@ -125,41 +170,6 @@ def edit_person():
     return jsonify({"ok": True}), 200
 
 
-@person_bp.post("/delete-self")
-def delete_self():
-    login_err = _require_login()
-    if login_err:
-        return login_err
-
-    current_id = _current_user_id()
-    data = request.get_json(silent=True) or {}
-
-    if data.get("confirm") is not True:
-        return jsonify({"ok": False, "error": "Confirmation required"}), 400
-
-    try:
-        person = Person.find_by_identifier(current_id)
-        if not person:
-            return jsonify({"ok": False, "error": "Person does not exist"}), 404
-
-        before_snapshot = person.to_dict()
-        person.delete(current_id)
-        ChangeLog.log(
-            changed_table="Person",
-            record_pk=current_id,
-            operation="DELETE",
-            changed_by=current_id,
-            source="api/person/delete-self POST",
-            before_obj=before_snapshot,
-            after_obj=None,
-        )
-        
-        session.clear()
-
-    except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
-
-    return jsonify({"ok": True}), 200
 
 @person_bp.post("/change-password")
 def change_password():
@@ -176,7 +186,7 @@ def change_password():
     if len(new_password) < 6:
         return jsonify({"ok": False, "error": "New password must be at least 6 characters"}), 400
 
-    current_id = _current_user_id()
+    current_id = _current_editor_id()
 
     try:
         person = Person.find_by_identifier(current_id)
@@ -190,7 +200,7 @@ def change_password():
 
         person.set_password(new_password)
         person.last_edited_by = current_id
-        person.last_edited_at = datetime.utcnow()
+        person.last_edited_at = datetime.now(timezone.utc)
         person.update()
 
         refreshed = Person.find_by_identifier(current_id)
@@ -218,32 +228,47 @@ def get_person(person_id: str):
     if login_err:
         return login_err
 
-    current_id = _current_user_id()
-    is_admin = ((_current_user_role() or "").strip().upper() == "ADMIN")
-    if not is_admin and person_id != current_id:
+    role = _current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+    deny = _require_scope(role.view_person_scope, "view people")
+    if deny:
+        return deny
+
+    # SELF => only your own
+    if role.view_person_scope == UserRole.SELF and not _is_owner(person_id):
         return jsonify({"ok": False, "error": "Forbidden"}), 403
 
     person = Person.find_by_identifier(person_id)
     if not person:
         return jsonify({"ok": False, "error": "Person does not exist"}), 404
 
-    return jsonify(person.to_dict()), 200
+    return jsonify({"ok": True, "data": person.to_dict()}), 200
 
 
-@person_bp.get("/list")
+@person_bp.get("/get")
 def list_all_persons():
     login_err = _require_login()
     if login_err:
         return login_err
 
-    admin_err = _require_admin()
-    if admin_err:
-        return admin_err
+    role = _current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+    deny = _require_scope(role.view_person_scope, "view people")
+    if deny:
+        return deny
+
+    # Listing everyone is effectively "ALL"
+    if role.view_person_scope != UserRole.ALL:
+        return jsonify({"ok": False, "error": "Not allowed to list all people"}), 403
 
     try:
         persons = Person.list_all_persons()
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
-    persons_data = [person.to_dict() for person in persons]
-    return jsonify(persons_data), 200
+    persons_data = [p.to_dict() for p in persons]
+    return jsonify({"ok": True, "data": persons_data}), 200
