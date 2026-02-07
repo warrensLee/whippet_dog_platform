@@ -1,5 +1,5 @@
 from database import fetch_one, fetch_all, execute
-from datetime import datetime
+from datetime import datetime, timezone
 
 class News:
     def __init__(
@@ -113,37 +113,75 @@ class News:
         return errors
 
     def save(self):
+        """Insert a new news item into the database."""
         if not self.author_id:
             raise ValueError("AuthorID is required before saving News")
 
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
 
         new_id = execute(
-        """
-        INSERT INTO News (
-            Title,
-            Content,
-            CreatedAt,
-            UpdatedAt,
-            AuthorID,
-            LastEditedBy,
-            LastEditedAt
-        )
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """,
-        (
-            self.title,
-            self.content,
-            self.created_at or now,
-            self.updated_at or now,
-            self.author_id,
-            self.last_edited_by,
-            self.last_edited_at or now,
-        ),
-        return_lastrowid=True, 
+            """
+            INSERT INTO News (
+                Title,
+                Content,
+                CreatedAt,
+                UpdatedAt,
+                AuthorID,
+                LastEditedBy,
+                LastEditedAt
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                self.title,
+                self.content,
+                self.created_at or now,
+                self.updated_at or now,
+                self.author_id,
+                self.last_edited_by,
+                self.last_edited_at or now,
+            ),
+            return_lastrowid=True, 
         )
 
         self.id = int(new_id)
+        return True
+
+    def update(self):
+        """Update an existing news item in the database."""
+        if not self.id:
+            raise ValueError("Cannot update News without an ID")
+        if not self.author_id:
+            raise ValueError("AuthorID is required before updating News")
+
+        now = datetime.now(timezone.utc)
+
+        execute(
+            """
+            UPDATE News
+            SET
+                Title = %s,
+                Content = %s,
+                UpdatedAt = %s,
+                LastEditedBy = %s,
+                LastEditedAt = %s
+            WHERE ID = %s
+            """,
+            (
+                self.title,
+                self.content,
+                now,
+                self.last_edited_by,
+                self.last_edited_at or now,
+                self.id,
+            ),
+        )
+        return True
+
+    @staticmethod
+    def delete(news_id):
+        """Delete a news item by ID."""
+        execute("DELETE FROM News WHERE ID = %s", (news_id,))
         return True
 
     def to_dict(self):
@@ -151,12 +189,10 @@ class News:
             "id": self.id,
             "title": self.title,
             "content": self.content,
-            "createdAt": self.created_at,
-            "updatedAt": self.updated_at,
+            "createdAt": self.created_at.isoformat() if self.created_at else None,
+            "updatedAt": self.updated_at.isoformat() if self.updated_at else None,
             "authorId": self.author_id,
             "authorName": self.author_name,
             "lastEditedBy": self.last_edited_by,
-            "lastEditedAt": self.last_edited_at.isoformat()
-            if self.last_edited_at
-            else None,
+            "lastEditedAt": self.last_edited_at.isoformat() if self.last_edited_at else None,
         }
