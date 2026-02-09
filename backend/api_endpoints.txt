@@ -824,3 +824,81 @@ curl -i -b cookies.txt \
     "meetNumber": "MEET-001",
     "confirm": true
   }'
+
+--------------------------------------------------
+MEET RESULT
+--------------------------------------------------
+
+--------------------------------------------------
+POST /api/meet_result/add
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/meet_result/add \
+  -d '{
+    "meetNumber": "MEET-001",
+    "cwaNumber": "T12345",
+    "average": "9.5",
+    "grade": "A",
+    "meetPlacement": "1",
+    "meetPoints": "25",
+    "arxEarned": "1",
+    "narxEarned": "0",
+    "shown": "0",
+    "showPlacement": "0",
+    "showPoints": "0",
+    "dpcLeg": "0",
+    "hcScore": "0",
+    "hcLegEarned": "0"
+  }'
+
+
+--------------------------------------------------
+POST /api/meet_result/edit
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/meet_result/edit \
+  -d '{
+    "meetNumber": "MEET-001",
+    "cwaNumber": "T12345",
+    "average": "9.5",
+    "grade": "A",
+    "meetPlacement": "1",
+    "meetPoints": "25",
+    "arxEarned": "1",
+    "narxEarned": "0",
+    "shown": "0",
+    "showPlacement": "0",
+    "showPoints": "0",
+    "dpcLeg": "0",
+    "hcScore": "0",
+    "hcLegEarned": "0"
+  }'
+
+
+--------------------------------------------------
+POST /api/meet_result/delete
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/meet_result/delete \
+  -d '{
+    "meetNumber": "MEET-001",
+    "cwaNumber": "T12345",
+    "confirm": true
+  }'
+
+
+--------------------------------------------------
+GET /api/meet_result/get/<meet_number>/<cwa_number>
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/meet_result/get/MEET-001/T12345
+
+
+--------------------------------------------------
+GET /api/meet_result/get
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/meet_result/get

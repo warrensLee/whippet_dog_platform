@@ -1,4 +1,3 @@
-from werkzeug.security import generate_password_hash, check_password_hash
 from database import fetch_all, fetch_one, execute
 from mysql.connector import Error
 
@@ -37,7 +36,7 @@ class MeetResult:
             narx_earned=(data.get("narxEarned") or "").strip(),
             shown=(data.get("shown") or "").strip(),
             show_placement=(data.get("showPlacement") or "").strip(),
-            show_points_earned=(data.get("showPoints") or "").strip(),
+            show_points=(data.get("showPoints") or "").strip(),
             dpc_leg=(data.get("dpcLeg") or "").strip(),
             hc_score=(data.get("hcScore") or "").strip(),
             hc_leg_earned=(data.get("hcLegEarned") or "").strip(),
@@ -137,10 +136,22 @@ class MeetResult:
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
-                    self.person_id, self.first_name, self.last_name, self.email,
-                    self.address_line_one, self.address_line_two, self.city, self.state_province,
-                    self.zip_code, self.country, self.primary_phone, self.secondary_phone,
-                    self.system_role, self.password_hash, self.notes
+                    self.meet_number,
+                    self.cwa_number,
+                    self.average,
+                    self.grade,
+                    self.meet_placement,
+                    self.meet_points,
+                    self.arx_earned,
+                    self.narx_earned,
+                    self.shown,
+                    self.show_placement,
+                    self.show_points,
+                    self.dpc_leg,
+                    self.hc_score,
+                    self.hc_leg_earned,
+                    self.last_edited_by,
+                    self.last_edited_at,
                 ),
             )
             return True
