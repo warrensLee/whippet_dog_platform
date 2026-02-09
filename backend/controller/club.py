@@ -1,36 +1,16 @@
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, jsonify, request
 from mysql.connector import Error
 from datetime import datetime, timezone
 from classes.club import Club
 from classes.change_log import ChangeLog
 from classes.user_role import UserRole
+from utils.auth_helpers import current_editor_id, current_role, require_scope
 
 club_bp = Blueprint("club", __name__, url_prefix="/api/club")
 
-def _current_editor_id() -> str | None:
-    u = session.get("user") or {}
-    return (u.get("PersonID") or u.get("personId") or u.get("id") or None)
 
-def _current_role() -> UserRole | None:
-    u = session.get("user") or {}
-    pid = u.get("PersonID")
-    if not pid:
-        return None
-
-    title = u.get("SystemRole")
-    if not title:
-        return None
-
-    return UserRole.find_by_title(title.strip().upper())
-
-def _require_scope(scope_value: int, action: str):
-    if scope_value == UserRole.NONE:
-        return jsonify({"ok": False, "error": f"Not allowed to {action}"}), 403
-    return None
-
-
-def _is_member(club_abbreviation: str) -> bool:
-    pid = _current_editor_id()
+def _is_member(club_abbreviation):
+    pid = current_editor_id()
     if not pid:
         return False
 
@@ -47,26 +27,26 @@ def _is_member(club_abbreviation: str) -> bool:
 
 @club_bp.post("/add")
 def register_club():
-    role = _current_role()
+    role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = _require_scope(role.edit_club_scope, "create clubs")
+    deny = require_scope(role.edit_club_scope, "create clubs")
     if deny:
         return deny
 
     data = request.get_json(silent=True) or {}
     club = Club.from_request_data(data)
 
+    pid = current_editor_id()
     if role.edit_club_scope == UserRole.SELF:
-        pid = _current_editor_id()
         if not pid:
             return jsonify({"ok": False, "error": "Not signed in"}), 401
 
     if not (club.board_member1 == pid or club.board_member2 == pid or club.default_race_secretary == pid):
         return jsonify({"ok": False, "error": "Not allowed to create a club unless you are a board member or race secretary"}), 403
 
-    club.last_edited_by = _current_editor_id()
+    club.last_edited_by = current_editor_id()
     club.last_edited_at = datetime.now(timezone.utc)
 
     validation_errors = club.validate()
@@ -83,7 +63,7 @@ def register_club():
             changed_table="Club",
             record_pk=club.club_abbreviation,
             operation="INSERT",
-            changed_by=_current_editor_id(),
+            changed_by=current_editor_id(),
             source="api/club/register POST",
             before_obj=None,
             after_obj=club.to_dict(),
@@ -97,11 +77,11 @@ def register_club():
 
 @club_bp.post("/edit")
 def edit_club():
-    role = _current_role()
+    role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = _require_scope(role.edit_club_scope, "edit clubs")
+    deny = require_scope(role.edit_club_scope, "edit clubs")
     if deny:
         return deny
 
@@ -123,7 +103,7 @@ def edit_club():
     club = Club.from_request_data(data)
     club.club_abbreviation = club_abbreviation
 
-    club.last_edited_by = _current_editor_id()
+    club.last_edited_by = current_editor_id()
     club.last_edited_at = datetime.now(timezone.utc)
 
     validation_errors = club.validate()
@@ -140,7 +120,7 @@ def edit_club():
             changed_table="Club",
             record_pk=club_abbreviation,
             operation="UPDATE",
-            changed_by=_current_editor_id(),
+            changed_by=current_editor_id(),
             source="api/club/edit POST",
             before_obj=before_snapshot,
             after_obj=after_snapshot,
@@ -154,11 +134,11 @@ def edit_club():
 
 @club_bp.post("/delete")
 def delete_club():
-    role = _current_role()
+    role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = _require_scope(role.edit_club_scope, "delete clubs")
+    deny = require_scope(role.edit_club_scope, "delete clubs")
     if deny:
         return deny
 
@@ -186,7 +166,7 @@ def delete_club():
             changed_table="Club",
             record_pk=club_abbreviation,
             operation="DELETE",
-            changed_by=_current_editor_id(),
+            changed_by=current_editor_id(),
             source="api/club/delete POST",
             before_obj=before_snapshot,
             after_obj=None,
@@ -200,11 +180,11 @@ def delete_club():
 
 @club_bp.get("/get/<club_abbreviation>")
 def get_club(club_abbreviation: str):
-    role = _current_role()
+    role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = _require_scope(role.view_club_scope, "view clubs")
+    deny = require_scope(role.view_club_scope, "view clubs")
     if deny:
         return deny
 
@@ -220,11 +200,11 @@ def get_club(club_abbreviation: str):
 
 @club_bp.get("/get")
 def list_all_clubs():
-    role = _current_role()
+    role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = _require_scope(role.view_club_scope, "view clubs")
+    deny = require_scope(role.view_club_scope, "view clubs")
     if deny:
         return deny
 
@@ -232,7 +212,7 @@ def list_all_clubs():
         if role.view_club_scope == UserRole.ALL:
             clubs = Club.list_all_clubs()
         else:
-            pid = _current_editor_id()
+            pid = current_editor_id()
             if not pid:
                 return jsonify({"ok": False, "error": "Not signed in"}), 401
             clubs = Club.list_clubs_for_member(pid)

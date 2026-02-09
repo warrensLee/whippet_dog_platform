@@ -228,6 +228,20 @@ curl -i -b cookies.txt http://localhost/api/change_log/get
 
 --------------------------------------------------
 Club
+(
+  Must be signed in.
+  Permissions controlled by UserRole scopes:
+  viewClubScope: 
+    0 NONE, 
+    1 SELF (only clubs you are a member of), 
+    2 ALL (any club)
+  editClubScope: 
+    0 NONE, 
+    1 SELF (only clubs you are a member of), 
+    2 ALL (any club)
+  "Member" means your PersonID matches one of:
+    boardMember1, boardMember2, defaultRaceSecretary
+)
 --------------------------------------------------
 
 --------------------------------------------------
@@ -801,7 +815,7 @@ curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/user_role/delete \
   -d '{
-    "roleId": 6,
+    "roleId": 7,
     "confirm": true
   }'
 

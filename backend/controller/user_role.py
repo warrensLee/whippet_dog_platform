@@ -224,7 +224,7 @@ def delete_user_role():
 
         ChangeLog.log(
             changed_table="UserRole",
-            record_pk=target.id,
+            record_pk=target.title,
             operation="DELETE",
             changed_by=current_editor_id(),
             source="api/user_role/delete POST",
