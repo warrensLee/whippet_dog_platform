@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, session
 from mysql.connector import Error
-from email_validator import validate_email, EmailNotValidError
+import email_validator
 from classes.person import Person
 from classes.change_log import ChangeLog
 from datetime import datetime, timezone
@@ -20,9 +20,13 @@ def register():
     
     if person.email:
         try:
-            valid = validate_email(person.email)
-            person.email = valid.email  
-        except EmailNotValidError as e:
+            valid = email_validator.validate_email(
+                person.email,
+                allow_smtputf8=True,
+                check_deliverability=False
+            )
+            person.email = valid.normalized  
+        except email_validator.EmailNotValidError as e:
             return jsonify({"ok": False, "error": f"Invalid email address: {str(e)}"}), 400
     
     if not person.system_role:
@@ -73,9 +77,13 @@ def login():
     
     if "@" in identifier:
         try:
-            valid = validate_email(identifier)
-            identifier = valid.email  #
-        except EmailNotValidError:
+            valid = email_validator.validate_email(
+                identifier,
+                allow_smtputf8=True,
+                check_deliverability=False
+            )
+            identifier = valid.normalized
+        except email_validator.EmailNotValidError:
             pass
     
     person = Person.find_by_identifier(identifier)
