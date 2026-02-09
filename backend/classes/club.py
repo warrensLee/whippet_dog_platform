@@ -236,7 +236,7 @@ class Club:
             raise e
         
     @classmethod    
-    def list_clubs_for_member(cls, person_id: str):
+    def list_clubs_for_member(cls, person_id):
         """
         list clubs where person is BoardMember1 OR BoardMember2
         """
@@ -263,7 +263,7 @@ class Club:
             "ClubStatus": self.club_status
         }
 
-    def to_dict(self, include_sensitive=False):
+    def to_dict(self):
         """Convert to dictionary for JSON responses."""
         data = {
             "clubAbbreviation": self.club_abbreviation,
