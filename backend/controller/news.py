@@ -48,15 +48,15 @@ def _is_news_owner(news_item: News) -> bool:
 
 
 @news_bp.route("/get", methods=["GET"])
-def get_all_news():
+def get_news():
     role = _current_role()
 
-    # if not role:
-    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    # deny = _require_scope(role.view_news_scope, "view news")
-    # if deny:
-    #     return deny
+    deny = _require_scope(role.view_news_scope, "view news")
+    if deny:
+        return deny
 
     try:
         rows = fetch_all(
@@ -84,6 +84,44 @@ def get_all_news():
                 continue
 
             if role.view_news_scope == UserRole.SELF and not _is_news_owner(news_item):
+                continue
+
+            news_list.append(news_item.to_dict())
+
+        return jsonify({"ok": True, "data": news_list}), 200
+
+    except Error as e:
+        print(f"Database error: {e}")
+        return jsonify({"ok": False, "error": str(e)}), 500
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        return jsonify({"ok": False, "error": "An unexpected error occurred"}), 500
+    
+@news_bp.route("/public/get", methods=["GET"])
+def get_news_public():
+    try:
+        rows = fetch_all(
+            """
+            SELECT
+                n.ID,
+                n.Title,
+                n.Content,
+                n.CreatedAt,
+                n.UpdatedAt,
+                n.AuthorID,
+                CONCAT(p.FirstName, ' ', p.LastName) AS AuthorName,
+                n.LastEditedBy,
+                n.LastEditedAt
+            FROM News n
+            LEFT JOIN Person p ON p.PersonID = n.AuthorID
+            ORDER BY n.CreatedAt DESC
+            """
+        )
+
+        news_list = []
+        for row in rows:
+            news_item = News.from_db_row(row)
+            if not news_item:
                 continue
 
             news_list.append(news_item.to_dict())

@@ -9,7 +9,7 @@ curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/auth/register \
   -d '{
-    "personId": "test_2",
+    "personId": "test_1",
     "firstName": "Test",
     "lastName": "User",
     "email": "brayden.campbell100@gmail.com",
@@ -34,7 +34,7 @@ curl -i -c cookies.txt -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/auth/login \
   -d '{
-    "username": "test_2",
+    "username": "test_1",
     "password": "dog12345"
   }'
 
@@ -678,7 +678,7 @@ GET /api/person/get
 curl -i -b cookies.txt \
   http://localhost/api/person/get
 
-  --------------------------------------------------
+--------------------------------------------------
 USER ROLE
 --------------------------------------------------
 
@@ -758,5 +758,69 @@ curl -i -b cookies.txt \
   -X POST http://localhost/api/user_role/delete \
   -d '{
     "roleId": 3,
+    "confirm": true
+  }'
+
+--------------------------------------------------
+MEET
+--------------------------------------------------
+
+
+--------------------------------------------------
+GET /api/meet/get
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/meet/get
+
+
+--------------------------------------------------
+GET /api/meet/get/<meet_number>
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/meet/get/MEET-001
+
+
+--------------------------------------------------
+POST /api/meet/add
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/meet/add \
+  -d '{
+    "meetNumber": "MEET-001",
+    "clubAbbreviation": "TCLUB",
+    "meetDate": "2026-04-10",
+    "raceSecretary": "SYSTEM",
+    "judge": "SYSTEM",
+    "location": "LITTLE ROCK",
+    "yards": "200"
+  }'
+
+--------------------------------------------------
+POST /api/meet/edit
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/meet/edit \
+  -d '{
+    "meetNumber": "MEET-001",
+    "clubAbbreviation": "TCLUB",
+    "meetDate": "2026-04-10",
+    "raceSecretary": "SYSTEM",
+    "judge": "SYSTEM",
+    "location": "LITTLE ROCK",
+    "yards": "200"
+  }'
+
+
+
+--------------------------------------------------
+POST /api/meet/delete
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/meet/delete \
+  -d '{
+    "meetNumber": "MEET-001",
     "confirm": true
   }'

@@ -26,7 +26,7 @@ export default function NewsPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/news/get", { cache: "no-store" });
+      const res = await fetch("/api/news/public/get", { cache: "no-store" });
       if (!res.ok) throw new Error(`Failed to load news (${res.status})`);
       const data = await res.json();
       setNews(Array.isArray(data) ? data : []);

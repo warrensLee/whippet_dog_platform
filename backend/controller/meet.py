@@ -1,8 +1,10 @@
 from flask import Blueprint, jsonify, request, session
 from mysql.connector import Error
+from datetime import datetime, timezone
 from classes.meet import Meet
 from classes.change_log import ChangeLog
-from datetime import datetime
+from classes.user_role import UserRole
+
 
 meet_bp = Blueprint("meet", __name__, url_prefix="/api/meet")
 
@@ -10,13 +12,51 @@ def _current_editor_id() -> str | None:
     u = session.get("user") or {}
     return (u.get("PersonID") or u.get("personId") or u.get("id") or None)
 
-@meet_bp.post("/register")
+def _current_role() -> UserRole | None:
+    pid = _current_editor_id()
+    if not pid:
+        return None
+
+    u = session.get("user") or {}
+    title = u.get("SystemRole")
+    if not title:
+        return None
+
+    return UserRole.find_by_title(title.strip().upper())
+
+
+def _require_scope(scope_value: int, action: str):
+    if int(scope_value or 0) == UserRole.NONE:
+        return jsonify({"ok": False, "error": f"Not allowed to {action}"}), 403
+    return None
+
+
+def _is_meet_owner(meet: Meet) -> bool:
+    person_id = _current_editor_id()
+    if not person_id or not meet:
+        return False
+
+    judge = getattr(meet, "judge", None) or getattr(meet, "Judge", None)
+    race_secretary = (getattr(meet, "race_secretary", None) or getattr(meet, "raceSecretary", None) or getattr(meet, "RaceSecretary", None))
+
+    return str(judge) == str(person_id) or str(race_secretary) == str(person_id)
+
+
+@meet_bp.post("/add")
 def register_meet():
+    role = _current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+    deny = _require_scope(role.edit_meet_scope, "create meets")
+    if deny:
+        return deny
+
     data = request.get_json(silent=True) or {}
     meet = Meet.from_request_data(data)
 
     meet.last_edited_by = _current_editor_id()
-    meet.last_edited_at = datetime.utcnow()
+    meet.last_edited_at = datetime.now(timezone.utc)
 
     validation_errors = meet.validate()
     if validation_errors:
@@ -24,10 +64,13 @@ def register_meet():
 
     if Meet.exists(meet.meet_number):
         return jsonify({"ok": False, "error": "Meet already exists"}), 409
-    
+
+    if role.edit_meet_scope == UserRole.SELF and not _is_meet_owner(meet):
+        return jsonify({"ok": False, "error": "Not allowed to create this meet"}), 403
+
     try:
         meet.save()
-        
+
         ChangeLog.log(
             changed_table="Meet",
             record_pk=meet.meet_number,
@@ -37,16 +80,24 @@ def register_meet():
             before_obj=None,
             after_obj=meet.to_dict(),
         )
+
+        return jsonify({"ok": True}), 201
+
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
-
-    return jsonify({"ok": True}), 201
 
 
 @meet_bp.post("/edit")
 def edit_meet():
-    data = request.get_json(silent=True) or {}
+    role = _current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
 
+    deny = _require_scope(role.edit_meet_scope, "edit meets")
+    if deny:
+        return deny
+
+    data = request.get_json(silent=True) or {}
     meet_number = (data.get("meetNumber") or "").strip()
     if not meet_number:
         return jsonify({"ok": False, "error": "Meet number is required"}), 400
@@ -54,13 +105,16 @@ def edit_meet():
     existing = Meet.find_by_identifier(meet_number)
     if not existing:
         return jsonify({"ok": False, "error": "Meet does not exist"}), 404
-    
+
+    if role.edit_meet_scope == UserRole.SELF and not _is_meet_owner(existing):
+        return jsonify({"ok": False, "error": "Not allowed to edit this meet"}), 403
+
     before_snapshot = existing.to_dict()
+
     meet = Meet.from_request_data(data)
     meet.meet_number = meet_number
-
     meet.last_edited_by = _current_editor_id()
-    meet.last_edited_at = datetime.utcnow()
+    meet.last_edited_at = datetime.now(timezone.utc)
 
     validation_errors = meet.validate()
     if validation_errors:
@@ -68,9 +122,10 @@ def edit_meet():
 
     try:
         meet.update()
+
         refreshed = Meet.find_by_identifier(meet_number)
         after_snapshot = refreshed.to_dict() if refreshed else meet.to_dict()
-        
+
         ChangeLog.log(
             changed_table="Meet",
             record_pk=meet_number,
@@ -80,14 +135,23 @@ def edit_meet():
             before_obj=before_snapshot,
             after_obj=after_snapshot,
         )
+
+        return jsonify({"ok": True}), 200
+
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
-
-    return jsonify({"ok": True}), 200
 
 
 @meet_bp.post("/delete")
 def delete_meet():
+    role = _current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+    deny = _require_scope(role.edit_meet_scope, "delete meets")
+    if deny:
+        return deny
+
     data = request.get_json(silent=True) or {}
     meet_number = (data.get("meetNumber") or "").strip()
 
@@ -100,10 +164,14 @@ def delete_meet():
         meet = Meet.find_by_identifier(meet_number)
         if not meet:
             return jsonify({"ok": False, "error": "Meet does not exist"}), 404
-        
+
+        if role.edit_meet_scope == UserRole.SELF and not _is_meet_owner(meet):
+            return jsonify({"ok": False, "error": "Not allowed to delete this meet"}), 403
+
         before_snapshot = meet.to_dict()
+
         meet.delete(meet_number)
-        
+
         ChangeLog.log(
             changed_table="Meet",
             record_pk=meet_number,
@@ -114,26 +182,52 @@ def delete_meet():
             after_obj=None,
         )
 
+        return jsonify({"ok": True}), 200
+
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
-
-    return jsonify({"ok": True}), 200
 
 
 @meet_bp.get("/get/<meet_number>")
 def get_meet(meet_number: str):
+    role = _current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+    deny = _require_scope(role.view_meet_scope, "view meets")
+    if deny:
+        return deny
+
     meet = Meet.find_by_identifier(meet_number)
     if not meet:
         return jsonify({"ok": False, "error": "Meet does not exist"}), 404
-    return jsonify(meet.to_dict()), 200
+
+    if role.view_meet_scope == UserRole.SELF and not _is_meet_owner(meet):
+        return jsonify({"ok": False, "error": "Not allowed to view this meet"}), 403
+
+    return jsonify({"ok": True, "data": meet.to_dict()}), 200
 
 
-@meet_bp.get("/list")
+@meet_bp.get("/get")
 def list_all_meets():
+    role = _current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+    deny = _require_scope(role.view_meet_scope, "view meets")
+    if deny:
+        return deny
+
     try:
-        meets = Meet.list_all_meets()
+        meets = Meet.list_all_meets()  
+        meets_data = []
+
+        for m in meets:
+            if role.view_meet_scope == UserRole.SELF and not _is_meet_owner(m):
+                continue
+            meets_data.append(m.to_dict())
+
+        return jsonify({"ok": True, "data": meets_data}), 200
+
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
-
-    meets_data = [meet.to_dict() for meet in meets]
-    return jsonify(meets_data), 200           
