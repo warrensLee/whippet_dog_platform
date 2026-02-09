@@ -9,6 +9,7 @@ from controller.dog_title import dog_title_bp
 from controller.dog import dog_bp
 from controller.meet import meet_bp
 from controller.meet_result import meet_result_bp
+from controller.race_result import race_result_bp
 from controller.news import news_bp
 from controller.officer_role import officer_role_bp
 from controller.person import person_bp
@@ -45,6 +46,7 @@ def register_routes(app):
     app.register_blueprint(dog_bp)
     app.register_blueprint(meet_bp)
     app.register_blueprint(meet_result_bp)
+    app.register_blueprint(race_result_bp)
     app.register_blueprint(news_bp)
     app.register_blueprint(officer_role_bp)
     app.register_blueprint(person_bp)

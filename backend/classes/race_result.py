@@ -4,7 +4,6 @@ Docstring for race_result
 TODO:
 '''
 
-from werkzeug.security import generate_password_hash, check_password_hash
 from database import fetch_all, fetch_one, execute
 from mysql.connector import Error
 
@@ -68,7 +67,7 @@ class RaceResult:
             SELECT MeetNumber, CWANumber, Program, RaceNumber, EntryType, Box,
                    Placement, MeetPoints, Incident,
                    LastEditedBy, LastEditedAt
-            FROM RaceResult
+            FROM RaceResults
             WHERE MeetNumber = %s AND CWANumber = %s AND Program = %s AND RaceNumber = %s
             LIMIT 1
             """,
@@ -82,7 +81,7 @@ class RaceResult:
         existing = fetch_one(
             """
             SELECT MeetNumber, CWANumber, Program, RaceNumber
-            FROM RaceResult
+            FROM RaceResults
             WHERE MeetNumber = %s AND CWANumber = %s AND Program = %s AND RaceNumber = %s
             LIMIT 1
             """,
@@ -118,17 +117,25 @@ class RaceResult:
         try:
             execute(
                 """
-                INSERT INTO RaceResult (
+                INSERT INTO RaceResults (
                     MeetNumber, CWANumber, Program, RaceNumber, EntryType, Box,
                     Placement, MeetPoints, Incident,
                     LastEditedBy, LastEditedAt
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
-                    self.meet_number, self.cwa_number, self.program, self.race_number,
-                    self.entry_type, self.box, self.placement, self.meet_points,
-                    self.incident, self.last_edited_by, self.last_edited_at
+                    self.meet_number,
+                    self.cwa_number,
+                    self.program,
+                    self.race_number,
+                    self.entry_type,
+                    self.box,
+                    self.placement,
+                    self.meet_points,
+                    self.incident,
+                    self.last_edited_by,
+                    self.last_edited_at,
                 ),
             )
             return True
@@ -140,7 +147,7 @@ class RaceResult:
         try:
             execute(
                 """
-                UPDATE RaceResult
+                UPDATE RaceResults
                 SET EntryType = %s,
                     Box = %s,
                     Placement = %s,
@@ -165,7 +172,7 @@ class RaceResult:
         try:
             execute(
                 """
-                DELETE FROM RaceResult
+                DELETE FROM RaceResults
                 WHERE MeetNumber = %s AND CWANumber = %s AND Program = %s AND RaceNumber = %s
                 """,
                 (meet_number, cwa_number, program, race_number),
@@ -181,7 +188,7 @@ class RaceResult:
             SELECT MeetNumber, CWANumber, Program, RaceNumber, EntryType, Box,
                    Placement, MeetPoints, Incident,
                    LastEditedBy, LastEditedAt
-            FROM RaceResult
+            FROM RaceResults
             """
         )
         return [RaceResult.from_db_row(row) for row in rows]
@@ -195,7 +202,7 @@ class RaceResult:
             "RaceNumber": self.race_number,
         }
 
-    def to_dict(self, include_sensitive=False):
+    def to_dict(self):
         """Convert to dictionary for JSON responses."""
         data = {
             "meetNumber": self.meet_number,

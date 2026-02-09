@@ -902,3 +902,73 @@ GET /api/meet_result/get
 --------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/meet_result/get
+
+--------------------------------------------------
+RACE RESULT
+--------------------------------------------------
+
+--------------------------------------------------
+GET /api/race_result/get
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/race_result/get
+
+
+--------------------------------------------------
+GET /api/race_result/get/<meet_number>/<cwa_number>/<program>/<race_number>
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/race_result/get/MEET-001/T12345/A/1
+
+
+--------------------------------------------------
+POST /api/race_result/add
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/race_result/add \
+  -d '{
+    "meetNumber": "MEET-001",
+    "cwaNumber": "T12345",
+    "program": "A",
+    "raceNumber": "1",
+    "entryType": "REG",
+    "box": "3",
+    "placement": "1",
+    "meetPoints": "4",
+    "incident": ""
+  }'
+
+
+--------------------------------------------------
+POST /api/race_result/edit
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/race_result/edit \
+  -d '{
+    "meetNumber": "MEET-001",
+    "cwaNumber": "T12345",
+    "program": "A",
+    "raceNumber": "1",
+    "entryType": "REG",
+    "box": "4",
+    "placement": "2",
+    "meetPoints": "5",
+    "incident": "BUMP"
+  }'
+
+
+--------------------------------------------------
+POST /api/race_result/delete
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/race_result/delete \
+  -d '{
+    "meetNumber": "MEET-001",
+    "cwaNumber": "T12345",
+    "program": "A",
+    "raceNumber": "1",
+    "confirm": true
+  }'
