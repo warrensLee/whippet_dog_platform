@@ -8,7 +8,7 @@ change_log_bp = Blueprint("change_log", __name__, url_prefix="/api/change_log")
 
 
 @change_log_bp.get("/get/<int:id>")
-def get_change_log(id: int):
+def get_change_log(id):
     role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401

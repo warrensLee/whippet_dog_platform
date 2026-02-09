@@ -2,7 +2,7 @@
 ENDPOINT TESTS
 ==============================
 --------------------------------------------------
-Authenticate (No user permssions or sign in)
+Authenticate (No user permssions and dont have to sign in)
 --------------------------------------------------
 
 --------------------------------------------------
@@ -54,6 +54,110 @@ POST /api/auth/logout
 --------------------------------------------------
 curl -i -c cookies.txt -b cookies.txt \
   -X POST http://localhost/api/auth/logout
+
+  --------------------------------------------------
+Change Log 
+(
+  Must be logged in
+  Permission is view only (view_change_log_scope)
+    SELF: can only see logs where ChangedBy == your PersonID
+    ALL: can see all logs
+    NONE: can see no logs
+)
+--------------------------------------------------
+
+--------------------------------------------------
+GET /get/<id>
+--------------------------------------------------
+curl -i -b cookies.txt http://localhost/api/change_log/get/1
+
+--------------------------------------------------
+GET /get
+--------------------------------------------------
+curl -i -b cookies.txt http://localhost/api/change_log/get
+
+--------------------------------------------------
+Club
+(
+  Must be signed in.
+  Permissions controlled by UserRole scopes:
+  viewClubScope: 
+    0 NONE, 
+    1 SELF (only clubs you are a member of), 
+    2 ALL (any club)
+  editClubScope: 
+    0 NONE, 
+    1 SELF (only clubs you are a member of), 
+    2 ALL (any club)
+  "Member" means your PersonID matches one of:
+    boardMember1, boardMember2, defaultRaceSecretary
+)
+--------------------------------------------------
+
+--------------------------------------------------
+POST /api/club/add
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST "http://localhost/api/club/add" \
+  -d "{
+    \"clubAbbreviation\": \"TCLUB\",
+    \"clubName\": \"TEST CLUB\",
+    \"clubStatus\": \"Active\",
+    \"beginDate\": \"2020-01-01\",
+    \"endDate\": null,
+    \"boardMember1\": \"SYSTEM\",
+    \"boardMember2\": null,
+    \"defaultRaceSecretary\": \"test_1\",
+    \"notes\": \"Created via curl\"
+  }"
+
+--------------------------------------------------
+GET /api/club/get/{clubAbbreviation}
+--------------------------------------------------
+curl -i -b cookies.txt \
+  "http://localhost/api/club/get/TCLUB"
+
+--------------------------------------------------
+POST /api/club/edit
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST "http://localhost/api/club/edit" \
+  -d "{
+    \"clubAbbreviation\": \"TCLUB\",
+    \"clubName\": \"TEST CLUB UPDATED\",
+    \"clubStatus\": \"Active\",
+    \"beginDate\": \"2020-01-01\",
+    \"endDate\": null,
+    \"boardMember1\": \"SYSTEM\",
+    \"boardMember2\": null,
+    \"defaultRaceSecretary\": \"SYSTEM\",
+    \"notes\": \"Updated via curl\"
+  }"
+
+--------------------------------------------------
+GET /api/club/get
+--------------------------------------------------
+curl -i -b cookies.txt \
+  "http://localhost/api/club/get"
+
+--------------------------------------------------
+GET /api/club/board
+--------------------------------------------------
+curl -i -b cookies.txt \
+  "http://localhost/api/club/board"
+
+--------------------------------------------------
+POST /api/club/delete
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST "http://localhost/api/club/delete" \
+  -d "{
+    \"clubAbbreviation\": \"TCLUB\",
+    \"confirm\": true
+  }"
 
 
 --------------------------------------------------
@@ -204,110 +308,6 @@ POST /api/dog/hc/{cwa_number}
 curl -i -b cookies.txt \
   -X POST http://localhost/api/dog/hc/T12345
 
-
---------------------------------------------------
-Change Log 
-(
-  Must be logged in
-  Permission is view only (view_change_log_scope)
-    SELF: can only see logs where ChangedBy == your PersonID
-    ALL: can see all logs
-    NONE: can see no logs
-)
---------------------------------------------------
-
---------------------------------------------------
-GET /get/<id>
---------------------------------------------------
-curl -i -b cookies.txt http://localhost/api/change_log/get/1
-
---------------------------------------------------
-GET /get
---------------------------------------------------
-curl -i -b cookies.txt http://localhost/api/change_log/get
-
---------------------------------------------------
-Club
-(
-  Must be signed in.
-  Permissions controlled by UserRole scopes:
-  viewClubScope: 
-    0 NONE, 
-    1 SELF (only clubs you are a member of), 
-    2 ALL (any club)
-  editClubScope: 
-    0 NONE, 
-    1 SELF (only clubs you are a member of), 
-    2 ALL (any club)
-  "Member" means your PersonID matches one of:
-    boardMember1, boardMember2, defaultRaceSecretary
-)
---------------------------------------------------
-
---------------------------------------------------
-POST /api/club/add
---------------------------------------------------
-curl -i -b cookies.txt \
-  -H "Content-Type: application/json" \
-  -X POST "http://localhost/api/club/add" \
-  -d "{
-    \"clubAbbreviation\": \"TCLUB\",
-    \"clubName\": \"TEST CLUB\",
-    \"clubStatus\": \"Active\",
-    \"beginDate\": \"2020-01-01\",
-    \"endDate\": null,
-    \"boardMember1\": \"SYSTEM\",
-    \"boardMember2\": null,
-    \"defaultRaceSecretary\": \"test_1\",
-    \"notes\": \"Created via curl\"
-  }"
-
---------------------------------------------------
-GET /api/club/get/{clubAbbreviation}
---------------------------------------------------
-curl -i -b cookies.txt \
-  "http://localhost/api/club/get/TCLUB"
-
---------------------------------------------------
-POST /api/club/edit
---------------------------------------------------
-curl -i -b cookies.txt \
-  -H "Content-Type: application/json" \
-  -X POST "http://localhost/api/club/edit" \
-  -d "{
-    \"clubAbbreviation\": \"TCLUB\",
-    \"clubName\": \"TEST CLUB UPDATED\",
-    \"clubStatus\": \"Active\",
-    \"beginDate\": \"2020-01-01\",
-    \"endDate\": null,
-    \"boardMember1\": \"SYSTEM\",
-    \"boardMember2\": null,
-    \"defaultRaceSecretary\": \"SYSTEM\",
-    \"notes\": \"Updated via curl\"
-  }"
-
---------------------------------------------------
-GET /api/club/get
---------------------------------------------------
-curl -i -b cookies.txt \
-  "http://localhost/api/club/get"
-
---------------------------------------------------
-GET /api/club/board
---------------------------------------------------
-curl -i -b cookies.txt \
-  "http://localhost/api/club/board"
-
---------------------------------------------------
-POST /api/club/delete
---------------------------------------------------
-curl -i -b cookies.txt \
-  -H "Content-Type: application/json" \
-  -X POST "http://localhost/api/club/delete" \
-  -d "{
-    \"clubAbbreviation\": \"TCLUB\",
-    \"confirm\": true
-  }"
 
 --------------------------------------------------
 CONTACT
