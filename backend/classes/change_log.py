@@ -32,7 +32,7 @@ class ChangeLog:
         self.after_data = after_data
 
     @classmethod
-    def from_request_data(cls, data: dict):
+    def from_request_data(cls, data):
         """Create a Change instance from request JSON data."""
         data = data or {}
         return cls(
@@ -47,7 +47,7 @@ class ChangeLog:
         )
 
     @classmethod
-    def from_db_row(cls, row: dict):
+    def from_db_row(cls, row):
         """Create a Change instance from a database row."""
         if not row:
             return None
@@ -79,7 +79,7 @@ class ChangeLog:
         return cls.from_db_row(row)
 
     @classmethod
-    def exists(cls, id) -> bool:
+    def exists(cls, id):
         """Find a Change instance from the database."""
         row = fetch_one(
             "SELECT ID FROM ChangeLog WHERE ID = %s LIMIT 1",
@@ -182,7 +182,7 @@ class ChangeLog:
         return [cls.from_db_row(r) for r in rows]
     
     @classmethod
-    def list_for_user(cls, person_id: str):
+    def list_for_user(cls, person_id):
         rows = fetch_all(
             """
             SELECT ID, ChangedTable, RecordPK, Operation, ChangedBy, ChangedAt,
@@ -219,8 +219,8 @@ class ChangeLog:
             return None
 
     @classmethod
-    def log(cls, *, changed_table: str, record_pk: str, operation: str,
-            changed_by: str | None, source: str,
+    def log(cls, *, changed_table, record_pk, operation,
+            changed_by, source,
             before_obj=None, after_obj=None):
         """
         Centralized logger. Create + save ChangeLog row.
@@ -229,7 +229,7 @@ class ChangeLog:
         try:
             entry = cls(
                 changed_table=changed_table,
-                record_pk=str(record_pk),
+                record_pk=record_pk,
                 operation=operation,
                 changed_by=changed_by,
                 changed_at=datetime.now(),
