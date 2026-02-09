@@ -4,7 +4,6 @@ Docstring for meet
 TODO:
 '''
 
-from werkzeug.security import generate_password_hash, check_password_hash
 from database import fetch_all, fetch_one, execute
 from mysql.connector import Error
 
@@ -197,7 +196,7 @@ class Meet:
             "location": self.location,
         }
 
-    def to_dict(self, include_sensitive=False):
+    def to_dict(self):
         """Convert to dictionary for JSON responses."""
         data = {
             "meetNumber": self.meet_number,

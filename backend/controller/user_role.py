@@ -47,6 +47,11 @@ def list_user_roles():
         return login_err
 
     role = _current_role()
+    print("DEBUG SystemRole:", (session.get("user") or {}).get("SystemRole"))
+    print("DEBUG role.title:", getattr(role, "title", None))
+    print("DEBUG role.__dict__:", getattr(role, "__dict__", {}))
+    print("DEBUG view_user_role_scope:", getattr(role, "view_user_role_scope", None))
+    print("DEBUG edit_user_role_scope:", getattr(role, "edit_user_role_scope", None))
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
