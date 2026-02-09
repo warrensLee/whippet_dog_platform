@@ -1,6 +1,9 @@
 ==============================
 ENDPOINT TESTS
 ==============================
+--------------------------------------------------
+Authenticate (No user permssions or sign in)
+--------------------------------------------------
 
 --------------------------------------------------
 POST /api/auth/register
@@ -203,7 +206,14 @@ curl -i -b cookies.txt \
 
 
 --------------------------------------------------
-Change Log
+Change Log 
+(
+  Must be logged in
+  Permission is view only (view_change_log_scope)
+    SELF: can only see logs where ChangedBy == your PersonID
+    ALL: can see all logs
+    NONE: can see no logs
+)
 --------------------------------------------------
 
 --------------------------------------------------
@@ -680,6 +690,21 @@ curl -i -b cookies.txt \
 
 --------------------------------------------------
 USER ROLE
+(
+  Must be logged in
+  Controlled by viewUserRoleScope and editUserRoleScope
+  Protected roles: ADMIN, PUBLIC (cannot be edited or deleted)
+  
+  View scope behavior:
+    NONE (0) → no access
+    SELF (1) → can only see your own role
+    ALL (2) → can see all roles
+
+  Edit scope behavior:
+    NONE (0) → no edits allowed
+    SELF (1) → can edit a role only if the scopes exactly match their own (title can differ, but permissions must be identical)
+    ALL (2) → full edit all roles (except protected roles)
+)
 --------------------------------------------------
 
 --------------------------------------------------
@@ -701,17 +726,17 @@ POST /api/user_role/add
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
-  -X POST http://localhost/api/user_role/register \
+  -X POST http://localhost/api/user_role/add \
   -d '{
-    "title": "EDITOR",
+    "title": "TEST4",
     "viewDogScope": 2,
     "editDogScope": 1,
-    "viewPersonScope": 2,
+    "viewPersonScope": 1,
     "editPersonScope": 1,
-    "viewDogOwnerScope": 2,
+    "viewDogOwnerScope": 1,
     "editDogOwnerScope": 1,
-    "viewOfficerRoleScope": 2,
-    "editOfficerRoleScope": 1,
+    "viewOfficerRoleScope": 0,
+    "editOfficerRoleScope": 0,
     "viewUserRoleScope": 2,
     "editUserRoleScope": 1,
     "viewClubScope": 2,
@@ -728,7 +753,7 @@ curl -i -b cookies.txt \
     "editTitleTypeScope": 1,
     "viewNewsScope": 2,
     "editNewsScope": 1,
-    "viewChangeLogScope": 2
+    "viewChangeLogScope": 0
   }'
 
 
@@ -739,14 +764,33 @@ curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/user_role/edit \
   -d '{
-    "roleId": 3,
+    "roleId": 6,
+    "title": "TEST3",
     "viewDogScope": 2,
-    "editDogScope": 2,
-    "viewPersonScope": 2,
-    "editPersonScope": 2,
+    "editDogScope": 1,
+    "viewPersonScope": 1,
+    "editPersonScope": 1,
+    "viewDogOwnerScope": 1,
+    "editDogOwnerScope": 1,
+    "viewOfficerRoleScope": 0,
+    "editOfficerRoleScope": 0,
+    "viewUserRoleScope": 2,
+    "editUserRoleScope": 1,
+    "viewClubScope": 2,
+    "editClubScope": 1,
+    "viewMeetScope": 2,
+    "editMeetScope": 1,
+    "viewMeetResultsScope": 2,
+    "editMeetResultsScope": 1,
+    "viewRaceResultsScope": 2,
+    "editRaceResultsScope": 1,
+    "viewDogTitlesScope": 2,
+    "editDogTitlesScope": 1,
+    "viewTitleTypeScope": 2,
+    "editTitleTypeScope": 1,
     "viewNewsScope": 2,
-    "editNewsScope": 2,
-    "viewChangeLogScope": 2
+    "editNewsScope": 1,
+    "viewChangeLogScope": 0
   }'
 
 
@@ -757,7 +801,7 @@ curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/user_role/delete \
   -d '{
-    "roleId": 3,
+    "roleId": 6,
     "confirm": true
   }'
 

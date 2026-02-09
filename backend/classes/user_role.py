@@ -8,46 +8,46 @@ class UserRole:
 
     def __init__(
         self,
-        title: str,
-        id: int | None = None,
+        title: None,
+        id: None,
 
-        view_dog_scope: int = 0,
-        edit_dog_scope: int = 0,
+        view_dog_scope: 0,
+        edit_dog_scope: 0,
 
-        view_person_scope: int = 0,
-        edit_person_scope: int = 0,
+        view_person_scope: 0,
+        edit_person_scope: 0,
 
-        view_dog_owner_scope: int = 0,
-        edit_dog_owner_scope: int = 0,
+        view_dog_owner_scope: 0,
+        edit_dog_owner_scope: 0,
 
-        view_officer_role_scope: int = 0,
-        edit_officer_role_scope: int = 0,
+        view_officer_role_scope: 0,
+        edit_officer_role_scope: 0,
 
-        view_user_role_scope: int = 0,
-        edit_user_role_scope: int = 0,
+        view_user_role_scope: 0,
+        edit_user_role_scope: 0,
 
-        view_club_scope: int = 0,
-        edit_club_scope: int = 0,
+        view_club_scope: 0,
+        edit_club_scope: 0,
 
-        view_meet_scope: int = 0,
-        edit_meet_scope: int = 0,
+        view_meet_scope: 0,
+        edit_meet_scope: 0,
 
-        view_meet_results_scope: int = 0,
-        edit_meet_results_scope: int = 0,
+        view_meet_results_scope: 0,
+        edit_meet_results_scope: 0,
 
-        view_race_results_scope: int = 0,
-        edit_race_results_scope: int = 0,
+        view_race_results_scope: 0,
+        edit_race_results_scope: 0,
 
-        view_dog_titles_scope: int = 0,
-        edit_dog_titles_scope: int = 0,
+        view_dog_titles_scope: 0,
+        edit_dog_titles_scope: 0,
 
-        view_title_type_scope: int = 0,
-        edit_title_type_scope: int = 0,
+        view_title_type_scope: 0,
+        edit_title_type_scope: 0,
 
-        view_news_scope: int = 0,
-        edit_news_scope: int = 0,
+        view_news_scope: 0,
+        edit_news_scope: 0,
 
-        view_change_log_scope: int = 0,
+        view_change_log_scope: 0,
 
         last_edited_by=None,
         last_edited_at=None,
@@ -97,7 +97,7 @@ class UserRole:
         self.last_edited_at = last_edited_at
 
     @classmethod
-    def from_request_data(cls, data: dict):
+    def from_request_data(cls, data):
         return cls(
             id=data.get("id") or data.get("roleId"),
             title=(data.get("title") or "").strip(),
@@ -145,7 +145,7 @@ class UserRole:
         )
 
     @classmethod
-    def from_db_row(cls, row: dict):
+    def from_db_row(cls, row):
         if not row:
             return None
         return cls(
@@ -195,7 +195,7 @@ class UserRole:
         )
 
     @classmethod
-    def find_by_id(cls, role_id: int):
+    def find_by_id(cls, role_id):
         row = fetch_one(
             """
             SELECT *
@@ -208,7 +208,7 @@ class UserRole:
         return cls.from_db_row(row)
 
     @classmethod
-    def find_by_title(cls, title: str):
+    def find_by_title(cls, title):
         t = (title or "").strip().upper()
         row = fetch_one(
             """
@@ -222,7 +222,7 @@ class UserRole:
         return cls.from_db_row(row)
 
     @classmethod
-    def exists(cls, title: str) -> bool:
+    def exists(cls, title):
         t = (title or "").strip().upper()
         row = fetch_one("SELECT 1 FROM UserRole WHERE Title = %s LIMIT 1", (t,))
         return row is not None
@@ -396,6 +396,73 @@ class UserRole:
     def list_all_user_roles():
         rows = fetch_all("SELECT * FROM UserRole ORDER BY Title")
         return [UserRole.from_db_row(r) for r in rows]
+    
+    def scopes_dict(self):
+        """Return just the permission scope fields (no id/title/timestamps)."""
+        return {
+            "view_dog_scope": self.view_dog_scope,
+            "edit_dog_scope": self.edit_dog_scope,
+            "view_person_scope": self.view_person_scope,
+            "edit_person_scope": self.edit_person_scope,
+            "view_dog_owner_scope": self.view_dog_owner_scope,
+            "edit_dog_owner_scope": self.edit_dog_owner_scope,
+            "view_officer_role_scope": self.view_officer_role_scope,
+            "edit_officer_role_scope": self.edit_officer_role_scope,
+            "view_user_role_scope": self.view_user_role_scope,
+            "edit_user_role_scope": self.edit_user_role_scope,
+            "view_club_scope": self.view_club_scope,
+            "edit_club_scope": self.edit_club_scope,
+            "view_meet_scope": self.view_meet_scope,
+            "edit_meet_scope": self.edit_meet_scope,
+            "view_meet_results_scope": self.view_meet_results_scope,
+            "edit_meet_results_scope": self.edit_meet_results_scope,
+            "view_race_results_scope": self.view_race_results_scope,
+            "edit_race_results_scope": self.edit_race_results_scope,
+            "view_dog_titles_scope": self.view_dog_titles_scope,
+            "edit_dog_titles_scope": self.edit_dog_titles_scope,
+            "view_title_type_scope": self.view_title_type_scope,
+            "edit_title_type_scope": self.edit_title_type_scope,
+            "view_news_scope": self.view_news_scope,
+            "edit_news_scope": self.edit_news_scope,
+            "view_change_log_scope": self.view_change_log_scope,
+        }
+
+    def matches_scopes(self, other):
+        """True if all permission scopes match another role exactly."""
+        if not other:
+            return False
+        return self.scopes_dict() == other.scopes_dict()
+
+    def copy_scopes_from(self, other):
+        """Copy all permission scopes from another role onto this one."""
+        if not other:
+            raise ValueError("copy_scopes_from: other role is required")
+
+        self.view_dog_scope = other.view_dog_scope
+        self.edit_dog_scope = other.edit_dog_scope
+        self.view_person_scope = other.view_person_scope
+        self.edit_person_scope = other.edit_person_scope
+        self.view_dog_owner_scope = other.view_dog_owner_scope
+        self.edit_dog_owner_scope = other.edit_dog_owner_scope
+        self.view_officer_role_scope = other.view_officer_role_scope
+        self.edit_officer_role_scope = other.edit_officer_role_scope
+        self.view_user_role_scope = other.view_user_role_scope
+        self.edit_user_role_scope = other.edit_user_role_scope
+        self.view_club_scope = other.view_club_scope
+        self.edit_club_scope = other.edit_club_scope
+        self.view_meet_scope = other.view_meet_scope
+        self.edit_meet_scope = other.edit_meet_scope
+        self.view_meet_results_scope = other.view_meet_results_scope
+        self.edit_meet_results_scope = other.edit_meet_results_scope
+        self.view_race_results_scope = other.view_race_results_scope
+        self.edit_race_results_scope = other.edit_race_results_scope
+        self.view_dog_titles_scope = other.view_dog_titles_scope
+        self.edit_dog_titles_scope = other.edit_dog_titles_scope
+        self.view_title_type_scope = other.view_title_type_scope
+        self.edit_title_type_scope = other.edit_title_type_scope
+        self.view_news_scope = other.view_news_scope
+        self.edit_news_scope = other.edit_news_scope
+        self.view_change_log_scope = other.view_change_log_scope
 
     def to_dict(self):
         return {
