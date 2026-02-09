@@ -393,7 +393,34 @@ curl -i -b cookies.txt \
 
 
 --------------------------------------------------
-DOG OWNER
+(
+  Must be signed in.
+  Permissions:
+  View: viewDogOwnerScope
+    0 = none
+    1 = self
+    2 = all
+
+  Edit: editDogOwnerScope
+    0 = none
+    1 = self
+    2 = all
+
+  SELF rules:
+  View:
+    You may only view owners for a dog you already own.
+
+  Edit:
+    Add owner:
+      You may only add yourself as an owner.
+      You do not need to already own the dog.
+
+  Delete owner:
+    You may only delete owners for a dog you already own.
+
+  Transfer ownership:
+    You may only transfer ownership for a dog you already own.
+)
 --------------------------------------------------
 
 --------------------------------------------------
@@ -416,7 +443,7 @@ curl -i -b cookies.txt \
   -X POST http://localhost/api/dog_owner/delete \
   -d '{
     "cwaId": "T12345",
-    "personId": "test_1",
+    "personId": "SYSTEM",
     "confirm": true
   }'
 
