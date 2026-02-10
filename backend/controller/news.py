@@ -15,13 +15,13 @@ from utils.auth_helpers import current_editor_id, current_role, require_scope
 news_bp = Blueprint("news", __name__, url_prefix="/api/news")
 
 
-def _is_news_owner(news_item: News) -> bool:
+def _is_news_owner(news_item):
     person_id = current_editor_id()
     if not person_id or not news_item:
         return False
 
     author_id = getattr(news_item, "author_id", None) or getattr(news_item, "authorId", None)
-    return str(author_id) == str(person_id)
+    return (author_id) == (person_id)
 
 
 @news_bp.route("/get", methods=["GET"])
@@ -143,7 +143,7 @@ def get_news_by_id(news_id):
 
 @news_bp.route("/add", methods=["POST"])
 def create_news():
-    role = _current_role()
+    role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
