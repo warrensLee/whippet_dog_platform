@@ -1,7 +1,8 @@
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, jsonify, request
 from mysql.connector import Error
 from datetime import datetime, timezone
 from classes.dog_title import DogTitle
+from classes.dog_owner import DogOwner
 from classes.change_log import ChangeLog
 from classes.user_role import UserRole
 from database import fetch_one
@@ -9,6 +10,14 @@ from utils.auth_helpers import current_editor_id, current_role, require_scope
 
 
 dog_title_bp = Blueprint("dog_title", __name__, url_prefix="/api/dog_title")
+
+
+def _is_owner(cwa_number):
+    """Check if current user owns the specified dog."""
+    pid = current_editor_id()
+    if not pid:
+        return False
+    return DogOwner.exists(cwa_number, pid)
 
 
 @dog_title_bp.post("/add")
@@ -24,6 +33,13 @@ def add_dog_title():
 
     data = request.get_json(silent=True) or {}
     dog_title = DogTitle.from_request_data(data)
+
+    if role.edit_dog_titles_scope == UserRole.SELF:
+        if not _is_owner(dog_title.cwa_number):
+            return jsonify({
+                "ok": False,
+                "error": "You can only add titles to dogs you own"
+            }), 403
 
     dog_title.last_edited_by = current_editor_id()
     dog_title.last_edited_at = datetime.now(timezone.utc)
@@ -79,6 +95,13 @@ def edit_dog_title():
         return jsonify({"ok": False, "error": "cwaNumber is required"}), 400
     if not title:
         return jsonify({"ok": False, "error": "title is required"}), 400
+
+    if role.edit_dog_titles_scope == UserRole.SELF:
+        if not _is_owner(cwa_number):
+            return jsonify({
+                "ok": False,
+                "error": "You can only edit titles on dogs you own"
+            }), 403
 
     if not fetch_one("SELECT 1 FROM Dog WHERE CWANumber = %s LIMIT 1", (cwa_number,)):
         return jsonify({"ok": False, "error": "Dog does not exist"}), 404
@@ -145,6 +168,13 @@ def delete_dog_title():
     if not title:
         return jsonify({"ok": False, "error": "title is required"}), 400
 
+    if role.edit_dog_titles_scope == UserRole.SELF:
+        if not _is_owner(cwa_number):
+            return jsonify({
+                "ok": False,
+                "error": "You can only delete titles on dogs you own"
+            }), 403
+
     try:
         dog_title = DogTitle.find_by_identifier(cwa_number, title)
         if not dog_title:
@@ -180,6 +210,13 @@ def get_dog_title(cwa_number: str, title: str):
     if deny:
         return deny
 
+    if role.view_dog_titles_scope == UserRole.SELF:
+        if not _is_owner(cwa_number):
+            return jsonify({
+                "ok": False,
+                "error": "You can only view titles on dogs you own"
+            }), 403
+
     dog_title = DogTitle.find_by_identifier(cwa_number, title)
     if not dog_title:
         return jsonify({"ok": False, "error": "Dog title does not exist"}), 404
@@ -199,8 +236,22 @@ def get_all_dog_titles():
         return deny
 
     try:
-        titles = DogTitle.list_all_dog_titles()
-        data = [t.to_dict() for t in titles]
-        return jsonify({"ok": True, "data": data}), 200
+        if role.view_dog_titles_scope == UserRole.ALL:
+            titles = DogTitle.list_all_dog_titles()
+            data = [t.to_dict() for t in titles]
+            return jsonify({"ok": True, "data": data}), 200
+        
+        elif role.view_dog_titles_scope == UserRole.SELF:
+            pid = current_editor_id()
+            if not pid:
+                return jsonify({"ok": False, "error": "Not signed in"}), 401
+            
+            titles = DogTitle.list_titles_for_owner(pid)
+            data = [t.to_dict() for t in titles]
+            return jsonify({"ok": True, "data": data}), 200
+        
+        else:
+            return jsonify({"ok": False, "error": "Not allowed to view dog titles"}), 403
+            
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500

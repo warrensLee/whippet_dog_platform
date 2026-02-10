@@ -235,6 +235,82 @@ curl -i -b cookies.txt \
 
 
 --------------------------------------------------
+DOG TITLE
+(
+  must be logged in
+  Permissions:
+  View: viewDogTitlesScope
+  0 = none
+  1 = self (only titles for dogs you own)
+  2 = all (titles for any dog)
+
+  Edit: editDogTitlesScope
+  0 = none
+  1 = self (add/edit/delete titles only for dogs you own)
+  2 = all (add/edit/delete titles for any dog)
+)
+--------------------------------------------------
+
+--------------------------------------------------
+POST /api/dog_title/add
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/dog_title/add \
+  -d '{
+    "cwaNumber": "T12345",
+    "title": "ARX",
+    "titleDate": "2024-05-01",
+    "titleNumber": "1",
+    "namePrefix": "A",
+    "nameSuffix": "X"
+  }'
+
+
+
+--------------------------------------------------
+POST /api/dog_title/edit
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/dog_title/edit \
+  -d '{
+    "cwaNumber": "T12345",
+    "title": "ARX",
+    "titleDate": "2024-06-01",
+    "titleNumber": "2",
+    "namePrefix": "A",
+    "nameSuffix": "X"
+  }'
+
+
+--------------------------------------------------
+POST /api/dog_title/delete
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/dog_title/delete \
+  -d '{
+    "cwaNumber": "T12345",
+    "title": "ARX",
+    "confirm": true
+  }'
+
+
+--------------------------------------------------
+GET /api/dog_title/get/<cwa_number>/<title>
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/dog_title/get/T12345/ARX
+
+
+--------------------------------------------------
+GET /api/dog_title/get
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/dog_title/get
+
+--------------------------------------------------
 DOG
 --------------------------------------------------
 
@@ -464,70 +540,6 @@ GET /api/officer_role/mine
 --------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/officer_role/mine
-
-
---------------------------------------------------
-DOG TITLE
---------------------------------------------------
-
---------------------------------------------------
-POST /api/dog_title/add
---------------------------------------------------
-curl -i -b cookies.txt \
-  -H "Content-Type: application/json" \
-  -X POST http://localhost/api/dog_title/add \
-  -d '{
-    "cwaNumber": "T12345",
-    "title": "ARX",
-    "titleDate": "2024-05-01",
-    "titleNumber": "1",
-    "namePrefix": "A",
-    "nameSuffix": "X"
-  }'
-
-
-
---------------------------------------------------
-POST /api/dog_title/edit
---------------------------------------------------
-curl -i -b cookies.txt \
-  -H "Content-Type: application/json" \
-  -X POST http://localhost/api/dog_title/edit \
-  -d '{
-    "cwaNumber": "T12345",
-    "title": "ARX",
-    "titleDate": "2024-06-01",
-    "titleNumber": "2",
-    "namePrefix": "A",
-    "nameSuffix": "X"
-  }'
-
-
---------------------------------------------------
-POST /api/dog_title/delete
---------------------------------------------------
-curl -i -b cookies.txt \
-  -H "Content-Type: application/json" \
-  -X POST http://localhost/api/dog_title/delete \
-  -d '{
-    "cwaNumber": "T12345",
-    "title": "ARX",
-    "confirm": true
-  }'
-
-
---------------------------------------------------
-GET /api/dog_title/get/<cwa_number>/<title>
---------------------------------------------------
-curl -i -b cookies.txt \
-  http://localhost/api/dog_title/get/T12345/ARX
-
-
---------------------------------------------------
-GET /api/dog_title/get
---------------------------------------------------
-curl -i -b cookies.txt \
-  http://localhost/api/dog_title/get
 
 
 --------------------------------------------------
