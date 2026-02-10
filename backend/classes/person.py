@@ -125,7 +125,7 @@ class Person:
         """Hash and set the password."""
         self.password_hash = generate_password_hash(password)
 
-    def check_password(self, password: str) -> bool:
+    def check_password(self, password):
         if not self.password_hash:
             return False
         return check_password_hash(self.password_hash, password)
@@ -187,7 +187,7 @@ class Person:
                     self.address_line_one, self.address_line_two, self.city, self.state_province,
                     self.zip_code, self.country, self.primary_phone, self.secondary_phone,
                     self.system_role, self.password_hash, self.notes,
-                    self.last_edited_by, self.last_edited_at, self.person_id  # Added last_edited_at
+                    self.last_edited_by, self.last_edited_at, self.person_id  
                 ),
             )
             return True

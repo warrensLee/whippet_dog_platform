@@ -6,7 +6,6 @@ Finish check_eligibility method
 Finish award_title method
 '''
 
-from werkzeug.security import generate_password_hash, check_password_hash
 from database import fetch_all, fetch_one, execute
 from mysql.connector import Error
 
