@@ -898,6 +898,89 @@ curl -i -b cookies.txt \
 
 
 --------------------------------------------------
+RACE RESULT
+(
+  must be logged in
+  View: viewRaceResultsScope
+  0 = none
+  1 = self (only race results for dogs you own)
+  2 = all (view all race results)
+
+  Edit: editRaceResultsScope
+  0 = none
+  1 = self (create/edit/delete race results only for dogs you own)
+  2 = all (create/edit/delete any race result)
+)
+--------------------------------------------------
+
+--------------------------------------------------
+GET /api/race_result/get
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/race_result/get
+
+
+--------------------------------------------------
+GET /api/race_result/get/<meet_number>/<cwa_number>/<program>/<race_number>
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/race_result/get/MEET-001/T12345/A/1
+
+
+--------------------------------------------------
+POST /api/race_result/add
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/race_result/add \
+  -d '{
+    "meetNumber": "MEET-002",
+    "cwaNumber": "T12345",
+    "program": "A",
+    "raceNumber": "1",
+    "entryType": "REG",
+    "box": "3",
+    "placement": "1",
+    "meetPoints": "4",
+    "incident": ""
+  }'
+
+
+--------------------------------------------------
+POST /api/race_result/edit
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/race_result/edit \
+  -d '{
+    "meetNumber": "MEET-001",
+    "cwaNumber": "T12345",
+    "program": "A",
+    "raceNumber": "1",
+    "entryType": "REG",
+    "box": "4",
+    "placement": "2",
+    "meetPoints": "5",
+    "incident": "BUMP"
+  }'
+
+
+--------------------------------------------------
+POST /api/race_result/delete
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/race_result/delete \
+  -d '{
+    "meetNumber": "MEET-001",
+    "cwaNumber": "T12345",
+    "program": "A",
+    "raceNumber": "1",
+    "confirm": true
+  }'
+
+
+--------------------------------------------------
 TITLE TYPE
 --------------------------------------------------
 
@@ -1065,76 +1148,5 @@ curl -i -b cookies.txt \
   -X POST http://localhost/api/user_role/delete \
   -d '{
     "roleId": 7,
-    "confirm": true
-  }'
-
-
---------------------------------------------------
-RACE RESULT
---------------------------------------------------
-
---------------------------------------------------
-GET /api/race_result/get
---------------------------------------------------
-curl -i -b cookies.txt \
-  http://localhost/api/race_result/get
-
-
---------------------------------------------------
-GET /api/race_result/get/<meet_number>/<cwa_number>/<program>/<race_number>
---------------------------------------------------
-curl -i -b cookies.txt \
-  http://localhost/api/race_result/get/MEET-001/T12345/A/1
-
-
---------------------------------------------------
-POST /api/race_result/add
---------------------------------------------------
-curl -i -b cookies.txt \
-  -H "Content-Type: application/json" \
-  -X POST http://localhost/api/race_result/add \
-  -d '{
-    "meetNumber": "MEET-001",
-    "cwaNumber": "T12345",
-    "program": "A",
-    "raceNumber": "1",
-    "entryType": "REG",
-    "box": "3",
-    "placement": "1",
-    "meetPoints": "4",
-    "incident": ""
-  }'
-
-
---------------------------------------------------
-POST /api/race_result/edit
---------------------------------------------------
-curl -i -b cookies.txt \
-  -H "Content-Type: application/json" \
-  -X POST http://localhost/api/race_result/edit \
-  -d '{
-    "meetNumber": "MEET-001",
-    "cwaNumber": "T12345",
-    "program": "A",
-    "raceNumber": "1",
-    "entryType": "REG",
-    "box": "4",
-    "placement": "2",
-    "meetPoints": "5",
-    "incident": "BUMP"
-  }'
-
-
---------------------------------------------------
-POST /api/race_result/delete
---------------------------------------------------
-curl -i -b cookies.txt \
-  -H "Content-Type: application/json" \
-  -X POST http://localhost/api/race_result/delete \
-  -d '{
-    "meetNumber": "MEET-001",
-    "cwaNumber": "T12345",
-    "program": "A",
-    "raceNumber": "1",
     "confirm": true
   }'

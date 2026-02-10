@@ -1,12 +1,21 @@
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, jsonify, request
 from mysql.connector import Error
 from datetime import datetime, timezone
 from classes.race_result import RaceResult
+from classes.dog_owner import DogOwner
 from classes.change_log import ChangeLog
 from classes.user_role import UserRole
 from utils.auth_helpers import current_editor_id, current_role, require_scope
 
 race_result_bp = Blueprint("race_result", __name__, url_prefix="/api/race_result")
+
+
+def _is_owner(cwa_number):
+    """Check if current user owns the specified dog."""
+    pid = current_editor_id()
+    if not pid:
+        return False
+    return DogOwner.exists(cwa_number, pid)
 
 
 @race_result_bp.post("/add")
@@ -21,6 +30,13 @@ def register_race_result():
 
     data = request.get_json(silent=True) or {}
     race_result = RaceResult.from_request_data(data)
+
+    if role.edit_race_results_scope == UserRole.SELF:
+        if not _is_owner(race_result.cwa_number):
+            return jsonify({
+                "ok": False,
+                "error": "You can only add race results for dogs you own"
+            }), 403
 
     race_result.last_edited_by = current_editor_id()
     race_result.last_edited_at = datetime.now(timezone.utc)
@@ -67,7 +83,6 @@ def edit_race_result():
         return deny
 
     data = request.get_json(silent=True) or {}
-
     meet_number = (data.get("meetNumber") or "").strip()
     cwa_number = (data.get("cwaNumber") or "").strip()
     program = (data.get("program") or "").strip()
@@ -86,6 +101,13 @@ def edit_race_result():
     if not existing:
         return jsonify({"ok": False, "error": "Race result does not exist"}), 404
 
+    if role.edit_race_results_scope == UserRole.SELF:
+        if not _is_owner(cwa_number):
+            return jsonify({
+                "ok": False,
+                "error": "You can only edit race results for dogs you own"
+            }), 403
+
     before_snapshot = existing.to_dict()
 
     race_result = RaceResult.from_request_data(data)
@@ -93,7 +115,6 @@ def edit_race_result():
     race_result.cwa_number = cwa_number
     race_result.program = program
     race_result.race_number = race_number
-
     race_result.last_edited_by = current_editor_id()
     race_result.last_edited_at = datetime.now(timezone.utc)
 
@@ -134,7 +155,6 @@ def delete_race_result():
         return deny
 
     data = request.get_json(silent=True) or {}
-
     if data.get("confirm") is not True:
         return jsonify({"ok": False, "error": "Confirmation required"}), 400
 
@@ -156,6 +176,13 @@ def delete_race_result():
         existing = RaceResult.find_by_identifier(meet_number, cwa_number, program, race_number)
         if not existing:
             return jsonify({"ok": False, "error": "Race result does not exist"}), 404
+
+        if role.edit_race_results_scope == UserRole.SELF:
+            if not _is_owner(cwa_number):
+                return jsonify({
+                    "ok": False,
+                    "error": "You can only delete race results for dogs you own"
+                }), 403
 
         before_snapshot = existing.to_dict()
         existing.delete(meet_number, cwa_number, program, race_number)
@@ -190,6 +217,13 @@ def get_race_result(meet_number: str, cwa_number: str, program: str, race_number
     if not race_result:
         return jsonify({"ok": False, "error": "Race result does not exist"}), 404
 
+    if role.view_race_results_scope == UserRole.SELF:
+        if not _is_owner(cwa_number):
+            return jsonify({
+                "ok": False,
+                "error": "You can only view race results for dogs you own"
+            }), 403
+
     return jsonify({"ok": True, "data": race_result.to_dict()}), 200
 
 
@@ -204,7 +238,20 @@ def list_all_race_results():
         return deny
 
     try:
-        race_results = RaceResult.list_all_race_results()
-        return jsonify({"ok": True, "data": [r.to_dict() for r in race_results]}), 200
-    except Error as e:
+        if role.view_race_results_scope == UserRole.ALL:
+            race_results = RaceResult.list_all_race_results()
+            return jsonify({"ok": True, "data": [r.to_dict() for r in race_results]}), 200
+        
+        elif role.view_race_results_scope == UserRole.SELF:
+            pid = current_editor_id()
+            if not pid:
+                return jsonify({"ok": False, "error": "Not signed in"}), 401
+            
+            race_results = RaceResult.list_results_for_owner(pid)
+            return jsonify({"ok": True, "data": [r.to_dict() for r in race_results]}), 200
+        
+        else:
+            return jsonify({"ok": False, "error": "Not allowed to view race results"}), 403
+
+    except Error as e: 
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
