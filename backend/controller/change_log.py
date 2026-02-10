@@ -44,17 +44,17 @@ def list_all_change_logs():
     try:
         if role.view_change_log_scope == UserRole.ALL:
             change_logs = ChangeLog.list_all()
+            return jsonify({"ok": True, "data": [c.to_dict() for c in change_logs]}), 200
 
         elif role.view_change_log_scope == UserRole.SELF:
             pid = current_editor_id()
             if not pid:
                 return jsonify({"ok": False, "error": "Not signed in"}), 401
             change_logs = ChangeLog.list_for_user(pid)
+            return jsonify({"ok": True, "data": [c.to_dict() for c in change_logs]}), 200
 
         else:
             return jsonify({"ok": False, "error": "Not allowed to view change logs"}), 403
-
-        return jsonify({"ok": True, "data": [c.to_dict() for c in change_logs]}), 200
 
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
