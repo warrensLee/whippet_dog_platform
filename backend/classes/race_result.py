@@ -192,6 +192,18 @@ class RaceResult:
             """
         )
         return [RaceResult.from_db_row(row) for row in rows]
+    
+    @classmethod
+    def list_results_for_owner(cls, person_id):
+        """Get all race results for dogs owned by a specific person."""
+        query = """
+            SELECT rr.* 
+            FROM RaceResults rr
+            JOIN DogOwner do ON rr.CWANumber = do.CWAID
+            WHERE do.PersonID = %s
+        """
+        rows = fetch_all(query, (person_id,))
+        return [cls.from_db_row(row) for row in rows]
             
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""
