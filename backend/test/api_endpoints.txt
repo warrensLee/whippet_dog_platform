@@ -662,6 +662,96 @@ curl -i -b cookies.txt \
   }'
 
 --------------------------------------------------
+NEWS
+(
+  Must be signed in.
+  Permissions:
+
+  View: viewNewsScope
+  0 = none
+  1 = self (only news items you authored)
+  2 = all (view all news items)
+
+  Edit: editNewsScope
+  0 = none
+  1 = self (create/edit/delete only news items you authored)
+  2 = all (create/edit/delete any news item)
+)
+--------------------------------------------------
+
+--------------------------------------------------
+GET /api/news/get
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/news/get
+
+--------------------------------------------------
+GET /api/news/get/<news_id>
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/news/get/1
+
+--------------------------------------------------
+POST /api/news/add
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/news/add \
+  -d '{
+    "title": "New Event Announcement",
+    "content": "We are hosting a new event this weekend."
+  }'
+
+--------------------------------------------------
+PUT /api/news/edit/<news_id>
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X PUT http://localhost/api/news/edit/1 \
+  -d '{
+    "title": "Updated Event Announcement",
+    "content": "The event time has changed."
+  }'
+
+--------------------------------------------------
+DELETE /api/news/delete/<news_id>
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -X DELETE http://localhost/api/news/delete/1
+
+--------------------------------------------------
+GET /api/news/search?q=<query>
+--------------------------------------------------
+curl -i -b cookies.txt \
+  "http://localhost/api/news/search?q=event"
+
+--------------------------------------------------
+POST /api/news/subscribe
+--------------------------------------------------
+curl -i \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/news/subscribe \
+  -d '{
+    "email": "test@example.com"
+  }'
+
+--------------------------------------------------
+POST /api/news/unsubscribe
+--------------------------------------------------
+curl -i \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/news/unsubscribe \
+  -d '{
+    "email": "test@example.com"
+  }'
+
+--------------------------------------------------
+GET /api/news/subscription-status?email=<email>
+--------------------------------------------------
+curl -i \
+  "http://localhost/api/news/subscription-status?email=test@example.com"
+
+--------------------------------------------------
 OFFICER ROLE
 --------------------------------------------------
 
@@ -780,81 +870,6 @@ GET /api/title_type/get
 curl -i -b cookies.txt \
   http://localhost/api/title_type/get
 
---------------------------------------------------
-NEWS
---------------------------------------------------
-
---------------------------------------------------
-GET /api/news/get
---------------------------------------------------
-curl -i -b cookies.txt \
-  http://localhost/api/news/get
-
---------------------------------------------------
-GET /api/news/get/<news_id>
---------------------------------------------------
-curl -i -b cookies.txt \
-  http://localhost/api/news/get/1
-
---------------------------------------------------
-POST /api/news/add
---------------------------------------------------
-curl -i -b cookies.txt \
-  -H "Content-Type: application/json" \
-  -X POST http://localhost/api/news/add \
-  -d '{
-    "title": "New Event Announcement",
-    "content": "We are hosting a new event this weekend."
-  }'
-
---------------------------------------------------
-PUT /api/news/edit/<news_id>
---------------------------------------------------
-curl -i -b cookies.txt \
-  -H "Content-Type: application/json" \
-  -X PUT http://localhost/api/news/edit/1 \
-  -d '{
-    "title": "Updated Event Announcement",
-    "content": "The event time has changed."
-  }'
-
---------------------------------------------------
-DELETE /api/news/delete/<news_id>
---------------------------------------------------
-curl -i -b cookies.txt \
-  -X DELETE http://localhost/api/news/delete/1
-
---------------------------------------------------
-GET /api/news/search?q=<query>
---------------------------------------------------
-curl -i -b cookies.txt \
-  "http://localhost/api/news/search?q=event"
-
---------------------------------------------------
-POST /api/news/subscribe
---------------------------------------------------
-curl -i \
-  -H "Content-Type: application/json" \
-  -X POST http://localhost/api/news/subscribe \
-  -d '{
-    "email": "test@example.com"
-  }'
-
---------------------------------------------------
-POST /api/news/unsubscribe
---------------------------------------------------
-curl -i \
-  -H "Content-Type: application/json" \
-  -X POST http://localhost/api/news/unsubscribe \
-  -d '{
-    "email": "test@example.com"
-  }'
-
---------------------------------------------------
-GET /api/news/subscription-status?email=<email>
---------------------------------------------------
-curl -i \
-  "http://localhost/api/news/subscription-status?email=test@example.com"
 
 --------------------------------------------------
 PERSON
