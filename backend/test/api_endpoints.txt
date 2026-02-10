@@ -2,7 +2,7 @@
 ENDPOINT TESTS
 ==============================
 --------------------------------------------------
-Authenticate (No user permssions and dont have to sign in)
+Authenticate (No user permissions and dont have to sign in)
 --------------------------------------------------
 
 --------------------------------------------------
@@ -160,7 +160,7 @@ curl -i -b cookies.txt \
   }"
 
 --------------------------------------------------
-CONTACT
+CONTACT (dont have to be logged in and no user roles)
 --------------------------------------------------
 
 --------------------------------------------------
@@ -579,6 +579,89 @@ curl -i -b cookies.txt \
   http://localhost/api/meet_result/get
 
 --------------------------------------------------
+MEET
+(
+  Have to be logged in 
+  View: viewMeetScope
+  0 = none
+  1 = self (only meets where you are involved)
+  2 = all (view all meets)
+
+  Edit: editMeetScope
+  0 = none
+  1 = self (create/edit/delete only meets where you are involved)
+  2 = all (create/edit/delete any meet)
+  A user is considered self for a meet if any of the following are true:
+
+  The user is the Race Secretary for the meet
+  (Meet.RaceSecretary == current user)
+
+  The user is the Judge for the meet
+  (Meet.Judge == current user)
+
+)
+--------------------------------------------------
+
+--------------------------------------------------
+GET /api/meet/get
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/meet/get
+
+
+--------------------------------------------------
+GET /api/meet/get/<meet_number>
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/meet/get/MEET-001
+
+
+--------------------------------------------------
+POST /api/meet/add
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/meet/add \
+  -d '{
+    "meetNumber": "MEET-005",
+    "clubAbbreviation": "TCLUB",
+    "meetDate": "2026-04-10",
+    "raceSecretary": "SYSTEM",
+    "judge": "SYSTEM",
+    "location": "LITTLE ROCK",
+    "yards": "200"
+  }'
+
+--------------------------------------------------
+POST /api/meet/edit
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/meet/edit \
+  -d '{
+    "meetNumber": "MEET-001",
+    "clubAbbreviation": "TCLUB",
+    "meetDate": "2026-04-10",
+    "raceSecretary": "SYSTEM",
+    "judge": "SYSTEM",
+    "location": "LITTLE ROCK",
+    "yards": "200"
+  }'
+
+
+
+--------------------------------------------------
+POST /api/meet/delete
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/meet/delete \
+  -d '{
+    "meetNumber": "MEET-001",
+    "confirm": true
+  }'
+
+--------------------------------------------------
 OFFICER ROLE
 --------------------------------------------------
 
@@ -949,69 +1032,6 @@ curl -i -b cookies.txt \
     "confirm": true
   }'
 
---------------------------------------------------
-MEET
---------------------------------------------------
-
-
---------------------------------------------------
-GET /api/meet/get
---------------------------------------------------
-curl -i -b cookies.txt \
-  http://localhost/api/meet/get
-
-
---------------------------------------------------
-GET /api/meet/get/<meet_number>
---------------------------------------------------
-curl -i -b cookies.txt \
-  http://localhost/api/meet/get/MEET-001
-
-
---------------------------------------------------
-POST /api/meet/add
---------------------------------------------------
-curl -i -b cookies.txt \
-  -H "Content-Type: application/json" \
-  -X POST http://localhost/api/meet/add \
-  -d '{
-    "meetNumber": "MEET-001",
-    "clubAbbreviation": "TCLUB",
-    "meetDate": "2026-04-10",
-    "raceSecretary": "SYSTEM",
-    "judge": "SYSTEM",
-    "location": "LITTLE ROCK",
-    "yards": "200"
-  }'
-
---------------------------------------------------
-POST /api/meet/edit
---------------------------------------------------
-curl -i -b cookies.txt \
-  -H "Content-Type: application/json" \
-  -X POST http://localhost/api/meet/edit \
-  -d '{
-    "meetNumber": "MEET-001",
-    "clubAbbreviation": "TCLUB",
-    "meetDate": "2026-04-10",
-    "raceSecretary": "SYSTEM",
-    "judge": "SYSTEM",
-    "location": "LITTLE ROCK",
-    "yards": "200"
-  }'
-
-
-
---------------------------------------------------
-POST /api/meet/delete
---------------------------------------------------
-curl -i -b cookies.txt \
-  -H "Content-Type: application/json" \
-  -X POST http://localhost/api/meet/delete \
-  -d '{
-    "meetNumber": "MEET-001",
-    "confirm": true
-  }'
 
 --------------------------------------------------
 RACE RESULT
