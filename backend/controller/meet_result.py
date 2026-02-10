@@ -1,17 +1,24 @@
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, jsonify, request
 from mysql.connector import Error
 from datetime import datetime, timezone
 from classes.meet_result import MeetResult
+from classes.dog_owner import DogOwner
 from classes.change_log import ChangeLog
 from classes.user_role import UserRole
 from utils.auth_helpers import current_editor_id, current_role, require_scope
 
 meet_result_bp = Blueprint("meet_result", __name__, url_prefix="/api/meet_result")
 
+def _is_owner(cwa_number):
+    pid = current_editor_id()
+    if not pid:
+        return False
+    return DogOwner.exists(cwa_number, pid)
+
 
 @meet_result_bp.post("/add")
 def register_meet_result():
-    role = current_editor_id()
+    role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
@@ -22,11 +29,15 @@ def register_meet_result():
     data = request.get_json(silent=True) or {}
     meet_result = MeetResult.from_request_data(data)
 
+    if role.edit_meet_results_scope == UserRole.SELF:
+        if not _is_owner(meet_result.cwa_number):
+            return jsonify({
+                "ok": False,
+                "error": "You can only add meet results for dogs you own"
+            }), 403
+
     meet_result.last_edited_by = current_editor_id()
     meet_result.last_edited_at = datetime.now(timezone.utc)
-
-    if role.edit_meet_results_scope == UserRole.SELF:
-        return jsonify({"ok": False, "error": "Not allowed to create this meet result"}), 403
 
     validation_errors = meet_result.validate()
     if validation_errors:
@@ -78,7 +89,11 @@ def edit_meet_result():
         return jsonify({"ok": False, "error": "Meet result does not exist"}), 404
 
     if role.edit_meet_results_scope == UserRole.SELF:
-        return jsonify({"ok": False, "error": "Not allowed to edit this meet result"}), 403
+        if not _is_owner(cwa_number):
+            return jsonify({
+                "ok": False,
+                "error": "You can only edit meet results for dogs you own"
+            }), 403
 
     before_snapshot = existing.to_dict()
 
@@ -140,7 +155,11 @@ def delete_meet_result():
         return jsonify({"ok": False, "error": "Meet result does not exist"}), 404
 
     if role.edit_meet_results_scope == UserRole.SELF:
-        return jsonify({"ok": False, "error": "Not allowed to delete this meet result"}), 403
+        if not _is_owner(cwa_number):
+            return jsonify({
+                "ok": False,
+                "error": "You can only delete meet results for dogs you own"
+            }), 403
 
     try:
         before_snapshot = meet_result.to_dict()
@@ -177,7 +196,11 @@ def get_meet_result(meet_number: str, cwa_number: str):
         return jsonify({"ok": False, "error": "Meet result does not exist"}), 404
 
     if role.view_meet_results_scope == UserRole.SELF:
-        return jsonify({"ok": False, "error": "Not allowed to view this meet result"}), 403
+        if not _is_owner(cwa_number):
+            return jsonify({
+                "ok": False,
+                "error": "You can only view meet results for dogs you own"
+            }), 403
 
     return jsonify({"ok": True, "data": meet_result.to_dict()}), 200
 
@@ -193,14 +216,20 @@ def list_all_meet_results():
         return deny
 
     try:
-        meet_results = MeetResult.list_all_meet_results()
-        out = []
-        for mr in meet_results:
-            if role.view_meet_results_scope == UserRole.SELF:
-                continue
-            out.append(mr.to_dict())
-
-        return jsonify({"ok": True, "data": out}), 200
+        if role.view_meet_results_scope == UserRole.ALL:
+            meet_results = MeetResult.list_all_meet_results()
+            return jsonify({"ok": True, "data": [mr.to_dict() for mr in meet_results]}), 200
+        
+        elif role.view_meet_results_scope == UserRole.SELF:
+            pid = current_editor_id()
+            if not pid:
+                return jsonify({"ok": False, "error": "Not signed in"}), 401
+            
+            meet_results = MeetResult.list_results_for_owner(pid)
+            return jsonify({"ok": True, "data": [mr.to_dict() for mr in meet_results]}), 200
+        
+        else:
+            return jsonify({"ok": False, "error": "Not allowed to view meet results"}), 403
 
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
