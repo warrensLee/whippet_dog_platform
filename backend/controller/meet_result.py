@@ -4,47 +4,25 @@ from datetime import datetime, timezone
 from classes.meet_result import MeetResult
 from classes.change_log import ChangeLog
 from classes.user_role import UserRole
+from utils.auth_helpers import current_editor_id, current_role, require_scope
 
 meet_result_bp = Blueprint("meet_result", __name__, url_prefix="/api/meet_result")
-
-def _current_editor_id() -> str | None:
-    u = session.get("user") or {}
-    return (u.get("PersonID") or u.get("personId") or u.get("id") or None)
-
-
-def _current_role() -> UserRole | None:
-    pid = _current_editor_id()
-    if not pid:
-        return None
-
-    u = session.get("user") or {}
-    title = u.get("SystemRole")
-    if not title:
-        return None
-
-    return UserRole.find_by_title(title.strip().upper())
-
-
-def _require_scope(scope_value: int, action: str):
-    if int(scope_value or 0) == UserRole.NONE:
-        return jsonify({"ok": False, "error": f"Not allowed to {action}"}), 403
-    return None
 
 
 @meet_result_bp.post("/add")
 def register_meet_result():
-    role = _current_role()
+    role = current_editor_id()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = _require_scope(role.edit_meet_results_scope, "create meet results")
+    deny = require_scope(role.edit_meet_results_scope, "create meet results")
     if deny:
         return deny
 
     data = request.get_json(silent=True) or {}
     meet_result = MeetResult.from_request_data(data)
 
-    meet_result.last_edited_by = _current_editor_id()
+    meet_result.last_edited_by = current_editor_id()
     meet_result.last_edited_at = datetime.now(timezone.utc)
 
     if role.edit_meet_results_scope == UserRole.SELF:
@@ -64,7 +42,7 @@ def register_meet_result():
             changed_table="MeetResult",
             record_pk=f"{meet_result.meet_number}|{meet_result.cwa_number}",
             operation="INSERT",
-            changed_by=_current_editor_id(),
+            changed_by=current_editor_id(),
             source="api/meet_result/add POST",
             before_obj=None,
             after_obj=meet_result.to_dict(),
@@ -78,11 +56,11 @@ def register_meet_result():
 
 @meet_result_bp.post("/edit")
 def edit_meet_result():
-    role = _current_role()
+    role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = _require_scope(role.edit_meet_results_scope, "edit meet results")
+    deny = require_scope(role.edit_meet_results_scope, "edit meet results")
     if deny:
         return deny
 
@@ -107,7 +85,7 @@ def edit_meet_result():
     meet_result = MeetResult.from_request_data(data)
     meet_result.meet_number = meet_number
     meet_result.cwa_number = cwa_number
-    meet_result.last_edited_by = _current_editor_id()
+    meet_result.last_edited_by = current_editor_id()
     meet_result.last_edited_at = datetime.now(timezone.utc)
 
     validation_errors = meet_result.validate()
@@ -124,7 +102,7 @@ def edit_meet_result():
             changed_table="MeetResult",
             record_pk=f"{meet_number}|{cwa_number}",
             operation="UPDATE",
-            changed_by=_current_editor_id(),
+            changed_by=current_editor_id(),
             source="api/meet_result/edit POST",
             before_obj=before_snapshot,
             after_obj=after_snapshot,
@@ -138,11 +116,11 @@ def edit_meet_result():
 
 @meet_result_bp.post("/delete")
 def delete_meet_result():
-    role = _current_role()
+    role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = _require_scope(role.edit_meet_results_scope, "delete meet results")
+    deny = require_scope(role.edit_meet_results_scope, "delete meet results")
     if deny:
         return deny
 
@@ -172,7 +150,7 @@ def delete_meet_result():
             changed_table="MeetResult",
             record_pk=f"{meet_number}|{cwa_number}",
             operation="DELETE",
-            changed_by=_current_editor_id(),
+            changed_by=current_editor_id(),
             source="api/meet_result/delete POST",
             before_obj=before_snapshot,
             after_obj=None,
@@ -186,11 +164,11 @@ def delete_meet_result():
 
 @meet_result_bp.get("/get/<meet_number>/<cwa_number>")
 def get_meet_result(meet_number: str, cwa_number: str):
-    role = _current_role()
+    role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = _require_scope(role.view_meet_results_scope, "view meet results")
+    deny = require_scope(role.view_meet_results_scope, "view meet results")
     if deny:
         return deny
 
@@ -206,11 +184,11 @@ def get_meet_result(meet_number: str, cwa_number: str):
 
 @meet_result_bp.get("/get")
 def list_all_meet_results():
-    role = _current_role()
+    role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = _require_scope(role.view_meet_results_scope, "view meet results")
+    deny = require_scope(role.view_meet_results_scope, "view meet results")
     if deny:
         return deny
 

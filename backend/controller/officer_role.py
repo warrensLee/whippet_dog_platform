@@ -5,37 +5,14 @@ from datetime import datetime, timezone
 from classes.officer_role import OfficerRole
 from classes.change_log import ChangeLog
 from classes.user_role import UserRole
+from utils.auth_helpers import current_editor_id, current_role, require_scope
+
 
 officer_role_bp = Blueprint("officer_role", __name__, url_prefix="/api/officer_role")
 
 
-def _current_editor_id() -> str | None:
-    u = session.get("user") or {}
-    pid = u.get("PersonID")
-    return pid if pid else None
-
-
-def _current_role() -> UserRole | None:
-    u = session.get("user") or {}
-    pid = u.get("PersonID")
-    if not pid:
-        return None
-
-    title = u.get("SystemRole")
-    if not title:
-        return None
-
-    return UserRole.find_by_title(title.strip().upper())
-
-
-def _require_scope(scope_value: int, action: str):
-    if scope_value == UserRole.NONE:
-        return jsonify({"ok": False, "error": f"Not allowed to {action}"}), 403
-    return None
-
-
 def _is_owner(person_id: str) -> bool:
-    pid = _current_editor_id()
+    pid = current_editor_id()
     if not pid:
         return False
     return pid == person_id
@@ -43,18 +20,18 @@ def _is_owner(person_id: str) -> bool:
 
 @officer_role_bp.post("/add")
 def register_officer_role():
-    role = _current_role()
+    role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = _require_scope(role.edit_officer_role_scope, "create officer roles")
+    deny = require_scope(role.edit_officer_role_scope, "create officer roles")
     if deny:
         return deny
 
     data = request.get_json(silent=True) or {}
     officer = OfficerRole.from_request_data(data)
 
-    officer.last_edited_by = _current_editor_id()
+    officer.last_edited_by = current_editor_id()
     officer.last_edited_at = datetime.now(timezone.utc)
 
     errors = officer.validate()
@@ -70,19 +47,11 @@ def register_officer_role():
     try:
         officer.save()
 
-        # best-effort: get the inserted row for logging/response consistency
-        inserted = fetch_one(
-            "SELECT ID FROM OfficerRole WHERE RoleName=%s LIMIT 1",
-            (officer.role_name,),
-        )
-        if inserted:
-            officer.role_id = int(inserted.get("ID"))
-
         ChangeLog.log(
             changed_table="OfficerRole",
-            record_pk=str(officer.role_id) if officer.role_id else officer.role_name,
+            record_pk=str(officer.role_name),
             operation="INSERT",
-            changed_by=_current_editor_id(),
+            changed_by=current_editor_id(),
             source="api/officer_role/register POST",
             before_obj=None,
             after_obj=officer.to_dict(),
@@ -96,11 +65,11 @@ def register_officer_role():
 
 @officer_role_bp.post("/edit")
 def edit_officer_role():
-    role = _current_role()
+    role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = _require_scope(role.edit_officer_role_scope, "edit officer roles")
+    deny = require_scope(role.edit_officer_role_scope, "edit officer roles")
     if deny:
         return deny
 
@@ -124,7 +93,7 @@ def edit_officer_role():
     existing.person_id = officer.person_id
     existing.display_order = officer.display_order
     existing.active = officer.active
-    existing.last_edited_by = _current_editor_id()
+    existing.last_edited_by = current_editor_id()
     existing.last_edited_at = datetime.now(timezone.utc)
 
     errors = existing.validate()
@@ -141,7 +110,7 @@ def edit_officer_role():
             changed_table="OfficerRole",
             record_pk=existing.role_name, 
             operation="UPDATE",
-            changed_by=_current_editor_id(),
+            changed_by=current_editor_id(),
             source="api/officer_role/edit POST",
             before_obj=before_snapshot,
             after_obj=after_snapshot,
@@ -156,11 +125,11 @@ def edit_officer_role():
 
 @officer_role_bp.post("/delete")
 def delete_officer_role():
-    role = _current_role()
+    role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = _require_scope(role.edit_officer_role_scope, "delete officer roles")
+    deny = require_scope(role.edit_officer_role_scope, "delete officer roles")
     if deny:
         return deny
 
@@ -188,7 +157,7 @@ def delete_officer_role():
             changed_table="OfficerRole",
             record_pk=role_name,
             operation="DELETE",
-            changed_by=_current_editor_id(),
+            changed_by=current_editor_id(),
             source="api/officer_role/delete POST",
             before_obj=before_snapshot,
             after_obj=None,
@@ -203,11 +172,11 @@ def delete_officer_role():
 
 @officer_role_bp.get("/get/<role_name>")
 def get_officer_role(role_name):
-    role = _current_role()
+    role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = _require_scope(role.view_officer_role_scope, "view officer roles")
+    deny = require_scope(role.view_officer_role_scope, "view officer roles")
     if deny:
         return deny
 
@@ -228,11 +197,11 @@ def get_officer_role(role_name):
 
 @officer_role_bp.get("/get")
 def list_officer_roles():
-    role = _current_role()
+    role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = _require_scope(role.view_officer_role_scope, "view officer roles")
+    deny = require_scope(role.view_officer_role_scope, "view officer roles")
     if deny:
         return deny
 
@@ -240,7 +209,7 @@ def list_officer_roles():
         if role.view_officer_role_scope == UserRole.ALL:
             officers = OfficerRole.list_all()
         else:
-            pid = _current_editor_id()
+            pid = current_editor_id()
             if not pid:
                 return jsonify({"ok": False, "error": "Not signed in"}), 401
             officers = OfficerRole.list_for_person(pid)
@@ -269,11 +238,11 @@ def list_my_officer_roles():
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = _require_scope(role.view_officer_role_scope, "view officer roles")
+    deny = require_scope(role.view_officer_role_scope, "view officer roles")
     if deny:
         return deny
 
-    pid = _current_editor_id()
+    pid = current_editor_id()
     if not pid:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
