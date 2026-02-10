@@ -11,7 +11,7 @@ from utils.auth_helpers import current_editor_id, current_role, require_scope
 meet_bp = Blueprint("meet", __name__, url_prefix="/api/meet")
 
 
-def _is_meet_owner(meet: Meet) -> bool:
+def _is_meet_owner(meet):
     person_id = current_editor_id()
     if not person_id or not meet:
         return False
@@ -19,7 +19,7 @@ def _is_meet_owner(meet: Meet) -> bool:
     judge = getattr(meet, "judge", None) or getattr(meet, "Judge", None)
     race_secretary = (getattr(meet, "race_secretary", None) or getattr(meet, "raceSecretary", None) or getattr(meet, "RaceSecretary", None))
 
-    return str(judge) == str(person_id) or str(race_secretary) == str(person_id)
+    return (judge) == (person_id) or (race_secretary) == (person_id)
 
 
 @meet_bp.post("/add")
@@ -169,7 +169,7 @@ def delete_meet():
 
 
 @meet_bp.get("/get/<meet_number>")
-def get_meet(meet_number: str):
+def get_meet(meet_number):
     role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
