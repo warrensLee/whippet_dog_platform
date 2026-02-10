@@ -358,7 +358,7 @@ curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/dog/add \
   -d '{
-    "cwaNumber": "T12347",
+    "cwaNumber": "T12345",
     "registeredName": "TEST DOG",
     "status": "Active",
     "currentGrade": "A",
