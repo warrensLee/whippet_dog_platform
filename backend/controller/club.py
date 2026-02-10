@@ -8,10 +8,8 @@ from utils.auth_helpers import current_editor_id, current_role, require_scope
 
 club_bp = Blueprint("club", __name__, url_prefix="/api/club")
 
-
 def _is_member(club_abbreviation):
-    pid = current_editor_id()
-    if not pid:
+    if not current_editor_id():
         return False
 
     club = Club.find_by_identifier(club_abbreviation)
@@ -19,9 +17,9 @@ def _is_member(club_abbreviation):
         return False
 
     return (
-        pid == club.board_member1
-        or pid == club.board_member2
-        or pid == club.default_race_secretary
+        current_editor_id() == club.board_member1
+        or current_editor_id() == club.board_member2
+        or current_editor_id() == club.default_race_secretary
     )
 
 
@@ -31,19 +29,18 @@ def register_club():
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.edit_club_scope, "create clubs")
+    deny = require_scope(role.edit_club_scope, "edit clubs")
     if deny:
         return deny
 
     data = request.get_json(silent=True) or {}
     club = Club.from_request_data(data)
 
-    pid = current_editor_id()
     if role.edit_club_scope == UserRole.SELF:
-        if not pid:
+        if not current_editor_id():
             return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    if not (club.board_member1 == pid or club.board_member2 == pid or club.default_race_secretary == pid):
+    if not (club.board_member1 == current_editor_id() or club.board_member2 == current_editor_id() or club.default_race_secretary == current_editor_id()):
         return jsonify({"ok": False, "error": "Not allowed to create a club unless you are a board member or race secretary"}), 403
 
     club.last_edited_by = current_editor_id()
@@ -138,7 +135,7 @@ def delete_club():
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.edit_club_scope, "delete clubs")
+    deny = require_scope(role.edit_club_scope, "edit clubs")
     if deny:
         return deny
 
@@ -180,42 +177,42 @@ def delete_club():
 
 @club_bp.get("/get/<club_abbreviation>")
 def get_club(club_abbreviation):
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
+    # role = current_role()
+    # if not role:
+    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.view_club_scope, "view clubs")
-    if deny:
-        return deny
+    # deny = require_scope(role.view_club_scope, "view clubs")
+    # if deny:
+    #     return deny
 
     club = Club.find_by_identifier(club_abbreviation)
     if not club:
         return jsonify({"ok": False, "error": "Club does not exist"}), 404
 
-    if role.view_club_scope == UserRole.SELF and not _is_member(club_abbreviation):
-        return jsonify({"ok": False, "error": "Not allowed to view this club"}), 403
+    # if role.view_club_scope == UserRole.SELF and not _is_member(club_abbreviation):
+    #     return jsonify({"ok": False, "error": "Not allowed to view this club"}), 403
 
     return jsonify({"ok": True, "data": club.to_dict()}), 200
 
 
 @club_bp.get("/get")
 def list_all_clubs():
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
+    # role = current_role()
+    # if not role:
+    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.view_club_scope, "view clubs")
-    if deny:
-        return deny
+    # deny = require_scope(role.view_club_scope, "view clubs")
+    # if deny:
+    #     return deny
 
     try:
-        if role.view_club_scope == UserRole.ALL:
-            clubs = Club.list_all_clubs()
-        else:
-            pid = current_editor_id()
-            if not pid:
-                return jsonify({"ok": False, "error": "Not signed in"}), 401
-            clubs = Club.list_clubs_for_member(pid)
+        # if role.view_club_scope == UserRole.ALL:
+        clubs = Club.list_all_clubs()
+        # else:
+        #     pid = current_editor_id()
+        #     if not pid:
+        #         return jsonify({"ok": False, "error": "Not signed in"}), 401
+        #     clubs = Club.list_clubs_for_member(pid)
 
         return jsonify({"ok": True, "data": [c.to_dict() for c in clubs]}), 200
 
