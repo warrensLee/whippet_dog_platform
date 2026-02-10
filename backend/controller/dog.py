@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, jsonify, request
 from mysql.connector import Error
 from datetime import datetime, timezone
 from classes.dog import Dog
@@ -536,3 +536,82 @@ def check_hc_title(cwa_number):
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@dog_bp.get("/search")
+def search_dogs():
+    role = current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+    deny = require_scope(role.view_dog_scope, "search dogs")
+    if deny:
+        return deny
+
+    q = (request.args.get("q") or "").strip()
+    if not q:
+        return jsonify({"ok": False, "error": "Query param 'q' is required"}), 400
+
+    try:
+        if role.view_dog_scope == UserRole.SELF:
+            if not current_editor_id():
+                return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+            rows = Dog.search(
+                query=q,
+                only_owner_person_id=current_editor_id(),
+            )
+        else:
+            rows = Dog.search(
+                query=q,
+                only_owner_person_id=None,
+            )
+
+        data = []
+        for item in rows:
+            data.append(item.to_dict() if hasattr(item, "to_dict") else item)
+
+        return jsonify({"ok": True, "data": data}), 200
+
+    except Error as e:
+        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+
+
+@dog_bp.get("/meets/<cwa_number>")
+def list_meets_for_dog(cwa_number):
+    role = current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+    deny = require_scope(role.view_meet_scope, "view meets")
+    if deny:
+        return deny
+
+    if role.view_meet_scope == UserRole.SELF and not _is_owner(cwa_number):
+        return jsonify({"ok": False, "error": "Not allowed to view meets for this dog"}), 403
+
+    try:
+        meets = Dog.list_meets_for_dog(cwa_number)  
+        return jsonify({"ok": True, "data": meets}), 200
+    except Error as e:
+        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+
+@dog_bp.get("/stats/<cwa_number>")
+def get_dog_stats(cwa_number):
+    role = current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+    deny = require_scope(role.view_meet_results_scope, "view meet results")
+    if deny:
+        return deny
+
+    if role.view_meet_results_scope == UserRole.SELF and not _is_owner(cwa_number):
+        return jsonify({"ok": False, "error": "Not allowed to view stats for this dog"}), 403
+
+    try:
+        stats = Dog.get_stats_for_dog(cwa_number) 
+        return jsonify({"ok": True, "data": stats}), 200
+
+    except Error as e:
+        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500

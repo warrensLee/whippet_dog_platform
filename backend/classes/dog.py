@@ -274,6 +274,149 @@ class Dog:
             (identifier,),
         )
         return cls.from_db_row(row)
+    
+    @classmethod
+    def search(cls, query, only_owner_person_id):
+        q = (query or "").strip()
+        like = f"%{q}%"
+
+        sql = """
+            SELECT DISTINCT
+                d.*
+            FROM Dog d
+            LEFT JOIN DogOwner do ON do.CWAID = d.CWANumber
+            LEFT JOIN Person p ON p.PersonID = do.PersonID
+            WHERE (
+                d.CWANumber LIKE %s
+                OR d.RegisteredName LIKE %s
+                OR d.CallName LIKE %s
+                OR do.PersonID LIKE %s
+                OR CONCAT(p.FirstName, ' ', p.LastName) LIKE %s
+                OR p.EmailAddress LIKE %s
+            )
+        """
+        params = [like, like, like, like, like, like]
+
+        if only_owner_person_id:
+            sql += " AND do.PersonID = %s"
+            params.append(only_owner_person_id)
+
+        sql += " ORDER BY d.RegisteredName ASC, d.CWANumber ASC LIMIT 100"
+
+        rows = fetch_all(sql, params)
+        return [cls.from_db_row(r) for r in rows]
+    
+    @classmethod
+    def list_meets_for_dog(cls, cwa_number):
+        return fetch_all(
+            """
+            SELECT DISTINCT
+                m.MeetNumber,
+                m.MeetDate,
+                m.ClubAbbreviation,
+                m.Location,
+                m.RaceSecretary,
+                m.Judge
+            FROM Meet m
+            LEFT JOIN MeetResults mr
+              ON mr.MeetNumber = m.MeetNumber AND mr.CWANumber = %s
+            LEFT JOIN RaceResults rr
+              ON rr.MeetNumber = m.MeetNumber AND rr.CWANumber = %s
+            WHERE mr.CWANumber IS NOT NULL OR rr.CWANumber IS NOT NULL
+            ORDER BY m.MeetDate DESC, m.MeetNumber DESC
+            """,
+            (cwa_number, cwa_number),
+        )
+    
+    @classmethod
+    def list_meet_results_for_dog(cls, cwa_number):
+        return fetch_all(
+            """
+            SELECT *
+            FROM MeetResult
+            WHERE CWANumber = %s
+            ORDER BY MeetNumber DESC
+            """,
+            (cwa_number,),
+        )
+
+    @classmethod
+    def list_race_results_for_dog(cls, cwa_number):
+        return fetch_all(
+            """
+            SELECT *
+            FROM RaceResult
+            WHERE CWANumber = %s
+            ORDER BY MeetNumber DESC, Program DESC, RaceNumber DESC
+            """,
+            (cwa_number,),
+        )
+    
+    @classmethod
+    def get_stats_for_dog(cls, cwa_number):
+        meet_win_row = fetch_one(
+            """
+            SELECT
+                COUNT(*) AS meetWinCount,
+                MAX(m.MeetDate) AS lastMeetWinDate
+            FROM MeetResults mr
+            JOIN Meet m ON m.MeetNumber = mr.MeetNumber
+            WHERE mr.CWANumber = %s
+              AND mr.MeetPlacement = 1
+            """,
+            (cwa_number,),
+        ) or {}
+
+        meet_win_dates = fetch_all(
+            """
+            SELECT
+                mr.MeetNumber,
+                m.MeetDate
+            FROM MeetResults mr
+            JOIN Meet m ON m.MeetNumber = mr.MeetNumber
+            WHERE mr.CWANumber = %s
+              AND mr.MeetPlacement = 1
+            ORDER BY m.MeetDate DESC
+            """,
+            (cwa_number,),
+        )
+
+        dpc_row = fetch_one(
+            """
+            SELECT
+                COUNT(*) AS dpcLegCount,
+                MAX(m.MeetDate) AS lastDpcLegDate
+            FROM MeetResults mr
+            JOIN Meet m ON m.MeetNumber = mr.MeetNumber
+            WHERE mr.CWANumber = %s
+              AND mr.DPCLeg = 1
+            """,
+            (cwa_number,),
+        ) or {}
+
+        dpc_dates = fetch_all(
+            """
+            SELECT
+                mr.MeetNumber,
+                m.MeetDate
+            FROM MeetResults mr
+            JOIN Meet m ON m.MeetNumber = mr.MeetNumber
+            WHERE mr.CWANumber = %s
+              AND mr.DPCLeg = 1
+            ORDER BY m.MeetDate DESC
+            """,
+            (cwa_number,),
+        )
+
+        return {
+            "cwaNumber": cwa_number,
+            "meetWinCount": (meet_win_row.get("meetWinCount")),
+            "lastMeetWinDate": meet_win_row.get("lastMeetWinDate"),
+            "meetWinDates": meet_win_dates,   
+            "dpcLegCount": (dpc_row.get("dpcLegCount")),
+            "lastDpcLegDate": dpc_row.get("lastDpcLegDate"),
+            "dpcLegDates": dpc_dates,         
+        }
 
     @classmethod
     def exists(cls, cwa_number):
