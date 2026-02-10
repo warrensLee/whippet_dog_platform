@@ -42,31 +42,18 @@ CREATE TABLE `TitleType` (
 CREATE TABLE `UserRole` (
     `ID` INT PRIMARY KEY AUTO_INCREMENT,
     `Title` VARCHAR(20) NOT NULL UNIQUE,
-    `ViewDogScope` TINYINT NOT NULL DEFAULT 0,
     `EditDogScope` TINYINT NOT NULL DEFAULT 0,
-    `ViewPersonScope` TINYINT NOT NULL DEFAULT 0,
     `EditPersonScope` TINYINT NOT NULL DEFAULT 0,
-    `ViewDogOwnerScope` TINYINT NOT NULL DEFAULT 0,
     `EditDogOwnerScope` TINYINT NOT NULL DEFAULT 0,
-    `ViewOfficerRoleScope` TINYINT NOT NULL DEFAULT 0,
     `EditOfficerRoleScope` TINYINT NOT NULL DEFAULT 0,
-    `ViewUserRoleScope` TINYINT NOT NULL DEFAULT 0,
     `EditUserRoleScope` TINYINT NOT NULL DEFAULT 0,
-    `ViewClubScope` TINYINT NOT NULL DEFAULT 0,
     `EditClubScope` TINYINT NOT NULL DEFAULT 0,
-    `ViewMeetScope` TINYINT NOT NULL DEFAULT 0,
     `EditMeetScope` TINYINT NOT NULL DEFAULT 0,
-    `ViewMeetResultsScope` TINYINT NOT NULL DEFAULT 0,
     `EditMeetResultsScope` TINYINT NOT NULL DEFAULT 0,
-    `ViewRaceResultsScope` TINYINT NOT NULL DEFAULT 0,
     `EditRaceResultsScope` TINYINT NOT NULL DEFAULT 0,
-    `ViewDogTitlesScope` TINYINT NOT NULL DEFAULT 0,
     `EditDogTitlesScope` TINYINT NOT NULL DEFAULT 0,
-    `ViewTitleTypeScope` TINYINT NOT NULL DEFAULT 0,
     `EditTitleTypeScope` TINYINT NOT NULL DEFAULT 0,
-    `ViewNewsScope` TINYINT NOT NULL DEFAULT 0,
     `EditNewsScope` TINYINT NOT NULL DEFAULT 0,
-    `ViewChangeLogScope` TINYINT NOT NULL DEFAULT 0,
     `LastEditedBy` VARCHAR(20),
     `LastEditedAt` TIMESTAMP
 );
@@ -304,10 +291,6 @@ ALTER TABLE `OfficerRole`
     ADD CONSTRAINT `fk_OfficerRole_Person`
         FOREIGN KEY (`PersonID`) REFERENCES `Person` (`PersonID`);
 
--- =========================
--- AUDIT FOREIGN KEYS: LastEditedBy -> Person(PersonID)
--- =========================
-
 ALTER TABLE `Dog`
     ADD CONSTRAINT `fk_Dog_LastEditedBy`
         FOREIGN KEY (`LastEditedBy`) REFERENCES `Person` (`PersonID`)
@@ -377,52 +360,55 @@ ALTER TABLE `MeetResults`
 INSERT IGNORE INTO UserRole
 (
   Title,
-  ViewDogScope, EditDogScope,
-  ViewPersonScope, EditPersonScope,
-  ViewDogOwnerScope, EditDogOwnerScope,
-  ViewOfficerRoleScope, EditOfficerRoleScope,
-  ViewUserRoleScope, EditUserRoleScope,
-  ViewClubScope, EditClubScope,
-  ViewMeetScope, EditMeetScope,
-  ViewMeetResultsScope, EditMeetResultsScope,
-  ViewRaceResultsScope, EditRaceResultsScope,
-  ViewDogTitlesScope, EditDogTitlesScope,
-  ViewTitleTypeScope, EditTitleTypeScope,
-  ViewNewsScope, EditNewsScope,
-  ViewChangeLogScope
+  EditDogScope,
+  EditPersonScope,
+  EditDogOwnerScope,
+  EditOfficerRoleScope,
+  EditUserRoleScope,
+  EditClubScope,
+  EditMeetScope,
+  EditMeetResultsScope,
+  EditRaceResultsScope,
+  EditDogTitlesScope,
+  EditTitleTypeScope,
+  EditNewsScope,
+  LastEditedBy,
+  LastEditedAt
 )
 VALUES
 (
   'ADMIN',
-  2,2,  -- Dog
-  2,2,  -- Person
-  2,2,  -- DogOwner
-  2,2,  -- OfficerRole
-  2,2,  -- UserRole
-  2,2,  -- Club
-  2,2,  -- Meet
-  2,2,  -- MeetResults
-  2,2,  -- RaceResults
-  2,2,  -- DogTitles
-  2,2,  -- TitleType
-  2,2,  -- News
-  2     -- ChangeLog
+  2,  -- Dog
+  2,  -- Person
+  2,  -- DogOwner
+  2,  -- OfficerRole
+  2,  -- UserRole
+  2,  -- Club
+  2,  -- Meet
+  2,  -- MeetResults
+  2,  -- RaceResults
+  2,  -- DogTitles
+  2,  -- TitleType
+  2,  -- News
+  NULL,
+  NULL
 ),
 (
   'PUBLIC',
-  2,1,  -- Dog
-  1,1,  -- Person
-  1,1,  -- DogOwner
-  0,0,  -- OfficerRole
-  0,0,  -- UserRole
-  2,1,  -- Club
-  2,1,  -- Meet
-  2,1,  -- MeetResults
-  2,1,  -- RaceResults
-  2,1,  -- DogTitles
-  2,1,  -- TitleType
-  2,1,  -- News
-  0     -- ChangeLog
+  1,  -- Dog (self)
+  1,  -- Person (self)
+  1,  -- DogOwner (self)
+  0,  -- OfficerRole
+  0,  -- UserRole
+  1,  -- Club (self/view-style access)
+  1,  -- Meet
+  1,  -- MeetResults
+  1,  -- RaceResults
+  1,  -- DogTitles
+  1,  -- TitleType
+  1,  -- News
+  NULL,
+  NULL
 );
 
 
