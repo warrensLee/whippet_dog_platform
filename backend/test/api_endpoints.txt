@@ -753,6 +753,20 @@ curl -i \
 
 --------------------------------------------------
 OFFICER ROLE
+(
+  Have to be signed in 
+  Permissions:
+
+  View: viewOfficerRoleScope
+  0 = none
+  1 = self (only officer roles assigned to you)
+  2 = all (view all officer roles)
+
+  Edit: editOfficerRoleScope
+  0 = none
+  1 = self (create/edit/delete only your own officer role assignments)
+  2 = all (create/edit/delete any officer role assignment)
+)
 --------------------------------------------------
 
 --------------------------------------------------
@@ -809,12 +823,6 @@ GET /api/officer_role/public/get
 --------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/officer_role/public/get
-
---------------------------------------------------
-GET /api/officer_role/mine
---------------------------------------------------
-curl -i -b cookies.txt \
-  http://localhost/api/officer_role/mine
 
 
 --------------------------------------------------

@@ -11,7 +11,7 @@ from utils.auth_helpers import current_editor_id, current_role, require_scope
 officer_role_bp = Blueprint("officer_role", __name__, url_prefix="/api/officer_role")
 
 
-def _is_owner(person_id: str) -> bool:
+def _is_owner(person_id):
     pid = current_editor_id()
     if not pid:
         return False
@@ -231,23 +231,3 @@ def list_officer_roles_public():
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
-
-@officer_role_bp.get("/mine")
-def list_my_officer_roles():
-    role = _current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    deny = require_scope(role.view_officer_role_scope, "view officer roles")
-    if deny:
-        return deny
-
-    pid = current_editor_id()
-    if not pid:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    try:
-        officers = OfficerRole.list_for_person(pid)
-        return jsonify({"ok": True, "data": [o.to_dict() for o in officers]}), 200
-    except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
