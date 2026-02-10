@@ -6,19 +6,16 @@ import {
   Paper,
   Typography,
   Button,
-  TextField,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
-  Switch,
-  FormControlLabel,
   Alert,
   CircularProgress,
   Divider,
 } from "@mui/material";
 
-type RowError = { row: number; cwaNumber?: string; error: string };
+type RowError = { row: number; pk?: string; error: string };
 
 type ImportReport = {
   file: string;
@@ -36,7 +33,14 @@ type ApiResponse =
   | { ok: true; report: ImportReport }
   | { ok: false; error: string };
 
-export default function ImportDogsPage() {
+const TYPE_OPTIONS: Array<{ value: string; label: string; disabled?: boolean }> = [
+  { value: "dogs", label: "dogs" },
+  { value: "meets", label: "meets" },
+  { value: "meet_results", label: "meet_results" },
+  { value: "race_results", label: "race_results" },
+];
+
+export default function ImportCsvPage() {
   const [file, setFile] = useState<File | null>(null);
 
   const [type, setType] = useState<string>("dogs");
@@ -69,10 +73,9 @@ export default function ImportDogsPage() {
       const res = await fetch(`/api/import?${qs.toString()}`, {
         method: "POST",
         body: form,
-        credentials: "include", // important for session cookie auth
+        credentials: "include",
       });
 
-      // Try JSON, but handle non-JSON errors (nginx/html 404, etc.)
       let payload: ApiResponse | null = null;
       try {
         payload = (await res.json()) as ApiResponse;
@@ -98,7 +101,7 @@ export default function ImportDogsPage() {
   return (
     <Box sx={{ maxWidth: 900, mx: "auto", p: 3, pt: 15 }}>
       <Typography variant="h4" sx={{ mb: 2 }}>
-        Import Dogs (CSV)
+        Import CSV
       </Typography>
 
       <Paper sx={{ p: 2, mb: 2 }}>
@@ -127,17 +130,11 @@ export default function ImportDogsPage() {
                 value={type}
                 onChange={(e) => setType(e.target.value)}
               >
-                <MenuItem value="dogs">dogs</MenuItem>
-                {/* add later if you implement handlers */}
-                <MenuItem value="titles" disabled>
-                  titles (not implemented)
-                </MenuItem>
-                <MenuItem value="conformation" disabled>
-                  conformation (not implemented)
-                </MenuItem>
-                <MenuItem value="top_ten" disabled>
-                  top_ten (not implemented)
-                </MenuItem>
+                {TYPE_OPTIONS.map((opt) => (
+                  <MenuItem key={opt.value} value={opt.value} disabled={opt.disabled}>
+                    {opt.label}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
 
@@ -156,11 +153,7 @@ export default function ImportDogsPage() {
           </Box>
 
           <Box>
-            <Button
-              variant="contained"
-              disabled={!canSubmit}
-              onClick={onSubmit}
-            >
+            <Button variant="contained" disabled={!canSubmit} onClick={onSubmit}>
               {loading ? "Importing..." : "Upload & Import"}
             </Button>
             {loading && <CircularProgress size={20} sx={{ ml: 2 }} />}
@@ -196,15 +189,13 @@ export default function ImportDogsPage() {
                   <li key={`${re.row}-${i}`}>
                     <Typography variant="body2">
                       Row {re.row}
-                      {re.cwaNumber ? ` (${re.cwaNumber})` : ""}: {re.error}
+                      {re.pk ? ` (${re.pk})` : ""}: {re.error}
                     </Typography>
                   </li>
                 ))}
               </Box>
               {report.rowErrors.length > 200 && (
-                <Typography variant="caption">
-                  Showing first 200 errors.
-                </Typography>
+                <Typography variant="caption">Showing first 200 errors.</Typography>
               )}
             </>
           )}
