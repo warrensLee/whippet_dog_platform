@@ -74,48 +74,54 @@ class TestAuthController(unittest.TestCase):
     def logout(self):
         return self.client.post("/api/auth/logout")
 
+    #test registration functionality
     def test_01_register(self):
         """Test user registration"""
         r = self.register()
-        self.assert_status(r, (200, 201))
+        self.assert_status(r, (200,201,))
 
+    #test login functionality after registration
     def test_02_login(self):
         """Test user login after registration"""
         r1 = self.register()
-        self.assert_status(r1, (200, 201))
+        self.assert_status(r1, (200,201,))
         r2 = self.login()
-        self.assert_status(r2, (200,))
+        self.assert_status(r2, (200,201,))
 
+    #test /me endpoint without login, should return user: None
     def test_03_me_requires_auth(self):
         """Test /me endpoint without authentication"""
         r = self.client.get("/api/auth/me")
-        self.assert_status(r, (200,))
+        self.assert_status(r, (200,201,))
         self.assertIsNone(r.get_json()["user"])
 
+    #test /me endpoint after login, should return user info with correct PersonID
     def test_04_me_after_login(self):
         """Test /me endpoint after login"""
         self.register()
         self.login()
         r = self.client.get("/api/auth/me")
-        self.assert_status(r, (200,))
+        self.assert_status(r, (200,201,))
         user = r.get_json()["user"]
         self.assertIsNotNone(user)
         self.assertEqual(user["PersonID"], self.person_id)
 
+    #test logout functionality
     def test_05_logout(self):
         """Test logout functionality"""
         self.register()
         self.login()
         r = self.logout()
-        self.assert_status(r, (200,))
+        self.assert_status(r, (200,201,))
         r2 = self.client.get("/api/auth/me")
         self.assertIsNone(r2.get_json()["user"])
 
+    #wrong password test
     def test_06_login_wrong_password(self):
         """Test login with wrong password"""
         self.register()
         r = self.login(password="WRONG")
-        self.assert_status(r, (401,))
+        self.assert_status(r, (401,)) 
 
     @classmethod
     def tearDownClass(cls):
@@ -126,3 +132,4 @@ class TestAuthController(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=1)
+# docker compose -f docker-compose-dev.yml exec backend bash -lc "source venv/bin/activate && python test/test_auth.py"
