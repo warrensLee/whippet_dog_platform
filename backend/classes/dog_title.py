@@ -175,6 +175,18 @@ class DogTitle:
             """
         )
         return [DogTitle.from_db_row(row) for row in rows]
+    
+    @classmethod
+    def list_titles_for_owner(cls, person_id):
+        """Get all titles for dogs owned by a specific person."""
+        query = """
+            SELECT dt.*
+            FROM DogTitles dt
+            JOIN DogOwner do ON do.CWAID = dt.CWANumber
+            WHERE do.PersonID = %s
+            """
+        rows = fetch_all(query, (person_id,))
+        return [cls.from_db_row(row) for row in rows]
 
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""
