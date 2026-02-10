@@ -1,7 +1,5 @@
 from database import fetch_one, fetch_all, execute
 from mysql.connector import Error
-from datetime import datetime
-
 
 class OfficerRole:
     def __init__(
@@ -14,12 +12,10 @@ class OfficerRole:
         last_edited_by=None,
         last_edited_at=None,
     ):
-        self.role_id = int(role_id) if role_id not in (None, "", 0) else None
+        self.role_id = (role_id) if role_id not in (None, "", 0) else None
         self.role_name = (role_name or "").strip()
         self.person_id = (person_id or "").strip()
-        self.display_order = int(display_order) if display_order not in (None, "", 0) else None
-
-        # MySQL BOOLEAN is usually TINYINT(1)
+        self.display_order = (display_order) if display_order not in (None, "", 0) else None
         self.active = True if active in (True, 1, "1", "true", "True", "yes", "YES") else False
 
         self.last_edited_by = last_edited_by
@@ -66,7 +62,7 @@ class OfficerRole:
         return cls.from_db_row(row)
     
     @classmethod
-    def find_by_role_name(cls, role_name: str):
+    def find_by_role_name(cls, role_name):
         row = fetch_one(
             """
             SELECT
@@ -89,7 +85,7 @@ class OfficerRole:
         return row is not None
 
     @classmethod
-    def exists_by_name(cls, role_name: str):
+    def exists_by_name(cls, role_name):
         row = fetch_one(
             "SELECT ID FROM OfficerRole WHERE RoleName=%s LIMIT 1",
             ((role_name or "").strip(),),
@@ -176,7 +172,7 @@ class OfficerRole:
             raise e
         
     @staticmethod
-    def delete_by_role_name(role_name: str):
+    def delete_by_role_name(role_name):
         try:
             execute(
                 """
@@ -203,7 +199,7 @@ class OfficerRole:
         return [OfficerRole.from_db_row(r) for r in rows]
 
     @staticmethod
-    def list_for_person(person_id: str):
+    def list_for_person(person_id):
         rows = fetch_all(
             """
             SELECT
