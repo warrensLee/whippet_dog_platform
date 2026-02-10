@@ -180,7 +180,7 @@ def get_dog(cwa_number):
 
     return jsonify({"ok": True, "data": dog.to_dict()}), 200
 
-
+# This endpoint returns all dogs, or if the user has SELF scope, only their own dogs
 @dog_bp.get("/get")
 def list_all_dogs():
     role = current_role()
@@ -538,6 +538,7 @@ def check_hc_title(cwa_number):
         return jsonify({"ok": False, "error": str(e)}), 500
 
 
+# This endpoint allows searching dogs by various attributes 
 @dog_bp.get("/search")
 def search_dogs():
     role = current_role()
