@@ -187,6 +187,12 @@ class DogTitle:
             """
         rows = fetch_all(query, (person_id,))
         return [cls.from_db_row(row) for row in rows]
+    
+    @classmethod
+    def delete_all_for_title(cls, title: str):
+        title = (title or "").strip()
+        execute("DELETE FROM DogTitles WHERE Title = %s", (title,))
+
 
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""

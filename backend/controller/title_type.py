@@ -1,9 +1,9 @@
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, jsonify, request
 from mysql.connector import Error
 from datetime import datetime, timezone
 from classes.title_type import TitleType
 from classes.change_log import ChangeLog
-from classes.user_role import UserRole
+from classes.dog_title import DogTitle
 from utils.auth_helpers import current_editor_id, current_role, require_scope
 
 
@@ -127,6 +127,17 @@ def delete_title_type():
             return jsonify({"ok": False, "error": "Title type does not exist"}), 404
 
         before_snapshot = existing.to_dict()
+        deleted_count = DogTitle.delete_all_for_title(title)
+
+        ChangeLog.log(
+            changed_table="TitleType",
+            record_pk=title,
+            operation="DELETE",
+            changed_by=current_editor_id(),
+            source="api/title_type/delete POST",
+            before_obj={**before_snapshot, "deletedDogTitles": deleted_count},
+            after_obj=None,
+        )
         existing.delete(title)
 
         ChangeLog.log(
