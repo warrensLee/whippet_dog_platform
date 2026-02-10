@@ -8,11 +8,11 @@ from utils.auth_helpers import current_editor_id, current_role, require_scope
 
 person_bp = Blueprint("person", __name__, url_prefix="/api/person")
 
-def _is_owner(person_id: str) -> bool:
-    current_id = _current_editor_id()
+def _is_owner(person_id):
+    current_id = current_editor_id()
     if not current_id:
         return False
-    return str(current_id) == str(person_id)
+    return (current_id) == (person_id)
 
 
 @person_bp.post("/add")
@@ -24,9 +24,6 @@ def register_person():
     deny = require_scope(role.edit_person_scope, "create people")
     if deny:
         return deny
-
-    if role.edit_person_scope != UserRole.ALL:
-        return jsonify({"ok": False, "error": "Not allowed to create people"}), 403
 
     data = request.get_json(silent=True) or {}
     person = Person.from_request_data(data)
