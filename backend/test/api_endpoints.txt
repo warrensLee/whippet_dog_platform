@@ -160,6 +160,23 @@ curl -i -b cookies.txt \
   }"
 
 --------------------------------------------------
+CONTACT
+--------------------------------------------------
+
+--------------------------------------------------
+POST /api/contact
+--------------------------------------------------
+curl -i -H "Content-Type: application/json" \
+  -X POST http://localhost/api/contact \
+  -d '{
+    "firstName": "Test",
+    "lastName": "User",
+    "email": "test@example.com",
+    "subject": "Hello",
+    "message": "Test message"
+  }'
+
+--------------------------------------------------
 Dog Owner
 (
   Must be signed in.
@@ -471,23 +488,95 @@ POST /api/dog/hc/{cwa_number}
 curl -i -b cookies.txt \
   -X POST http://localhost/api/dog/hc/T12345
 
+--------------------------------------------------
+MEET RESULT
+(
+  Have to be logged in
+  View: viewMeetResultsScope
+  0 = none
+  1 = self (only meets where your dogs are involved)
+  2 = all (view all meets)
+
+  Edit: editMeetResultsScope
+  0 = none
+  1 = self (create/edit/delete meets only where your dogs are involved)
+  2 = all (create/edit/delete any meet)
+)
+--------------------------------------------------
 
 --------------------------------------------------
-CONTACT
+POST /api/meet_result/add
 --------------------------------------------------
-
---------------------------------------------------
-POST /api/contact
---------------------------------------------------
-curl -i -H "Content-Type: application/json" \
-  -X POST http://localhost/api/contact \
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/meet_result/add \
   -d '{
-    "firstName": "Test",
-    "lastName": "User",
-    "email": "test@example.com",
-    "subject": "Hello",
-    "message": "Test message"
+    "meetNumber": "MEET-001",
+    "cwaNumber": "T12345",
+    "average": "9.5",
+    "grade": "A",
+    "meetPlacement": "1",
+    "meetPoints": "25",
+    "arxEarned": "1",
+    "narxEarned": "0",
+    "shown": "0",
+    "showPlacement": "0",
+    "showPoints": "0",
+    "dpcLeg": "0",
+    "hcScore": "0",
+    "hcLegEarned": "0"
   }'
+
+
+--------------------------------------------------
+POST /api/meet_result/edit
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/meet_result/edit \
+  -d '{
+    "meetNumber": "MEET-001",
+    "cwaNumber": "T12345",
+    "average": "9.5",
+    "grade": "A",
+    "meetPlacement": "1",
+    "meetPoints": "25",
+    "arxEarned": "1",
+    "narxEarned": "0",
+    "shown": "0",
+    "showPlacement": "0",
+    "showPoints": "0",
+    "dpcLeg": "0",
+    "hcScore": "0",
+    "hcLegEarned": "0"
+  }'
+
+
+--------------------------------------------------
+POST /api/meet_result/delete
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/meet_result/delete \
+  -d '{
+    "meetNumber": "MEET-001",
+    "cwaNumber": "T12345",
+    "confirm": true
+  }'
+
+
+--------------------------------------------------
+GET /api/meet_result/get/<meet_number>/<cwa_number>
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/meet_result/get/MEET-001/T12345
+
+
+--------------------------------------------------
+GET /api/meet_result/get
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/meet_result/get
 
 --------------------------------------------------
 OFFICER ROLE
@@ -923,84 +1012,6 @@ curl -i -b cookies.txt \
     "meetNumber": "MEET-001",
     "confirm": true
   }'
-
---------------------------------------------------
-MEET RESULT
---------------------------------------------------
-
---------------------------------------------------
-POST /api/meet_result/add
---------------------------------------------------
-curl -i -b cookies.txt \
-  -H "Content-Type: application/json" \
-  -X POST http://localhost/api/meet_result/add \
-  -d '{
-    "meetNumber": "MEET-001",
-    "cwaNumber": "T12345",
-    "average": "9.5",
-    "grade": "A",
-    "meetPlacement": "1",
-    "meetPoints": "25",
-    "arxEarned": "1",
-    "narxEarned": "0",
-    "shown": "0",
-    "showPlacement": "0",
-    "showPoints": "0",
-    "dpcLeg": "0",
-    "hcScore": "0",
-    "hcLegEarned": "0"
-  }'
-
-
---------------------------------------------------
-POST /api/meet_result/edit
---------------------------------------------------
-curl -i -b cookies.txt \
-  -H "Content-Type: application/json" \
-  -X POST http://localhost/api/meet_result/edit \
-  -d '{
-    "meetNumber": "MEET-001",
-    "cwaNumber": "T12345",
-    "average": "9.5",
-    "grade": "A",
-    "meetPlacement": "1",
-    "meetPoints": "25",
-    "arxEarned": "1",
-    "narxEarned": "0",
-    "shown": "0",
-    "showPlacement": "0",
-    "showPoints": "0",
-    "dpcLeg": "0",
-    "hcScore": "0",
-    "hcLegEarned": "0"
-  }'
-
-
---------------------------------------------------
-POST /api/meet_result/delete
---------------------------------------------------
-curl -i -b cookies.txt \
-  -H "Content-Type: application/json" \
-  -X POST http://localhost/api/meet_result/delete \
-  -d '{
-    "meetNumber": "MEET-001",
-    "cwaNumber": "T12345",
-    "confirm": true
-  }'
-
-
---------------------------------------------------
-GET /api/meet_result/get/<meet_number>/<cwa_number>
---------------------------------------------------
-curl -i -b cookies.txt \
-  http://localhost/api/meet_result/get/MEET-001/T12345
-
-
---------------------------------------------------
-GET /api/meet_result/get
---------------------------------------------------
-curl -i -b cookies.txt \
-  http://localhost/api/meet_result/get
 
 --------------------------------------------------
 RACE RESULT
