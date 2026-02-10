@@ -159,6 +159,80 @@ curl -i -b cookies.txt \
     \"confirm\": true
   }"
 
+--------------------------------------------------
+Dog Owner
+(
+  Must be signed in.
+  
+  Permissions (DogOwner)
+
+  View: viewDogOwnerScope
+    0 = NONE  → cannot view dog-owner records
+    1 = SELF  → can view dog-owner records where PersonID == current user
+    2 = ALL   → can view all dog-owner records
+
+  Edit: editDogOwnerScope
+    0 = NONE  → cannot create/edit/delete dog-owner records
+    1 = SELF  → can create/edit/delete dog-owner records only when PersonID == current user
+                (i.e., you can manage your own ownership links only)
+    2 = ALL   → can create/edit/delete/transfer dog-owner records for any user
+)
+--------------------------------------------------
+
+--------------------------------------------------
+POST /api/dog_owner/add
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/dog_owner/add \
+  -d '{
+    "cwaId": "T12345",
+    "personId": "test_1"
+  }'
+
+
+--------------------------------------------------
+POST /api/dog_owner/delete
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/dog_owner/delete \
+  -d '{
+    "cwaId": "T12345",
+    "personId": "test_1",
+    "confirm": true
+  }'
+
+
+--------------------------------------------------
+POST /api/dog_owner/transfer
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/dog_owner/transfer \
+  -d '{
+    "cwaId": "T12345",
+    "newOwnerPersonId": "test_1"
+  }'
+
+
+--------------------------------------------------
+POST /api/dog_owner/get
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/dog_owner/get \
+  -d '{
+    "cwaId": "T12345",
+    "personId": "SYSTEM"
+  }'
+
+--------------------------------------------------
+GET /api/dog_owner/owners/<cwa_number>
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/dog_owner/owners/T12345
+
 
 --------------------------------------------------
 DOG
@@ -391,91 +465,6 @@ GET /api/officer_role/mine
 curl -i -b cookies.txt \
   http://localhost/api/officer_role/mine
 
-
---------------------------------------------------
-(
-  Must be signed in.
-  Permissions:
-  View: viewDogOwnerScope
-    0 = none
-    1 = self
-    2 = all
-
-  Edit: editDogOwnerScope
-    0 = none
-    1 = self
-    2 = all
-
-  SELF rules:
-  View:
-    You may only view owners for a dog you already own.
-
-  Edit:
-    Add owner:
-      You may only add yourself as an owner.
-      You do not need to already own the dog.
-
-  Delete owner:
-    You may only delete owners for a dog you already own.
-
-  Transfer ownership:
-    You may only transfer ownership for a dog you already own.
-)
---------------------------------------------------
-
---------------------------------------------------
-POST /api/dog_owner/add
---------------------------------------------------
-curl -i -b cookies.txt \
-  -H "Content-Type: application/json" \
-  -X POST http://localhost/api/dog_owner/add \
-  -d '{
-    "cwaId": "T12345",
-    "personId": "SYSTEM"
-  }'
-
-
---------------------------------------------------
-POST /api/dog_owner/delete
---------------------------------------------------
-curl -i -b cookies.txt \
-  -H "Content-Type: application/json" \
-  -X POST http://localhost/api/dog_owner/delete \
-  -d '{
-    "cwaId": "T12345",
-    "personId": "SYSTEM",
-    "confirm": true
-  }'
-
-
---------------------------------------------------
-POST /api/dog_owner/transfer
---------------------------------------------------
-curl -i -b cookies.txt \
-  -H "Content-Type: application/json" \
-  -X POST http://localhost/api/dog_owner/transfer \
-  -d '{
-    "cwaId": "T12345",
-    "newOwnerPersonId": "test_1"
-  }'
-
-
---------------------------------------------------
-POST /api/dog_owner/get
---------------------------------------------------
-curl -i -b cookies.txt \
-  -H "Content-Type: application/json" \
-  -X POST http://localhost/api/dog_owner/get \
-  -d '{
-    "cwaId": "T12345",
-    "personId": "test_1"
-  }'
-
---------------------------------------------------
-GET /api/dog_owner/owners/<cwa_number>
---------------------------------------------------
-curl -i -b cookies.txt \
-  http://localhost/api/dog_owner/owners/T12345
 
 --------------------------------------------------
 DOG TITLE
