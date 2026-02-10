@@ -372,3 +372,94 @@ ALTER TABLE `MeetResults`
     ADD CONSTRAINT `fk_MeetResults_LastEditedBy`
         FOREIGN KEY (`LastEditedBy`) REFERENCES `Person` (`PersonID`)
         ON DELETE SET NULL ON UPDATE CASCADE;
+
+
+INSERT IGNORE INTO UserRole
+(
+  Title,
+  ViewDogScope, EditDogScope,
+  ViewPersonScope, EditPersonScope,
+  ViewDogOwnerScope, EditDogOwnerScope,
+  ViewOfficerRoleScope, EditOfficerRoleScope,
+  ViewUserRoleScope, EditUserRoleScope,
+  ViewClubScope, EditClubScope,
+  ViewMeetScope, EditMeetScope,
+  ViewMeetResultsScope, EditMeetResultsScope,
+  ViewRaceResultsScope, EditRaceResultsScope,
+  ViewDogTitlesScope, EditDogTitlesScope,
+  ViewTitleTypeScope, EditTitleTypeScope,
+  ViewNewsScope, EditNewsScope,
+  ViewChangeLogScope
+)
+VALUES
+(
+  'ADMIN',
+  2,2,  -- Dog
+  2,2,  -- Person
+  2,2,  -- DogOwner
+  2,2,  -- OfficerRole
+  2,2,  -- UserRole
+  2,2,  -- Club
+  2,2,  -- Meet
+  2,2,  -- MeetResults
+  2,2,  -- RaceResults
+  2,2,  -- DogTitles
+  2,2,  -- TitleType
+  2,2,  -- News
+  2     -- ChangeLog
+),
+(
+  'PUBLIC',
+  2,1,  -- Dog
+  1,1,  -- Person
+  1,1,  -- DogOwner
+  0,0,  -- OfficerRole
+  0,0,  -- UserRole
+  2,1,  -- Club
+  2,1,  -- Meet
+  2,1,  -- MeetResults
+  2,1,  -- RaceResults
+  2,1,  -- DogTitles
+  2,1,  -- TitleType
+  2,1,  -- News
+  0     -- ChangeLog
+);
+
+
+INSERT INTO Person (
+  PersonID,
+  FirstName,
+  LastName,
+  EmailAddress,
+  AddressLineOne,
+  AddressLineTwo,
+  City,
+  StateProvince,
+  ZipCode,
+  Country,
+  PrimaryPhone,
+  SecondaryPhone,
+  SystemRole,
+  PasswordHash,
+  Notes,
+  LastEditedBy,
+  LastEditedAt
+) VALUES (
+  'SYSTEM',
+  'System',
+  'Account',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  'US',
+  NULL,
+  NULL,
+  'ADMIN',
+  'SYSTEM_ACCOUNT_NO_LOGIN',
+  'Internal system account used for migrations, seed data, and automated edits.',
+  NULL,
+  CURRENT_TIMESTAMP
+);

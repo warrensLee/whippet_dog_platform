@@ -2,7 +2,6 @@ from flask import Flask
 from flask_mail import Mail
 from config import get_config
 from router import register_routes
-from migrate import run_migrations
 
 def create_app(config_name='development'):
     """Application factory pattern"""
@@ -13,7 +12,6 @@ def create_app(config_name='development'):
     return app
 
 mail = Mail()
-run_migrations()
 app = create_app()
 
 if __name__ == "__main__":
