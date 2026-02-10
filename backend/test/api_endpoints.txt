@@ -489,6 +489,25 @@ curl -i -b cookies.txt \
   -X POST http://localhost/api/dog/hc/T12345
 
 --------------------------------------------------
+SEARCH
+--------------------------------------------------
+curl -i -b cookies.txt "http://localhost/api/dog/search?q=D"
+
+ --------------------------------------------------
+GET /api/dog/meets/<cwa_number>
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/dog/meets/T12345
+
+
+--------------------------------------------------
+GET /api/dog/stats/<cwa_number>
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/dog/stats/T12345
+
+
+--------------------------------------------------
 MEET RESULT
 (
   Have to be logged in
