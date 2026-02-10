@@ -824,6 +824,78 @@ GET /api/officer_role/public/get
 curl -i -b cookies.txt \
   http://localhost/api/officer_role/public/get
 
+--------------------------------------------------
+
+PERSON
+(
+  have to be logged in 
+  View: viewPersonScope
+    0 = none
+    1 = self (only view your own person record)
+    2 = all (view all people)
+
+  Edit: editPersonScope
+    0 = none
+    1 = self (edit only your own person record, but create like all, similar to the Dog)
+    2 = all (edit any person record)
+)
+--------------------------------------------------
+
+--------------------------------------------------
+POST /api/person/add
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/person/add \
+  -d '{
+    "personId": "jdoe2",
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "jdoe@test.com",
+    "password": "password123"
+  }'
+
+
+
+--------------------------------------------------
+POST /api/person/edit
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/person/edit \
+  -d '{
+    "personId": "SYSTEM",
+    "firstName": "Johnny",
+    "lastName": "Doe",
+    "email": "johnny@test.com"
+  }'
+
+
+--------------------------------------------------
+POST /api/person/change-password
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/person/change-password \
+  -d '{
+    "currentPassword": "dog12345",
+    "newPassword": "newspassword12345"
+  }'
+
+
+--------------------------------------------------
+GET /api/person/get/<person_id>
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/person/get/test_1
+
+
+--------------------------------------------------
+GET /api/person/get
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/person/get
+
 
 --------------------------------------------------
 TITLE TYPE
@@ -878,65 +950,6 @@ GET /api/title_type/get
 curl -i -b cookies.txt \
   http://localhost/api/title_type/get
 
-
---------------------------------------------------
-PERSON
---------------------------------------------------
-
---------------------------------------------------
-POST /api/person/add
---------------------------------------------------
-curl -i -b cookies.txt \
-  -H "Content-Type: application/json" \
-  -X POST http://localhost/api/person/add \
-  -d '{
-    "personId": "jdoe2",
-    "firstName": "John",
-    "lastName": "Doe",
-    "email": "jdoe@test.com",
-    "password": "password123"
-  }'
-
-
-
---------------------------------------------------
-POST /api/person/edit
---------------------------------------------------
-curl -i -b cookies.txt \
-  -H "Content-Type: application/json" \
-  -X POST http://localhost/api/person/edit \
-  -d '{
-    "personId": "jdoe",
-    "firstName": "Johnny",
-    "lastName": "Doe",
-    "email": "johnny@test.com"
-  }'
-
-
---------------------------------------------------
-POST /api/person/change-password
---------------------------------------------------
-curl -i -b cookies.txt \
-  -H "Content-Type: application/json" \
-  -X POST http://localhost/api/person/change-password \
-  -d '{
-    "currentPassword": "dogs12345",
-    "newPassword": "newpassword456"
-  }'
-
-
---------------------------------------------------
-GET /api/person/get/<person_id>
---------------------------------------------------
-curl -i -b cookies.txt \
-  http://localhost/api/person/get/jdoe
-
-
---------------------------------------------------
-GET /api/person/get
---------------------------------------------------
-curl -i -b cookies.txt \
-  http://localhost/api/person/get
 
 --------------------------------------------------
 USER ROLE
