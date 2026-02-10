@@ -312,6 +312,19 @@ curl -i -b cookies.txt \
 
 --------------------------------------------------
 DOG
+(
+  Must be logged in
+  Permissions:
+  View: viewDogScope
+  0 = none
+  1 = self (only view dogs you own via DogOwner)
+  2 = all (view any dog)
+
+  Edit: editDogScope
+  0 = none
+  1 = There is no self for create is it acts as all here, but is for edit and delete of DogOwner
+  2 = all (create/edit/delete any dog)
+)
 --------------------------------------------------
 
 --------------------------------------------------
@@ -328,7 +341,7 @@ curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/dog/add \
   -d '{
-    "cwaNumber": "T12345",
+    "cwaNumber": "T12347",
     "registeredName": "TEST DOG",
     "status": "Active",
     "currentGrade": "A",
@@ -364,7 +377,7 @@ curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/dog/edit \
   -d '{
-    "cwaNumber": "T12345",
+    "cwaNumber": "T12346",
     "registeredName": "TEST DOG UPDATED",
     "callName": "TEST2",
     "birthdate": "2020-01-01",
