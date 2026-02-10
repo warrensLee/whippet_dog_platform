@@ -983,7 +983,18 @@ curl -i -b cookies.txt \
 --------------------------------------------------
 TITLE TYPE
 --------------------------------------------------
+(
+  Must be signed in
+  View: viewTitleTypeScope
+    0 = none
+    1 = self (acts the same as all)
+    2 = all (view all title types)
 
+    Edit: editTitleTypeScope
+    0 = none
+    1 = self (acts the same as all)
+    2 = all (create/edit/delete title types)
+)
 --------------------------------------------------
 POST /api/title_type/add
 --------------------------------------------------
@@ -991,8 +1002,8 @@ curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/title_type/add \
   -d '{
-    "title": "ARX",
-    "titleDescription": "ARX title"
+    "title": "TEST",
+    "titleDescription": "TEST title"
   }'
 
 
