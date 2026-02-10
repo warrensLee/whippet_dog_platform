@@ -506,6 +506,14 @@ GET /api/dog/stats/<cwa_number>
 curl -i -b cookies.txt \
   http://localhost/api/dog/stats/T12345
 
+--------------------------------------------------
+Importer
+--------------------------------------------------
+
+--------------------------------------------------
+Import Dog (file is in the test folder)
+--------------------------------------------------
+curl -i -b cookies.txt   -X POST "http://localhost/api/import?type=dogs&dryRun=true&mode=insert"   -F "file=@backend/test/dog_import.csv"
 
 --------------------------------------------------
 MEET RESULT
