@@ -923,6 +923,39 @@ GET /api/person/get
 curl -i -b cookies.txt \
   http://localhost/api/person/get
 
+SEARCH
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/person/search?q=t
+--------------------------------------------------
+
+mine
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/person/mine
+--------------------------------------------------
+
+
+curl -i -b cookies.txt \
+  http://localhost/api/person/is-secretary/test_user_1
+
+curl -i -b cookies.txt \
+  http://localhost/api/person/is-board-member/test_user_1
+
+
+curl -i -b cookies.txt \
+  http://localhost/api/person/is-judge/test_user_1
+
+  curl -i -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/person/change-user-role \
+  -d '{
+    "personId": "test_1",
+    "systemRole": "PUBLIC"
+  }'
+
+
+
 
 --------------------------------------------------
 RACE RESULT
