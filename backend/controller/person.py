@@ -4,38 +4,9 @@ from datetime import datetime, timezone
 from classes.person import Person
 from classes.change_log import ChangeLog
 from classes.user_role import UserRole
+from utils.auth_helpers import current_editor_id, current_role, require_scope
 
 person_bp = Blueprint("person", __name__, url_prefix="/api/person")
-
-def _current_editor_id() -> str | None:
-    u = session.get("user") or {}
-    return u.get("PersonID") or None
-
-
-def _current_role() -> UserRole | None:
-    u = session.get("user") or {}
-    pid = u.get("PersonID")
-    if not pid:
-        return None
-
-    title = u.get("SystemRole")
-    if not title:
-        return None
-
-    return UserRole.find_by_title(title.strip().upper())
-
-
-def _require_login():
-    if not _current_editor_id():
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
-    return None
-
-
-def _require_scope(scope_value: int, action: str):
-    if int(scope_value or 0) == UserRole.NONE:
-        return jsonify({"ok": False, "error": f"Not allowed to {action}"}), 403
-    return None
-
 
 def _is_owner(person_id: str) -> bool:
     current_id = _current_editor_id()
@@ -46,22 +17,14 @@ def _is_owner(person_id: str) -> bool:
 
 @person_bp.post("/add")
 def register_person():
-    # must be logged in
-    login_err = _require_login()
-    if login_err:
-        return login_err
-
-    # must have role
-    role = _current_role()
+    role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    # must have edit_person_scope
-    deny = _require_scope(role.edit_person_scope, "create people")
+    deny = require_scope(role.edit_person_scope, "create people")
     if deny:
         return deny
 
-    # creating a person requires ALL (SELF is not enough)
     if role.edit_person_scope != UserRole.ALL:
         return jsonify({"ok": False, "error": "Not allowed to create people"}), 403
 
@@ -74,12 +37,10 @@ def register_person():
 
     person.set_password(password)
 
-    # default role if not provided
     if not person.system_role:
-        person.system_role = "Public"
+        person.system_role = "PUBLIC"
 
-    # audit fields
-    editor_id = _current_editor_id()
+    editor_id = current_editor_id()
     person.last_edited_by = editor_id
     person.last_edited_at = datetime.now(timezone.utc)
 
@@ -109,15 +70,11 @@ def register_person():
 
 @person_bp.post("/edit")
 def edit_person():
-    login_err = _require_login()
-    if login_err:
-        return login_err
-
-    role = _current_role()
+    role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = _require_scope(role.edit_person_scope, "edit people")
+    deny = require_scope(role.edit_person_scope, "edit people")
     if deny:
         return deny
 
@@ -143,7 +100,7 @@ def edit_person():
     if role.edit_person_scope != UserRole.ALL:
         person.system_role = existing.system_role
 
-    person.last_edited_by = _current_editor_id()
+    person.last_edited_by = current_editor_id()
     person.last_edited_at = datetime.now(timezone.utc)
 
     validation_errors = person.validate()
@@ -159,7 +116,7 @@ def edit_person():
             changed_table="Person",
             record_pk=person_id,
             operation="UPDATE",
-            changed_by=_current_editor_id(),
+            changed_by=current_editor_id(),
             source="api/person/edit POST",
             before_obj=before_snapshot,
             after_obj=after_snapshot,
@@ -173,10 +130,9 @@ def edit_person():
 
 @person_bp.post("/change-password")
 def change_password():
-    login_err = _require_login()
-    if login_err:
-        return login_err
-
+    role = current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
     data = request.get_json(silent=True) or {}
     current_password = (data.get("currentPassword") or "").strip()
     new_password = (data.get("newPassword") or "").strip()
@@ -186,7 +142,7 @@ def change_password():
     if len(new_password) < 6:
         return jsonify({"ok": False, "error": "New password must be at least 6 characters"}), 400
 
-    current_id = _current_editor_id()
+    current_id = current_editor_id()
 
     try:
         person = Person.find_by_identifier(current_id)
@@ -224,19 +180,14 @@ def change_password():
 
 @person_bp.get("/get/<person_id>")
 def get_person(person_id: str):
-    login_err = _require_login()
-    if login_err:
-        return login_err
-
-    role = _current_role()
+    role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = _require_scope(role.view_person_scope, "view people")
+    deny = require_scope(role.view_person_scope, "view people")
     if deny:
         return deny
 
-    # SELF => only your own
     if role.view_person_scope == UserRole.SELF and not _is_owner(person_id):
         return jsonify({"ok": False, "error": "Forbidden"}), 403
 
@@ -249,19 +200,14 @@ def get_person(person_id: str):
 
 @person_bp.get("/get")
 def list_all_persons():
-    login_err = _require_login()
-    if login_err:
-        return login_err
-
-    role = _current_role()
+    role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = _require_scope(role.view_person_scope, "view people")
+    deny = require_scope(role.view_person_scope, "view people")
     if deny:
         return deny
 
-    # Listing everyone is effectively "ALL"
     if role.view_person_scope != UserRole.ALL:
         return jsonify({"ok": False, "error": "Not allowed to list all people"}), 403
 

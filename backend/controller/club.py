@@ -179,7 +179,7 @@ def delete_club():
 
 
 @club_bp.get("/get/<club_abbreviation>")
-def get_club(club_abbreviation: str):
+def get_club(club_abbreviation):
     role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401

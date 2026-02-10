@@ -5,41 +5,18 @@ from flask import Blueprint, request, jsonify, session, current_app
 from flask_mail import Message
 from datetime import datetime, timezone
 from mysql.connector import Error
-from email_validator import validate_email, EmailNotValidError
 from classes.news import News
 from classes.change_log import ChangeLog
 from classes.user_role import UserRole
 from database import fetch_all, execute, fetch_one
+from utils.auth_helpers import current_editor_id, current_role, require_scope
+
 
 news_bp = Blueprint("news", __name__, url_prefix="/api/news")
 
-def _current_editor_id() -> str | None:
-    u = session.get("user") or {}
-    pid = u.get("PersonID")
-    return pid if pid else None
-
-
-def _current_role() -> UserRole | None:
-    u = session.get("user") or {}
-    pid = u.get("PersonID")
-    if not pid:
-        return None
-
-    title = u.get("SystemRole")
-    if not title:
-        return None
-
-    return UserRole.find_by_title(title.strip().upper())
-
-
-def _require_scope(scope_value: int, action: str):
-    if int(scope_value or 0) == UserRole.NONE:
-        return jsonify({"ok": False, "error": f"Not allowed to {action}"}), 403
-    return None
-
 
 def _is_news_owner(news_item: News) -> bool:
-    person_id = _current_editor_id()
+    person_id = current_editor_id()
     if not person_id or not news_item:
         return False
 
@@ -49,12 +26,12 @@ def _is_news_owner(news_item: News) -> bool:
 
 @news_bp.route("/get", methods=["GET"])
 def get_news():
-    role = _current_role()
+    role = current_role()
 
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = _require_scope(role.view_news_scope, "view news")
+    deny = require_scope(role.view_news_scope, "view news")
     if deny:
         return deny
 
@@ -138,11 +115,11 @@ def get_news_public():
 
 @news_bp.route("/get/<news_id>", methods=["GET"])
 def get_news_by_id(news_id):
-    role = _current_role()
+    role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = _require_scope(role.view_news_scope, "view news")
+    deny = require_scope(role.view_news_scope, "view news")
     if deny:
         return deny
 
@@ -170,7 +147,7 @@ def create_news():
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = _require_scope(role.edit_news_scope, "create news")
+    deny = require_scope(role.edit_news_scope, "create news")
     if deny:
         return deny
 
@@ -260,11 +237,11 @@ def create_news():
 
 @news_bp.route("/edit/<news_id>", methods=["PUT"])
 def update_news(news_id):
-    role = _current_role()
+    role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = _require_scope(role.edit_news_scope, "edit news")
+    deny = require_scope(role.edit_news_scope, "edit news")
     if deny:
         return deny
 
@@ -323,11 +300,11 @@ def update_news(news_id):
 
 @news_bp.route("/delete/<news_id>", methods=["DELETE"])
 def delete_news(news_id):
-    role = _current_role()
+    role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = _require_scope(role.edit_news_scope, "delete news")
+    deny = require_scope(role.edit_news_scope, "delete news")
     if deny:
         return deny
 
@@ -367,11 +344,11 @@ def delete_news(news_id):
 
 @news_bp.route("/search", methods=["GET"])
 def search_news():
-    role = _current_role()
+    role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = _require_scope(role.view_news_scope, "view news")
+    deny = require_scope(role.view_news_scope, "view news")
     if deny:
         return deny
 
@@ -421,10 +398,6 @@ def search_news():
         return jsonify({"ok": False, "error": "An unexpected error occurred"}), 500
 
 
-from email_validator import validate_email, EmailNotValidError
-
-# ... rest of your imports ...
-
 @news_bp.route("/subscribe", methods=["POST"])
 def subscribe_newsletter():
     try:
@@ -434,12 +407,6 @@ def subscribe_newsletter():
         if not email:
             return jsonify({"ok": False, "error": "Email is required"}), 400
         
-        # Correct way to use email_validator
-        try:
-            valid = validate_email(email)
-            email = valid.email  # Use the normalized email
-        except EmailNotValidError as e:
-            return jsonify({"ok": False, "error": "Invalid email address"}), 400
 
         execute(
             """
@@ -475,13 +442,6 @@ def unsubscribe_newsletter():
 
         if not email:
             return jsonify({"ok": False, "error": "Email is required"}), 400
-        
-        # Correct way to use email_validator
-        try:
-            valid = validate_email(email)
-            email = valid.email  # Use the normalized email
-        except EmailNotValidError as e:
-            return jsonify({"ok": False, "error": "Invalid email address"}), 400
 
         rows = execute(
             """
@@ -514,12 +474,6 @@ def newsletter_subscription_status():
         if not email:
             return jsonify({"ok": False, "error": "Email is required"}), 400
         
-        # Correct way to use email_validator
-        try:
-            valid = validate_email(email)
-            email = valid.email  # Use the normalized email
-        except EmailNotValidError as e:
-            return jsonify({"ok": False, "error": "Invalid email address"}), 400
 
         row = fetch_one(
             """

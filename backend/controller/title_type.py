@@ -4,47 +4,25 @@ from datetime import datetime, timezone
 from classes.title_type import TitleType
 from classes.change_log import ChangeLog
 from classes.user_role import UserRole
+from utils.auth_helpers import current_editor_id, current_role, require_scope
+
 
 title_type_bp = Blueprint("title_type", __name__, url_prefix="/api/title_type")
 
-
-def _current_editor_id() -> str | None:
-    u = session.get("user") or {}
-    return (u.get("PersonID") or u.get("personId") or u.get("id") or None)
-
-
-def _current_role() -> UserRole | None:
-    u = session.get("user") or {}
-    if not _current_editor_id():
-        return None
-
-    title = u.get("SystemRole")
-    if not title:
-        return None
-
-    return UserRole.find_by_title(title.strip().upper())
-
-
-def _require_scope(scope_value: int, action: str):
-    if int(scope_value or 0) == UserRole.NONE:
-        return jsonify({"ok": False, "error": f"Not allowed to {action}"}), 403
-    return None
-
-
 @title_type_bp.post("/add")
 def add_title_type():
-    role = _current_role()
+    role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = _require_scope(role.edit_title_type_scope, "edit title types")
+    deny = require_scope(role.edit_title_type_scope, "edit title types")
     if deny:
         return deny
 
     data = request.get_json(silent=True) or {}
     title_type = TitleType.from_request_data(data)
 
-    title_type.last_edited_by = _current_editor_id()
+    title_type.last_edited_by = current_editor_id()
     title_type.last_edited_at = datetime.now(timezone.utc)
 
     errors = title_type.validate()
@@ -61,7 +39,7 @@ def add_title_type():
             changed_table="TitleType",
             record_pk=title_type.title,
             operation="INSERT",
-            changed_by=_current_editor_id(),
+            changed_by=current_editor_id(),
             source="api/title_type/add POST",
             before_obj=None,
             after_obj=title_type.to_dict(),
@@ -75,11 +53,11 @@ def add_title_type():
 
 @title_type_bp.post("/edit")
 def edit_title_type():
-    role = _current_role()
+    role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = _require_scope(role.edit_title_type_scope, "edit title types")
+    deny = require_scope(role.edit_title_type_scope, "edit title types")
     if deny:
         return deny
 
@@ -96,7 +74,7 @@ def edit_title_type():
 
     title_type = TitleType.from_request_data(data)
     title_type.title = title
-    title_type.last_edited_by = _current_editor_id()
+    title_type.last_edited_by = current_editor_id()
     title_type.last_edited_at = datetime.now(timezone.utc)
 
     errors = title_type.validate()
@@ -113,7 +91,7 @@ def edit_title_type():
             changed_table="TitleType",
             record_pk=title,
             operation="UPDATE",
-            changed_by=_current_editor_id(),
+            changed_by=current_editor_id(),
             source="api/title_type/edit POST",
             before_obj=before_snapshot,
             after_obj=after_snapshot,
@@ -127,11 +105,11 @@ def edit_title_type():
 
 @title_type_bp.post("/delete")
 def delete_title_type():
-    role = _current_role()
+    role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = _require_scope(role.edit_title_type_scope, "edit title types")
+    deny = require_scope(role.edit_title_type_scope, "edit title types")
     if deny:
         return deny
 
@@ -155,7 +133,7 @@ def delete_title_type():
             changed_table="TitleType",
             record_pk=title,
             operation="DELETE",
-            changed_by=_current_editor_id(),
+            changed_by=current_editor_id(),
             source="api/title_type/delete POST",
             before_obj=before_snapshot,
             after_obj=None,
@@ -168,11 +146,11 @@ def delete_title_type():
 
 @title_type_bp.get("/get/<title>")
 def get_title_type(title: str):
-    role = _current_role()
+    role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = _require_scope(role.view_title_type_scope, "view title types")
+    deny = require_scope(role.view_title_type_scope, "view title types")
     if deny:
         return deny
 
@@ -185,11 +163,11 @@ def get_title_type(title: str):
 
 @title_type_bp.get("/get")
 def get_all_title_types():
-    role = _current_role()
+    role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = _require_scope(role.view_title_type_scope, "view title types")
+    deny = require_scope(role.view_title_type_scope, "view title types")
     if deny:
         return deny
 
