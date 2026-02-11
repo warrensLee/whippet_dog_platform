@@ -29,18 +29,17 @@ def register_club():
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.edit_club_scope, "edit clubs")
+    deny = require_scope(role.edit_club_scope, "create clubs")
     if deny:
         return deny
 
     data = request.get_json(silent=True) or {}
     club = Club.from_request_data(data)
 
-    if role.edit_club_scope == UserRole.SELF:
-        if not current_editor_id():
-            return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    if not (club.board_member1 == current_editor_id() or club.board_member2 == current_editor_id() or club.default_race_secretary == current_editor_id()):
+    if (role.edit_club_scope == UserRole.SELF 
+        and not (club.board_member1 == current_editor_id() 
+        or club.board_member2 == current_editor_id() 
+        or club.default_race_secretary == current_editor_id())):
         return jsonify({"ok": False, "error": "Not allowed to create a club unless you are a board member or race secretary"}), 403
 
     club.last_edited_by = current_editor_id()
@@ -61,7 +60,7 @@ def register_club():
             record_pk=club.club_abbreviation,
             operation="INSERT",
             changed_by=current_editor_id(),
-            source="api/club/register POST",
+            source="api/club/add POST",
             before_obj=None,
             after_obj=club.to_dict(),
         )
@@ -135,7 +134,7 @@ def delete_club():
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.edit_club_scope, "edit clubs")
+    deny = require_scope(role.edit_club_scope, "delete clubs")
     if deny:
         return deny
 

@@ -58,11 +58,7 @@ curl -i -c cookies.txt -b cookies.txt \
   --------------------------------------------------
 Change Log 
 (
-  Must be logged in
-  Permission is view only (view_change_log_scope)
-    SELF: can only see logs where ChangedBy == your PersonID
-    ALL: can see all logs
-    NONE: can see no logs
+  Anyone can view change log or a specific change log
 )
 --------------------------------------------------
 
@@ -79,19 +75,35 @@ curl -i -b cookies.txt http://localhost/api/change_log/get
 --------------------------------------------------
 Club
 (
-  Must be signed in.
+  View:
+    No sign in required.
+
+  Create / Edit / Delete:
+    Must be signed in.
+
   Permissions controlled by UserRole scopes:
-  viewClubScope: 
-    0 NONE, 
-    1 SELF (only clubs you are a member of), 
-    2 ALL (any club)
-  editClubScope: 
-    0 NONE, 
-    1 SELF (only clubs you are a member of), 
-    2 ALL (any club)
+  EditClubScope:
+    0 = NONE
+        - Cannot create clubs
+        - Cannot edit clubs
+        - Cannot delete clubs
+
+    1 = SELF
+        - Can create a club
+        - Can edit a club ONLY if you are a member of that club
+        - Can delete a club ONLY if you are a member of that club
+
+    2 = ALL
+        - Can create any club
+        - Can edit any club
+        - Can delete any club
+
   "Member" means your PersonID matches one of:
-    boardMember1, boardMember2, defaultRaceSecretary
+    boardMember1
+    boardMember2
+    defaultRaceSecretary
 )
+
 --------------------------------------------------
 
 --------------------------------------------------
