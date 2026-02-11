@@ -28,12 +28,12 @@ def _is_news_owner(news_item):
 def get_news():
     role = current_role()
 
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
+    # if not role:
+    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.view_news_scope, "view news")
-    if deny:
-        return deny
+    # deny = require_scope(role.view_news_scope, "view news")
+    # if deny:
+    #     return deny
 
     try:
         rows = fetch_all(
@@ -60,46 +60,8 @@ def get_news():
             if not news_item:
                 continue
 
-            if role.view_news_scope == UserRole.SELF and not _is_news_owner(news_item):
-                continue
-
-            news_list.append(news_item.to_dict())
-
-        return jsonify({"ok": True, "data": news_list}), 200
-
-    except Error as e:
-        print(f"Database error: {e}")
-        return jsonify({"ok": False, "error": str(e)}), 500
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-        return jsonify({"ok": False, "error": "An unexpected error occurred"}), 500
-    
-@news_bp.route("/public/get", methods=["GET"])
-def get_news_public():
-    try:
-        rows = fetch_all(
-            """
-            SELECT
-                n.ID,
-                n.Title,
-                n.Content,
-                n.CreatedAt,
-                n.UpdatedAt,
-                n.AuthorID,
-                CONCAT(p.FirstName, ' ', p.LastName) AS AuthorName,
-                n.LastEditedBy,
-                n.LastEditedAt
-            FROM News n
-            LEFT JOIN Person p ON p.PersonID = n.AuthorID
-            ORDER BY n.CreatedAt DESC
-            """
-        )
-
-        news_list = []
-        for row in rows:
-            news_item = News.from_db_row(row)
-            if not news_item:
-                continue
+            # if role.view_news_scope == UserRole.SELF and not _is_news_owner(news_item):
+            #     continue
 
             news_list.append(news_item.to_dict())
 
@@ -116,20 +78,20 @@ def get_news_public():
 @news_bp.route("/get/<news_id>", methods=["GET"])
 def get_news_by_id(news_id):
     role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
+    # if not role:
+    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.view_news_scope, "view news")
-    if deny:
-        return deny
+    # deny = require_scope(role.view_news_scope, "view news")
+    # if deny:
+    #     return deny
 
     try:
         news_item = News.find_by_identifier(news_id)
         if not news_item:
             return jsonify({"ok": False, "error": "News item not found"}), 404
 
-        if role.view_news_scope == UserRole.SELF and not _is_news_owner(news_item):
-            return jsonify({"ok": False, "error": "Not allowed to view this news item"}), 403
+        # if role.view_news_scope == UserRole.SELF and not _is_news_owner(news_item):
+        #     return jsonify({"ok": False, "error": "Not allowed to view this news item"}), 403
 
         return jsonify({"ok": True, "data": news_item.to_dict()}), 200
 
@@ -344,13 +306,13 @@ def delete_news(news_id):
 
 @news_bp.route("/search", methods=["GET"])
 def search_news():
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
+    # role = current_role()
+    # if not role:
+    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.view_news_scope, "view news")
-    if deny:
-        return deny
+    # deny = require_scope(role.view_news_scope, "view news")
+    # if deny:
+    #     return deny
 
     try:
         query = (request.args.get("q") or "").strip()
@@ -383,8 +345,8 @@ def search_news():
             if not news_item:
                 continue
 
-            if role.view_news_scope == UserRole.SELF and not _is_news_owner(news_item):
-                continue
+            # if role.view_news_scope == UserRole.SELF and not _is_news_owner(news_item):
+            #     continue
 
             news_list.append(news_item.to_dict())
 
