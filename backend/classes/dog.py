@@ -149,7 +149,11 @@ class Dog:
     
     def check_dpc_title(self):
         '''Check if dog is eligible for Dual Purpose Championship (DPC) titles.'''
-        if self.check_trp_title() == "TRP" and ((self.akc_number > 0 or self.ckc_number > 0) or (self.dpc_legs >= 5)):
+        has_akc = bool((self.akc_number or "").strip())
+        has_ckc = bool((self.ckc_number or "").strip())
+        has_registry = has_akc or has_ckc
+
+        if self.check_trp_title() == "TRP" and (has_registry or self.dpc_legs >= 5):
             if self.check_arx_title() == "ARX":
                 return "DPCX"
             return "DPC"
@@ -463,24 +467,104 @@ class Dog:
         return existing is not None
 
     def validate(self):
-        """Validate required fields. Returns list of errors (empty if valid)."""
         errors = []
-        if not self.cwa_number:
+        cwa = (self.cwa_number or "").strip()
+        reg = (self.registered_name or "").strip()
+        status = (self.status or "").strip()
+        grade = (self.current_grade or "").strip()
+    
+        if not cwa:
             errors.append("CWA Number is required")
-        if not self.registered_name:
+
+        if not reg:
             errors.append("Registered Name is required")
-        if not self.status:
+
+        if not status:
             errors.append("Status is required")
-        if not self.current_grade:
+
+        if not grade:
             errors.append("Current Grade is required")
-        if self.status not in self.VALID_STATUSES:
-            errors.append("Status must be 'Active' or 'Inactive'")
-        if self.current_grade not in self.VALID_GRADES:
-            errors.append("Current Grade must be one of 'FTE', 'D', 'C', 'B', or 'A'")
-        if len(self.cwa_number) > 10:
+
+        if not self.birthdate:
+            errors.append("Birthdate is required")
+
+        if cwa and len(cwa) > 10:
             errors.append("CWA Number must be 10 characters or less")
-        if len(self.registered_name) > 100:
+
+        if reg and len(reg) > 100:
             errors.append("Registered Name must be 100 characters or less")
+
+        if self.call_name and len(self.call_name) > 50:
+            errors.append("Call Name must be 50 characters or less")
+
+        if self.akc_number and len(self.akc_number) > 10:
+            errors.append("AKC Number must be 10 characters or less")
+
+        if self.ckc_number and len(self.ckc_number) > 10:
+            errors.append("CKC Number must be 10 characters or less")
+
+        if status and status not in self.VALID_STATUSES:
+            errors.append("Status must be 'Active' or 'Inactive'")
+
+        if grade and grade not in self.VALID_GRADES:
+            errors.append("Current Grade must be one of 'FTE', 'D', 'C', 'B', or 'A'")
+
+        def validate_decimal(value, field, max_value):
+            if value is None:
+                return
+            try:
+                val = float(value)
+            except (TypeError, ValueError):
+                errors.append(f"{field} must be a number")
+                return
+            if val < 0:
+                errors.append(f"{field} cannot be negative")
+            if val > max_value:
+                errors.append(f"{field} cannot exceed {max_value}")
+
+        def validate_int(value, field, max_value):
+            if value is None:
+                return
+            try:
+                val = int(value)
+            except (TypeError, ValueError):
+                errors.append(f"{field} must be an integer")
+                return
+            if val < 0:
+                errors.append(f"{field} cannot be negative")
+            if val > max_value:
+                errors.append(f"{field} cannot exceed {max_value}")
+
+        # DECIMAL(5,2)
+        validate_decimal(self.meet_points, "Meet Points", 999.99)
+        validate_decimal(self.arx_points, "ARX Points", 999.99)
+        validate_decimal(self.narx_points, "NARX Points", 999.99)
+        validate_decimal(self.meet_wins, "Meet Wins", 999.99)
+        validate_decimal(self.meet_appearences, "Meet Appearances", 999.99)
+        validate_decimal(self.high_combined_wins, "High Combined Wins", 999.99)
+
+        # DECIMAL(3,2)  
+        validate_decimal(self.average, "Average", 9.99)
+
+        # SMALLINT max
+        validate_int(self.show_points, "Show Points", 32767)
+        validate_int(self.dpc_legs, "DPC Legs", 32767)
+
+        if self.birthdate:
+            if isinstance(self.birthdate, str):
+                try:
+                    datetime.strptime(self.birthdate, "%Y-%m-%d")
+                except ValueError:
+                    errors.append("Birthdate must be in YYYY-MM-DD format")
+
+        if self.last_edited_by:
+            row = fetch_one(
+                "SELECT PersonID FROM Person WHERE PersonID = %s LIMIT 1",
+                (self.last_edited_by,),
+            )
+            if not row:
+                errors.append("LastEditedBy must reference an existing Person")
+
         return errors
 
     def save(self):
@@ -616,7 +700,7 @@ class Dog:
         return [Dog.from_db_row(row) for row in rows]
     
     @staticmethod
-    def list_dogs_for_owner(person_id: str):
+    def list_dogs_for_owner(person_id):
         """
         Return all dogs owned by the given person_id.
         """
@@ -632,6 +716,10 @@ class Dog:
         )
 
         return [Dog.from_db_row(row) for row in rows]
+    
+    def compute_titles(self):
+        return [t for t in self.check_titles() if t]
+
 
     
     def to_session_dict(self):

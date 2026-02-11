@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 from mysql.connector import Error
 from datetime import datetime, timezone
 from classes.dog import Dog
+from classes.dog_title import DogTitle
 from classes.dog_owner import DogOwner
 from classes.change_log import ChangeLog
 from classes.user_role import UserRole
@@ -42,7 +43,6 @@ def register_dog():
 
     try:
         dog.save()
-
         ChangeLog.log(
             changed_table="Dog",
             record_pk=dog.cwa_number,
@@ -52,6 +52,9 @@ def register_dog():
             before_obj=None,
             after_obj=dog.to_dict(),
         )
+
+        #update titles based on dog attributes
+        DogTitle.sync_titles_for_dog(dog, current_editor_id(), datetime.now(timezone.utc))
 
         return jsonify({"ok": True}), 201
 
@@ -108,6 +111,9 @@ def edit_dog():
             after_obj=after_snapshot,
         )
 
+        #update titles based on dog attributes
+        DogTitle.sync_titles_for_dog(dog, current_editor_id(), datetime.now(timezone.utc))
+
         return jsonify({"ok": True}), 200
 
     except Error as e:
@@ -142,7 +148,10 @@ def delete_dog():
 
         before_snapshot = dog.to_dict()
 
+        #remove owners and titles first due to foreign key constraints
         DogOwner.delete_all_for_dog(dog.cwa_number)
+        DogTitle.delete_all_for_dog(dog.cwa_number)
+        #remove dog record
         Dog.delete(dog.cwa_number)
 
         ChangeLog.log(
