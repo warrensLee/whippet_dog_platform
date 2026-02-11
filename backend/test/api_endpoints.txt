@@ -550,7 +550,7 @@ GET /api/dog/search/ (search for a dog by name, owner, call name, registeredName
 curl -i -b cookies.txt "http://localhost/api/dog/search?q=D"
 
  --------------------------------------------------
-GET /api/dog/meets/<cwa_number> (returns meet, meet results, and race results for a specific dog)
+GET /api/dog/meets/<cwa_number> (returns meet, meet results, and race results for a specific dog thats raced in)
 --------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/dog/meets/T12345
@@ -564,12 +564,71 @@ curl -i -b cookies.txt \
 
 --------------------------------------------------
 Importer
+(
+ View:
+    None.
+      No sign in required.
+      Can view all import types (ALL GET endpoints).
+
+  Create / Edit :
+    Must be signed in (ALL POST endpoints).
+
+  Permissions controlled by UserRole scopes:
+
+  EditDogScope:
+    0 = NONE
+        - Cannot import dogs, meets, meet results, and race results
+        - Cannot modify existing dogs, meets, meet results, and race results
+
+    1 = SELF
+        - Cannot import dogs, meets, meet results, and race results
+        - Cannot modify existing dogs, meets, meet results, and race results
+
+    2 = ALL
+        - Can import dogs, meets, meet results, and race results
+        - Can modify any existing dogs, meets, meet results, and race results via import
+
+    (change mode to update to update instead of )
+)
 --------------------------------------------------
 
 --------------------------------------------------
-Import Dog (file is in the test folder)
+POST /api/import?type=dogs&mode=insert (insert/update dogs by csv — dog_import.csv in test folder)
 --------------------------------------------------
-curl -i -b cookies.txt   -X POST "http://localhost/api/import?type=dogs&dryRun=true&mode=insert"   -F "file=@backend/test/dog_import.csv"
+curl -i -b cookies.txt \
+  -X POST "http://localhost/api/import?type=dogs&mode=insert" \
+  -F "file=@backend/test/dog_import.csv"
+
+--------------------------------------------------
+(Make sure to have a valid Club in the test file)
+POST /api/import?type=meets&mode=insert (insert/update meets by csv — meet_import.csv in test folder)
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -X POST "http://localhost/api/import?type=meets&mode=insert" \
+  -F "file=@backend/test/meet_import.csv"
+
+--------------------------------------------------
+POST /api/import?type=meet_results&mode=insert (insert/update meet results by csv — meet_results_import.csv in test folder)
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -X POST "http://localhost/api/import?type=meet_results&mode=insert" \
+  -F "file=@backend/test/meet_result_import.csv"
+
+
+--------------------------------------------------
+POST /api/import?type=race_results&mode=insert (insert/update race results by csv — race_results_import.csv in test folder)
+--------------------------------------------------
+curl -i -b cookies.txt \
+  -X POST "http://localhost/api/import?type=race_results&mode=insert" \
+  -F "file=@backend/test/race_result_import.csv"
+
+
+--------------------------------------------------
+GET /api/import/types (Gets all the import types: ie, dog, meet, meet_results, and race_results)
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/import/types
+
 
 --------------------------------------------------
 MEET RESULT
