@@ -209,12 +209,6 @@ CREATE TABLE `ChangeLog` (
     `AfterData` TEXT
 );
 
-CREATE TABLE `SchemaMigrations` (
-    `ID` INT PRIMARY KEY AUTO_INCREMENT,
-    `Version` VARCHAR(50) NOT NULL UNIQUE,
-    `AppliedAt` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
 -- =========================
 -- FOREIGN KEYS
 -- =========================
@@ -449,3 +443,24 @@ INSERT INTO Person (
   NULL,
   CURRENT_TIMESTAMP
 );
+
+INSERT INTO TitleType (Title, TitleDescription)
+VALUES
+  ('ARX',  'Title of Racing Excellence'),
+  ('TRP',  'Title of Racing Proficiency'),
+  ('PR',   'Performance'),
+  ('PR2',  'Performance 2'),
+  ('PR3',  'Performance 3'),
+  ('PR4',  'Performance 4'),
+  ('NARX', 'National Racing Excellence'),
+  ('NARX2','National Racing Excellence 2'),
+  ('NARX3','National Racing Excellence 3'),
+  ('NARX4','National Racing Excellence 4'),
+  ('SRA',  'Superior Racing Award'),
+  ('SRA2', 'Superior Racing Award 2'),
+  ('SRA3', 'Superior Racing Award 3'),
+  ('SRA4', 'Superior Racing Award 4'),
+  ('DPC',  'Dual Purpose Championship'),
+  ('DPCX', 'Dual Purpose Championship Excellent'),
+  ('HC',   'High Combined'),
+  ('HCX',  'High Combined Excellent');
