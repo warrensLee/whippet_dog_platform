@@ -183,53 +183,53 @@ def delete_meet_result():
 
 @meet_result_bp.get("/get/<meet_number>/<cwa_number>")
 def get_meet_result(meet_number: str, cwa_number: str):
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
+    # role = current_role()
+    # if not role:
+    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.view_meet_results_scope, "view meet results")
-    if deny:
-        return deny
+    # deny = require_scope(role.view_meet_results_scope, "view meet results")
+    # if deny:
+    #     return deny
 
     meet_result = MeetResult.find_by_identifier(meet_number, cwa_number)
     if not meet_result:
         return jsonify({"ok": False, "error": "Meet result does not exist"}), 404
 
-    if role.view_meet_results_scope == UserRole.SELF:
-        if not _is_owner(cwa_number):
-            return jsonify({
-                "ok": False,
-                "error": "You can only view meet results for dogs you own"
-            }), 403
+    # if role.view_meet_results_scope == UserRole.SELF:
+    #     if not _is_owner(cwa_number):
+    #         return jsonify({
+    #             "ok": False,
+    #             "error": "You can only view meet results for dogs you own"
+    #         }), 403
 
     return jsonify({"ok": True, "data": meet_result.to_dict()}), 200
 
 
 @meet_result_bp.get("/get")
 def list_all_meet_results():
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
+    # role = current_role()
+    # if not role:
+    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.view_meet_results_scope, "view meet results")
-    if deny:
-        return deny
+    # deny = require_scope(role.view_meet_results_scope, "view meet results")
+    # if deny:
+    #     return deny
 
     try:
-        if role.view_meet_results_scope == UserRole.ALL:
-            meet_results = MeetResult.list_all_meet_results()
-            return jsonify({"ok": True, "data": [mr.to_dict() for mr in meet_results]}), 200
+        # if role.view_meet_results_scope == UserRole.ALL:
+        meet_results = MeetResult.list_all_meet_results()
+        return jsonify({"ok": True, "data": [mr.to_dict() for mr in meet_results]}), 200
         
-        elif role.view_meet_results_scope == UserRole.SELF:
-            pid = current_editor_id()
-            if not pid:
-                return jsonify({"ok": False, "error": "Not signed in"}), 401
+        # elif role.view_meet_results_scope == UserRole.SELF:
+        #     pid = current_editor_id()
+        #     if not pid:
+        #         return jsonify({"ok": False, "error": "Not signed in"}), 401
             
-            meet_results = MeetResult.list_results_for_owner(pid)
-            return jsonify({"ok": True, "data": [mr.to_dict() for mr in meet_results]}), 200
+            # meet_results = MeetResult.list_results_for_owner(pid)
+            # return jsonify({"ok": True, "data": [mr.to_dict() for mr in meet_results]}), 200
         
-        else:
-            return jsonify({"ok": False, "error": "Not allowed to view meet results"}), 403
+        # else:
+        #     return jsonify({"ok": False, "error": "Not allowed to view meet results"}), 403
 
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
