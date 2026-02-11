@@ -1,8 +1,7 @@
 from flask import Blueprint, jsonify
 from mysql.connector import Error
 from classes.change_log import ChangeLog
-from classes.user_role import UserRole
-from utils.auth_helpers import current_editor_id, current_role
+from utils.auth_helpers import current_role
 
 change_log_bp = Blueprint("change_log", __name__, url_prefix="/api/change_log")
 
@@ -21,12 +20,12 @@ def get_change_log(id):
     if not change_log:
         return jsonify({"ok": False, "error": "Change log does not exist"}), 404
 
-    if role.view_change_log_scope == UserRole.SELF:
-        pid = current_editor_id()
-        if not pid:
-            return jsonify({"ok": False, "error": "Not signed in"}), 401
-        if change_log.changed_by != pid:
-            return jsonify({"ok": False, "error": "Not allowed to view this change log"}), 403
+    # if role.view_change_log_scope == UserRole.SELF:
+    #     pid = current_editor_id()
+    #     if not pid:
+    #         return jsonify({"ok": False, "error": "Not signed in"}), 401
+    #     if change_log.changed_by != pid:
+    #         return jsonify({"ok": False, "error": "Not allowed to view this change log"}), 403
 
     return jsonify({"ok": True, "data": change_log.to_dict()}), 200
 

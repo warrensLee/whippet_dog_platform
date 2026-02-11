@@ -136,6 +136,25 @@ class DogOwner:
             (cwa_id,),
         )
         return True
+    
+    @staticmethod
+    def list_all_with_people():
+        rows = fetch_all(
+            """
+            SELECT
+                do.CWAID,
+                do.PersonID,
+                p.FirstName,
+                p.LastName,
+                p.EmailAddress,
+                do.LastEditedBy,
+                do.LastEditedAt
+            FROM DogOwner do
+            LEFT JOIN Person p ON p.PersonID = do.PersonID
+            ORDER BY do.CWAID, p.LastName, p.FirstName, do.PersonID
+            """
+        )
+        return rows
 
     def to_session_dict(self):
         return {"CWAID": self.cwa_id, "PersonID": self.person_id}
