@@ -156,14 +156,14 @@ def delete_title_type():
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
 @title_type_bp.get("/get/<title>")
-def get_title_type(title: str):
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
+def get_title_type(title):
+    # role = current_role()
+    # if not role:
+    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.view_title_type_scope, "view title types")
-    if deny:
-        return deny
+    # deny = require_scope(role.view_title_type_scope, "view title types")
+    # if deny:
+    #     return deny
 
     title_type = TitleType.find_by_identifier(title)
     if not title_type:
@@ -174,13 +174,13 @@ def get_title_type(title: str):
 
 @title_type_bp.get("/get")
 def get_all_title_types():
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
+    # role = current_role()
+    # if not role:
+    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.view_title_type_scope, "view title types")
-    if deny:
-        return deny
+    # deny = require_scope(role.view_title_type_scope, "view title types")
+    # if deny:
+    #     return deny
 
     try:
         title_types = TitleType.list_all_title_types()
