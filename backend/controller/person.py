@@ -32,11 +32,6 @@ def _has_role(person_id, role_name):
     except Error:
         return False
 
-
-# ============================================================
-# POST /api/person/add
-# Create a new person/user account
-# ============================================================
 @person_bp.post("/add")
 def register_person():
     role = current_role()
@@ -46,6 +41,9 @@ def register_person():
     deny = require_scope(role.edit_person_scope, "create people")
     if deny:
         return deny
+
+    if role.edit_person_scope != UserRole.ALL:
+        return jsonify({"ok": False, "error": "Not authorized to create people"}), 403
 
     data = request.get_json(silent=True) or {}
     
@@ -88,10 +86,6 @@ def register_person():
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
 
-# ============================================================
-# POST /api/person/edit
-# Edit an existing person
-# ============================================================
 @person_bp.post("/edit")
 def edit_person():
     role = current_role()
@@ -149,11 +143,6 @@ def edit_person():
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
-
-# ============================================================
-# POST /api/person/change-password
-# Change current user's password
-# ============================================================
 @person_bp.post("/change-password")
 def change_password():
     role = current_role()
@@ -205,10 +194,6 @@ def change_password():
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
 
-# ============================================================
-# POST /api/person/change-user-role
-# Change a user's system role (admin only)
-# ============================================================
 @person_bp.post("/change-user-role")
 def change_user_role():
     role = current_role()
@@ -218,6 +203,7 @@ def change_user_role():
     deny = require_scope(UserRole.ALL, "edit person")
     if deny:
         return deny
+    
 
     data = request.get_json(silent=True) or {}
     person_id = (data.get("personId") or "").strip()
@@ -227,6 +213,9 @@ def change_user_role():
         return jsonify({"ok": False, "error": "Person ID is required"}), 400
     if not new_role:
         return jsonify({"ok": False, "error": "System role is required"}), 400
+    
+    if role.edit_person_scope == UserRole.SELF and person_id != current_editor_id():
+        return jsonify({"ok": False, "error": "Not authorized to change other users"}), 403
 
     try:
         person = Person.find_by_identifier(person_id)
@@ -260,22 +249,18 @@ def change_user_role():
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
 
-# ============================================================
-# GET /api/person/get/<person_id>
-# Get a specific person by ID
-# ============================================================
 @person_bp.get("/get/<person_id>")
 def get_person(person_id: str):
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
+    # role = current_role()
+    # if not role:
+    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.view_person_scope, "view people")
-    if deny:
-        return deny
+    # deny = require_scope(role.view_person_scope, "view people")
+    # if deny:
+    #     return deny
 
-    if role.view_person_scope == UserRole.SELF and not _is_owner(person_id):
-        return jsonify({"ok": False, "error": "Forbidden"}), 403
+    # if role.view_person_scope == UserRole.SELF and not _is_owner(person_id):
+    #     return jsonify({"ok": False, "error": "Forbidden"}), 403
 
     person = Person.find_by_identifier(person_id)
     if not person:
@@ -284,22 +269,18 @@ def get_person(person_id: str):
     return jsonify({"ok": True, "data": person.to_dict()}), 200
 
 
-# ============================================================
-# GET /api/person/get
-# List all persons (admin only)
-# ============================================================
 @person_bp.get("/get")
 def list_all_persons():
     role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
+    # if not role:
+    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.view_person_scope, "view people")
-    if deny:
-        return deny
+    # deny = require_scope(role.view_person_scope, "view people")
+    # if deny:
+    #     return deny
 
-    if role.view_person_scope != UserRole.ALL:
-        return jsonify({"ok": False, "error": "Not allowed to list all people"}), 403
+    # if role.view_person_scope != UserRole.ALL:
+    #     return jsonify({"ok": False, "error": "Not allowed to list all people"}), 403
 
     try:
         persons = Person.list_all_persons()
@@ -309,19 +290,15 @@ def list_all_persons():
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
 
-# ============================================================
-# GET /api/person/search?q=<query>&activeOnly=<true|false>
-# Search people by ID, name, email, or role keywords
-# ============================================================
 @person_bp.get("/search")
 def search_people():
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
+    # role = current_role()
+    # if not role:
+    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.view_person_scope, "search people")
-    if deny:
-        return deny
+    # deny = require_scope(role.view_person_scope, "search people")
+    # if deny:
+    #     return deny
 
     q = (request.args.get("q") or "").strip()
     if not q:
@@ -329,25 +306,25 @@ def search_people():
 
     active_only = (request.args.get("activeOnly") or "true").strip().lower() != "false"
 
-    if role.view_person_scope == UserRole.SELF:
-        pid = current_editor_id()
-        if not pid:
-            return jsonify({"ok": False, "error": "Not signed in"}), 401
+    # if role.view_person_scope == UserRole.SELF:
+    #     pid = current_editor_id()
+    #     if not pid:
+    #         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-        person = Person.find_by_identifier(pid)
-        if not person:
-            return jsonify({"ok": True, "data": []}), 200
+    #     person = Person.find_by_identifier(pid)
+    #     if not person:
+    #         return jsonify({"ok": True, "data": []}), 200
 
-        haystack = " ".join([
-            person.person_id or "",
-            person.first_name or "",
-            person.last_name or "",
-            person.email_address or "",
-        ]).lower()
+    #     haystack = " ".join([
+    #         person.person_id or "",
+    #         person.first_name or "",
+    #         person.last_name or "",
+    #         person.email_address or "",
+    #     ]).lower()
 
-        if q.lower() in haystack:
-            return jsonify({"ok": True, "data": [person.to_dict()]}), 200
-        return jsonify({"ok": True, "data": []}), 200
+    #     if q.lower() in haystack:
+    #         return jsonify({"ok": True, "data": [person.to_dict()]}), 200
+    #     return jsonify({"ok": True, "data": []}), 200
 
     like = f"%{q}%"
     q_norm = q.lower()
@@ -413,19 +390,15 @@ def search_people():
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
 
-# ============================================================
-# GET /api/person/mine
-# Get current user's profile
-# ============================================================
 @person_bp.get("/mine")
 def get_my_person():
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
+    # role = current_role()
+    # if not role:
+    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.view_person_scope, "view your profile")
-    if deny:
-        return deny
+    # deny = require_scope(role.view_person_scope, "view your profile")
+    # if deny:
+    #     return deny
 
     pid = current_editor_id()
     if not pid:
@@ -441,22 +414,18 @@ def get_my_person():
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
 
-# ============================================================
-# GET /api/person/is-board-member/<person_id>
-# Check if person has an active board member role
-# ============================================================
 @person_bp.get("/is-board-member/<person_id>")
 def is_board_member(person_id: str):
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
+    # role = current_role()
+    # if not role:
+    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.view_person_scope, "view roles")
-    if deny:
-        return deny
+    # deny = require_scope(role.view_person_scope, "view roles")
+    # if deny:
+    #     return deny
 
-    if role.view_person_scope == UserRole.SELF and not _is_owner(person_id):
-        return jsonify({"ok": False, "error": "Forbidden"}), 403
+    # if role.view_person_scope == UserRole.SELF and not _is_owner(person_id):
+    #     return jsonify({"ok": False, "error": "Forbidden"}), 403
 
     try:
         is_member = _has_role(person_id, "board")
@@ -465,22 +434,18 @@ def is_board_member(person_id: str):
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
 
-# ============================================================
-# GET /api/person/is-secretary/<person_id>
-# Check if person has an active secretary role
-# ============================================================
 @person_bp.get("/is-secretary/<person_id>")
 def is_secretary(person_id: str):
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
+    # role = current_role()
+    # if not role:
+    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.view_person_scope, "view roles")
-    if deny:
-        return deny
+    # deny = require_scope(role.view_person_scope, "view roles")
+    # if deny:
+    #     return deny
 
-    if role.view_person_scope == UserRole.SELF and not _is_owner(person_id):
-        return jsonify({"ok": False, "error": "Forbidden"}), 403
+    # if role.view_person_scope == UserRole.SELF and not _is_owner(person_id):
+    #     return jsonify({"ok": False, "error": "Forbidden"}), 403
 
     try:
         is_sec = _has_role(person_id, "secretary")
@@ -489,22 +454,18 @@ def is_secretary(person_id: str):
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
 
-# ============================================================
-# GET /api/person/is-judge/<person_id>
-# Check if person has an active judge role
-# ============================================================
 @person_bp.get("/is-judge/<person_id>")
 def is_judge(person_id: str):
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
+    # role = current_role()
+    # if not role:
+    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.view_person_scope, "view roles")
-    if deny:
-        return deny
+    # deny = require_scope(role.view_person_scope, "view roles")
+    # if deny:
+    #     return deny
 
-    if role.view_person_scope == UserRole.SELF and not _is_owner(person_id):
-        return jsonify({"ok": False, "error": "Forbidden"}), 403
+    # if role.view_person_scope == UserRole.SELF and not _is_owner(person_id):
+    #     return jsonify({"ok": False, "error": "Forbidden"}), 403
 
     try:
         is_jdg = _has_role(person_id, "judge")

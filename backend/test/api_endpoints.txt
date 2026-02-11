@@ -778,7 +778,7 @@ curl -i -b cookies.txt \
 
 
 --------------------------------------------------
-POST /api/meet/add
+POST /api/meet/add (adds a meet)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
@@ -794,7 +794,7 @@ curl -i -b cookies.txt \
   }'
 
 --------------------------------------------------
-POST /api/meet/edit
+POST /api/meet/edit (edit a meet)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
@@ -812,7 +812,7 @@ curl -i -b cookies.txt \
 
 
 --------------------------------------------------
-POST /api/meet/delete
+POST /api/meet/delete (delete a meet)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
@@ -853,19 +853,19 @@ NEWS
 --------------------------------------------------
 
 --------------------------------------------------
-GET /api/news/get
+GET /api/news/get (get all news)
 --------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/news/get
 
 --------------------------------------------------
-GET /api/news/get/<news_id>
+GET /api/news/get/<news_id> (get a specific news article)
 --------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/news/get/1
 
 --------------------------------------------------
-POST /api/news/add
+POST /api/news/add (add a news article)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
@@ -876,7 +876,7 @@ curl -i -b cookies.txt \
   }'
 
 --------------------------------------------------
-PUT /api/news/edit/<news_id>
+PUT /api/news/edit/<news_id> (edit a specific article)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
@@ -887,19 +887,19 @@ curl -i -b cookies.txt \
   }'
 
 --------------------------------------------------
-DELETE /api/news/delete/<news_id>
+DELETE /api/news/delete/<news_id> (delete a news article)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -X DELETE http://localhost/api/news/delete/1
 
 --------------------------------------------------
-GET /api/news/search?q=<query>
+GET /api/news/search?q=<query> (search an article by title and content)
 --------------------------------------------------
 curl -i -b cookies.txt \
   "http://localhost/api/news/search?q=event"
 
 --------------------------------------------------
-POST /api/news/subscribe
+POST /api/news/subscribe (subscribe to newsletter)
 --------------------------------------------------
 curl -i \
   -H "Content-Type: application/json" \
@@ -909,7 +909,7 @@ curl -i \
   }'
 
 --------------------------------------------------
-POST /api/news/unsubscribe
+POST /api/news/unsubscribe (unsubscribe to newsletter)
 --------------------------------------------------
 curl -i \
   -H "Content-Type: application/json" \
@@ -919,7 +919,7 @@ curl -i \
   }'
 
 --------------------------------------------------
-GET /api/news/subscription-status?email=<email>
+GET /api/news/subscription-status?email=<email> (check subscription status for a given email)
 --------------------------------------------------
 curl -i \
   "http://localhost/api/news/subscription-status?email=test@example.com"
@@ -955,7 +955,7 @@ OFFICER ROLE
 --------------------------------------------------
 
 --------------------------------------------------
-POST /api/officer_role/add
+POST /api/officer_role/add (add an officer role)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
@@ -968,7 +968,7 @@ curl -i -b cookies.txt \
   }'
 
 --------------------------------------------------
-POST /api/officer_role/edit
+POST /api/officer_role/edit (edit an officer role)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
@@ -981,7 +981,7 @@ curl -i -b cookies.txt \
   }'
 
 --------------------------------------------------
-POST /api/officer_role/delete
+POST /api/officer_role/delete (delete an officer role)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
@@ -992,13 +992,13 @@ curl -i -b cookies.txt \
   }'
 
 --------------------------------------------------
-GET /api/officer_role/get/{roleName}
+GET /api/officer_role/get/{roleName} (get officer role by role name)
 --------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/officer_role/get/President1
 
 --------------------------------------------------
-GET /api/officer_role/get
+GET /api/officer_role/get (get all officer roles)
 --------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/officer_role/get
@@ -1007,21 +1007,37 @@ curl -i -b cookies.txt \
 
 PERSON
 (
-  have to be logged in 
-  View: viewPersonScope
-    0 = none
-    1 = self (only view your own person record)
-    2 = all (view all people)
+ View:
+    No sign in required.
+    Can view all people (ALL GET endpoints).
 
-  Edit: editPersonScope
-    0 = none
-    1 = self (edit only your own person record, but create like all, similar to the Dog)
-    2 = all (edit any person record)
+  Create / Edit / Delete:
+  Must be signed in (ALL POST endpoints).
+
+  Permissions controlled by UserRole scopes:
+
+  EditPersonScope:
+    0 = NONE
+      Cannot create people
+      Cannot edit people
+      Cannot delete people
+
+    1 = SELF
+      Cannot Create people (this would be confusing if you did self only creates there own account since they already have an account, and cant create thier account again)
+      Can change its own user role
+      Can edit ONLY your own person record
+      Can delete ONLY your own person record
+
+    2 = ALL
+      Can create people
+      Can change all peoples user roles
+      Can edit any person record
+      Can delete any person record
 )
 --------------------------------------------------
 
 --------------------------------------------------
-POST /api/person/add
+POST /api/person/add (add a person (create an account))
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
@@ -1037,7 +1053,7 @@ curl -i -b cookies.txt \
 
 
 --------------------------------------------------
-POST /api/person/edit
+POST /api/person/edit (edit a person)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
@@ -1051,7 +1067,7 @@ curl -i -b cookies.txt \
 
 
 --------------------------------------------------
-POST /api/person/change-password
+POST /api/person/change-password (change your own password)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
@@ -1063,49 +1079,58 @@ curl -i -b cookies.txt \
 
 
 --------------------------------------------------
-GET /api/person/get/<person_id>
+GET /api/person/get/<person_id> (get a person by an id)
 --------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/person/get/test_1
 
 
 --------------------------------------------------
-GET /api/person/get
+GET /api/person/get (get all people)
 --------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/person/get
 
-SEARCH
+GET /api/search?q= (Search a person by firstname, lastname, email, or role)
 --------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/person/search?q=t
 --------------------------------------------------
 
-mine
+GET /api/person/mine (get own account/person infomation)
 --------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/person/mine
 --------------------------------------------------
 
-
+GET /api/person/is-secretary/<person_id> (get if specific person is secretary) 
+--------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/person/is-secretary/test_user_1
+--------------------------------------------------
 
+GET /api/person/is-board-member/<person_id> (get if specific person is a boardMember) 
+--------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/person/is-board-member/test_user_1
+--------------------------------------------------
 
-
+GET /api/person/is-judge/<person_id> (get if specific person is a judge) 
+--------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/person/is-judge/test_user_1
+--------------------------------------------------
 
+POST /api/person/change-user-role (change a specific persons user role)
+--------------------------------------------------
   curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/person/change-user-role \
   -d '{
     "personId": "test_1",
-    "systemRole": "PUBLIC"
+    "systemRole": "ADMIN"
   }'
-
+--------------------------------------------------
 
 
 
