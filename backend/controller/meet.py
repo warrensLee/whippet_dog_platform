@@ -170,41 +170,41 @@ def delete_meet():
 
 @meet_bp.get("/get/<meet_number>")
 def get_meet(meet_number):
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
+    # role = current_role()
+    # if not role:
+    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.view_meet_scope, "view meets")
-    if deny:
-        return deny
+    # deny = require_scope(role.view_meet_scope, "view meets")
+    # if deny:
+    #     return deny
 
     meet = Meet.find_by_identifier(meet_number)
     if not meet:
         return jsonify({"ok": False, "error": "Meet does not exist"}), 404
 
-    if role.view_meet_scope == UserRole.SELF and not _is_meet_owner(meet):
-        return jsonify({"ok": False, "error": "Not allowed to view this meet"}), 403
+    # if role.view_meet_scope == UserRole.SELF and not _is_meet_owner(meet):
+    #     return jsonify({"ok": False, "error": "Not allowed to view this meet"}), 403
 
     return jsonify({"ok": True, "data": meet.to_dict()}), 200
 
 
 @meet_bp.get("/get")
 def list_all_meets():
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
+    # role = current_role()
+    # if not role:
+    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.view_meet_scope, "view meets")
-    if deny:
-        return deny
+    # deny = require_scope(role.view_meet_scope, "view meets")
+    # if deny:
+    #     return deny
 
     try:
         meets = Meet.list_all_meets()  
         meets_data = []
 
         for m in meets:
-            if role.view_meet_scope == UserRole.SELF and not _is_meet_owner(m):
-                continue
+            # if role.view_meet_scope == UserRole.SELF and not _is_meet_owner(m):
+            #     continue
             meets_data.append(m.to_dict())
 
         return jsonify({"ok": True, "data": meets_data}), 200

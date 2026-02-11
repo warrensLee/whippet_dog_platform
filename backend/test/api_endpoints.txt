@@ -633,21 +633,35 @@ curl -i -b cookies.txt \
 --------------------------------------------------
 MEET RESULT
 (
-  Have to be logged in
-  View: viewMeetResultsScope
-  0 = none
-  1 = self (only meets where your dogs are involved)
-  2 = all (view all meets)
+  View:
+    No sign in required.
+      Can view all meet results (ALL GET endpoints).
 
-  Edit: editMeetResultsScope
-  0 = none
-  1 = self (create/edit/delete meets only where your dogs are involved)
-  2 = all (create/edit/delete any meet)
+  Create / Edit / Delete:
+    Must be signed in (ALL POST endpoints).
+
+  Permissions controlled by UserRole scopes:
+
+  EditMeetScope:
+    0 = NONE
+        Cannot create meet results
+        Cannot edit meet results
+        Cannot delete meet results
+
+    1 = SELF
+        Can create meet results ONLY if your dog is in the meet
+        Can edit meet results ONLY if your dog is in the meet
+        Can delete meet results ONLY if your dog is in the meet
+
+    2 = ALL
+        Can create meet results
+        Can edit any meet results
+        Can delete any meet results
 )
 --------------------------------------------------
 
 --------------------------------------------------
-POST /api/meet_result/add
+POST /api/meet_result/add (add a meet result)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
@@ -671,14 +685,14 @@ curl -i -b cookies.txt \
 
 
 --------------------------------------------------
-POST /api/meet_result/edit
+POST /api/meet_result/edit (edit a meet result)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/meet_result/edit \
   -d '{
     "meetNumber": "MEET-001",
-    "cwaNumber": "T12345",
+    "cwaNumber": "T90003",
     "average": "9.5",
     "grade": "A",
     "meetPlacement": "1",
@@ -695,7 +709,7 @@ curl -i -b cookies.txt \
 
 
 --------------------------------------------------
-POST /api/meet_result/delete
+POST /api/meet_result/delete (delete a meet result)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
@@ -708,14 +722,14 @@ curl -i -b cookies.txt \
 
 
 --------------------------------------------------
-GET /api/meet_result/get/<meet_number>/<cwa_number>
+GET /api/meet_result/get/<meet_number>/<cwa_number> (get the meet results for a particalr meet and dog)
 --------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/meet_result/get/MEET-001/T12345
 
 
 --------------------------------------------------
-GET /api/meet_result/get
+GET /api/meet_result/get (get all meet results)
 --------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/meet_result/get
@@ -723,36 +737,42 @@ curl -i -b cookies.txt \
 --------------------------------------------------
 MEET
 (
-  Have to be logged in 
-  View: viewMeetScope
-  0 = none
-  1 = self (only meets where you are involved)
-  2 = all (view all meets)
+  View:
+    No sign in required.
+      Can view all meet (ALL GET endpoints).
 
-  Edit: editMeetScope
-  0 = none
-  1 = self (create/edit/delete only meets where you are involved)
-  2 = all (create/edit/delete any meet)
-  A user is considered self for a meet if any of the following are true:
+  Create / Edit / Delete:
+    Must be signed in (ALL POST endpoints).
 
-  The user is the Race Secretary for the meet
-  (Meet.RaceSecretary == current user)
+  Permissions controlled by UserRole scopes:
 
-  The user is the Judge for the meet
-  (Meet.Judge == current user)
+  EditMeetScope:
+    0 = NONE
+        Cannot create meet 
+        Cannot edit meet 
+        Cannot delete meet 
 
+    1 = SELF
+        Can create meet ONLY if you are a judge or raceSecretary on the meet
+        Can edit meet ONLY if you are a judge or raceSecretary on the meet
+        Can delete meet ONLY if you are a judge or raceSecretary on the meet
+
+    2 = ALL
+        Can create meet 
+        Can edit any meet 
+        Can delete any meet 
 )
 --------------------------------------------------
 
 --------------------------------------------------
-GET /api/meet/get
+GET /api/meet/get (get all the meets)
 --------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/meet/get
 
 
 --------------------------------------------------
-GET /api/meet/get/<meet_number>
+GET /api/meet/get/<meet_number> (get a specific meet)
 --------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/meet/get/MEET-001
@@ -765,7 +785,7 @@ curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/meet/add \
   -d '{
-    "meetNumber": "MEET-005",
+    "meetNumber": "MEET-001",
     "clubAbbreviation": "TCLUB",
     "meetDate": "2026-04-10",
     "raceSecretary": "SYSTEM",
