@@ -307,8 +307,12 @@ class Dog:
         return [cls.from_db_row(r) for r in rows]
     
     @classmethod
-    def list_meets_for_dog(cls, cwa_number):
-        return fetch_all(
+    def list_meets_with_results_for_dog(cls, cwa_number: str):
+        cwa_number = (cwa_number or "").strip()
+        if not cwa_number:
+            return []
+
+        meets = fetch_all(
             """
             SELECT DISTINCT
                 m.MeetNumber,
@@ -319,14 +323,40 @@ class Dog:
                 m.Judge
             FROM Meet m
             LEFT JOIN MeetResults mr
-              ON mr.MeetNumber = m.MeetNumber AND mr.CWANumber = %s
+            ON mr.MeetNumber = m.MeetNumber AND mr.CWANumber = %s
             LEFT JOIN RaceResults rr
-              ON rr.MeetNumber = m.MeetNumber AND rr.CWANumber = %s
+            ON rr.MeetNumber = m.MeetNumber AND rr.CWANumber = %s
             WHERE mr.CWANumber IS NOT NULL OR rr.CWANumber IS NOT NULL
             ORDER BY m.MeetDate DESC, m.MeetNumber DESC
             """,
             (cwa_number, cwa_number),
-        )
+        ) or []
+
+        for m in meets:
+            meet_no = m["MeetNumber"]
+
+            m["meetResults"] = fetch_all(
+                """
+                SELECT *
+                FROM MeetResults
+                WHERE MeetNumber = %s AND CWANumber = %s
+                ORDER BY MeetNumber DESC
+                """,
+                (meet_no, cwa_number),
+            ) or []
+
+            m["raceResults"] = fetch_all(
+                """
+                SELECT *
+                FROM RaceResults
+                WHERE MeetNumber = %s AND CWANumber = %s
+                ORDER BY Program DESC, RaceNumber DESC
+                """,
+                (meet_no, cwa_number),
+            ) or []
+
+        return meets
+
     
     @classmethod
     def list_meet_results_for_dog(cls, cwa_number):
@@ -353,7 +383,7 @@ class Dog:
         )
     
     @classmethod
-    def get_stats_for_dog(cls, cwa_number):
+    def get_meet_wins_and_dpc_wins_for_dog(cls, cwa_number):
         meet_win_row = fetch_one(
             """
             SELECT

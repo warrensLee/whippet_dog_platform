@@ -254,6 +254,72 @@ class Club:
             (person_id, person_id, person_id),
         )
         return [cls.from_db_row(r) for r in rows]
+    
+    @classmethod
+    def search(cls, query, limit=200):
+        q = (query or "").strip()
+        if not q:
+            return []
+
+        like = f"%{q}%"
+        limit = max(1, min(limit, 500))
+
+        rows = fetch_all(
+            """
+            SELECT
+                *
+            FROM Club
+            WHERE
+                ClubAbbreviation LIKE %s
+                OR ClubName LIKE %s
+                OR BoardMember1 LIKE %s
+                OR BoardMember2 LIKE %s
+                OR DefaultRaceSecretary LIKE %s
+            ORDER BY ClubAbbreviation ASC
+            LIMIT %s
+            """,
+            (
+                like, like, like, like, like,
+                limit,
+            ),
+        )
+
+        return [cls.from_db_row(row) for row in rows]
+    
+    @classmethod
+    def list_meets_with_results(cls, club_abbreviation):
+        club_abbreviation = (club_abbreviation or "").strip()
+        if not club_abbreviation:
+            return []
+
+        meets = fetch_all(
+            """
+            SELECT
+                m.*,
+                (SELECT COUNT(*) FROM MeetResults mr WHERE mr.MeetNumber = m.MeetNumber) AS MeetResultsCount,
+                (SELECT COUNT(*) FROM RaceResults rr WHERE rr.MeetNumber = m.MeetNumber) AS RaceResultsCount
+            FROM Meet m
+            WHERE m.ClubAbbreviation = %s
+            ORDER BY m.MeetDate DESC, m.MeetNumber DESC
+            """,
+            (club_abbreviation,),
+        ) or []
+
+        for meet in meets:
+            meet_number = meet["MeetNumber"]
+
+            meet["meetResults"] = fetch_all(
+                "SELECT * FROM MeetResults WHERE MeetNumber = %s",
+                (meet_number,),
+            ) or []
+
+            meet["raceResults"] = fetch_all(
+                "SELECT * FROM RaceResults WHERE MeetNumber = %s",
+                (meet_number,),
+            ) or []
+
+        return meets
+
             
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""
