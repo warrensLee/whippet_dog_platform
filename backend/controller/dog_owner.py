@@ -10,61 +10,53 @@ from utils.auth_helpers import current_editor_id, current_role, require_scope
 dog_owner_bp = Blueprint("dog_owner", __name__, url_prefix="/api/dog_owner")
 
 
-def _is_owner(cwa_number, person_id=None):
-    """Check if a person owns the specified dog."""
-    pid = person_id or current_editor_id()
-    if not pid:
-        return False
-    return DogOwner.exists(cwa_number, pid)
-
-
 @dog_owner_bp.get("/owners/<cwa_number>")
 def owners_for_dog(cwa_number):
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
+    # role = current_role()
+    # if not role:
+    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.view_dog_owner_scope, "view dog owners")
-    if deny:
-        return deny
+    # deny = require_scope(role.view_dog_owner_scope, "view dog owners")
+    # if deny:
+    #     return deny
 
-    if role.view_dog_owner_scope == UserRole.SELF:
-        if not _is_owner(cwa_number):
-            return jsonify({"ok": False, "error": "Not allowed to view owners for this dog"}), 403
+    # if role.view_dog_owner_scope == UserRole.SELF:
+    #     if not _is_owner(cwa_number):
+    #         return jsonify({"ok": False, "error": "Not allowed to view owners for this dog"}), 403
 
     data = list_owner_people_for_dog(cwa_number)
     return jsonify({"ok": True, "data": data}), 200
 
 
-@dog_owner_bp.post("/get")
-def get_dog_owner_link():
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
+@dog_owner_bp.get("/get")
+def list_dog_owner_links():
+    # role = current_role()
+    # if not role:
+    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.view_dog_owner_scope, "view dog owners")
-    if deny:
-        return deny
+    # deny = require_scope(role.edit_dog_owner_scope, "view dog owners")
+    # if deny:
+    #     return deny
 
-    data = request.get_json(silent=True) or {}
-    cwa_id = (data.get("cwaId") or "").strip()
-    person_id = (data.get("personId") or "").strip()
+    cwa_id = (request.args.get("cwaId") or "").strip()
+    person_id = (request.args.get("personId") or "").strip()
 
-    if not cwa_id or not person_id:
-        return jsonify({"ok": False, "error": "cwaId and personId are required"}), 400
+    try:
+        # if role.edit_dog_owner_scope == UserRole.SELF:
+            # if not current_editor_id():
+                # return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    if role.view_dog_owner_scope == UserRole.SELF:
-        current_pid = current_editor_id()
-        if not current_pid:
-            return jsonify({"ok": False, "error": "Not signed in"}), 401
-        if person_id != current_pid:
-            return jsonify({"ok": False, "error": "Not allowed to view this dog owner link"}), 403
+            # rows = DogOwner.list_all(cwa_id=cwa_id, person_id=current_editor_id())
 
-    link = DogOwner.find_by_identifier(cwa_id, person_id)
-    if not link:
-        return jsonify({"ok": False, "error": "Owner link does not exist"}), 404
+        # else:
+        rows = DogOwner.list_all_with_people()
 
-    return jsonify({"ok": True, "data": link.to_dict()}), 200
+        data = [r.to_dict() if hasattr(r, "to_dict") else r for r in (rows or [])]
+        return jsonify({"ok": True, "data": data}), 200
+
+    except Error as e:
+        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+
 
 
 @dog_owner_bp.post("/add")
@@ -73,7 +65,7 @@ def add_owner():
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.edit_dog_owner_scope, "edit dog owners")
+    deny = require_scope(role.edit_dog_owner_scope, "add dog owners")
     if deny:
         return deny
 
@@ -84,12 +76,8 @@ def add_owner():
     if not cwa_id or not person_id:
         return jsonify({"ok": False, "error": "cwaId and personId are required"}), 400
 
-    if role.edit_dog_owner_scope == UserRole.SELF:
-        current_pid = current_editor_id()
-        if not current_pid:
-            return jsonify({"ok": False, "error": "Not signed in"}), 401
-        if person_id != current_pid:
-            return jsonify({"ok": False, "error": "You may only add yourself as an owner"}), 403
+    if role.edit_dog_owner_scope == UserRole.SELF and person_id != current_editor_id():
+        return jsonify({"ok": False, "error": "You may only add yourself as an owner"}), 403
 
     if not fetch_one("SELECT 1 FROM Dog WHERE CWANumber = %s LIMIT 1", (cwa_id,)):
         return jsonify({"ok": False, "error": "Dog does not exist"}), 404
@@ -135,7 +123,7 @@ def remove_owner():
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.edit_dog_owner_scope, "edit dog owners")
+    deny = require_scope(role.edit_dog_owner_scope, "delete dog owners")
     if deny:
         return deny
 
@@ -146,12 +134,8 @@ def remove_owner():
     if not cwa_id or not person_id:
         return jsonify({"ok": False, "error": "cwaId and personId are required"}), 400
 
-    if role.edit_dog_owner_scope == UserRole.SELF:
-        current_pid = current_editor_id()
-        if not current_pid:
-            return jsonify({"ok": False, "error": "Not signed in"}), 401
-        if person_id != current_pid:
-            return jsonify({"ok": False, "error": "You may only remove yourself as an owner"}), 403
+    if role.edit_dog_owner_scope == UserRole.SELF and person_id != current_editor_id():
+        return jsonify({"ok": False, "error": "You may only remove yourself as an owner"}), 403
 
     existing = DogOwner.find_by_identifier(cwa_id, person_id)
     if not existing:

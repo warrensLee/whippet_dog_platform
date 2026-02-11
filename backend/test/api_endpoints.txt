@@ -77,9 +77,10 @@ Club
 (
   View:
     No sign in required.
+    can view all (ALL GETS).
 
   Create / Edit / Delete:
-    Must be signed in.
+    Must be signed in (ALL POSTS).
 
   Permissions controlled by UserRole scopes:
   EditClubScope:
@@ -89,7 +90,7 @@ Club
         - Cannot delete clubs
 
     1 = SELF
-        - Can create a club
+        - Can create a club ONLY if you are a member of that club
         - Can edit a club ONLY if you are a member of that club
         - Can delete a club ONLY if you are a member of that club
 
@@ -191,20 +192,29 @@ curl -i -H "Content-Type: application/json" \
 --------------------------------------------------
 Dog Owner
 (
-  Must be signed in.
-  
-  Permissions (DogOwner)
+  View:
+    No sign in required.
+    can view all (ALL GETS).
 
-  View: viewDogOwnerScope
-    0 = NONE  → cannot view dog-owner records
-    1 = SELF  → can view dog-owner records where PersonID == current user
-    2 = ALL   → can view all dog-owner records
+  Create / Edit / Delete:
+    Must be signed in (ALL POSTS).
 
-  Edit: editDogOwnerScope
-    0 = NONE  → cannot create/edit/delete dog-owner records
-    1 = SELF  → can create/edit/delete dog-owner records only when PersonID == current user
-                (i.e., you can manage your own ownership links only)
-    2 = ALL   → can create/edit/delete/transfer dog-owner records for any user
+  Permissions controlled by UserRole scopes:
+  EditClubScope:
+    0 = NONE
+        - Cannot create dog owner
+        - Cannot transfer dog owner
+        - Cannot delete dog owner
+
+    1 = SELF
+        - Can create a dog owner ONLY IF you are assigning a dog to yourself
+        - Cannot transfer BECAUSE you do not have both users permissions
+        - Can delete a dog owner ONLY if you are said owner
+
+    2 = ALL
+        - Can create any dog owner 
+        - Can edit any dog owner 
+        - Can delete any dog owner 
 )
 --------------------------------------------------
 
@@ -216,7 +226,7 @@ curl -i -b cookies.txt \
   -X POST http://localhost/api/dog_owner/add \
   -d '{
     "cwaId": "T12345",
-    "personId": "test_1"
+    "personId": "SYSTEM"
   }'
 
 
@@ -246,15 +256,10 @@ curl -i -b cookies.txt \
 
 
 --------------------------------------------------
-POST /api/dog_owner/get
+GET /api/dog_owner/get
 --------------------------------------------------
 curl -i -b cookies.txt \
-  -H "Content-Type: application/json" \
-  -X POST http://localhost/api/dog_owner/get \
-  -d '{
-    "cwaId": "T12345",
-    "personId": "SYSTEM"
-  }'
+  "http://localhost/api/dog_owner/get"
 
 --------------------------------------------------
 GET /api/dog_owner/owners/<cwa_number>
