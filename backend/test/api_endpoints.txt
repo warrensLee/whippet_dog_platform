@@ -826,18 +826,30 @@ curl -i -b cookies.txt \
 --------------------------------------------------
 NEWS
 (
-  Must be signed in.
+  View:
+    No sign in required.
+      Can view all meet (ALL GET endpoints).
+
+  Create / Edit / Delete:
+    Must be signed in (ALL POST endpoints).
+
   Permissions:
+    (EditMeetScope)
 
-  View: viewNewsScope
-  0 = none
-  1 = self (only news items you authored)
-  2 = all (view all news items)
+  0 = NONE
+    Cannot create news 
+    Cannot edit news 
+    Cannot delete news
+    
+  1 = SELF
+    Can create news (any one can create, same as all)
+    Can edit news ONLY if you authored it
+    Can delete news ONLY if you authored it
 
-  Edit: editNewsScope
-  0 = none
-  1 = self (create/edit/delete only news items you authored)
-  2 = all (create/edit/delete any news item)
+  2 = ALL
+      Can create news
+      Can edit any news
+      Can delete any news
 )
 --------------------------------------------------
 
