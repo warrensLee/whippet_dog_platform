@@ -6,7 +6,7 @@ Authenticate (No user permissions and dont have to sign in)
 --------------------------------------------------
 
 --------------------------------------------------
-POST /api/auth/register (creates a user's account)
+POST /api/auth/register (creates a user's account, sets user role to PUBLIC on sign in by default)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
@@ -24,7 +24,6 @@ curl -i -b cookies.txt \
     "country": "US",
     "primaryPhone": "4795551234",
     "secondaryPhone": null,
-    "systemRole": "PUBLIC",
     "notes": "Created via auth register endpoint",
     "password": "dog12345"
   }'
@@ -928,18 +927,30 @@ curl -i \
 --------------------------------------------------
 OFFICER ROLE
 (
-  Have to be signed in 
-  Permissions:
+  View:
+  No sign in required.
+  Can view all officer roles (ALL GET endpoints).
 
-  View: viewOfficerRoleScope
-  0 = none
-  1 = self (only officer roles assigned to you)
-  2 = all (view all officer roles)
+  Create / Edit / Delete:
+  Must be signed in (ALL POST endpoints).
 
-  Edit: editOfficerRoleScope
-  0 = none
-  1 = self (create/edit/delete only your own officer role assignments)
-  2 = all (create/edit/delete any officer role assignment)
+  Permissions controlled by UserRole scopes:
+
+  EditOfficerRoleScope:
+    0 = NONE
+      Cannot create officer role assignments
+      Cannot edit officer role assignments
+      Cannot delete officer role assignments
+
+    1 = SELF
+      Can create officer role assignments ONLY for yourself
+      Can edit officer role assignments ONLY if assigned to you
+      Can delete officer role assignments ONLY if assigned to you
+
+    2 = ALL
+      Can create officer role assignments for anyone
+      Can edit any officer role assignment
+      Can delete any officer role assignment
 )
 --------------------------------------------------
 
@@ -991,12 +1002,6 @@ GET /api/officer_role/get
 --------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/officer_role/get
-
---------------------------------------------------
-GET /api/officer_role/public/get
---------------------------------------------------
-curl -i -b cookies.txt \
-  http://localhost/api/officer_role/public/get
 
 --------------------------------------------------
 
