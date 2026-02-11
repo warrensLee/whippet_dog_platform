@@ -1235,19 +1235,33 @@ curl -i -b cookies.txt \
 TITLE TYPE
 --------------------------------------------------
 (
-  Must be signed in
-  View: viewTitleTypeScope
-    0 = none
-    1 = self (acts the same as all)
-    2 = all (view all title types)
+  View:
+    No sign in required.
+    Can view all title types (ALL GET endpoints).
 
-    Edit: editTitleTypeScope
-    0 = none
-    1 = self (acts the same as all)
-    2 = all (create/edit/delete title types)
+  Create / Edit / Delete:
+    Must be signed in (ALL POST endpoints).
+
+  Permissions controlled by UserRole scopes:
+
+  EditTitleTypeScope:
+    0 = NONE
+      Cannot create title types
+      Cannot edit title types
+      Cannot delete title types
+
+    1 = SELF
+      Can create title types
+      Can edit title types
+      Can delete title types
+
+    2 = ALL
+      Can create title types
+      Can edit title types
+      Can delete title types
 )
 --------------------------------------------------
-POST /api/title_type/add
+POST /api/title_type/add (add a title type)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
@@ -1259,7 +1273,7 @@ curl -i -b cookies.txt \
 
 
 --------------------------------------------------
-POST /api/title_type/edit
+POST /api/title_type/edit (edit a title type)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
@@ -1271,7 +1285,7 @@ curl -i -b cookies.txt \
 
 
 --------------------------------------------------
-POST /api/title_type/delete
+POST /api/title_type/delete (delete a title type)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
@@ -1283,14 +1297,14 @@ curl -i -b cookies.txt \
 
 
 --------------------------------------------------
-GET /api/title_type/get/<title>
+GET /api/title_type/get/<title> (get title description via title name)
 --------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/title_type/get/ARX
 
 
 --------------------------------------------------
-GET /api/title_type/get
+GET /api/title_type/get (get all title descriptions)
 --------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/title_type/get
