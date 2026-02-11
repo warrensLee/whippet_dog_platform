@@ -172,13 +172,13 @@ def delete_officer_role():
 
 @officer_role_bp.get("/get/<role_name>")
 def get_officer_role(role_name):
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
+    # role = current_role()
+    # if not role:
+    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.view_officer_role_scope, "view officer roles")
-    if deny:
-        return deny
+    # deny = require_scope(role.view_officer_role_scope, "view officer roles")
+    # if deny:
+    #     return deny
 
     role_name = (role_name or "").strip()
     if not role_name:
@@ -188,8 +188,8 @@ def get_officer_role(role_name):
     if not officer:
         return jsonify({"ok": False, "error": "Officer role does not exist"}), 404
 
-    if role.view_officer_role_scope == UserRole.SELF and not _is_owner(officer.person_id):
-        return jsonify({"ok": False, "error": "Not allowed to view this officer role"}), 403
+    # if role.view_officer_role_scope == UserRole.SELF and not _is_owner(officer.person_id):
+    #     return jsonify({"ok": False, "error": "Not allowed to view this officer role"}), 403
 
     return jsonify({"ok": True, "data": officer.to_dict()}), 200
 
@@ -197,37 +197,24 @@ def get_officer_role(role_name):
 
 @officer_role_bp.get("/get")
 def list_officer_roles():
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
+    # role = current_role()
+    # if not role:
+    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.view_officer_role_scope, "view officer roles")
-    if deny:
-        return deny
+    # deny = require_scope(role.view_officer_role_scope, "view officer roles")
+    # if deny:
+    #     return deny
 
     try:
-        if role.view_officer_role_scope == UserRole.ALL:
-            officers = OfficerRole.list_all()
-        else:
-            pid = current_editor_id()
-            if not pid:
-                return jsonify({"ok": False, "error": "Not signed in"}), 401
-            officers = OfficerRole.list_for_person(pid)
+        # if role.view_officer_role_scope == UserRole.ALL:
+        officers = OfficerRole.list_all()
+        # else:
+        #     pid = current_editor_id()
+        #     if not pid:
+        #         return jsonify({"ok": False, "error": "Not signed in"}), 401
+        #     officers = OfficerRole.list_for_person(pid)
 
         return jsonify({"ok": True, "data": [o.to_dict() for o in officers]}), 200
 
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
-    
-@officer_role_bp.get("/public/get")
-def list_officer_roles_public():
-    try:
-        officers = OfficerRole.list_all()
-        officers_with_names = [
-            o.to_dict() for o in officers  
-        ]
-
-        return jsonify({"ok": True, "data": officers_with_names}), 200
-    except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
-
