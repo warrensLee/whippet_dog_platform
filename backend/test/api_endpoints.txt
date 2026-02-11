@@ -6,7 +6,7 @@ Authenticate (No user permissions and dont have to sign in)
 --------------------------------------------------
 
 --------------------------------------------------
-POST /api/auth/register
+POST /api/auth/register (creates a user's account)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
@@ -31,7 +31,7 @@ curl -i -b cookies.txt \
 
 
 --------------------------------------------------
-POST /api/auth/login
+POST /api/auth/login (logs a user in)
 --------------------------------------------------
 curl -i -c cookies.txt -b cookies.txt \
   -H "Content-Type: application/json" \
@@ -43,14 +43,14 @@ curl -i -c cookies.txt -b cookies.txt \
 
 
 --------------------------------------------------
-GET /api/auth/me
+GET /api/auth/me (more for debugging, but shows if a user is logged in and keeps session details)
 --------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/auth/me
 
 
 --------------------------------------------------
-POST /api/auth/logout
+POST /api/auth/logout (logsout a user)
 --------------------------------------------------
 curl -i -c cookies.txt -b cookies.txt \
   -X POST http://localhost/api/auth/logout
@@ -63,12 +63,12 @@ Change Log
 --------------------------------------------------
 
 --------------------------------------------------
-GET /get/<id>
+GET /get/<id> (get a specific change log by change_log_id)
 --------------------------------------------------
 curl -i -b cookies.txt http://localhost/api/change_log/get/1
 
 --------------------------------------------------
-GET /get
+GET /get (get all change log data)
 --------------------------------------------------
 curl -i -b cookies.txt http://localhost/api/change_log/get
 
@@ -108,7 +108,7 @@ Club
 --------------------------------------------------
 
 --------------------------------------------------
-POST /api/club/add
+POST /api/club/add (creates a club)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
@@ -126,13 +126,13 @@ curl -i -b cookies.txt \
   }"
 
 --------------------------------------------------
-GET /api/club/get/{clubAbbreviation}
+GET /api/club/get/{clubAbbreviation} (gets a club via clubAbbreviation)
 --------------------------------------------------
 curl -i -b cookies.txt \
   "http://localhost/api/club/get/TCLUB"
 
 --------------------------------------------------
-POST /api/club/edit
+POST /api/club/edit (edits a clubs details)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
@@ -150,19 +150,19 @@ curl -i -b cookies.txt \
   }"
 
 --------------------------------------------------
-GET /api/club/get
+GET /api/club/get (gets all clubs)
 --------------------------------------------------
 curl -i -b cookies.txt \
   "http://localhost/api/club/get"
 
 --------------------------------------------------
-GET /api/club/board
+GET /api/club/board (gets all boardMember1 and boardMember2 from all active clubs)
 --------------------------------------------------
 curl -i -b cookies.txt \
   "http://localhost/api/club/board"
 
 --------------------------------------------------
-POST /api/club/delete
+POST /api/club/delete (deletes a club)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
@@ -173,11 +173,24 @@ curl -i -b cookies.txt \
   }"
 
 --------------------------------------------------
+GET /api/club/search?q=<query> (search by club name, clubAbbreviation, boardmembers, and secretary)
+--------------------------------------------------
+curl -i -b cookies.txt \
+  "http://localhost/api/club/search?q=TCLUB"
+
+--------------------------------------------------
+GET /api/club/meets/<clubAbbreviation> (the meets the specified club has put on and thier results)
+--------------------------------------------------
+curl -i -b cookies.txt \
+  http://localhost/api/club/meets/TCLUB
+
+
+--------------------------------------------------
 CONTACT (dont have to be logged in and no user roles)
 --------------------------------------------------
 
 --------------------------------------------------
-POST /api/contact
+POST /api/contact (sends an email with the infomation)
 --------------------------------------------------
 curl -i -H "Content-Type: application/json" \
   -X POST http://localhost/api/contact \
@@ -219,7 +232,7 @@ Dog Owner
 --------------------------------------------------
 
 --------------------------------------------------
-POST /api/dog_owner/add
+POST /api/dog_owner/add (add a dog owner link between person and dog)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
@@ -231,7 +244,7 @@ curl -i -b cookies.txt \
 
 
 --------------------------------------------------
-POST /api/dog_owner/delete
+POST /api/dog_owner/delete (remove dog owner)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
@@ -244,7 +257,7 @@ curl -i -b cookies.txt \
 
 
 --------------------------------------------------
-POST /api/dog_owner/transfer
+POST /api/dog_owner/transfer (set a new dogowner besides yourself)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
@@ -256,13 +269,13 @@ curl -i -b cookies.txt \
 
 
 --------------------------------------------------
-GET /api/dog_owner/get
+GET /api/dog_owner/get (list all dog owners)
 --------------------------------------------------
 curl -i -b cookies.txt \
   "http://localhost/api/dog_owner/get"
 
 --------------------------------------------------
-GET /api/dog_owner/owners/<cwa_number>
+GET /api/dog_owner/owners/<cwa_number> (get the owners for a specific dog)
 --------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/dog_owner/owners/T12345
@@ -299,14 +312,14 @@ DOG TITLE
 --------------------------------------------------
 
 --------------------------------------------------
-POST /api/dog_title/add
+POST /api/dog_title/add (add a dog title to a dog)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/dog_title/add \
   -d '{
-    "cwaNumber": "T90003",
-    "title": "TEST",
+    "cwaNumber": "T12345",
+    "title": "ARX",
     "titleDate": "2024-05-01",
     "titleNumber": "1",
     "namePrefix": "A",
@@ -316,7 +329,7 @@ curl -i -b cookies.txt \
 
 
 --------------------------------------------------
-POST /api/dog_title/edit
+POST /api/dog_title/edit (edit a dog title)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
@@ -332,7 +345,7 @@ curl -i -b cookies.txt \
 
 
 --------------------------------------------------
-POST /api/dog_title/delete
+POST /api/dog_title/delete (delete a dog title)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
@@ -345,14 +358,14 @@ curl -i -b cookies.txt \
 
 
 --------------------------------------------------
-GET /api/dog_title/get/<cwa_number>/<title>
+GET /api/dog_title/get/<cwa_number>/<title> (Get title for a specific dog)
 --------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/dog_title/get/T12345/ARX
 
 
 --------------------------------------------------
-GET /api/dog_title/get
+GET /api/dog_title/get (get all dog titles)
 --------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/dog_title/get
@@ -360,29 +373,42 @@ curl -i -b cookies.txt \
 --------------------------------------------------
 DOG
 (
-  Must be logged in
-  Permissions:
-  View: viewDogScope
-  0 = none
-  1 = self (only view dogs you own via DogOwner)
-  2 = all (view any dog)
+  View:
+    No sign in required.
+      Can view all dogs (ALL GET endpoints).
 
-  Edit: editDogScope
-  0 = none
-  1 = There is no self for create is it acts as all here, but is for edit and delete of DogOwner
-  2 = all (create/edit/delete any dog)
+  Create / Edit / Delete:
+    Must be signed in (ALL POST endpoints).
+
+  Permissions controlled by UserRole scopes:
+
+  EditDogScope:
+    0 = NONE
+        Cannot create dogs
+        Cannot edit dogs
+        Cannot delete dogs
+
+    1 = SELF
+        Can create dogs (treated like ALL for create, since we don't if user creating is going to assign the dog to themselves yet)
+        Can edit dogs ONLY if you own the dog (via DogOwner)
+        Can delete dogs ONLY if you own the dog (via DogOwner)
+
+    2 = ALL
+        Can create dogs
+        Can edit any dog
+        Can delete any dog
 )
 --------------------------------------------------
 
 --------------------------------------------------
-GET /api/dog/get
+GET /api/dog/get (get all dogs)
 --------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/dog/get
 
 
 --------------------------------------------------
-POST /api/dog/add
+POST /api/dog/add (add a dog)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
@@ -412,19 +438,19 @@ curl -i -b cookies.txt \
   }'
 
 --------------------------------------------------
-GET /api/dog/get/{cwa_number}
+GET /api/dog/get/{cwa_number} (get a specific dog's info)
 --------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/dog/get/T12345
 
 --------------------------------------------------
-POST /api/dog/edit
+POST /api/dog/edit (edit a dog)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/dog/edit \
   -d '{
-    "cwaNumber": "T12346",
+    "cwaNumber": "T12345",
     "registeredName": "TEST DOG UPDATED",
     "callName": "TEST2",
     "birthdate": "2020-01-01",
@@ -448,13 +474,13 @@ curl -i -b cookies.txt \
   }'
 
 --------------------------------------------------
-GET /api/dog/titles/{cwa_number}
+GET /api/dog/titles/{cwa_number} (calculates!!! if a dog has any titles based on his racing numbers/results)
 --------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/dog/titles/T12345
 
 --------------------------------------------------
-POST /api/dog/delete
+POST /api/dog/delete (delete a dog)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
@@ -465,76 +491,76 @@ curl -i -b cookies.txt \
   }'
 
 --------------------------------------------------
-GET /api/dog/grade/{cwa_number}
+GET /api/dog/grade/{cwa_number} (compute!!!! the grade of a dog based on his results)
 --------------------------------------------------
 curl -i -b cookies.txt \
 http://localhost/api/dog/grade/T12345
 
 --------------------------------------------------
-GET /api/dog/age/{cwa_number}
+GET /api/dog/age/{cwa_number} (dog age calculations)
 --------------------------------------------------
 curl -i -b cookies.txt \
 http://localhost/api/dog/age/T12345
 
 --------------------------------------------------
-GET /api/dog/mine
+GET /api/dog/my-dogs  (get all dogs of current person)
 --------------------------------------------------
 curl -i -b cookies.txt \
-http://localhost/api/dog/mine
+http://localhost/api/dog/my-dogs
 
 --------------------------------------------------
-POST /api/dog/arx/{cwa_number}
+GET /api/dog/arx/{cwa_number} (check to see if dog has met arx title requirements)
 --------------------------------------------------
 curl -i -b cookies.txt \
-  -X POST http://localhost/api/dog/arx/T12345
+  -X GET http://localhost/api/dog/arx/T12345
 
 --------------------------------------------------
-POST /api/dog/trp/{cwa_number}
+GET /api/dog/trp/{cwa_number} (check to see if dog has met trp title requirements)
 --------------------------------------------------
 curl -i -b cookies.txt \
-  -X POST http://localhost/api/dog/trp/T12345
+  -X GET http://localhost/api/dog/trp/T12345
 
 --------------------------------------------------
-POST /api/dog/pr/{cwa_number}
+GET /api/dog/pr/{cwa_number} (check to see if dog has met pr title requirements)
 --------------------------------------------------
 curl -i -b cookies.txt \
-  -X POST http://localhost/api/dog/pr/T12345
+  -X GET http://localhost/api/dog/pr/T12345
 
 --------------------------------------------------
-POST /api/dog/narx/{cwa_number}
+GET /api/dog/narx/{cwa_number} (check to see if dog has met narx title requirements)
 --------------------------------------------------
 curl -i -b cookies.txt \
-  -X POST http://localhost/api/dog/narx/T12345
+  -X GET http://localhost/api/dog/narx/T12345
 
 --------------------------------------------------
-POST /api/dog/dpc/{cwa_number}
+GET /api/dog/dpc/{cwa_number} (check to see if dog has met dpc title requirements)
 --------------------------------------------------
 curl -i -b cookies.txt \
-  -X POST http://localhost/api/dog/dpc/T12345
+  -X GET http://localhost/api/dog/dpc/T12345
 
 --------------------------------------------------
-POST /api/dog/hc/{cwa_number}
+GET /api/dog/hc/{cwa_number} (check to see if dog has met hc title requirements)
 --------------------------------------------------
 curl -i -b cookies.txt \
-  -X POST http://localhost/api/dog/hc/T12345
+  -X GET http://localhost/api/dog/hc/T12345
 
 --------------------------------------------------
-SEARCH
+GET /api/dog/search/ (search for a dog by name, owner, call name, registeredName and cwa_number)
 --------------------------------------------------
 curl -i -b cookies.txt "http://localhost/api/dog/search?q=D"
 
  --------------------------------------------------
-GET /api/dog/meets/<cwa_number>
+GET /api/dog/meets/<cwa_number> (returns meet, meet results, and race results for a specific dog)
 --------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/dog/meets/T12345
 
 
 --------------------------------------------------
-GET /api/dog/stats/<cwa_number>
+GET /api/dog/wins/<cwa_number> (DPC wins and meet wins for a specific dog)
 --------------------------------------------------
 curl -i -b cookies.txt \
-  http://localhost/api/dog/stats/T12345
+  http://localhost/api/dog/wins/T12345
 
 --------------------------------------------------
 Importer
@@ -1092,7 +1118,7 @@ curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/title_type/add \
   -d '{
-    "title": "TEST",
+    "title": "ARX",
     "titleDescription": "TEST title"
   }'
 

@@ -230,3 +230,31 @@ def list_board():
         return jsonify({"ok": False, "error": "Club.list_board_roster() is not implemented yet"}), 500
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+
+
+@club_bp.get("/search")
+def search_clubs():
+    q = (request.args.get("q") or "").strip()
+    if not q:
+        return jsonify({"ok": False, "error": "Query param 'q' is required"}), 400
+    try:
+        clubs = Club.search(q)
+        return jsonify(
+            {"ok": True, "data": [c.to_dict() for c in clubs]}
+        ), 200
+
+    except Error as e:
+        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+
+
+@club_bp.get("/meets/<club_abbreviation>")
+def list_club_meets_with_results(club_abbreviation):
+    club = Club.find_by_identifier(club_abbreviation)
+    if not club:
+        return jsonify({"ok": False, "error": "Club does not exist"}), 404
+
+    try:
+        data = Club.list_meets_with_results(club_abbreviation)
+        return jsonify({"ok": True, "data": data}), 200
+    except Error as e:
+        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
