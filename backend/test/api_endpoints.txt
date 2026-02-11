@@ -271,17 +271,30 @@ curl -i -b cookies.txt \
 --------------------------------------------------
 DOG TITLE
 (
-  must be logged in
-  Permissions:
-  View: viewDogTitlesScope
-  0 = none
-  1 = self (only titles for dogs you own)
-  2 = all (titles for any dog)
+  View:
+    No sign in required.
+      Can view all dog titles (ALL GET endpoints).
 
-  Edit: editDogTitlesScope
-  0 = none
-  1 = self (add/edit/delete titles only for dogs you own)
-  2 = all (add/edit/delete titles for any dog)
+  Create / Edit / Delete:
+    Must be signed in (ALL POST endpoints).
+
+  Permissions controlled by UserRole scopes:
+
+  EditDogTitlesScope:
+    0 = NONE
+      Cannot add dog titles
+      Cannot edit dog titles
+      Cannot delete dog titles
+
+    1 = SELF
+      Can add dog titles ONLY for dogs you own
+      Can edit dog titles ONLY for dogs you own
+      Can delete dog titles ONLY for dogs you own
+
+    2 = ALL
+      Can add dog titles for ANY dog
+      Can edit dog titles for ANY dog
+      Can delete dog titles for ANY dog
 )
 --------------------------------------------------
 
@@ -292,8 +305,8 @@ curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/dog_title/add \
   -d '{
-    "cwaNumber": "T12345",
-    "title": "ARX",
+    "cwaNumber": "T90003",
+    "title": "TEST",
     "titleDate": "2024-05-01",
     "titleNumber": "1",
     "namePrefix": "A",

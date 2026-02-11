@@ -38,7 +38,7 @@ class DogTitle:
         if not row:
             return None
         return cls(
-            cwa_number=row.get("CwaNumber"),
+            cwa_number=row.get("CWANumber"),
             title=row.get("Title"),
             title_number=row.get("TitleNumber"),
             title_date=row.get("TitleDate"),
