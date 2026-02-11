@@ -1007,12 +1007,12 @@ curl -i -b cookies.txt \
 
 PERSON
 (
- View:
+ View: (May come back to this, dont like letting everyone seeing all user info because that can expose person data)
     No sign in required.
     Can view all people (ALL GET endpoints).
 
   Create / Edit / Delete:
-  Must be signed in (ALL POST endpoints).
+    Must be signed in (ALL POST endpoints).
 
   Permissions controlled by UserRole scopes:
 
@@ -1137,41 +1137,55 @@ POST /api/person/change-user-role (change a specific persons user role)
 --------------------------------------------------
 RACE RESULT
 (
-  must be logged in
-  View: viewRaceResultsScope
-  0 = none
-  1 = self (only race results for dogs you own)
-  2 = all (view all race results)
+  View:
+  No sign in required.
+    Can view all race results (ALL GET endpoints).
 
-  Edit: editRaceResultsScope
-  0 = none
-  1 = self (create/edit/delete race results only for dogs you own)
-  2 = all (create/edit/delete any race result)
+  Create / Edit / Delete:
+    Must be signed in (ALL POST endpoints).
+
+  Permissions controlled by UserRole scopes:
+
+  EditRaceResultsScope:
+    0 = NONE
+      Cannot create race results
+      Cannot edit race results
+      Cannot delete race results
+
+    1 = SELF
+      Can create race results ONLY for dogs you own
+      Can edit race results ONLY for dogs you own
+      Can delete race results ONLY for dogs you own
+
+    2 = ALL
+      Can create race results
+      Can edit any race result
+      Can delete any race result
 )
 --------------------------------------------------
 
 --------------------------------------------------
-GET /api/race_result/get
+GET /api/race_result/get (gets all the race results)
 --------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/race_result/get
 
 
 --------------------------------------------------
-GET /api/race_result/get/<meet_number>/<cwa_number>/<program>/<race_number>
+GET /api/race_result/get/<meet_number>/<cwa_number>/<program>/<race_number> (retrieve a single race result)
 --------------------------------------------------
 curl -i -b cookies.txt \
-  http://localhost/api/race_result/get/MEET-001/T12345/A/1
+  http://localhost/api/race_result/get/MEET-005/T12345/A/1
 
 
 --------------------------------------------------
-POST /api/race_result/add
+POST /api/race_result/add (add a race result)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/race_result/add \
   -d '{
-    "meetNumber": "MEET-002",
+    "meetNumber": "MEET-005",
     "cwaNumber": "T12345",
     "program": "A",
     "raceNumber": "1",
@@ -1184,13 +1198,13 @@ curl -i -b cookies.txt \
 
 
 --------------------------------------------------
-POST /api/race_result/edit
+POST /api/race_result/edit (edit a race result)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/race_result/edit \
   -d '{
-    "meetNumber": "MEET-001",
+    "meetNumber": "MEET-005",
     "cwaNumber": "T12345",
     "program": "A",
     "raceNumber": "1",
@@ -1203,13 +1217,13 @@ curl -i -b cookies.txt \
 
 
 --------------------------------------------------
-POST /api/race_result/delete
+POST /api/race_result/delete (delete a race result)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/race_result/delete \
   -d '{
-    "meetNumber": "MEET-001",
+    "meetNumber": "MEET-005",
     "cwaNumber": "T12345",
     "program": "A",
     "raceNumber": "1",

@@ -204,54 +204,54 @@ def delete_race_result():
 
 
 @race_result_bp.get("/get/<meet_number>/<cwa_number>/<program>/<race_number>")
-def get_race_result(meet_number: str, cwa_number: str, program: str, race_number: str):
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
+def get_race_result(meet_number, cwa_number, program, race_number):
+    # role = current_role()
+    # if not role:
+    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.view_race_results_scope, "view race results")
-    if deny:
-        return deny
+    # deny = require_scope(role.view_race_results_scope, "view race results")
+    # if deny:
+    #     return deny
 
     race_result = RaceResult.find_by_identifier(meet_number, cwa_number, program, race_number)
     if not race_result:
         return jsonify({"ok": False, "error": "Race result does not exist"}), 404
 
-    if role.view_race_results_scope == UserRole.SELF:
-        if not _is_owner(cwa_number):
-            return jsonify({
-                "ok": False,
-                "error": "You can only view race results for dogs you own"
-            }), 403
+    # if role.view_race_results_scope == UserRole.SELF:
+    #     if not _is_owner(cwa_number):
+    #         return jsonify({
+    #             "ok": False,
+    #             "error": "You can only view race results for dogs you own"
+    #         }), 403
 
     return jsonify({"ok": True, "data": race_result.to_dict()}), 200
 
 
 @race_result_bp.get("/get")
 def list_all_race_results():
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
+    # role = current_role()
+    # if not role:
+    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.view_race_results_scope, "view race results")
-    if deny:
-        return deny
+    # deny = require_scope(role.view_race_results_scope, "view race results")
+    # if deny:
+    #     return deny
 
     try:
-        if role.view_race_results_scope == UserRole.ALL:
-            race_results = RaceResult.list_all_race_results()
-            return jsonify({"ok": True, "data": [r.to_dict() for r in race_results]}), 200
+        # if role.view_race_results_scope == UserRole.ALL:
+        race_results = RaceResult.list_all_race_results()
+        return jsonify({"ok": True, "data": [r.to_dict() for r in race_results]}), 200
         
-        elif role.view_race_results_scope == UserRole.SELF:
-            pid = current_editor_id()
-            if not pid:
-                return jsonify({"ok": False, "error": "Not signed in"}), 401
+        # elif role.view_race_results_scope == UserRole.SELF:
+        #     pid = current_editor_id()
+        #     if not pid:
+        #         return jsonify({"ok": False, "error": "Not signed in"}), 401
             
-            race_results = RaceResult.list_results_for_owner(pid)
-            return jsonify({"ok": True, "data": [r.to_dict() for r in race_results]}), 200
+        #     race_results = RaceResult.list_results_for_owner(pid)
+        #     return jsonify({"ok": True, "data": [r.to_dict() for r in race_results]}), 200
         
-        else:
-            return jsonify({"ok": False, "error": "Not allowed to view race results"}), 403
+        # else:
+        #     return jsonify({"ok": False, "error": "Not allowed to view race results"}), 403
 
     except Error as e: 
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
