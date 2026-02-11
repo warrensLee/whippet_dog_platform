@@ -1313,116 +1313,107 @@ curl -i -b cookies.txt \
 --------------------------------------------------
 USER ROLE
 (
-  Must be logged in
-  Controlled by viewUserRoleScope and editUserRoleScope
-  Protected roles: ADMIN, PUBLIC (cannot be edited or deleted)
-  
-  View scope behavior:
-    NONE (0) → no access
-    SELF (1) → can only see your own role
-    ALL (2) → can see all roles
+  View:
+    No sign in required.
+    Can view all user roles (ALL GET endpoints).
 
-  Edit scope behavior:
-    NONE (0) → no edits allowed
-    SELF (1) → can edit a role only if the scopes exactly match their own (title can differ, but permissions must be identical)
-    ALL (2) → full edit all roles (except protected roles)
+  Create / Edit / Delete:
+    Must be signed in (ALL POST endpoints).
+
+  Protected roles:
+    ADMIN, PUBLIC (cannot be edited or deleted)
+
+  Permissions controlled by UserRole scopes:
+
+    EditUserRoleScope:
+      0 = NONE
+        Cannot create roles
+        Cannot edit roles
+        Cannot delete roles
+
+      1 = SELF
+        Can create roles ONLY if the scopes exactly match their own role’s scopes
+        Can edit roles ONLY if the scopes exactly match their own role’s scopes
+        Can delete roles ONLY if the target role’s scopes exactly match their own role’s scopes
+        (Title can differ; permissions must be identical)
+        (Still cannot edit/delete protected roles)
+
+      2 = ALL
+        Can create roles
+        Can edit any role (except protected roles)
+        Can delete any role (except protected roles)
 )
 --------------------------------------------------
 
 --------------------------------------------------
-GET /api/user_role/get
+GET /api/user_role/get (get all user roles)
 --------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/user_role/get
 
 
 --------------------------------------------------
-GET /api/user_role/get/<role_id>
+GET /api/user_role/get/<role_id> (get a user roles for a specific id)
 --------------------------------------------------
 curl -i -b cookies.txt \
   http://localhost/api/user_role/get/1
 
 
 --------------------------------------------------
-POST /api/user_role/add
+POST /api/user_role/add (add a user role)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/user_role/add \
   -d '{
     "title": "TEST4",
-    "viewDogScope": 2,
     "editDogScope": 1,
-    "viewPersonScope": 1,
     "editPersonScope": 1,
-    "viewDogOwnerScope": 1,
     "editDogOwnerScope": 1,
-    "viewOfficerRoleScope": 0,
     "editOfficerRoleScope": 0,
-    "viewUserRoleScope": 2,
     "editUserRoleScope": 1,
-    "viewClubScope": 2,
     "editClubScope": 1,
-    "viewMeetScope": 2,
     "editMeetScope": 1,
-    "viewMeetResultsScope": 2,
     "editMeetResultsScope": 1,
-    "viewRaceResultsScope": 2,
     "editRaceResultsScope": 1,
-    "viewDogTitlesScope": 2,
     "editDogTitlesScope": 1,
-    "viewTitleTypeScope": 2,
     "editTitleTypeScope": 1,
-    "viewNewsScope": 2,
-    "editNewsScope": 1,
-    "viewChangeLogScope": 0
+    "editNewsScope": 1
   }'
 
 
 --------------------------------------------------
-POST /api/user_role/edit
+POST /api/user_role/edit (edit a user role)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/user_role/edit \
   -d '{
-    "roleId": 6,
-    "title": "TEST3",
+    "roleId": 3,
+    "title": "TEST4",
     "viewDogScope": 2,
     "editDogScope": 1,
-    "viewPersonScope": 1,
     "editPersonScope": 1,
-    "viewDogOwnerScope": 1,
     "editDogOwnerScope": 1,
-    "viewOfficerRoleScope": 0,
     "editOfficerRoleScope": 0,
-    "viewUserRoleScope": 2,
     "editUserRoleScope": 1,
-    "viewClubScope": 2,
     "editClubScope": 1,
-    "viewMeetScope": 2,
     "editMeetScope": 1,
-    "viewMeetResultsScope": 2,
     "editMeetResultsScope": 1,
-    "viewRaceResultsScope": 2,
     "editRaceResultsScope": 1,
-    "viewDogTitlesScope": 2,
     "editDogTitlesScope": 1,
-    "viewTitleTypeScope": 2,
     "editTitleTypeScope": 1,
-    "viewNewsScope": 2,
-    "editNewsScope": 1,
-    "viewChangeLogScope": 0
+    "editNewsScope": 1
   }'
 
 
 --------------------------------------------------
-POST /api/user_role/delete
+POST /api/user_role/delete (delete a user role)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/user_role/delete \
   -d '{
-    "roleId": 7,
+    "roleId": 3,
     "confirm": true
   }'
