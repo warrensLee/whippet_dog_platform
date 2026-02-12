@@ -1,3 +1,5 @@
+Need to test over the endpoints, clean some code, and add a couple more
+
 ==============================
 ENDPOINT TESTS
 ==============================
@@ -407,13 +409,13 @@ curl -i -b cookies.txt \
 
 
 --------------------------------------------------
-POST /api/dog/add (add a dog)
+POST /api/dog/add (add a dog !!! THIS WILL ALSO AUTO ASSIGN TITLES FOR A DOG GIVEN THIER STATS)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/dog/add \
   -d '{
-    "cwaNumber": "T12346",
+    "cwaNumber": "T12345",
     "registeredName": "TEST DOG",
     "status": "Active",
     "currentGrade": "A",
@@ -425,14 +427,14 @@ curl -i -b cookies.txt \
     "foreignType": null,
     "pedigreeLink": null,
     "average": null,
-    "meetPoints": "999",
-    "arxPoints": "999",
-    "narxPoints": "999",
-    "showPoints": "999",
-    "dpcLegs": "999",
-    "meetWins": "999",
-    "meetAppearences": "999",
-    "highCombinedWins": "999",
+    "meetPoints": "0",
+    "arxPoints": "0",
+    "narxPoints": "0",
+    "showPoints": "0",
+    "dpcLegs": "0",
+    "meetWins": "0",
+    "meetAppearences": "0",
+    "highCombinedWins": "0",
     "notes": "Created via curl"
   }'
 
@@ -587,7 +589,7 @@ Importer
         - Can import dogs, meets, meet results, and race results
         - Can modify any existing dogs, meets, meet results, and race results via import
 
-    (change mode to update to update instead of )
+    (change mode to update instead of insert)
 )
 --------------------------------------------------
 
