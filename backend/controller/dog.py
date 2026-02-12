@@ -155,13 +155,14 @@ def delete_dog():
         for owner in owners:
             ChangeLog.log(
                 changed_table="DogOwner",
-                record_pk=f"{owner['CWAID']}:{owner['PersonID']}",
+                record_pk=f"{owner.cwa_id}:{owner.person_id}",
                 operation="DELETE",
                 changed_by=current_editor_id(),
                 source="api/dog/delete POST",
-                before_obj=owner,
+                before_obj={"cwaId": owner.cwa_id, "personId": owner.person_id},
                 after_obj=None,
             )
+
 
         DogOwner.delete_all_for_dog(dog.cwa_number)
 

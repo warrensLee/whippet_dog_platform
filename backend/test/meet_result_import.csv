@@ -1,3 +1,5 @@
 meetNumber,cwaNumber,average,grade,meetPlacement,meetPoints,arxEarned,narxEarned,shown,showPlacement,showPoints,dpcLeg,hcScore,hcLegEarne
-2026-01,T90003,8.4,A,1,2.5,1,0,0,,,0,0,0
+2026-01,T90003,8.4,A,1,100.5,1,0,0,,,0,0,0
 2026-02,T90004,9.1,B,3,6.0,0,0,1,2,4.0,1,9.5,1
+2026-01,T90004,9.1,B,3,6.0,0,0,1,2,4.0,1,9.5,1
+2026-02,T90003,99.1,B,3,6.0,0,0,1,2,4.0,1,9.5,1

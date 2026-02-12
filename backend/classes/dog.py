@@ -485,7 +485,7 @@ class Dog:
             except ValueError:
                 errors.append("Birthdate must be in YYYY-MM-DD format")
         
-        float_field(errors, self.average, "Average", min_value=0, max_value=9.99)
+        float_field(errors, self.average, "Average", min_value=0, max_value=9999.99)
         float_field(errors, self.meet_points, "Meet Points", min_value=0, max_value=999.99)
         float_field(errors, self.arx_points, "ARX Points", min_value=0, max_value=999.99)
         float_field(errors, self.narx_points, "NARX Points", min_value=0, max_value=999.99)
@@ -606,7 +606,8 @@ class Dog:
             return True
         except Error as e:
             raise e
-        
+    
+    @staticmethod
     def delete(cwa_number):
         """Delete dog from database. Returns True on success, raises Error on failure."""
         try:
@@ -653,7 +654,7 @@ class Dog:
     def compute_titles(self):
         return [t for t in self.check_titles() if t]
     
-    def _compute_last_three_meet_average(self):
+    def compute_last_three_meet_average(self):
         """Compute average MeetPoints from the last 3 meets the dog was entered in."""
         rows = fetch_all(
             """
@@ -676,7 +677,8 @@ class Dog:
         if not points:
             return 0.0
 
-        return round(sum(points) / len(points), 2)
+        avg = sum(points) / len(points)
+        return round(avg, 2)
 
     
     def update_from_meet_results(self):
@@ -698,7 +700,7 @@ class Dog:
         """, (self.cwa_number,))
         
         if stats:
-            self.average = self._compute_last_three_meet_average()
+            self.average = self.compute_last_three_meet_average()
             self.meet_points = float(stats['total_meet_points'] or 0)
             self.arx_points = float(stats['total_arx'] or 0)
             self.narx_points = float(stats['total_narx'] or 0)
