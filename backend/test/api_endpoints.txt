@@ -445,7 +445,7 @@ curl -i -b cookies.txt \
   http://localhost/api/dog/get/T12345
 
 --------------------------------------------------
-POST /api/dog/edit (edit a dog)
+POST /api/dog/edit (edit a dog !!! THIS WILL ALSO AUTO ASSIGN TITLES FOR A DOG GIVEN THIER STATS)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
@@ -662,31 +662,31 @@ MEET RESULT
 --------------------------------------------------
 
 --------------------------------------------------
-POST /api/meet_result/add (add a meet result)
+POST /api/meet_result/add (add a meet result !!! First will update a dogs stats based off the meet, then it WILL ALSO AUTO ASSIGN TITLES FOR A DOG GIVEN THIER STATS)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/meet_result/add \
   -d '{
-    "meetNumber": "MEET-001",
+    "meetNumber": "MEET-003",
     "cwaNumber": "T12345",
-    "average": "9.5",
+    "average": "9.2",
     "grade": "A",
-    "meetPlacement": "1",
-    "meetPoints": "25",
-    "arxEarned": "1",
-    "narxEarned": "0",
+    "meetPlacement": "3",
+    "meetPoints": "1",
+    "arxEarned": "2",
+    "narxEarned": "4",
     "shown": "0",
-    "showPlacement": "0",
-    "showPoints": "0",
-    "dpcLeg": "0",
-    "hcScore": "0",
-    "hcLegEarned": "0"
+    "showPlacement": "1",
+    "showPoints": "3",
+    "dpcLeg": "2",
+    "hcScore": "2",
+    "hcLegEarned": "2"
   }'
 
 
 --------------------------------------------------
-POST /api/meet_result/edit (edit a meet result)
+POST /api/meet_result/edit (edit a meet result !!! First will update a dogs stats based off the meet, then it WILL ALSO AUTO ASSIGN TITLES FOR A DOG GIVEN THIER STATS)
 --------------------------------------------------
 curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
