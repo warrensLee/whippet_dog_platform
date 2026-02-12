@@ -14,6 +14,7 @@ Add physical attributes and check qualifications method?
 from database import fetch_one, fetch_all, execute
 from mysql.connector import Error
 from datetime import datetime
+from utils.validators import (s, require, int_field, float_field, fk_exists, enum_field, str_field)
 
 
 class Dog:
@@ -468,103 +469,36 @@ class Dog:
 
     def validate(self):
         errors = []
-        cwa = (self.cwa_number or "").strip()
-        reg = (self.registered_name or "").strip()
-        status = (self.status or "").strip()
-        grade = (self.current_grade or "").strip()
-    
-        if not cwa:
-            errors.append("CWA Number is required")
-
-        if not reg:
-            errors.append("Registered Name is required")
-
-        if not status:
-            errors.append("Status is required")
-
-        if not grade:
-            errors.append("Current Grade is required")
-
-        if not self.birthdate:
-            errors.append("Birthdate is required")
-
-        if cwa and len(cwa) > 10:
-            errors.append("CWA Number must be 10 characters or less")
-
-        if reg and len(reg) > 100:
-            errors.append("Registered Name must be 100 characters or less")
-
-        if self.call_name and len(self.call_name) > 50:
-            errors.append("Call Name must be 50 characters or less")
-
-        if self.akc_number and len(self.akc_number) > 10:
-            errors.append("AKC Number must be 10 characters or less")
-
-        if self.ckc_number and len(self.ckc_number) > 10:
-            errors.append("CKC Number must be 10 characters or less")
-
-        if status and status not in self.VALID_STATUSES:
-            errors.append("Status must be 'Active' or 'Inactive'")
-
-        if grade and grade not in self.VALID_GRADES:
-            errors.append("Current Grade must be one of 'FTE', 'D', 'C', 'B', or 'A'")
-
-        def validate_decimal(value, field, max_value):
-            if value is None:
-                return
+        
+        str_field(errors, self.cwa_number, "CWA Number", max_length=10, required=True)
+        str_field(errors, self.registered_name, "Registered Name", max_length=100, required=True)
+        str_field(errors, self.call_name, "Call Name", max_length=50)
+        str_field(errors, self.akc_number, "AKC Number", max_length=10)
+        str_field(errors, self.ckc_number, "CKC Number", max_length=10)
+        
+        enum_field(errors, self.status, "Status", self.VALID_STATUSES, required=True)
+        enum_field(errors, self.current_grade, "Current Grade", self.VALID_GRADES, required=True)
+        
+        if require(errors, self.birthdate, "Birthdate is required"):
+            bd = s(self.birthdate)
             try:
-                val = float(value)
-            except (TypeError, ValueError):
-                errors.append(f"{field} must be a number")
-                return
-            if val < 0:
-                errors.append(f"{field} cannot be negative")
-            if val > max_value:
-                errors.append(f"{field} cannot exceed {max_value}")
-
-        def validate_int(value, field, max_value):
-            if value is None:
-                return
-            try:
-                val = int(value)
-            except (TypeError, ValueError):
-                errors.append(f"{field} must be an integer")
-                return
-            if val < 0:
-                errors.append(f"{field} cannot be negative")
-            if val > max_value:
-                errors.append(f"{field} cannot exceed {max_value}")
-
-        # DECIMAL(5,2)
-        validate_decimal(self.meet_points, "Meet Points", 999.99)
-        validate_decimal(self.arx_points, "ARX Points", 999.99)
-        validate_decimal(self.narx_points, "NARX Points", 999.99)
-        validate_decimal(self.meet_wins, "Meet Wins", 999.99)
-        validate_decimal(self.meet_appearences, "Meet Appearances", 999.99)
-        validate_decimal(self.high_combined_wins, "High Combined Wins", 999.99)
-
-        # DECIMAL(3,2)  
-        validate_decimal(self.average, "Average", 9.99)
-
-        # SMALLINT max
-        validate_int(self.show_points, "Show Points", 32767)
-        validate_int(self.dpc_legs, "DPC Legs", 32767)
-
-        if self.birthdate:
-            if isinstance(self.birthdate, str):
-                try:
-                    datetime.strptime(self.birthdate, "%Y-%m-%d")
-                except ValueError:
-                    errors.append("Birthdate must be in YYYY-MM-DD format")
-
-        if self.last_edited_by:
-            row = fetch_one(
-                "SELECT PersonID FROM Person WHERE PersonID = %s LIMIT 1",
-                (self.last_edited_by,),
-            )
-            if not row:
-                errors.append("LastEditedBy must reference an existing Person")
-
+                datetime.strptime(bd, "%Y-%m-%d")
+            except ValueError:
+                errors.append("Birthdate must be in YYYY-MM-DD format")
+        
+        float_field(errors, self.average, "Average", min_value=0, max_value=9.99)
+        float_field(errors, self.meet_points, "Meet Points", min_value=0, max_value=999.99)
+        float_field(errors, self.arx_points, "ARX Points", min_value=0, max_value=999.99)
+        float_field(errors, self.narx_points, "NARX Points", min_value=0, max_value=999.99)
+        float_field(errors, self.meet_wins, "Meet Wins", min_value=0, max_value=999.99)
+        
+        int_field(errors, self.show_points, "Show Points", min_value=0, max_value=32767)
+        int_field(errors, self.dpc_legs, "DPC Legs", min_value=0, max_value=32767)
+        int_field(errors, self.meet_appearences, "Meet Appearances", min_value=0, max_value=32767)
+        int_field(errors, self.high_combined_wins, "High Combined Wins", min_value=0, max_value=32767)
+        
+        fk_exists(errors, self.last_edited_by, "Last edited by", "Person", "PersonID")
+        
         return errors
 
     def save(self):
@@ -719,6 +653,48 @@ class Dog:
     
     def compute_titles(self):
         return [t for t in self.check_titles() if t]
+    
+    def update_from_meet_results(self):
+        """Recalculate dog stats from all meet results"""
+        if not self.cwa_number:
+            return
+        
+        stats = fetch_one("""
+            SELECT 
+                AVG(Average) as avg_speed,
+                SUM(MeetPoints) as total_meet_points,
+                SUM(ARXEarned) as total_arx,
+                SUM(NARXEarned) as total_narx,
+                SUM(ShowPoints) as total_show_points,
+                SUM(DPCLeg) as total_dpc_legs,
+                SUM(CASE WHEN MeetPlacement = 1 THEN 1 ELSE 0 END) as meet_wins,
+                COUNT(*) as meet_appearances
+            FROM MeetResults
+            WHERE CWANumber = %s
+        """, (self.cwa_number,))
+        
+        if stats:
+            self.average = round(float(stats['avg_speed'] or 0), 2)
+            self.meet_points = float(stats['total_meet_points'] or 0)
+            self.arx_points = float(stats['total_arx'] or 0)
+            self.narx_points = float(stats['total_narx'] or 0)
+            self.show_points = int(stats['total_show_points'] or 0)
+            self.dpc_legs = int(stats['total_dpc_legs'] or 0)
+            self.meet_wins = float(stats['meet_wins'] or 0)
+            self.meet_appearences = int(stats['meet_appearances'] or 0)
+            
+            show_wins = fetch_one("""
+                SELECT COUNT(*) as show_wins
+                FROM MeetResults
+                WHERE CWANumber = %s AND ShowPlacement = 1
+            """, (self.cwa_number,))
+            
+            if show_wins:
+                self.high_combined_wins = int(self.meet_wins) + int(show_wins['show_wins'] or 0)
+            
+            self.current_grade = self.check_grade()
+        
+        self.update()
 
 
     

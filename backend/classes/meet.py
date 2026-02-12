@@ -101,6 +101,27 @@ class Meet:
             errors.append("Club abbreviation must be 10 characters or less")
         if len(self.location) > 20:
             errors.append("Location must be 20 characters or less")
+
+        if self.meet_number and len((self.meet_number)) > 20:
+            errors.append("Meet number must be 20 characters or less")
+            
+        if self.club_abbreviation and len((self.club_abbreviation)) > 10:
+            errors.append("Club abbreviation must be 10 characters or less")
+
+        if self.location and len((self.location)) > 20:
+            errors.append("Location must be 20 characters or less")
+        
+        if self.club_abbreviation and not fetch_one("SELECT ClubAbbreviation FROM Club WHERE ClubAbbreviation = %s", (self.club_abbreviation,)):
+            errors.append(f"Club '{self.club_abbreviation}' does not exist")
+        
+        if self.judge and not fetch_one( "SELECT PersonID FROM Person WHERE PersonID = %s", (self.judge,)):
+            errors.append(f"Judge '{self.judge}' does not exist")
+        
+        if self.race_secretary and not fetch_one("SELECT PersonID FROM Person WHERE PersonID = %s", (self.race_secretary,)):
+            errors.append(f"Race secretary '{self.race_secretary}' does not exist")
+        
+        if self.last_edited_by and not fetch_one("SELECT PersonID FROM Person WHERE PersonID = %s", (self.last_edited_by,)):
+            errors.append("LastEditedBy must reference an existing Person")
         return errors
 
     def save(self):

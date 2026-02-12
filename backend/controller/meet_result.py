@@ -3,6 +3,8 @@ from mysql.connector import Error
 from datetime import datetime, timezone
 from classes.meet_result import MeetResult
 from classes.dog_owner import DogOwner
+from classes.dog import Dog
+from classes.dog_title import DogTitle
 from classes.change_log import ChangeLog
 from classes.user_role import UserRole
 from utils.auth_helpers import current_editor_id, current_role, require_scope
@@ -11,9 +13,7 @@ meet_result_bp = Blueprint("meet_result", __name__, url_prefix="/api/meet_result
 
 def _is_owner(cwa_number):
     pid = current_editor_id()
-    if not pid:
-        return False
-    return DogOwner.exists(cwa_number, pid)
+    return DogOwner.exists(cwa_number, pid) if pid else False
 
 
 @meet_result_bp.post("/add")
@@ -29,12 +29,8 @@ def register_meet_result():
     data = request.get_json(silent=True) or {}
     meet_result = MeetResult.from_request_data(data)
 
-    if role.edit_meet_results_scope == UserRole.SELF:
-        if not _is_owner(meet_result.cwa_number):
-            return jsonify({
-                "ok": False,
-                "error": "You can only add meet results for dogs you own"
-            }), 403
+    if role.edit_meet_results_scope == UserRole.SELF and not _is_owner(meet_result.cwa_number):
+        return jsonify({"ok": False, "error": "You can only add meet results for dogs you own"}), 403
 
     meet_result.last_edited_by = current_editor_id()
     meet_result.last_edited_at = datetime.now(timezone.utc)
@@ -58,6 +54,11 @@ def register_meet_result():
             before_obj=None,
             after_obj=meet_result.to_dict(),
         )
+
+        dog = Dog.find_by_identifier(meet_result.cwa_number)
+        if dog:
+            dog.update_from_meet_results()
+            DogTitle.sync_titles_for_dog(dog, current_editor_id(), datetime.now(timezone.utc))
 
         return jsonify({"ok": True}), 201
 
@@ -88,12 +89,8 @@ def edit_meet_result():
     if not existing:
         return jsonify({"ok": False, "error": "Meet result does not exist"}), 404
 
-    if role.edit_meet_results_scope == UserRole.SELF:
-        if not _is_owner(cwa_number):
-            return jsonify({
-                "ok": False,
-                "error": "You can only edit meet results for dogs you own"
-            }), 403
+    if role.edit_meet_results_scope == UserRole.SELF and not _is_owner(cwa_number):
+        return jsonify({"ok": False, "error": "You can only edit meet results for dogs you own"}), 403
 
     before_snapshot = existing.to_dict()
 
@@ -122,6 +119,12 @@ def edit_meet_result():
             before_obj=before_snapshot,
             after_obj=after_snapshot,
         )
+
+        # Sync dog titles
+        dog = Dog.find_by_identifier(cwa_number)
+        if dog:
+            dog.update_from_meet_results()
+            DogTitle.sync_titles_for_dog(dog, current_editor_id(), datetime.now(timezone.utc))
 
         return jsonify({"ok": True}), 200
 
@@ -154,12 +157,8 @@ def delete_meet_result():
     if not meet_result:
         return jsonify({"ok": False, "error": "Meet result does not exist"}), 404
 
-    if role.edit_meet_results_scope == UserRole.SELF:
-        if not _is_owner(cwa_number):
-            return jsonify({
-                "ok": False,
-                "error": "You can only delete meet results for dogs you own"
-            }), 403
+    if role.edit_meet_results_scope == UserRole.SELF and not _is_owner(cwa_number):
+        return jsonify({"ok": False, "error": "You can only delete meet results for dogs you own"}), 403
 
     try:
         before_snapshot = meet_result.to_dict()
@@ -175,6 +174,12 @@ def delete_meet_result():
             after_obj=None,
         )
 
+        # Sync dog titles
+        dog = Dog.find_by_identifier(cwa_number)
+        if dog:
+            dog.update_from_meet_results()
+            DogTitle.sync_titles_for_dog(dog, current_editor_id(), datetime.now(timezone.utc))
+
         return jsonify({"ok": True}), 200
 
     except Error as e:
@@ -182,54 +187,17 @@ def delete_meet_result():
 
 
 @meet_result_bp.get("/get/<meet_number>/<cwa_number>")
-def get_meet_result(meet_number: str, cwa_number: str):
-    # role = current_role()
-    # if not role:
-    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    # deny = require_scope(role.view_meet_results_scope, "view meet results")
-    # if deny:
-    #     return deny
-
+def get_meet_result(meet_number, cwa_number):
     meet_result = MeetResult.find_by_identifier(meet_number, cwa_number)
     if not meet_result:
         return jsonify({"ok": False, "error": "Meet result does not exist"}), 404
-
-    # if role.view_meet_results_scope == UserRole.SELF:
-    #     if not _is_owner(cwa_number):
-    #         return jsonify({
-    #             "ok": False,
-    #             "error": "You can only view meet results for dogs you own"
-    #         }), 403
-
     return jsonify({"ok": True, "data": meet_result.to_dict()}), 200
 
 
 @meet_result_bp.get("/get")
 def list_all_meet_results():
-    # role = current_role()
-    # if not role:
-    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    # deny = require_scope(role.view_meet_results_scope, "view meet results")
-    # if deny:
-    #     return deny
-
     try:
-        # if role.view_meet_results_scope == UserRole.ALL:
         meet_results = MeetResult.list_all_meet_results()
         return jsonify({"ok": True, "data": [mr.to_dict() for mr in meet_results]}), 200
-        
-        # elif role.view_meet_results_scope == UserRole.SELF:
-        #     pid = current_editor_id()
-        #     if not pid:
-        #         return jsonify({"ok": False, "error": "Not signed in"}), 401
-            
-            # meet_results = MeetResult.list_results_for_owner(pid)
-            # return jsonify({"ok": True, "data": [mr.to_dict() for mr in meet_results]}), 200
-        
-        # else:
-        #     return jsonify({"ok": False, "error": "Not allowed to view meet results"}), 403
-
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
