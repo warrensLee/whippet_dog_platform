@@ -155,6 +155,15 @@ class DogOwner:
             """
         )
         return rows
+    
+    @classmethod
+    def list_for_dog(cls, cwa_number):
+        rows = fetch_all(
+            "SELECT * FROM DogOwner WHERE CWAID = %s",
+            (cwa_number,),
+        ) or []
+        return rows
+
 
     def to_session_dict(self):
         return {"CWAID": self.cwa_id, "PersonID": self.person_id}

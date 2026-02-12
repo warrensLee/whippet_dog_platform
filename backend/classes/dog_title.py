@@ -195,6 +195,7 @@ class DogTitle:
         title = (title or "").strip()
         execute("DELETE FROM DogTitles WHERE Title = %s", (title,))
 
+    @classmethod
     def delete_all_for_dog(cls, cwa_number):
         cwa_number = (cwa_number or "").strip()
         execute(
@@ -245,8 +246,8 @@ class DogTitle:
                 title=title,
                 title_number="0", #need to come back to this 
                 title_date=edited_at,
-                name_prefix="N/A", #need to come back to this 
-                name_suffix="N/A", #need to come back to this 
+                name_prefix="", #need to come back to this 
+                name_suffix="", #need to come back to this 
                 last_edited_by=editor_id,
                 last_edited_at=edited_at,
             )
@@ -284,6 +285,15 @@ class DogTitle:
                     before_obj=before_snapshot,
                     after_obj=None
                 )
+
+    @classmethod
+    def list_for_dog(cls, cwa_number):
+        rows = fetch_all(
+            "SELECT * FROM DogTitles WHERE CWANumber = %s",
+            (cwa_number,),
+        ) or []
+        return rows
+
 
 
     def to_session_dict(self):
