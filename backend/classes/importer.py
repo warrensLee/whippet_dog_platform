@@ -93,7 +93,9 @@ class CsvImporter:
     }
 
     POST_SAVE_HOOKS = {
-        "dogs": lambda dog_obj, editor_id, now: DogTitle.sync_titles_for_dog(dog_obj, editor_id, now),
+        "dogs": lambda obj, editor_id, now: _sync_titles_from_dog(obj, editor_id, now),
+        "meet_results": lambda obj, editor_id, now: _sync_from_meet_result(obj, editor_id, now),
+        "race_results": lambda obj, editor_id, now: _sync_from_race_result(obj, editor_id, now),
     }
 
     def detect_type(self, filename):
@@ -225,3 +227,38 @@ class CsvImporter:
 
         rows = list(csv.DictReader(io.StringIO(text)))
         return self.import_rows(import_type=import_type, filename=filename, rows=rows, mode=mode)
+
+
+def _sync_titles_from_dog(dog_obj, editor_id, now):
+    """Sync titles when dog is updated"""
+    DogTitle.sync_titles_for_dog(dog_obj, editor_id, now)
+
+
+def _sync_from_meet_result(meet_result_obj, editor_id, now):
+    """Update dog stats and titles when meet result is saved"""
+    cwa_number = getattr(meet_result_obj, "cwa_number", None)
+    if not cwa_number:
+        return
+    
+    dog = Dog.find_by_identifier(cwa_number)
+    if dog:
+        dog.update_from_meet_results()
+        DogTitle.sync_titles_for_dog(dog, editor_id, now)
+
+
+def _sync_from_race_result(race_result_obj, editor_id, now):
+    """Update meet result, dog stats, and titles when race result is saved"""
+    meet_number = getattr(race_result_obj, "meet_number", None)
+    cwa_number = getattr(race_result_obj, "cwa_number", None)
+    
+    if not meet_number or not cwa_number:
+        return
+    
+    meet_result = MeetResult.find_by_identifier(meet_number, cwa_number)
+    if meet_result:
+        meet_result.update_from_race_results()
+    
+    dog = Dog.find_by_identifier(cwa_number)
+    if dog:
+        dog.update_from_meet_results()
+        DogTitle.sync_titles_for_dog(dog, editor_id, now)

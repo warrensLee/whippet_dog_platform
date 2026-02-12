@@ -121,6 +121,30 @@ class MeetResult:
             errors.append("Meet number must be 20 characters or less")
         if len(self.cwa_number) > 10:
             errors.append("CWA number must be 10 characters or less")
+
+        if self.meet_number:
+            meet_exists = fetch_one(
+                "SELECT MeetNumber FROM Meet WHERE MeetNumber = %s LIMIT 1",
+                (self.meet_number,)
+            )
+        if not meet_exists:
+            errors.append(f"Meet number '{self.meet_number}' does not exist")
+    
+        if self.cwa_number:
+            dog_exists = fetch_one(
+                "SELECT CWANumber FROM Dog WHERE CWANumber = %s LIMIT 1",
+                (self.cwa_number,)
+            )
+            if not dog_exists:
+                errors.append(f"CWA number '{self.cwa_number}' does not exist")
+        
+        if self.last_edited_by:
+            person_exists = fetch_one(
+                "SELECT PersonID FROM Person WHERE PersonID = %s LIMIT 1",
+                (self.last_edited_by,)
+            )
+            if not person_exists:
+                errors.append("LastEditedBy must reference an existing Person")
         return errors
 
     def save(self):
@@ -228,6 +252,107 @@ class MeetResult:
             """
         )
         return [MeetResult.from_db_row(row) for row in rows]
+    
+    def update_from_race_results(self):
+        """
+        Recalculate MeetResults fields from RaceResults for this meet+dog.
+
+        Assumptions (adjust if your business rules differ):
+        - meet_points = SUM(RaceResults.MeetPoints)
+        - meet_placement = rank within the meet by total points (desc), tiebreaker by avg placement (asc), then CWANumber (asc)
+        - average: RaceResults has no speed; keep existing if present else set to 0
+        - arx_earned / narx_earned: 1 if meet_points >= 15 else 0 (matches your Dog title thresholds)
+        - shown/show fields/hc fields: not derivable from RaceResults => default to 0 unless already set
+        """
+        if not self.meet_number or not self.cwa_number:
+            return
+
+        # 1) Aggregate for this dog+meet
+        row = fetch_one(
+            """
+            SELECT
+                COALESCE(SUM(rr.MeetPoints), 0) AS total_points,
+                AVG(CASE WHEN rr.Placement > 0 THEN rr.Placement ELSE NULL END) AS avg_placement,
+                COUNT(*) AS race_count
+            FROM RaceResults rr
+            WHERE rr.MeetNumber = %s AND rr.CWANumber = %s
+            """,
+            (self.meet_number, self.cwa_number),
+        ) or {}
+
+        total_points = float(row.get("total_points") or 0)
+        avg_place = float(row.get("avg_placement") or 9999)  # if no placements, push tiebreaker worse
+        race_count = int(row.get("race_count") or 0)
+
+        # If there are no race results, you can either:
+        # - set meet_points=0 and leave placement alone, or
+        # - hard reset most fields.
+        # Here we reset points and placement.
+        if race_count == 0:
+            self.meet_points = 0
+            self.meet_placement = 0
+            self.arx_earned = 0
+            self.narx_earned = 0
+            # don't destroy show fields; keep them if you ever set them elsewhere
+            self.update()
+            return
+
+        # 2) Compute rank (meet placement) for this meet based on all dogs' totals
+        #    Primary: total_points DESC
+        #    Tie1: avg_placement ASC
+        #    Tie2: CWANumber ASC
+        ranked = fetch_all(
+            """
+            SELECT
+                rr.CWANumber,
+                COALESCE(SUM(rr.MeetPoints), 0) AS total_points,
+                AVG(CASE WHEN rr.Placement > 0 THEN rr.Placement ELSE NULL END) AS avg_placement
+            FROM RaceResults rr
+            WHERE rr.MeetNumber = %s
+            GROUP BY rr.CWANumber
+            ORDER BY
+                total_points DESC,
+                (CASE WHEN avg_placement IS NULL THEN 9999 ELSE avg_placement END) ASC,
+                rr.CWANumber ASC
+            """,
+            (self.meet_number,),
+        ) or []
+
+        placement = 0
+        for i, r in enumerate(ranked, start=1):
+            if (r.get("CWANumber") or "").strip() == self.cwa_number:
+                placement = i
+                break
+
+        # 3) Write computed fields
+        self.meet_points = total_points
+        self.meet_placement = placement
+
+        # average: keep existing if numeric-ish, else set to 0 (RaceResults doesn't provide speed)
+        try:
+            _ = float(self.average) if self.average not in (None, "") else 0.0
+        except Exception:
+            self.average = 0.0
+
+        # earned flags (adjust to your rules if different)
+        self.arx_earned = 1 if total_points >= 15 else 0
+        self.narx_earned = 1 if total_points >= 15 else 0
+
+        # defaults if blank (avoid DB nulls if your schema expects 0/1)
+        if str(self.shown or "").strip() == "":
+            self.shown = 0
+        if str(self.show_placement or "").strip() == "":
+            self.show_placement = 0
+        if str(self.show_points or "").strip() == "":
+            self.show_points = 0
+        if str(self.dpc_leg or "").strip() == "":
+            self.dpc_leg = 0
+        if str(self.hc_score or "").strip() == "":
+            self.hc_score = 0
+        if str(self.hc_leg_earned or "").strip() == "":
+            self.hc_leg_earned = 0
+
+        self.update()
 
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""
