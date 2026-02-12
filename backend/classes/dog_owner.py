@@ -98,20 +98,6 @@ class DogOwner:
             (cwa_id, person_id),
         )
         return True
-    
-    @staticmethod
-    def list_for_dog(cwa_id):
-        rows = fetch_all(
-            """
-            SELECT CWAID, PersonID, LastEditedBy, LastEditedAt
-            FROM DogOwner
-            WHERE CWAID = %s
-            ORDER BY PersonID
-            """,
-            (cwa_id,),
-        )
-        return [DogOwner.from_db_row(r) for r in rows]
-
 
     @staticmethod
     def list_for_person(person_id):
@@ -156,13 +142,19 @@ class DogOwner:
         )
         return rows
     
-    @classmethod
-    def list_for_dog(cls, cwa_number):
+    @staticmethod
+    def list_for_dog(cwa_id):
         rows = fetch_all(
-            "SELECT * FROM DogOwner WHERE CWAID = %s",
-            (cwa_number,),
+            """
+            SELECT CWAID, PersonID, LastEditedBy, LastEditedAt
+            FROM DogOwner
+            WHERE CWAID = %s
+            ORDER BY PersonID
+            """,
+            (cwa_id,),
         ) or []
-        return rows
+        return [DogOwner.from_db_row(r) for r in rows]
+
 
 
     def to_session_dict(self):
