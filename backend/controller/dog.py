@@ -148,9 +148,37 @@ def delete_dog():
 
         before_snapshot = dog.to_dict()
 
-        #remove owners and titles first due to foreign key constraints
+        owners = DogOwner.list_for_dog(dog.cwa_number)
+        titles = DogTitle.list_for_dog(dog.cwa_number)
+
+        # Delete owners
+        for owner in owners:
+            ChangeLog.log(
+                changed_table="DogOwner",
+                record_pk=f"{owner['CWAID']}:{owner['PersonID']}",
+                operation="DELETE",
+                changed_by=current_editor_id(),
+                source="api/dog/delete POST",
+                before_obj=owner,
+                after_obj=None,
+            )
+
         DogOwner.delete_all_for_dog(dog.cwa_number)
+
+        # Delete titles
+        for title in titles:
+            ChangeLog.log(
+                changed_table="DogTitles",
+                record_pk=f"{title['CWANumber']}:{title['Title']}",
+                operation="DELETE",
+                changed_by=current_editor_id(),
+                source="api/dog/delete POST",
+                before_obj=title,
+                after_obj=None,
+            )
+
         DogTitle.delete_all_for_dog(dog.cwa_number)
+        
         #remove dog record
         Dog.delete(dog.cwa_number)
 
