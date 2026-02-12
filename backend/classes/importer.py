@@ -1,11 +1,13 @@
 import csv
 import io
 from datetime import datetime, timezone
+
 from classes.dog import Dog
 from classes.meet import Meet
 from classes.meet_result import MeetResult
 from classes.race_result import RaceResult
 from classes.change_log import ChangeLog
+from classes.dog_title import DogTitle
 from utils.auth_helpers import current_editor_id
 
 
@@ -58,11 +60,9 @@ class CsvImporter:
     }
 
     PASSTHROUGH = {
-        "dogs": [
-            "akcNumber", "ckcNumber", "foreignNumber", "foreignType", "pedigreeLink",
-            "average", "meetPoints", "arxPoints", "narxPoints", "showPoints", "dpcLegs",
-            "meetWins", "meetAppearences", "highCombinedWins", "notes"
-        ],
+        "dogs": ["akcNumber", "ckcNumber", "foreignNumber", "foreignType", "pedigreeLink",
+                 "average", "meetPoints", "arxPoints", "narxPoints", "showPoints", "dpcLegs",
+                 "meetWins", "meetAppearences", "highCombinedWins", "notes"],
         "meets": [],
         "meet_results": [],
         "race_results": [],
@@ -70,115 +70,81 @@ class CsvImporter:
 
     ENTITIES = {
         "dogs": {
-            "model": Dog,
-            "table_name": "Dog",
-            "pk_fields": ["cwaNumber"],
+            "model": Dog, "table_name": "Dog", "pk_fields": ["cwaNumber"],
             "exists": lambda pk: Dog.exists(pk["cwaNumber"]),
             "find": lambda pk: Dog.find_by_identifier(pk["cwaNumber"]),
         },
         "meets": {
-            "model": Meet,
-            "table_name": "Meet",
-            "pk_fields": ["meetNumber"],
+            "model": Meet, "table_name": "Meet", "pk_fields": ["meetNumber"],
             "exists": lambda pk: Meet.exists(pk["meetNumber"]),
             "find": lambda pk: Meet.find_by_identifier(pk["meetNumber"]),
         },
         "meet_results": {
-            "model": MeetResult,
-            "table_name": "MeetResult",
-            "pk_fields": ["meetNumber", "cwaNumber"],
+            "model": MeetResult, "table_name": "MeetResults", "pk_fields": ["meetNumber", "cwaNumber"],
             "exists": lambda pk: MeetResult.exists(pk["meetNumber"], pk["cwaNumber"]),
             "find": lambda pk: MeetResult.find_by_identifier(pk["meetNumber"], pk["cwaNumber"]),
         },
         "race_results": {
-            "model": RaceResult,
-            "table_name": "RaceResult",
+            "model": RaceResult, "table_name": "RaceResults",
             "pk_fields": ["meetNumber", "cwaNumber", "program", "raceNumber"],
             "exists": lambda pk: RaceResult.exists(pk["meetNumber"], pk["cwaNumber"], pk["program"], pk["raceNumber"]),
             "find": lambda pk: RaceResult.find_by_identifier(pk["meetNumber"], pk["cwaNumber"], pk["program"], pk["raceNumber"]),
         },
     }
 
+    POST_SAVE_HOOKS = {
+        "dogs": lambda dog_obj, editor_id, now: DogTitle.sync_titles_for_dog(dog_obj, editor_id, now),
+    }
+
     def detect_type(self, filename):
-        """Auto-detect import type from filename"""
         name = (filename or "").lower()
-        type_map = {
-            "dog": "dogs",
-            "meet_result": "meet_results",
-            "meetresult": "meet_results",
-            "meet result": "meet_results",
-            "race_result": "race_results",
-            "raceresult": "race_results",
-            "race result": "race_results",
-            "meet": "meets",
-        }
+        type_map = {"dog": "dogs", "meet_result": "meet_results", "meetresult": "meet_results",
+                    "race_result": "race_results", "raceresult": "race_results", "meet": "meets"}
         for key, value in type_map.items():
             if key in name:
                 return value
         raise ValueError("Cannot determine import type from filename")
 
     def get_field(self, row, *names):
-        """Get first non-empty field from row using alias names"""
         for n in names:
             if n in row and row[n] is not None and str(row[n]).strip():
                 return str(row[n]).strip()
         return None
 
     def row_to_payload(self, row, import_type):
-        """Convert CSV row to payload dict based on import type"""
-        aliases = self.ALIASES[import_type]
-        payload = {key: self.get_field(row, *names) for key, names in aliases.items()}
-        
+        payload = {key: self.get_field(row, *names) for key, names in self.ALIASES[import_type].items()}
         for key in self.PASSTHROUGH[import_type]:
             if key in row and row[key] is not None and str(row[key]).strip():
                 payload[key] = str(row[key]).strip()
-        
+
         if import_type == "meet_results":
             yn = lambda v: "1" if (v or "").strip().upper() in ("1", "YES", "Y", "TRUE") else "0"
             for field in ["arxEarned", "narxEarned", "shown", "dpcLeg", "hcLegEarned"]:
-                payload[field] = yn(payload[field])
-            
-            if payload["shown"] == "0":
-                payload["showPlacement"] = payload["showPlacement"] or "0"
-                payload["showPoints"] = payload["showPoints"] or "0"
-        
+                payload[field] = yn(payload.get(field))
+            if payload.get("shown") == "0":
+                payload["showPlacement"] = payload.get("showPlacement") or "0"
+                payload["showPoints"] = payload.get("showPoints") or "0"
         return payload
 
     def import_rows(self, import_type, filename, rows, *, mode):
-        """Main import dispatcher"""
         if import_type not in self.ENTITIES:
             raise ValueError(f"Unknown CSV type: {import_type}")
-
-        config = self.ENTITIES[import_type]
-        result = self._import_entity(
-            rows,
-            mode=mode,
-            import_type=import_type,
-            **config
-        )
-
-        return {
-            "file": filename,
-            "type": import_type,
-            "rows": len(rows),
-            "mode": mode,
-            **result,
-        }
+        result = self._import_entity(rows, mode=mode, import_type=import_type, **self.ENTITIES[import_type])
+        return {"file": filename, "type": import_type, "rows": len(rows), "mode": mode, **result}
 
     def _import_entity(self, rows, *, mode, import_type, model, table_name, pk_fields, exists, find):
-        """Generic entity import engine"""
         inserted = updated = skipped = failed = 0
         row_errors = []
         editor_id = current_editor_id()
         now = datetime.now(timezone.utc)
         seen = set()
+        hook = self.POST_SAVE_HOOKS.get(import_type)
 
         for idx, row in enumerate(rows, start=2):
             if not any(str(v).strip() for v in (row or {}).values() if v is not None):
                 continue
 
             payload = self.row_to_payload(row, import_type)
-
             pk = {}
             missing = []
             for field in pk_fields:
@@ -212,14 +178,13 @@ class CsvImporter:
                 row_errors.append({"row": idx, "error": ", ".join(errors), "pk": self._pk_string(pk)})
                 continue
 
-            # Check if exists
             record_exists = exists(pk)
             if mode == "insert" and record_exists:
                 skipped += 1
                 continue
 
-            before_snapshot = None
             operation = "UPDATE" if record_exists else "INSERT"
+            before_snapshot = None
 
             if record_exists:
                 existing = find(pk)
@@ -231,37 +196,21 @@ class CsvImporter:
                 inserted += 1
 
             refreshed = find(pk)
-            after_snapshot = (
-                refreshed.to_dict() if refreshed and hasattr(refreshed, "to_dict") 
-                else (obj.to_dict() if hasattr(obj, "to_dict") else None)
-            )
+            after_snapshot = refreshed.to_dict() if refreshed and hasattr(refreshed, "to_dict") else (obj.to_dict() if hasattr(obj, "to_dict") else None)
 
-            ChangeLog.log(
-                changed_table=table_name,
-                record_pk=self._pk_string(pk),
-                operation=operation,
-                changed_by=editor_id,
-                source="api/import POST",
-                before_obj=before_snapshot,
-                after_obj=after_snapshot,
-            )
+            ChangeLog.log(changed_table=table_name, record_pk=self._pk_string(pk), operation=operation,
+                         changed_by=editor_id, source="api/import POST", before_obj=before_snapshot, after_obj=after_snapshot)
 
-        return {
-            "inserted": inserted,
-            "updated": updated,
-            "skipped": skipped,
-            "failed": failed,
-            "rowErrors": row_errors,
-        }
+            if hook:
+                hook(refreshed or obj, editor_id, now)
+
+        return {"inserted": inserted, "updated": updated, "skipped": skipped, "failed": failed, "rowErrors": row_errors}
 
     def _pk_string(self, pk):
-        """Format PK dict as string"""
         return "|".join(f"{k}={pk[k]}" for k in sorted(pk.keys()))
 
-    def run(self, file_storage, *, import_type=None, mode):
-        """Entry point from controller"""
+    def run(self, file_storage, *, import_type=None, mode="upsert"):
         filename = getattr(file_storage, "filename", "") or "upload.csv"
-        
         if not import_type:
             import_type = self.detect_type(filename)
 
@@ -274,12 +223,5 @@ class CsvImporter:
         except Exception:
             text = raw.decode("utf-8", errors="replace")
 
-        reader = csv.DictReader(io.StringIO(text))
-        rows = list(reader)
-
-        return self.import_rows(
-            import_type=import_type,
-            filename=filename,
-            rows=rows,
-            mode=mode,
-        )
+        rows = list(csv.DictReader(io.StringIO(text)))
+        return self.import_rows(import_type=import_type, filename=filename, rows=rows, mode=mode)
