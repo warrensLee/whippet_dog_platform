@@ -1,3 +1,3 @@
 cwaNumber,registeredName,callName,birthdate,status,currentGrade,akcNumber,ckcNumber,foreignNumber,foreignType,pedigreeLink,average,meetPoints,arxPoints,narxPoints,showPoints,dpcLegs,meetWins,meetAppearences,highCombinedWins,notes
-T90003,CSV FULL DOG ONE,SPARK,2018-03-10,Active,A,,,,,,9.5,25,5,10,2,1,3,4,1,Imported via CSV
+T90003,CSV FULL DOG ONE,SPARK,2018-03-10,Active,A,,,,,,9.5,999,999,999,2,1,3,4,1,Imported via CSV
 T90004,CSV FULL DOG TWO,ROCKET,2021-07-22,Active,C,,,,,,8.9,10,0,5,1,0,1,2,0,Imported via CSV
