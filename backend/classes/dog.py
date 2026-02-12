@@ -54,7 +54,6 @@ class Dog:
         self.last_edited_by = last_edited_by
         self.last_edited_at = last_edited_at
 
-        self.average = float(self.average) if self.average not in (None, "") else 0.0
         self.meet_points = float(self.meet_points) if self.meet_points not in (None, "") else 0.0
         self.arx_points = float(self.arx_points) if self.arx_points not in (None, "") else 0.0
         self.narx_points = float(self.narx_points) if self.narx_points not in (None, "") else 0.0
@@ -654,6 +653,32 @@ class Dog:
     def compute_titles(self):
         return [t for t in self.check_titles() if t]
     
+    def _compute_last_three_meet_average(self):
+        """Compute average MeetPoints from the last 3 meets the dog was entered in."""
+        rows = fetch_all(
+            """
+            SELECT mr.MeetPoints
+            FROM MeetResults mr
+            JOIN Meet m ON m.MeetNumber = mr.MeetNumber
+            WHERE mr.CWANumber = %s
+            ORDER BY m.MeetDate DESC, mr.MeetNumber DESC
+            LIMIT 3
+            """,
+            (self.cwa_number,),
+        ) or []
+
+        points = [
+            float(r["MeetPoints"])
+            for r in rows
+            if r and r.get("MeetPoints") is not None
+        ]
+
+        if not points:
+            return 0.0
+
+        return round(sum(points) / len(points), 2)
+
+    
     def update_from_meet_results(self):
         """Recalculate dog stats from all meet results"""
         if not self.cwa_number:
@@ -661,7 +686,6 @@ class Dog:
         
         stats = fetch_one("""
             SELECT 
-                AVG(Average) as avg_speed,
                 SUM(MeetPoints) as total_meet_points,
                 SUM(ARXEarned) as total_arx,
                 SUM(NARXEarned) as total_narx,
@@ -674,7 +698,7 @@ class Dog:
         """, (self.cwa_number,))
         
         if stats:
-            self.average = round(float(stats['avg_speed'] or 0), 2)
+            self.average = self._compute_last_three_meet_average()
             self.meet_points = float(stats['total_meet_points'] or 0)
             self.arx_points = float(stats['total_arx'] or 0)
             self.narx_points = float(stats['total_narx'] or 0)
