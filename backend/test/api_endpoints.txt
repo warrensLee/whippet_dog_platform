@@ -240,7 +240,7 @@ curl -i -b cookies.txt \
   -X POST http://localhost/api/dog_owner/add \
   -d '{
     "cwaId": "T12345",
-    "personId": "SYSTEM"
+    "personId": "test_1"
   }'
 
 
@@ -668,7 +668,7 @@ curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/meet_result/add \
   -d '{
-    "meetNumber": "MEET-003",
+    "meetNumber": "MEET-001",
     "cwaNumber": "T12345",
     "average": "9.2",
     "grade": "A",
@@ -1187,7 +1187,7 @@ curl -i -b cookies.txt \
   -H "Content-Type: application/json" \
   -X POST http://localhost/api/race_result/add \
   -d '{
-    "meetNumber": "MEET-005",
+    "meetNumber": "MEET-001",
     "cwaNumber": "T12345",
     "program": "A",
     "raceNumber": "1",
@@ -1231,7 +1231,45 @@ curl -i -b cookies.txt \
     "raceNumber": "1",
     "confirm": true
   }'
+--------------------------------------------------
+Stats
+(
+  everyone can view stats, no permissions or sign in
+)
+--------------------------------------------------
+--------------------------------------------------
+GET /api/stats/top/all-time/<limit> (get top (some number) of dogs of all-time, group by total points and then wins)
+--------------------------------------------------
+curl -i -b cookies.txt "http://localhost/api/stats/top/all-time/20"
 
+--------------------------------------------------
+GET /api/stats/top/<year>/<limit> (get top (some number) of dogs of a specific year, group by total points and then wins)
+--------------------------------------------------
+curl -i -b cookies.txt "http://localhost/api/stats/top/2026/20"
+
+--------------------------------------------------
+GET /api/stats/search/year/<year> (search stats by year and can also filter by dog and owner)
+--------------------------------------------------
+curl -i -b cookies.txt "http://localhost/api/stats/search/year/2026"
+curl -i -b cookies.txt "http://localhost/api/stats/search/year/2026?dog_id=T12345&owner_id=test_1"
+
+--------------------------------------------------
+GET /api/stats/search/dog/<dog_id> (search stats by dog and can also filter by year and owner)
+--------------------------------------------------
+curl -i -b cookies.txt "http://localhost/api/stats/search/dog/T12345"
+curl -i -b cookies.txt "http://localhost/api/stats/search/dog/T12345?year=2026&owner_id=test_1"
+
+--------------------------------------------------
+GET /api/stats/top/owner/<owner_id> (search stats by owner and can also filter by dog and year)
+--------------------------------------------------
+curl -i -b cookies.txt "http://localhost/api/stats/search/owner/test_1"
+curl -i -b cookies.txt "http://localhost/api/stats/search/owner/test_1?dog_id=T12345&year=2026"
+
+
+--------------------------------------------------
+GET /api/stats/years (get years there are stats data)
+--------------------------------------------------
+curl -i -b cookies.txt "http://localhost/api/stats/years"
 
 --------------------------------------------------
 TITLE TYPE
