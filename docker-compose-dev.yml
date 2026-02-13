@@ -62,13 +62,11 @@ services:
     entrypoint: >
       sh -c "
       chmod +x /backup.sh &&
+      sleep 30 &&
       while true; do
         /backup.sh;
         sleep 86400;
-      done
-      "
-
-
+      done"
   nginx:
     image: nginx:alpine
     ports:

@@ -14,6 +14,7 @@ from controller.race_result import race_result_bp
 from controller.news import news_bp
 from controller.officer_role import officer_role_bp
 from controller.person import person_bp
+from controller.stats import stats_bp
 from controller.title_type import title_type_bp
 from controller.user_role import user_role_bp
 
@@ -52,6 +53,7 @@ def register_routes(app):
     app.register_blueprint(news_bp)
     app.register_blueprint(officer_role_bp)
     app.register_blueprint(person_bp)
+    app.register_blueprint(stats_bp)
     app.register_blueprint(title_type_bp)
     app.register_blueprint(user_role_bp)
     app.register_blueprint(main_bp)
