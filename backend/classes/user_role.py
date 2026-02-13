@@ -22,6 +22,7 @@ class UserRole:
         edit_dog_titles_scope=0,
         edit_title_type_scope=0,
         edit_news_scope=0,
+        edit_database_scope=0,
         last_edited_by=None,
         last_edited_at=None,
     ):
@@ -39,6 +40,7 @@ class UserRole:
         self.edit_dog_titles_scope = int(edit_dog_titles_scope or 0)
         self.edit_title_type_scope = int(edit_title_type_scope or 0)
         self.edit_news_scope = int(edit_news_scope or 0)
+        self.edit_database_scope = int(edit_database_scope or 0)
         self.last_edited_by = last_edited_by
         self.last_edited_at = last_edited_at
 
@@ -59,6 +61,7 @@ class UserRole:
             edit_dog_titles_scope=data.get("editDogTitlesScope", 0),
             edit_title_type_scope=data.get("editTitleTypeScope", 0),
             edit_news_scope=data.get("editNewsScope", 0),
+            edit_database_scope=data.get("editDatabaseScope", 0),
             last_edited_by=data.get("lastEditedBy"),
             last_edited_at=data.get("lastEditedAt"),
         )
@@ -82,6 +85,7 @@ class UserRole:
             edit_dog_titles_scope=row.get("EditDogTitlesScope"),
             edit_title_type_scope=row.get("EditTitleTypeScope"),
             edit_news_scope=row.get("EditNewsScope"),
+            edit_database_scope=row.get("EditDatabaseScope"),
             last_edited_by=row.get("LastEditedBy"),
             last_edited_at=row.get("LastEditedAt"),
         )
@@ -152,6 +156,7 @@ class UserRole:
             self.edit_dog_titles_scope,
             self.edit_title_type_scope,
             self.edit_news_scope,
+            self.edit_database_scope,
         ]:
             if field not in (0, 1, 2):
                 errors.append("Permission scopes must be 0 (none), 1 (self), or 2 (all).")
@@ -176,10 +181,11 @@ class UserRole:
                 EditDogTitlesScope,
                 EditTitleTypeScope,
                 EditNewsScope,
+                EditDatabaseScope,
                 LastEditedBy,
                 LastEditedAt
             ) VALUES (
-                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW()
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW()
             )
             """,
             (
@@ -196,6 +202,7 @@ class UserRole:
                 self.edit_dog_titles_scope,
                 self.edit_title_type_scope,
                 self.edit_news_scope,
+                self.edit_database_scope,
                 self.last_edited_by,
             ),
         )
@@ -221,6 +228,7 @@ class UserRole:
                 EditDogTitlesScope = %s,
                 EditTitleTypeScope = %s,
                 EditNewsScope = %s,
+                EditDatabaseScope = %s,
                 LastEditedBy = %s,
                 LastEditedAt = NOW()
             WHERE ID = %s
@@ -238,6 +246,7 @@ class UserRole:
                 self.edit_dog_titles_scope,
                 self.edit_title_type_scope,
                 self.edit_news_scope,
+                self.edit_database_scope,
                 self.last_edited_by,
                 self.id,
             ),
@@ -264,6 +273,7 @@ class UserRole:
             "edit_dog_titles_scope": self.edit_dog_titles_scope,
             "edit_title_type_scope": self.edit_title_type_scope,
             "edit_news_scope": self.edit_news_scope,
+            "edit_database_scope": self.edit_database_scope,
         }
 
     def matches_scopes(self, other):
@@ -289,6 +299,7 @@ class UserRole:
         self.edit_dog_titles_scope = other.edit_dog_titles_scope
         self.edit_title_type_scope = other.edit_title_type_scope
         self.edit_news_scope = other.edit_news_scope
+        self.edit_database_scope = other.edit_database_scope
 
     def to_dict(self):
         return {
@@ -306,6 +317,7 @@ class UserRole:
             "editDogTitlesScope": self.edit_dog_titles_scope,
             "editTitleTypeScope": self.edit_title_type_scope,
             "editNewsScope": self.edit_news_scope,
+            "editDatabaseScope": self.edit_database_scope,
             "lastEditedBy": self.last_edited_by,
             "lastEditedAt": self.last_edited_at.isoformat() if self.last_edited_at else None,
         }

@@ -38,3 +38,30 @@ def require_signed_in():
     if not current_role():
         return jsonify({"ok": False, "error": "Not signed in"}), 401
     return None
+
+def check_login_and_scope(scope, action="perform this action"):
+    """Check login and permission scope."""
+    role = current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+    
+    role_scope = getattr(role, f'edit_{scope}_scope', UserRole.NONE)
+
+    if role_scope not in [UserRole.ALL, UserRole.SELF]: 
+        return jsonify({"ok": False, "error": "Insufficient permissions to perform this action"}), 403
+    
+    return None  
+
+
+def check_login_and_scope_strict(scope, action="perform this action"):
+    """Check login and strict permission scope."""
+    role = current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+    
+    role_scope = getattr(role, f'edit_{scope}_scope', UserRole.NONE)
+    
+    if role_scope != UserRole.ALL:    
+        return jsonify({"ok": False, "error": "Insufficient permissions to perform this action"}), 403
+
+    return None 

@@ -54,6 +54,7 @@ CREATE TABLE `UserRole` (
     `EditDogTitlesScope` TINYINT NOT NULL DEFAULT 0,
     `EditTitleTypeScope` TINYINT NOT NULL DEFAULT 0,
     `EditNewsScope` TINYINT NOT NULL DEFAULT 0,
+    `EditDatabaseScope` TINYINT NOT NULL DEFAULT 0,
     `LastEditedBy` VARCHAR(20),
     `LastEditedAt` TIMESTAMP
 );
@@ -366,6 +367,7 @@ INSERT IGNORE INTO UserRole
   EditDogTitlesScope,
   EditTitleTypeScope,
   EditNewsScope,
+  EditDatabaseScope,
   LastEditedBy,
   LastEditedAt
 )
@@ -384,6 +386,7 @@ VALUES
   2,  -- DogTitles
   2,  -- TitleType
   2,  -- News
+  2,  -- Database
   NULL,
   NULL
 ),
@@ -401,6 +404,7 @@ VALUES
   1,  -- DogTitles
   1,  -- TitleType
   1,  -- News
+  0,  -- Database
   NULL,
   NULL
 );
