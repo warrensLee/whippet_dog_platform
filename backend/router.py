@@ -7,6 +7,7 @@ from controller.contact import contact_bp
 from controller.dog_owner import dog_owner_bp
 from controller.dog_title import dog_title_bp
 from controller.dog import dog_bp
+from controller.dump_database import database_bp
 from controller.importer import import_bp
 from controller.meet import meet_bp
 from controller.meet_result import meet_result_bp
@@ -46,6 +47,7 @@ def register_routes(app):
     app.register_blueprint(dog_owner_bp)
     app.register_blueprint(dog_title_bp)
     app.register_blueprint(dog_bp)
+    app.register_blueprint(database_bp)
     app.register_blueprint(import_bp)
     app.register_blueprint(meet_bp)
     app.register_blueprint(meet_result_bp)

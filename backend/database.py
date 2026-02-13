@@ -11,7 +11,7 @@ def get_conn():
         database=os.getenv("DB_NAME", "cwa_db"),
         autocommit=True,
         connect_timeout=10,
-        use_pure=False,
+        use_pure=True,
     )
 
 
