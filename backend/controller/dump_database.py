@@ -3,7 +3,7 @@ import io
 from datetime import datetime
 import os
 import tempfile
-
+from utils.auth_helpers import check_login_and_scope_strict
 from database import fetch_all, fetch_one, get_conn
 
 database_bp = Blueprint("database", __name__, url_prefix="/api/database")
@@ -80,6 +80,9 @@ def restore_from_file(path):
 @database_bp.get("/dump")
 def dump_database():
     try:
+        deny = check_login_and_scope_strict('database', action="restore the database")
+        if deny:
+            return deny
         output = io.StringIO()
         output.write("SET FOREIGN_KEY_CHECKS=0;\n\n")
 
@@ -111,6 +114,9 @@ def dump_database():
 @database_bp.post("/restore")
 def restore_database():
     try:
+        deny = check_login_and_scope_strict('database', action="restore the database")
+        if deny:
+            return deny
         uploaded = request.files.get("file")
 
         if not uploaded:

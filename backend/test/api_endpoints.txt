@@ -567,13 +567,13 @@ curl -i -b cookies.txt \
 Dump Database
 --------------------------------------------------
 --------------------------------------------------
-Get api/datanase/dump (Downloads the current database)
+Get api/database/dump (Downloads the current database)
 --------------------------------------------------
-curl -X GET http://localhost/api/database/dump -o db_dump.sql
+curl -b cookies.txt -X GET http://localhost/api/database/dump -o db_dump.sql
 --------------------------------------------------
-Get api/datanase/dump (Downloads the current database)
+Get api/database/restore (Restores the given database)
 --------------------------------------------------
-curl -X POST http://localhost/api/database/restore -F "file=@db_dump.sql"
+curl -i -b cookies.txt -X POST http://localhost/api/database/restore -F "file=@db_dump.sql"
 
 --------------------------------------------------
 Importer
