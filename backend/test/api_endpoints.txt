@@ -564,6 +564,18 @@ curl -i -b cookies.txt \
   http://localhost/api/dog/wins/T12345
 
 --------------------------------------------------
+Dump Database
+--------------------------------------------------
+--------------------------------------------------
+Get api/datanase/dump (Downloads the current database)
+--------------------------------------------------
+curl -X GET http://localhost/api/database/dump -o db_dump.sql
+--------------------------------------------------
+Get api/datanase/dump (Downloads the current database)
+--------------------------------------------------
+curl -X POST http://localhost/api/database/restore -F "file=@db_dump.sql"
+
+--------------------------------------------------
 Importer
 (
  View:
