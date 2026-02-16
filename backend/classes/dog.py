@@ -1,21 +1,7 @@
-'''
-Docstring for dog
-
-TODO:
-Need a way to dynamically add and remove titles and check them
-Finish check_trp_title
-    Add meet_appearences attribute?
-Finish check_dpc_title
-    Add akc_championships attribute?
-    Add ckc_championships attribute?
-Add physical attributes and check qualifications method?
-'''
-
 from database import fetch_one, fetch_all, execute
 from mysql.connector import Error
 from datetime import datetime
 from utils.validators import (s, require, int_field, float_field, fk_exists, enum_field, str_field)
-
 
 class Dog:
 
