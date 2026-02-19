@@ -104,12 +104,17 @@ class Dog:
         return None
 
     def check_pr_title(self):
-        '''Check if dog is eligible for Performance (PR) titles.'''
+        '''Check if dog is eligible for Performance Racer (PR) titles.'''
+        if self.meet_points >= 450:
+            return "PRX"
+        if self.meet_points >= 350:
+            return "PR4"
+        if self.meet_points >= 250:
+            return "PR3"
+        if self.meet_points >= 150:
+            return "PR2"
         if self.meet_points >= 50:
-            if self.meet_points < 150:
-                return "PR"
-            pr_level = int((self.meet_points - 50) / 100) + 1
-            return f"PR{pr_level}"
+            return "PR"
         return None
 
     def check_narx_title(self):
