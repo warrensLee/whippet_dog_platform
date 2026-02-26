@@ -3,6 +3,13 @@ import csv
 import io
 from datetime import datetime, timezone
 
+from backend.classes.club import Club
+from backend.classes.dog_owner import DogOwner
+from backend.classes.news import News
+from backend.classes.officer_role import OfficerRole
+from backend.classes.person import Person
+from backend.classes.title_type import TitleType
+from backend.classes.user_role import UserRole
 from classes.dog import Dog
 from classes.meet import Meet
 from classes.meet_result import MeetResult
@@ -58,6 +65,78 @@ class CsvImporter:
             "meetPoints": ("meetPoints", "MeetPoints", "MEET POINTS", "Points"),
             "incident": ("incident", "Incident", "INCIDENT"),
         },
+        "dog_owners": {
+            "cwaNumber": ("cwaNumber", "CWANumber", "CWA NO", "CWA No", "CWA No.", "CWA #"),
+            "personID": ("personID", "PersonID", "PERSON ID", "Person", "PERSON", "person"),
+        },
+        "dog_titles": {
+            "cwaNumber": ("cwaNumber", "CWANumber", "CWA NO", "CWA No", "CWA No.", "CWA #"),
+            "title": ("title", "Title", "TITLE"),
+            "titleNumber": ("titleNumber", "TitleNumber", "TITLE NUMBER", "Title #"),
+            "titleDate": ("titleDate", "TitleDate", "TITLE DATE", "Title Date"),
+            "namePrefix": ("namePrefix", "NamePrefix", "NAME PREFIX", "Name Prefix"),
+            "nameSuffix": ("nameSuffix", "NameSuffix", "NAME SUFFIX", "Name Suffix"),
+        },
+        "news": {
+            "id": ("id", "ID"),
+            "title": ("title", "Title"),
+            "content": ("content", "Content", "CONTENT"),
+            "createdAt": ("createdAt", "CreatedAt", "CREATED AT", "Created At"),
+            "updatedAt": ("updatedAt", "UpdatedAt", "UPDATED AT", "Updated At"),
+            "authorId": ("authorId", "AuthorId", "AUTHOR ID", "Author", "AUTHOR"),
+            "authorName": ("authorName", "AuthorName", "AUTHOR NAME", "Author Name"),
+        },
+        "officer_roles": {
+            "roleId": ("Role ID", "ROLE ID", "RoleId", "roleId"),
+            "roleName": ("Role Name", "ROLE NAME", "RoleName", "roleName"),
+            "personId": ("Person ID", "PERSON ID", "PersonId", "personId"),
+            "displayOrder": ("display_order", "Display Order", "DISPLAY ORDER", "DisplayOrder", "displayOrder"),
+            "active": ("active", "Active", "ACTIVE"),
+        },
+        "persons": {
+            "personId": ("Person ID", "PERSON ID", "PersonId", "personId"),
+            "firstName": ("First Name", "FIRST NAME", "FirstName", "firstName"),
+            "lastName": ("Last Name", "LAST NAME", "LastName", "lastName"),
+            "email": ("email", "Email", "EMAIL"),
+            "address_line_one": ("Address Line One", "ADDRESS LINE ONE", "AddressLineOne", "addressLineOne", "addressLine1", "AddressLine1", "AddressOne", "Address1"),
+            "address_line_two": ("Address Line Two", "ADDRESS LINE TWO", "AddressLineTwo", "addressLineTwo", "addressLine2", "AddressLine2", "AddressTwo", "Address2"),
+            "city": ("City", "CITY"),
+            "stateProvince": ("state", "State", "STATE", "stateProvince", "StateProvince", "state province", "State Province", "STATE PROVINCE"),
+            "zipCode": ("Zip Code", "ZIP CODE", "ZipCode", "zipCode"),
+            "country": ("Country", "COUNTRY", "country"),
+            "primaryPhone": ("Primary Phone", "PRIMARY PHONE", "PrimaryPhone", "primaryPhone", "primary_phone"),
+            "secondaryPhone": ("Secondary Phone", "SECONDARY PHONE", "SecondaryPhone", "secondaryPhone", "secondary_phone"),
+            "systemRole": ("System Role", "SYSTEM ROLE", "SystemRole", "systemRole"),
+            "passwordHash": ("Password Hash", "PASSWORD HASH", "PasswordHash", "passwordHash"),
+        },
+        "clubs": {
+            "clubAbbreviation": ("clubAbbreviation", "ClubAbbreviation", "club abbreviation", "ClubAbbreviation"),
+            "clubName": ("clubName", "ClubName", "club name", "ClubName"),
+            "beginDate": ("beginDate", "BeginDate", "BEGIN DATE", "Begin Date"),
+            "endDate": ("endDate", "EndDate", "END DATE", "End Date"),
+            "boardMember1": ("boardMember1", "BoardMember1", "BOARD MEMBER 1", "Board Member 1"),
+            "boardMember2": ("boardMember2", "BoardMember2", "BOARD MEMBER 2", "Board Member 2"),
+            "defaultRaceSecretary": ("defaultRaceSecretary", "DefaultRaceSecretary", "DEFAULT RACE SECRETARY", "Default Race Secretary"),
+        },
+        "change_logs": {
+            "id": ("id", "ID"),
+            "changedTable": ("changedTable", "ChangedTable", "CHANGED TABLE", "Changed Table"),
+            "recordPK": ("recordPK", "RecordPK", "RECORD PK", "Record PK"),
+            "operation": ("operation", "Operation", "OPERATION"),
+            "changedBy": ("changedBy", "ChangedBy", "CHANGED BY", "Changed By"),
+            "changedAt": ("changedAt", "ChangedAt", "CHANGED AT", "Changed At"),
+            "source": ("source", "Source", "SOURCE"),
+            "beforeData": ("beforeData", "BeforeData", "BEFORE DATA", "Before Data"),
+            "afterData": ("afterData", "AfterData", "AFTER DATA", "After Data"),
+        },
+        "title_types": {
+            "title": ("title", "Title", "TITLE"),
+            "titleDescription": ("titleDescription", "TitleDescription", "TITLE DESCRIPTION", "Title Description"),
+        },
+        "user_roles": {
+            "title": ("title", "Title", "TITLE"),
+            "id": ("id", "ID"),
+        },  
     }
 
     PASSTHROUGH = {
@@ -67,6 +146,15 @@ class CsvImporter:
         "meets": [],
         "meet_results": [],
         "race_results": [],
+        "dog_owners": [],
+        "dog_titles": [],
+        "news": [],
+        "officer_roles": [],
+        "persons": [],
+        "clubs": [],
+        "change_logs": [],
+        "title_types": [],
+        "user_roles": [],
     }
 
     ENTITIES = {
@@ -91,6 +179,57 @@ class CsvImporter:
             "exists": lambda pk: RaceResult.exists(pk["meetNumber"], pk["cwaNumber"], pk["program"], pk["raceNumber"]),
             "find": lambda pk: RaceResult.find_by_identifier(pk["meetNumber"], pk["cwaNumber"], pk["program"], pk["raceNumber"]),
         },
+        "dog_owners": {
+            "model": DogOwner, "table_name": "DogOwners",
+            "pk_fields": ["cwaNumber", "personID"],
+            "exists": lambda pk: DogOwner.exists(pk["cwaNumber"], pk["personID"]),
+            "find": lambda pk: DogOwner.find_by_identifier(pk["cwaNumber"], pk["personID"]),
+        },
+        "dog_titles": {
+            "model": DogTitle, "table_name": "DogTitles",
+            "pk_fields": ["cwaNumber", "title"],
+            "exists": lambda pk: DogTitle.exists(pk["cwaNumber"], pk["title"]),
+            "find": lambda pk: DogTitle.find_by_identifier(pk["cwaNumber"], pk["title"]),
+        },
+        "news": {
+            "model": News, "table_name": "News",
+            "pk_fields": ["id"],
+            # No exists method
+            "find": lambda pk: News.find_by_identifier(pk["id"]),
+        },
+        "officer_roles": {
+            "model": OfficerRole, "table_name": "OfficerRoles",
+            "pk_fields": ["roleId"],
+            "exists": lambda pk: OfficerRole.exists_by_id(pk["roleId"]),
+            "find": lambda pk: OfficerRole.find_by_identifier(pk["roleId"]),
+        },
+        "persons": {
+            "model": Person, "table_name": "Persons",
+            "pk_fields": ["personId"],
+            "exists": lambda pk: Person.exists_by_id(pk["personId"]),
+            "find": lambda pk: Person.find_by_identifier(pk["personId"]),
+        },
+        "clubs": {
+            "model": Club, "table_name": "Clubs", "pk_fields": ["clubAbbreviation"],
+            "exists": lambda pk: Club.exists_by_abbreviation(pk["clubAbbreviation"]),
+            "find": lambda pk: Club.find_by_identifier(pk["clubAbbreviation"]),
+        },
+        "change_logs": {
+            "model": ChangeLog, "table_name": "ChangeLog", "pk_fields": ["id"],
+            "exists": lambda pk: ChangeLog.exists(pk["id"]),
+            "find": lambda pk: ChangeLog.find_by_identifier(pk["id"]),
+        },
+        "title_types": {
+            "model": TitleType, "table_name": "TitleTypes", "pk_fields": ["title"],
+            "exists": lambda pk: TitleType.exists(pk["title"]),
+            "find": lambda pk: TitleType.find_by_identifier(pk["title"]),
+        },
+        "user_roles": {
+            "model": UserRole, "table_name": "UserRoles", "pk_fields": ["id", "title"],
+            "exists": lambda pk: UserRole.exists(pk["title"]),
+            "find": lambda pk: UserRole.find_by_id(pk["id"]),
+            # Find by title?
+        },
     }
 
     POST_SAVE_HOOKS = {
@@ -102,7 +241,11 @@ class CsvImporter:
     def detect_type(self, filename):
         name = (filename or "").lower()
         type_map = {"dog": "dogs", "meet_result": "meet_results", "meetresult": "meet_results",
-                    "race_result": "race_results", "raceresult": "race_results", "meet": "meets"}
+                    "race_result": "race_results", "raceresult": "race_results", "meet": "meets",
+                    "dog_owner": "dog_owners", "dogowner": "dog_owners", "dog_title": "dog_titles", "dogtitle": "dog_titles",
+                    "news": "news", "officer_role": "officer_roles", "officerrole": "officer_roles",
+                    "person": "persons", "club": "clubs", "change_log": "change_logs", "changelog": "change_logs",
+                    "title_type": "title_types", "titletype": "title_types", "user_role": "user_roles", "userrole": "user_roles"}
         for key, value in type_map.items():
             if key in name:
                 return value
