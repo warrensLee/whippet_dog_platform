@@ -3,13 +3,13 @@ import csv
 import io
 from datetime import datetime, timezone
 
-from backend.classes.club import Club
-from backend.classes.dog_owner import DogOwner
-from backend.classes.news import News
-from backend.classes.officer_role import OfficerRole
-from backend.classes.person import Person
-from backend.classes.title_type import TitleType
-from backend.classes.user_role import UserRole
+from classes.club import Club
+from classes.dog_owner import DogOwner
+from classes.news import News
+from classes.officer_role import OfficerRole
+from classes.person import Person
+from classes.title_type import TitleType
+from classes.user_role import UserRole
 from classes.dog import Dog
 from classes.meet import Meet
 from classes.meet_result import MeetResult

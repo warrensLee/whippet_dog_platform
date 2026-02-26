@@ -1,3 +1,11 @@
 cwaNumber,registeredName,callName,birthdate,status,currentGrade,akcNumber,ckcNumber,foreignNumber,foreignType,pedigreeLink,average,meetPoints,arxPoints,narxPoints,showPoints,dpcLegs,meetWins,meetAppearences,highCombinedWins,notes
-T90003,CSV FULL DOG ONE,SPARK,2018-03-10,Active,A,,,,,,9.5,999,999,999,2,1,3,4,1,Imported via CSV
-T90004,CSV FULL DOG TWO,ROCKET,2021-07-22,Active,C,,,,,,8.9,10,0,5,1,0,1,2,0,Imported via CSV
+T90005,CSV SPEED KING,BOLT,2017-05-12,Active,A,,,,,,9.8,150,20,10,5,2,25,40,6,Imported via CSV
+T90006,CSV NIGHT DASHER,LUNA,2019-11-03,Active,B,,,,,,9.3,75,8,6,3,1,12,20,2,Imported via CSV
+T90007,CSV TRACK STAR,FLASH,2020-02-18,Active,A,,,,,,9.6,120,15,12,4,2,18,30,4,Imported via CSV
+T90008,CSV SILVER STRIDE,COMET,2016-08-27,Inactive,B,,,,,,8.7,60,5,3,1,0,9,18,1,Imported via CSV
+T90009,CSV GOLDEN ROCKET,BLAZE,2018-01-14,Active,A,,,,,,9.7,200,30,15,6,3,35,50,8,Imported via CSV
+T90010,CSV RIVER RUNNER,STREAM,2021-06-09,Active,C,,,,,,8.5,20,0,2,0,0,2,5,0,Imported via CSV
+T90011,CSV DUSTY TRAIL,EMBER,2019-04-22,Active,B,,,,,,9.0,55,4,5,2,1,7,15,1,Imported via CSV
+T90012,CSV WIND CHASER,STORM,2015-12-30,Inactive,A,,,,,,9.4,180,25,20,7,4,28,45,7,Imported via CSV
+T90013,CSV FAST FURY,NOVA,2022-03-11,Active,D,,,,,,8.1,5,0,0,0,0,0,2,0,Imported via CSV
+T90014,CSV STEEL SHADOW,PHANTOM,2018-09-19,Active,B,,,,,,9.2,90,10,8,3,1,14,25,3,Imported via CSV

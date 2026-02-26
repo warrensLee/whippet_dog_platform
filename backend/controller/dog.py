@@ -575,7 +575,7 @@ def check_hc_title(cwa_number):
 # This endpoint allows searching dogs by various attributes 
 @dog_bp.get("/search")
 def search_dogs():
-    role = current_role()
+    #role = current_role()
     # if not role:
     #     return jsonify({"ok": False, "error": "Not signed in"}), 401
 
@@ -584,20 +584,24 @@ def search_dogs():
     #     return deny
 
     q = (request.args.get("q") or "").strip()
-    if not q:
-        return jsonify({"ok": False, "error": "Query param 'q' is required"}), 400
 
     try:
-        rows = Dog.search(
-            query=q,
-            only_owner_person_id=None,
-        )
+        rows = Dog.search(query=q, only_owner_person_id=None)
 
-        data = []
-        for item in rows:
-            data.append(item.to_dict() if hasattr(item, "to_dict") else item)
-
-        return jsonify({"ok": True, "data": data}), 200
+        items = []
+        for r in rows:
+            d = dict(r)
+            bd = d.get("birthdate")
+            items.append({
+                "id": d.get("cwaNumber"),
+                "name": d.get("registeredName"),
+                "regNo": d.get("akcNumber"),
+                "year": bd.year if bd else None,
+                "active": d.get("status"),
+                "ownerName": d.get("ownerName"),
+                "title": d.get("titles"), 
+            })
+        return jsonify({"ok": True, "total": len(items), "items": items}), 200
 
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
