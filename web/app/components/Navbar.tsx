@@ -12,10 +12,7 @@ const Navbar = () => {
     const pathname = usePathname()
     return (
         <nav className="fixed top-0 w-full flex items-center justify-around py-1 px-12 border-b border-gray-500 bg-black/30 backdrop-blur-md z-50">
-
-
-
-
+        
             <Link
 
                 href="/"
@@ -35,7 +32,19 @@ const Navbar = () => {
 
             <ul className="flex gap-10 text-xl font-medium text-white/90">
 
+                <li><Link
 
+                    href="/search"
+                    className={`
+                        transition-colors
+                        ${pathname === '/search'
+                            ? 'font-semibold underline underline-offset-8'
+                            : 'hover:underline hover:underline-offset-8'}
+                            `}>
+
+                    Search
+
+                </Link></li>
 
                 <li><Link
 
