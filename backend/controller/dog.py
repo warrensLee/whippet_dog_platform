@@ -591,13 +591,13 @@ def search_dogs():
         items = []
         for r in rows:
             d = dict(r)
-            bd = d.get("birthdate")
+            bd = d.get("Birthdate")
             items.append({
-                "id": d.get("cwaNumber"),
-                "name": d.get("registeredName"),
-                "regNo": d.get("akcNumber"),
+                "id": d.get("CWANumber"),
+                "name": d.get("RegisteredName"),
+                "regNo": d.get("CWANumber"),
                 "year": bd.year if bd else None,
-                "active": d.get("status"),
+                "active": d.get("Status"),
                 "ownerName": d.get("ownerName"),
                 "title": d.get("titles"), 
             })
