@@ -276,11 +276,22 @@ class Dog:
         like = f"%{q}%"
 
         sql = """
-            SELECT DISTINCT
-                d.*
-            FROM Dog d
+            SELECT
+                d.*,
+                GROUP_CONCAT(
+                    DISTINCT CONCAT(p.PersonID, ':', CONCAT_WS(' ', p.FirstName, p.LastName))
+                    ORDER BY p.LastName, p.FirstName
+                    SEPARATOR ', '
+                ) AS ownerName,
+                GROUP_CONCAT(
+                    DISTINCT dt.Title
+                    ORDER BY dt.Title
+                    SEPARATOR ', '
+                ) AS titles
+                FROM Dog d
             LEFT JOIN DogOwner do ON do.CWAID = d.CWANumber
             LEFT JOIN Person p ON p.PersonID = do.PersonID
+            LEFT JOIN DogTitles dt ON dt.CWANumber = d.CWANumber
             WHERE (
                 d.CWANumber LIKE %s
                 OR d.RegisteredName LIKE %s
@@ -288,18 +299,23 @@ class Dog:
                 OR do.PersonID LIKE %s
                 OR CONCAT(p.FirstName, ' ', p.LastName) LIKE %s
                 OR p.EmailAddress LIKE %s
+                OR dt.Title LIKE %s
             )
         """
-        params = [like, like, like, like, like, like]
+        params = [like, like, like, like, like, like, like]
 
         if only_owner_person_id:
             sql += " AND do.PersonID = %s"
             params.append(only_owner_person_id)
 
-        sql += " ORDER BY d.RegisteredName ASC, d.CWANumber ASC LIMIT 100"
+        sql += """
+            GROUP BY d.CWANumber
+            ORDER BY d.RegisteredName ASC, d.CWANumber ASC
+            LIMIT 100
+        """
 
         rows = fetch_all(sql, params)
-        return [cls.from_db_row(r) for r in rows]
+        return rows
     
     @classmethod
     def list_meets_with_results_for_dog(cls, cwa_number: str):

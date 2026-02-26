@@ -42,7 +42,7 @@ export default function SearchPage() {
         usp.set("limit", String(limit));
         usp.set("sort", sort);
 
-        const res = await fetch(`/api/search?${usp.toString()}`, { cache: "no-store" });
+        const res = await fetch(`/api/dog/search?${usp.toString()}`, { cache: "no-store" });
         if (!res.ok) {
           const txt = await res.text().catch(() => "");
           throw new Error(txt || `Request failed (${res.status})`);
