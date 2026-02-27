@@ -17,6 +17,7 @@ from classes.race_result import RaceResult
 from classes.change_log import ChangeLog
 from classes.dog_title import DogTitle
 from utils.auth_helpers import current_editor_id
+from database import fetch_one
 
 
 class CsvImporter:
@@ -285,6 +286,7 @@ class CsvImporter:
         now = datetime.now(timezone.utc)
         seen = set()
         hook = self.POST_SAVE_HOOKS.get(import_type)
+        changed_deferred = set()
 
         for idx, row in enumerate(rows, start=2):
             if not any(str(v).strip() for v in (row or {}).values() if v is not None):
@@ -342,16 +344,100 @@ class CsvImporter:
                 inserted += 1
 
             refreshed = find(pk)
-            after_snapshot = refreshed.to_dict() if refreshed and hasattr(refreshed, "to_dict") else (obj.to_dict() if hasattr(obj, "to_dict") else None)
+            after_snapshot = refreshed.to_dict() if refreshed and hasattr(refreshed, "to_dict") else (
+                obj.to_dict() if hasattr(obj, "to_dict") else None
+            )
 
-            ChangeLog.log(changed_table=table_name, record_pk=self._pk_string(pk), operation=operation,
-                         changed_by=editor_id, source="api/import POST", before_obj=before_snapshot, after_obj=after_snapshot)
+            ChangeLog.log(
+                changed_table=table_name,
+                record_pk=self._pk_string(pk),
+                operation=operation,
+                changed_by=editor_id,
+                source="api/import POST",
+                before_obj=before_snapshot,
+                after_obj=after_snapshot,
+            )
 
-            if hook:
+            changed = (operation == "INSERT") or (before_snapshot != after_snapshot)
+
+            if not changed:
+                continue
+
+            if import_type == "meet_results":
+                cwa = payload.get("cwaNumber")
+                if cwa:
+                    changed_deferred.add(cwa)
+
+            elif import_type == "race_results":
+                cwa = payload.get("cwaNumber")
+                meet = payload.get("meetNumber")
+                if cwa and meet:
+                    changed_deferred.add((cwa, meet))
+
+            elif hook:
                 hook(refreshed or obj, editor_id, now)
 
-        return {"inserted": inserted, "updated": updated, "skipped": skipped, "failed": failed, "rowErrors": row_errors}
+        affected_dogs = set()
+        for item in changed_deferred:
+            if import_type == "race_results":
+                cwa, meet = item
 
+                dog = Dog.find_by_identifier(cwa)
+                if not dog:
+                    continue
+
+                before_row = fetch_one(
+                    "SELECT COALESCE(SUM(MeetPoints),0) AS total "
+                    "FROM MeetResults WHERE CWANumber=%s",
+                    (cwa,),
+                ) or {}
+                old_total = float(before_row.get("total") or 0)
+
+                meet_result = MeetResult.find_by_identifier(meet, cwa)
+                if meet_result:
+                    before_snapshot = meet_result.to_dict() if hasattr(meet_result, "to_dict") else None
+                    meet_result.update_from_race_results()
+                    after = MeetResult.find_by_identifier(meet, cwa)
+                    after_snapshot = after.to_dict() if after and hasattr(after, "to_dict") else None
+
+                    ChangeLog.log(
+                        changed_table="MeetResults",
+                        record_pk=f"cwaNumber={cwa}|meetNumber={meet}",
+                        operation="UPDATE",
+                        changed_by=editor_id,
+                        source="api/import POST",
+                        before_obj=before_snapshot,
+                        after_obj=after_snapshot,
+                    )
+
+                after_row = fetch_one(
+                    "SELECT COALESCE(SUM(MeetPoints),0) AS total "
+                    "FROM MeetResults WHERE CWANumber=%s",
+                    (cwa,),
+                ) or {}
+                new_total = float(after_row.get("total") or 0)
+                dog.meet_points = float(dog.meet_points or 0) - old_total + new_total
+                dog.update()
+
+                DogTitle.sync_titles_for_dog(dog, editor_id, now)
+
+            else:
+                affected_dogs.add(item)
+
+        for cwa in affected_dogs:
+            dog = Dog.find_by_identifier(cwa)
+            if dog:
+                dog.update_from_meet_results()
+                DogTitle.sync_titles_for_dog(dog, editor_id, now)
+
+        return {
+            "inserted": inserted,
+            "updated": updated,
+            "skipped": skipped,
+            "failed": failed,
+            "rowErrors": row_errors,
+        }
+    
     def _pk_string(self, pk):
         return "|".join(f"{k}={pk[k]}" for k in sorted(pk.keys()))
 
@@ -379,7 +465,6 @@ def _sync_titles_from_dog(dog_obj, editor_id, now):
 
 
 def _sync_from_meet_result(meet_result_obj, editor_id, now):
-    """Update dog stats and titles when meet result is saved"""
     cwa_number = getattr(meet_result_obj, "cwa_number", None)
     if not cwa_number:
         return
