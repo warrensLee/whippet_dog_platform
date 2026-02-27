@@ -75,103 +75,151 @@ export default function SearchPage() {
   };
 
   return (
-    <main>
-      {/* HERO (no image, but same structure) */}
-      <section className="relative h-[55vh] min-h-[420px] max-h-[620px] bg-neutral-800 flex flex-col justify-center pt-20 overflow-hidden">
-      {/* </section><section className="relative min-h-screen bg-neutral-800 flex flex-col"> */}
-        {/* Centered search bar */}
-        <div className="relative z-10 flex flex-1 items-center justify-center px-6">
-          <div className="w-full max-w-2xl">
-            <h1 className="text-white text-5xl font-bold text-center mb-6">
+    <main className="pt-24 bg-[#1F4D2E]">
+      {/* HERO */}
+      <section className="relative py-16 bg-gradient-to-b from-[#1F4D2E] to-[#18452A] overflow-hidden">
+        {/* glow effect */}
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -top-36 left-1/2 h-[520px] w-[920px] -translate-x-1/2 rounded-full bg-white/10 blur-3xl" />
+          <div className="absolute -top-24 left-1/2 h-[380px] w-[680px] -translate-x-1/2 rounded-full bg-[#2E6B3F]/25 blur-3xl" />
+          <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-black/25" />
+        </div>
+
+        <div className="relative z-10 max-w-5xl mx-auto px-6 flex flex-col items-center">
+          <div className="w-full max-w-2xl text-center">
+            <h1 className="text-white text-5xl font-bold tracking-tight">
               Search Dogs
             </h1>
+            <p className="mt-3 text-white/70">
+              Search by registered name, title, or owner.
+            </p>
 
-            {/* GET form = links/URL params */}
-            <form method="GET" action="/search" className="flex gap-2">
+            {/* GET form */}
+            <form method="GET" action="/search" className="mt-7 flex gap-3">
               <input
                 name="q"
                 defaultValue={q}
-                placeholder='Search a dog name, title, or owner name to find results...'
-                className="w-full rounded-lg border border-white/20 bg-white px-4 py-3 text-black outline-none focus:ring-2 focus:ring-white/30"
+                placeholder="Search dog name, title, owner…"
+                className="w-full rounded-full border border-white/25 bg-white/95 px-6 py-3 text-[#12301D] text-base outline-none
+                           shadow-sm focus:ring-4 focus:ring-[#2E6B3F]/35 focus:border-[#2E6B3F]/60"
               />
-              <button className="rounded-lg bg-white px-5 py-3 font-semibold text-black hover:bg-white/80">
+              <button
+                className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white
+                           shadow-sm hover:bg-[#255733] hover:shadow-md transition
+                           focus:outline-none focus:ring-4 focus:ring-white/25"
+              >
                 Search
               </button>
             </form>
 
-            {/* Small status line */}
-            <div className="mt-5 text-center text-white/70 text-sm">
+            {/* Status line */}
+            <div className="mt-5 text-sm text-white/70">
               {loading ? "Searching…" : error ? `Error: ${error}` : `${total} result(s)`}
             </div>
           </div>
         </div>
 
-        {/* Curve (same as your site) */}
-        <svg viewBox="0 0 1440 100" preserveAspectRatio="none" className="absolute left-0 bottom-0 w-full h-32">
+        {/* Curve */}
+        <svg
+          viewBox="0 0 1440 100"
+          preserveAspectRatio="none"
+          className="absolute left-0 bottom-0 w-full h-28"
+        >
           <path
             d="M 0 0 L 144 19 L 288 36 L 432 51 L 576 64 L 720 75 L 864 84 L 1008 91 L 1152 96 L 1296 99 L 1440 100 L 1440 100 L 0 100 Z"
-            fill="#E5E5E5"
+            fill="#E7F0E9"
           />
         </svg>
       </section>
 
-      {/* RESULTS SECTION */}
-      <section className="bg-neutral-200 pt-14 pb-24">
+      {/* RESULTS */}
+      <section className="bg-[#E7F0E9] pt-12 pb-24">
         <div className="max-w-6xl mx-auto px-4">
-          <div className="flex items-center justify-between mb-4">
-            <div className="text-black/70 text-sm">
-              {loading ? "Loading…" : `Showing ${items.length} of ${total}`}
+          <div className="mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-bold text-[#12301D]">Results</h2>
+              <div className="mt-1 h-1 w-14 rounded-full bg-[#2E6B3F]/70" />
             </div>
 
-            <div className="flex items-center gap-3">
-              <Link
-                href={makeLink(prevPage)}
-                className={`border border-black/20 rounded text-black px-3 py-1 bg-white ${page <= 1 ? "opacity-40 pointer-events-none" : ""}`}
-              >
-                Prev
-              </Link>
-              <div className="text-sm text-black/70">
-                Page {page} / {totalPages}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <div className="text-[#12301D]/70 text-sm">
+                {loading ? "Loading…" : `Showing ${items.length} of ${total}`}
               </div>
-              <Link
-                href={makeLink(nextPage)}
-                className={`border border-black/20 rounded text-black px-3 py-1 bg-white ${page >= totalPages ? "opacity-40 pointer-events-none" : ""}`}
-              >
-                Next
-              </Link>
+
+              {/* Pagination pill */}
+              <div className="flex items-center gap-2 rounded-full border border-black/10 bg-white/80 backdrop-blur px-3 py-1 shadow-sm">
+                <Link
+                  href={makeLink(prevPage)}
+                  className={[
+                    "rounded-full px-3 py-1 text-sm font-medium text-[#12301D] transition",
+                    page <= 1 ? "opacity-40 pointer-events-none" : "hover:bg-[#2E6B3F]/10",
+                  ].join(" ")}
+                >
+                  Prev
+                </Link>
+
+                <div className="px-2 text-sm text-[#12301D]/70">
+                  Page <span className="text-[#12301D] font-semibold">{page}</span> / {totalPages}
+                </div>
+
+                <Link
+                  href={makeLink(nextPage)}
+                  className={[
+                    "rounded-full px-3 py-1 text-sm font-medium text-[#12301D] transition",
+                    page >= totalPages ? "opacity-40 pointer-events-none" : "hover:bg-[#2E6B3F]/10",
+                  ].join(" ")}
+                >
+                  Next
+                </Link>
+              </div>
             </div>
           </div>
 
           {/* Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {items.map((d) => (
-              <div key={d.id} className="bg-white/80 backdrop-blur rounded-2xl shadow-sm border border-black/10 p-5">
-                <div className="text-xl font-semibold text-black">{d.name}</div>
-                <div className="text-sm text-black/70 mt-1">
-                  Reg: {d.regNo ?? "—"} • Year: {d.year ?? "—"} • Active: {d.active ?? "—"}
+              <div
+                key={d.id}
+                className="rounded-2xl border border-black/10 bg-white/90 backdrop-blur
+                           p-5 shadow-sm transition
+                           hover:shadow-md hover:-translate-y-[2px]
+                           hover:border-[#2E6B3F]/35"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="text-xl font-semibold text-[#12301D]">{d.name}</div>
+
+                  <div className="shrink-0 rounded-full bg-[#2E6B3F]/10 px-3 py-1 text-xs font-semibold text-[#2E6B3F]">
+                    Dog
+                  </div>
                 </div>
-                <div className="text-sm text-black/70 mt-1">
-                  Owner: {d.ownerName ?? "—"} • Title: {d.title ?? "—"}
+
+                <div className="mt-3 grid grid-cols-2 gap-y-1 text-sm text-[#12301D]/70">
+                  <div><span className="font-medium text-[#12301D]/80">Reg</span>: {d.regNo ?? "—"}</div>
+                  <div><span className="font-medium text-[#12301D]/80">Year</span>: {d.year ?? "—"}</div>
+                  <div><span className="font-medium text-[#12301D]/80">Owner</span>: {d.ownerName ?? "—"}</div>
+                  <div><span className="font-medium text-[#12301D]/80">Title</span>: {d.title ?? "—"}</div>
                 </div>
+
+                <div className="mt-4 h-px w-full bg-gradient-to-r from-[#2E6B3F]/35 via-black/5 to-transparent" />
               </div>
             ))}
           </div>
 
           {!loading && !error && items.length === 0 && (
-            <div className="mt-6 rounded-xl border border-black/10 bg-white px-4 py-6 text-sm text-black/60">
+            <div className="mt-6 rounded-2xl border border-black/10 bg-white/80 px-4 py-6 text-sm text-[#12301D]/70 shadow-sm">
               No matches. Try a different name.
             </div>
           )}
         </div>
       </section>
 
-      {/* Footer (same style as your site) */}
-      <footer className="bg-neutral-300 pb-2">
-        <hr className="h-px bg-black/60 border-0 -mt-6 mb-4" />
-        <p className="text-black text-sm text-center leading-relaxed">
+      {/* Footer */}
+      <footer className="bg-[#DCE7DF] pb-2">
+        <hr className="h-px bg-black/25 border-0 -mt-6 mb-4" />
+        <p className="text-[#12301D] text-sm text-center leading-relaxed">
           <span className="block">
             Questions? Email{" "}
-            <a href="mailto:cwawhippetracing@gmail.com" className="underline hover:text-zinc-700 transition">
+            <a href="mailto:cwawhippetracing@gmail.com" className="underline hover:text-[#2E6B3F] transition">
               cwawhippetracing@gmail.com
             </a>
           </span>
