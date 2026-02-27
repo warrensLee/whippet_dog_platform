@@ -708,27 +708,14 @@ class Dog:
         
         if stats:
             self.average = self.compute_last_three_meet_average()
-            self.meet_points = float(stats['total_meet_points'] or 0)
-            self.arx_points = float(stats['total_arx'] or 0)
-            self.narx_points = float(stats['total_narx'] or 0)
-            self.show_points = int(stats['total_show_points'] or 0)
-            self.dpc_legs = int(stats['total_dpc_legs'] or 0)
-            self.meet_wins = float(stats['meet_wins'] or 0)
-            self.meet_appearences = int(stats['meet_appearances'] or 0)
-            
-            show_wins = fetch_one("""
-                SELECT COUNT(*) as show_wins
-                FROM MeetResults
-                WHERE CWANumber = %s AND ShowPlacement = 1
-            """, (self.cwa_number,))
-            
-            if show_wins:
-                self.high_combined_wins = int(self.meet_wins) + int(show_wins['show_wins'] or 0)
-            
-            self.current_grade = self.check_grade()
-        
-        self.update()
-
+            self.meet_points = float(self.meet_points or 0) + float(stats['total_meet_points'] or 0)
+            self.arx_points  = float(self.arx_points  or 0) + float(stats['total_arx'] or 0)
+            self.narx_points = float(self.narx_points or 0) + float(stats['total_narx'] or 0)
+            self.show_points = int(self.show_points  or 0) + int(stats['total_show_points'] or 0)
+            self.dpc_legs    = int(self.dpc_legs     or 0) + int(stats['total_dpc_legs'] or 0)
+            self.meet_appearences = int(self.meet_appearences or 0) + int(stats['meet_appearances'] or 0)
+            self.meet_wins = float(self.meet_wins or 0) + float(stats['meet_wins'] or 0)
+            self.update()
 
     
     def to_session_dict(self):
@@ -740,7 +727,7 @@ class Dog:
             "CurrentGrade": self.current_grade
         }
 
-    def to_dict(self, include_sensitive=False):
+    def to_dict(self):
         """Convert to dictionary for JSON responses."""
         data = {
             "cwaNumber": self.cwa_number,
