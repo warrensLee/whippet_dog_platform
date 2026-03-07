@@ -392,18 +392,18 @@ VALUES
 ),
 (
   'PUBLIC',
-  1,  -- Dog (self)
-  1,  -- Person (self)
-  1,  -- DogOwner (self)
+  0,  -- Dog 
+  0,  -- Person 
+  0,  -- DogOwner 
   0,  -- OfficerRole
   0,  -- UserRole
-  1,  -- Club (self/view-style access)
-  1,  -- Meet
-  1,  -- MeetResults
-  1,  -- RaceResults
-  1,  -- DogTitles
-  1,  -- TitleType
-  1,  -- News
+  0,  -- Club 
+  0,  -- Meet
+  0,  -- MeetResults
+  0,  -- RaceResults
+  0,  -- DogTitles
+  0,  -- TitleType
+  0,  -- News
   0,  -- Database
   NULL,
   NULL
