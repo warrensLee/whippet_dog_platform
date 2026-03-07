@@ -536,15 +536,6 @@ export default function DogPage() {
           <div className="absolute top-0 left-1/2 h-[250px] w-[500px] -translate-x-1/2 rounded-full bg-[#2E6B3F]/20 blur-3xl" />
         </div>
 
-        <div className="relative z-10 max-w-4xl mx-auto px-6 mb-8">
-          <Link href="/search" className="inline-flex items-center gap-2 text-white/60 hover:text-white text-sm font-medium transition-colors">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to Search
-          </Link>
-        </div>
-
         <div
           className="relative z-10 max-w-4xl mx-auto px-6 pb-16 text-center"
           style={{ opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(12px)", transition: "opacity 0.5s ease, transform 0.5s ease" }}
