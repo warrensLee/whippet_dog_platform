@@ -5,8 +5,8 @@ from datetime import datetime, timezone
 
 from classes.club import Club
 from classes.dog_owner import DogOwner
-from classes.news import News
-from classes.officer_role import OfficerRole
+# from classes.news import News
+# from classes.officer_role import OfficerRole
 from classes.person import Person
 from classes.title_type import TitleType
 from classes.user_role import UserRole
@@ -78,22 +78,22 @@ class CsvImporter:
             "namePrefix": ("namePrefix", "NamePrefix", "NAME PREFIX", "Name Prefix"),
             "nameSuffix": ("nameSuffix", "NameSuffix", "NAME SUFFIX", "Name Suffix"),
         },
-        "news": {
-            "id": ("id", "ID"),
-            "title": ("title", "Title"),
-            "content": ("content", "Content", "CONTENT"),
-            "createdAt": ("createdAt", "CreatedAt", "CREATED AT", "Created At"),
-            "updatedAt": ("updatedAt", "UpdatedAt", "UPDATED AT", "Updated At"),
-            "authorId": ("authorId", "AuthorId", "AUTHOR ID", "Author", "AUTHOR"),
-            "authorName": ("authorName", "AuthorName", "AUTHOR NAME", "Author Name"),
-        },
-        "officer_roles": {
-            "roleId": ("Role ID", "ROLE ID", "RoleId", "roleId"),
-            "roleName": ("Role Name", "ROLE NAME", "RoleName", "roleName"),
-            "personId": ("Person ID", "PERSON ID", "PersonId", "personId"),
-            "displayOrder": ("display_order", "Display Order", "DISPLAY ORDER", "DisplayOrder", "displayOrder"),
-            "active": ("active", "Active", "ACTIVE"),
-        },
+        # "news": {
+        #     "id": ("id", "ID"),
+        #     "title": ("title", "Title"),
+        #     "content": ("content", "Content", "CONTENT"),
+        #     "createdAt": ("createdAt", "CreatedAt", "CREATED AT", "Created At"),
+        #     "updatedAt": ("updatedAt", "UpdatedAt", "UPDATED AT", "Updated At"),
+        #     "authorId": ("authorId", "AuthorId", "AUTHOR ID", "Author", "AUTHOR"),
+        #     "authorName": ("authorName", "AuthorName", "AUTHOR NAME", "Author Name"),
+        # },
+        # "officer_roles": {
+        #     "roleId": ("Role ID", "ROLE ID", "RoleId", "roleId"),
+        #     "roleName": ("Role Name", "ROLE NAME", "RoleName", "roleName"),
+        #     "personId": ("Person ID", "PERSON ID", "PersonId", "personId"),
+        #     "displayOrder": ("display_order", "Display Order", "DISPLAY ORDER", "DisplayOrder", "displayOrder"),
+        #     "active": ("active", "Active", "ACTIVE"),
+        # },
         "persons": {
             "personId": ("Person ID", "PERSON ID", "PersonId", "personId"),
             "firstName": ("First Name", "FIRST NAME", "FirstName", "firstName"),
@@ -149,8 +149,8 @@ class CsvImporter:
         "race_results": [],
         "dog_owners": [],
         "dog_titles": [],
-        "news": [],
-        "officer_roles": [],
+        # "news": [],
+        # "officer_roles": [],
         "persons": [],
         "clubs": [],
         "change_logs": [],
@@ -192,18 +192,18 @@ class CsvImporter:
             "exists": lambda pk: DogTitle.exists(pk["cwaNumber"], pk["title"]),
             "find": lambda pk: DogTitle.find_by_identifier(pk["cwaNumber"], pk["title"]),
         },
-        "news": {
-            "model": News, "table_name": "News",
-            "pk_fields": ["id"],
-            # No exists method
-            "find": lambda pk: News.find_by_identifier(pk["id"]),
-        },
-        "officer_roles": {
-            "model": OfficerRole, "table_name": "OfficerRoles",
-            "pk_fields": ["roleId"],
-            "exists": lambda pk: OfficerRole.exists_by_id(pk["roleId"]),
-            "find": lambda pk: OfficerRole.find_by_identifier(pk["roleId"]),
-        },
+        # "news": {
+        #     "model": News, "table_name": "News",
+        #     "pk_fields": ["id"],
+        #     # No exists method
+        #     "find": lambda pk: News.find_by_identifier(pk["id"]),
+        # },
+        # "officer_roles": {
+        #     "model": OfficerRole, "table_name": "OfficerRoles",
+        #     "pk_fields": ["roleId"],
+        #     "exists": lambda pk: OfficerRole.exists_by_id(pk["roleId"]),
+        #     "find": lambda pk: OfficerRole.find_by_identifier(pk["roleId"]),
+        # },
         "persons": {
             "model": Person, "table_name": "Persons",
             "pk_fields": ["personId"],
