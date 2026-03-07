@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -56,6 +57,14 @@ interface RaceResult {
   [key: string]: unknown;
 }
 
+interface DogOwner {
+  PersonID?: string | number;
+  FirstName?: string;
+  LastName?: string;
+  EmailAddress?: string;
+}
+
+// ─── Title tier definitions ───────────────────────────────────────────────────
 
 type TierColor = "gray" | "yellow" | "blue" | "purple" | "gold" | "teal" | "green";
 
@@ -71,7 +80,7 @@ interface TitleFamily {
   tiers: TitleTier[];
   getValue: (d: DogDetail) => number;
   unit: string;
-  extraCheck?: (d: DogDetail) => string | null;
+  extraCheck?: (d: DogDetail) => string | null; // null = locked, string = reason
 }
 
 const TIER_STYLES: Record<TierColor, { bg: string; text: string; border: string; badge: string }> = {
@@ -487,6 +496,7 @@ export default function DogPage() {
 
   const [dog, setDog] = React.useState<DogDetail | null>(null);
   const [meets, setMeets] = React.useState<MeetEntry[]>([]);
+  const [owners, setOwners] = React.useState<DogOwner[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState("");
   const [mounted, setMounted] = React.useState(false);
@@ -506,6 +516,10 @@ export default function DogPage() {
     fetchJson<{ ok: boolean; data: MeetEntry[] }>(`/api/dog/meets/${enc}`)
       .then((r) => setMeets(Array.isArray(r.data) ? r.data : []))
       .catch(() => {});
+
+    fetchJson<{ ok: boolean; data: DogOwner[] }>(`/api/dog_owner/owners/${enc}`)
+      .then((r) => setOwners(Array.isArray(r.data) ? r.data : []))
+      .catch(() => {});
   }, [cwaNumber]);
 
   const ageMonths = dog ? calcAgeMonths(dog.birthdate) : null;
@@ -516,10 +530,19 @@ export default function DogPage() {
     <main className="min-h-screen bg-[#1F4D2E]">
 
       {/* ── HERO ──────────────────────────────────────────────────────────── */}
-      <section className="relative pt-35 pb-0 bg-gradient-to-b from-[#1A4228] to-[#18452A] overflow-hidden">
+      <section className="relative pt-28 pb-0 bg-gradient-to-b from-[#1A4228] to-[#18452A] overflow-hidden">
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute -top-24 left-1/2 h-[400px] w-[700px] -translate-x-1/2 rounded-full bg-white/8 blur-3xl" />
           <div className="absolute top-0 left-1/2 h-[250px] w-[500px] -translate-x-1/2 rounded-full bg-[#2E6B3F]/20 blur-3xl" />
+        </div>
+
+        <div className="relative z-10 max-w-4xl mx-auto px-6 mb-8">
+          <Link href="/search" className="inline-flex items-center gap-2 text-white/60 hover:text-white text-sm font-medium transition-colors">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Search
+          </Link>
         </div>
 
         <div
@@ -605,6 +628,38 @@ export default function DogPage() {
               ) : <p className="text-[#12301D]/40 text-sm">Loading…</p>}
             </Card>
           </div>
+
+          {/* Owners */}
+          <Card title={`Owner${owners.length !== 1 ? "s" : ""}${owners.length > 0 ? ` (${owners.length})` : ""}`}>
+            {owners.length === 0 ? (
+              <p className="text-[#12301D]/40 text-sm py-2 text-center">No owners on record.</p>
+            ) : (
+              <div className="divide-y divide-black/5">
+                {owners.map((o, i) => {
+                  const fullName = [o.FirstName, o.LastName].filter(Boolean).join(" ") || "Unknown";
+                  return (
+                    <div key={o.PersonID ?? i} className="flex items-center gap-4 py-3 first:pt-0 last:pb-0">
+                      {/* Avatar initial */}
+                      <div className="w-9 h-9 rounded-full bg-[#2E6B3F] flex items-center justify-center shrink-0">
+                        <span className="text-white text-sm font-bold">
+                          {(o.FirstName?.[0] ?? "?").toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-[#12301D] truncate">{fullName}</p>
+                        {o.EmailAddress && (
+                          <a href={`mailto:${o.EmailAddress}`}
+                            className="text-xs text-[#2E6B3F] hover:underline truncate block">
+                            {o.EmailAddress}
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Card>
 
           {/* Title progression ladders */}
           {dog && (
