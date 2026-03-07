@@ -530,7 +530,7 @@ export default function DogPage() {
     <main className="min-h-screen bg-[#1F4D2E]">
 
       {/* ── HERO ──────────────────────────────────────────────────────────── */}
-      <section className="relative pt-28 pb-0 bg-gradient-to-b from-[#1A4228] to-[#18452A] overflow-hidden">
+      <section className="relative pt-35 pb-0 bg-gradient-to-b from-[#1A4228] to-[#18452A] overflow-hidden">
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute -top-24 left-1/2 h-[400px] w-[700px] -translate-x-1/2 rounded-full bg-white/8 blur-3xl" />
           <div className="absolute top-0 left-1/2 h-[250px] w-[500px] -translate-x-1/2 rounded-full bg-[#2E6B3F]/20 blur-3xl" />
