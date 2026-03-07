@@ -186,7 +186,12 @@ export default function SearchPage() {
                            hover:border-[#2E6B3F]/35"
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div className="text-xl font-semibold text-[#12301D]">{d.name}</div>
+                  <Link
+                    href={`/dog/${d.id}`}
+                    className="text-xl font-semibold text-[#12301D] hover:text-[#2E6B3F] underline-offset-4 hover:underline transition"
+                  >
+                    {d.name}
+                  </Link>
 
                   <div className="shrink-0 rounded-full bg-[#2E6B3F]/10 px-3 py-1 text-xs font-semibold text-[#2E6B3F]">
                     Dog

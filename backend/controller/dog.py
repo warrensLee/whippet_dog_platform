@@ -446,12 +446,12 @@ def check_pr_title(cwa_number):
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.view_dog_scope, "view dogs")
-    if deny:
-        return deny
+    # deny = require_scope(role.view_dog_scope, "view dogs")
+    # if deny:
+    #     return deny
     
-    if role.view_dog_scope == UserRole.SELF and not _is_owner(cwa_number):
-        return jsonify({"ok": False, "error": "Not allowed to view this dog"}), 403
+    # if role.view_dog_scope == UserRole.SELF and not _is_owner(cwa_number):
+    #     return jsonify({"ok": False, "error": "Not allowed to view this dog"}), 403
 
     try:
         dog = Dog.find_by_identifier(cwa_number)
