@@ -45,7 +45,6 @@ CREATE TABLE `UserRole` (
     `EditDogScope` TINYINT NOT NULL DEFAULT 0,
     `EditPersonScope` TINYINT NOT NULL DEFAULT 0,
     `EditDogOwnerScope` TINYINT NOT NULL DEFAULT 0,
-    `EditOfficerRoleScope` TINYINT NOT NULL DEFAULT 0,
     `EditUserRoleScope` TINYINT NOT NULL DEFAULT 0,
     `EditClubScope` TINYINT NOT NULL DEFAULT 0,
     `EditMeetScope` TINYINT NOT NULL DEFAULT 0,
@@ -53,21 +52,20 @@ CREATE TABLE `UserRole` (
     `EditRaceResultsScope` TINYINT NOT NULL DEFAULT 0,
     `EditDogTitlesScope` TINYINT NOT NULL DEFAULT 0,
     `EditTitleTypeScope` TINYINT NOT NULL DEFAULT 0,
-    `EditNewsScope` TINYINT NOT NULL DEFAULT 0,
     `EditDatabaseScope` TINYINT NOT NULL DEFAULT 0,
     `LastEditedBy` VARCHAR(20),
     `LastEditedAt` TIMESTAMP
 );
 
-CREATE TABLE `NewsletterSubscription` (
-    `ID` INT PRIMARY KEY AUTO_INCREMENT,
-    `EmailAddress` VARCHAR(50) NOT NULL UNIQUE,
-    `IsActive` TINYINT(1) NOT NULL DEFAULT 1,
-    `SubscribedAt` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `UnsubscribedAt` TIMESTAMP NULL,
-    `LastEditedBy` VARCHAR(20),
-    `LastEditedAt` TIMESTAMP
-);
+-- CREATE TABLE `NewsletterSubscription` (
+--     `ID` INT PRIMARY KEY AUTO_INCREMENT,
+--     `EmailAddress` VARCHAR(50) NOT NULL UNIQUE,
+--     `IsActive` TINYINT(1) NOT NULL DEFAULT 1,
+--     `SubscribedAt` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--     `UnsubscribedAt` TIMESTAMP NULL,
+--     `LastEditedBy` VARCHAR(20),
+--     `LastEditedAt` TIMESTAMP
+-- );
 
 CREATE TABLE `Person` (
     `ID` INT PRIMARY KEY AUTO_INCREMENT,
@@ -90,16 +88,16 @@ CREATE TABLE `Person` (
     `LastEditedAt` TIMESTAMP
 );
 
-CREATE TABLE `News` (
-    `ID` INT PRIMARY KEY AUTO_INCREMENT,
-    `Title` VARCHAR(100) NOT NULL,
-    `Content` TEXT NOT NULL,
-    `CreatedAt` TIMESTAMP NOT NULL,
-    `UpdatedAt` TIMESTAMP,
-    `AuthorID` VARCHAR(20),
-    `LastEditedBy` VARCHAR(20),
-    `LastEditedAt` TIMESTAMP
-);
+-- CREATE TABLE `News` (
+--     `ID` INT PRIMARY KEY AUTO_INCREMENT,
+--     `Title` VARCHAR(100) NOT NULL,
+--     `Content` TEXT NOT NULL,
+--     `CreatedAt` TIMESTAMP NOT NULL,
+--     `UpdatedAt` TIMESTAMP,
+--     `AuthorID` VARCHAR(20),
+--     `LastEditedBy` VARCHAR(20),
+--     `LastEditedAt` TIMESTAMP
+-- );
 
 CREATE TABLE `DogTitles` (
     `ID` INT PRIMARY KEY AUTO_INCREMENT,
@@ -114,15 +112,15 @@ CREATE TABLE `DogTitles` (
     UNIQUE (`CWANumber`, `Title`)
 );
 
-CREATE TABLE `OfficerRole` (
-    `ID` INT PRIMARY KEY AUTO_INCREMENT,
-    `RoleName` VARCHAR(50) UNIQUE NOT NULL,
-    `PersonID` VARCHAR(20) NOT NULL,
-    `DisplayOrder` INT NOT NULL,
-    `Active` BOOLEAN DEFAULT TRUE,
-    `LastEditedBy` VARCHAR(20),
-    `LastEditedAt` TIMESTAMP
-);
+-- CREATE TABLE `OfficerRole` (
+--     `ID` INT PRIMARY KEY AUTO_INCREMENT,
+--     `RoleName` VARCHAR(50) UNIQUE NOT NULL,
+--     `PersonID` VARCHAR(20) NOT NULL,
+--     `DisplayOrder` INT NOT NULL,
+--     `Active` BOOLEAN DEFAULT TRUE,
+--     `LastEditedBy` VARCHAR(20),
+--     `LastEditedAt` TIMESTAMP
+-- );
 
 CREATE TABLE `DogOwner` (
     `ID` INT PRIMARY KEY AUTO_INCREMENT,
@@ -270,9 +268,9 @@ ALTER TABLE `MeetResults`
     ADD CONSTRAINT `fk_MeetResults_Dog`
         FOREIGN KEY (`CWANumber`) REFERENCES `Dog` (`CWANumber`);
 
-ALTER TABLE `News`
-    ADD CONSTRAINT `fk_News_Author`
-        FOREIGN KEY (`AuthorID`) REFERENCES `Person` (`PersonID`);
+-- ALTER TABLE `News`
+--     ADD CONSTRAINT `fk_News_Author`
+--         FOREIGN KEY (`AuthorID`) REFERENCES `Person` (`PersonID`);
 
 ALTER TABLE `Person`
     ADD CONSTRAINT `fk_Person_SystemRole`
@@ -282,9 +280,9 @@ ALTER TABLE `ChangeLog`
     ADD CONSTRAINT `fk_ChangeLog_ChangedBy`
         FOREIGN KEY (`ChangedBy`) REFERENCES `Person` (`PersonID`);
 
-ALTER TABLE `OfficerRole`
-    ADD CONSTRAINT `fk_OfficerRole_Person`
-        FOREIGN KEY (`PersonID`) REFERENCES `Person` (`PersonID`);
+-- ALTER TABLE `OfficerRole`
+--     ADD CONSTRAINT `fk_OfficerRole_Person`
+--         FOREIGN KEY (`PersonID`) REFERENCES `Person` (`PersonID`);
 
 ALTER TABLE `Dog`
     ADD CONSTRAINT `fk_Dog_LastEditedBy`
@@ -301,30 +299,30 @@ ALTER TABLE `UserRole`
         FOREIGN KEY (`LastEditedBy`) REFERENCES `Person` (`PersonID`)
         ON DELETE SET NULL ON UPDATE CASCADE;
 
-ALTER TABLE `NewsletterSubscription`
-    ADD CONSTRAINT `fk_NewsletterSubscription_LastEditedBy`
-        FOREIGN KEY (`LastEditedBy`) REFERENCES `Person` (`PersonID`)
-        ON DELETE SET NULL ON UPDATE CASCADE;
+-- ALTER TABLE `NewsletterSubscription`
+--     ADD CONSTRAINT `fk_NewsletterSubscription_LastEditedBy`
+--         FOREIGN KEY (`LastEditedBy`) REFERENCES `Person` (`PersonID`)
+--         ON DELETE SET NULL ON UPDATE CASCADE;
 
 ALTER TABLE `Person`
     ADD CONSTRAINT `fk_Person_LastEditedBy`
         FOREIGN KEY (`LastEditedBy`) REFERENCES `Person` (`PersonID`)
         ON DELETE SET NULL ON UPDATE CASCADE;
 
-ALTER TABLE `News`
-    ADD CONSTRAINT `fk_News_LastEditedBy`
-        FOREIGN KEY (`LastEditedBy`) REFERENCES `Person` (`PersonID`)
-        ON DELETE SET NULL ON UPDATE CASCADE;
+-- ALTER TABLE `News`
+--     ADD CONSTRAINT `fk_News_LastEditedBy`
+--         FOREIGN KEY (`LastEditedBy`) REFERENCES `Person` (`PersonID`)
+--         ON DELETE SET NULL ON UPDATE CASCADE;
 
 ALTER TABLE `DogTitles`
     ADD CONSTRAINT `fk_DogTitles_LastEditedBy`
         FOREIGN KEY (`LastEditedBy`) REFERENCES `Person` (`PersonID`)
         ON DELETE SET NULL ON UPDATE CASCADE;
 
-ALTER TABLE `OfficerRole`
-    ADD CONSTRAINT `fk_OfficerRole_LastEditedBy`
-        FOREIGN KEY (`LastEditedBy`) REFERENCES `Person` (`PersonID`)
-        ON DELETE SET NULL ON UPDATE CASCADE;
+-- ALTER TABLE `OfficerRole`
+--     ADD CONSTRAINT `fk_OfficerRole_LastEditedBy`
+--         FOREIGN KEY (`LastEditedBy`) REFERENCES `Person` (`PersonID`)
+--         ON DELETE SET NULL ON UPDATE CASCADE;
 
 ALTER TABLE `DogOwner`
     ADD CONSTRAINT `fk_DogOwner_LastEditedBy`
@@ -358,7 +356,6 @@ INSERT IGNORE INTO UserRole
   EditDogScope,
   EditPersonScope,
   EditDogOwnerScope,
-  EditOfficerRoleScope,
   EditUserRoleScope,
   EditClubScope,
   EditMeetScope,
@@ -366,7 +363,6 @@ INSERT IGNORE INTO UserRole
   EditRaceResultsScope,
   EditDogTitlesScope,
   EditTitleTypeScope,
-  EditNewsScope,
   EditDatabaseScope,
   LastEditedBy,
   LastEditedAt
@@ -377,7 +373,6 @@ VALUES
   2,  -- Dog
   2,  -- Person
   2,  -- DogOwner
-  2,  -- OfficerRole
   2,  -- UserRole
   2,  -- Club
   2,  -- Meet
@@ -385,7 +380,6 @@ VALUES
   2,  -- RaceResults
   2,  -- DogTitles
   2,  -- TitleType
-  2,  -- News
   2,  -- Database
   NULL,
   NULL
@@ -395,7 +389,6 @@ VALUES
   0,  -- Dog 
   0,  -- Person 
   0,  -- DogOwner 
-  0,  -- OfficerRole
   0,  -- UserRole
   0,  -- Club 
   0,  -- Meet
@@ -403,7 +396,6 @@ VALUES
   0,  -- RaceResults
   0,  -- DogTitles
   0,  -- TitleType
-  0,  -- News
   0,  -- Database
   NULL,
   NULL
