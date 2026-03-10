@@ -48,6 +48,6 @@ export const emptyDogFormValues: DogFormValues = {
   registeredName: "",
   birthdate: "",
   pedigreeLink: "",
-  status: "ACTIVE",
+  status: "Active",
   notes: "",
 };
