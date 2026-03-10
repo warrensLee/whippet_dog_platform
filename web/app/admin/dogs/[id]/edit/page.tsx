@@ -26,6 +26,15 @@ type RawDogGetResponse = {
     pedigreeLink?: string | null;
     status?: string | null;
     notes?: string | null;
+
+    meetPoints?: string | null;
+    arxPoints?: string | null;
+    narxPoints?: string | null;
+    showPoints?: string | null;
+    dpcLegs?: string | null;
+    meetWins?: string | null;
+    meetAppearences?: string | null;
+    highCombinedWins?: string | null;
   };
   error?: string;
 };
@@ -58,13 +67,13 @@ export default function EditDogPage() {
         const json = await res.json().catch(() => null);
 
         if (!res.ok || !json?.signedIn || !json?.canManageDogs) {
-          router.replace("/login");
+          router.replace("/admin/login");
           return;
         }
 
         if (!cancelled) setAuthorized(true);
       } catch {
-        router.replace("/login");
+        router.replace("/admin/login");
       } finally {
         if (!cancelled) setAuthLoading(false);
       }
@@ -113,6 +122,15 @@ export default function EditDogPage() {
           pedigreeLink: normalizeText(json.data.pedigreeLink),
           status: normalizeText(json.data.status) || "Active",
           notes: normalizeText(json.data.notes),
+
+          meetPoints: normalizeText(json.data.meetPoints),
+          arxPoints: normalizeText(json.data.arxPoints),
+          narxPoints: normalizeText(json.data.narxPoints),
+          showPoints: normalizeText(json.data.showPoints),
+          dpcLegs: normalizeText(json.data.dpcLegs),
+          meetWins: normalizeText(json.data.meetWins),
+          meetAppearences: normalizeText(json.data.meetAppearences),
+          highCombinedWins: normalizeText(json.data.highCombinedWins),
         });
       } catch (e) {
         if (!cancelled) {
@@ -152,6 +170,15 @@ export default function EditDogPage() {
         pedigreeLink: form.pedigreeLink.trim(),
         status: form.status.trim(),
         notes: form.notes.trim(),
+
+        meetPoints: form.meetPoints.trim(),
+        arxPoints: form.arxPoints.trim(),
+        narxPoints: form.narxPoints.trim(),
+        showPoints: form.showPoints.trim(),
+        dpcLegs: form.dpcLegs.trim(),
+        meetWins: form.meetWins.trim(),
+        meetAppearences: form.meetAppearences.trim(),
+        highCombinedWins: form.highCombinedWins.trim(),        
       };
 
       const res = await fetch("/api/dog/edit", {
