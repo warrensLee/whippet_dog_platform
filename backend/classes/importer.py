@@ -441,7 +441,7 @@ class CsvImporter:
     def _pk_string(self, pk):
         return "|".join(f"{k}={pk[k]}" for k in sorted(pk.keys()))
 
-    def run(self, file_storage, *, import_type=None, mode="upsert"):
+    def run(self, file_storage, *, import_type=None, mode="udate"):
         filename = getattr(file_storage, "filename", "") or "upload.csv"
         if not import_type:
             import_type = self.detect_type(filename)

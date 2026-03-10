@@ -44,7 +44,7 @@ export default function ImportCsvPage() {
   const [file, setFile] = useState<File | null>(null);
 
   const [type, setType] = useState<string>("dogs");
-  const [mode, setMode] = useState<"insert" | "upsert">("insert");
+  const [mode, setMode] = useState<"insert" | "update">("insert");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -144,10 +144,10 @@ export default function ImportCsvPage() {
                 labelId="mode-label"
                 label="Mode"
                 value={mode}
-                onChange={(e) => setMode(e.target.value as "insert" | "upsert")}
+                onChange={(e) => setMode(e.target.value as "insert" | "update")}
               >
                 <MenuItem value="insert">insert (skip existing)</MenuItem>
-                <MenuItem value="upsert">upsert (update existing)</MenuItem>
+                <MenuItem value="update">update (existing only)</MenuItem>
               </Select>
             </FormControl>
           </Box>
