@@ -5,43 +5,49 @@
 
                             
 
-export type DogSearchRequest =
-{ 
-  q: string;
-  page?: number;      // will default to 1 
-  limit?: number;     // will default to 20
-  sort?: "relevance" | "name_asc" | "name_desc" | "newest";
-  year?: number;
-  active?: "Y" | "N";
+export type DogFormValues = {
+  cwaNumber: string;
+  akcNumber: string;
+  ckcNumber: string;
+  currentGrade: string;
+  foreignNumber: string;
+  foreignType: string;
+  callName: string;
+  registeredName: string;
+  birthdate: string;
+  pedigreeLink: string;
+  status: string;
+  notes: string;
 };
 
-
-
-export type DogSearchResult = 
-{
+export type DogListItem = {
   id: string;
-  name: string;
-  regNo?: string;
-  year?: number;
-  ownerName?: string;
-  title?: string;
-  active?: "Y" | "N";
+  cwaNumber: string;
+  registeredName: string;
+  callName: string;
+  birthYear: string;
+  status: string;
+  ownerName: string;
+  title: string;
 };
 
-
-
-export type DogSearchResponse = 
-{
-  params: 
-  {
-    q: string;
-    page: number;      // will default to 1 
-    limit: number;     // will default to 20
-    sort: "relevance" | "name_asc" | "name_desc" | "newest";
-    year?: number;
-    active?: "Y" | "N";
-  };
-
+export type DogSearchResponse = {
+  ok: boolean;
   total: number;
-  items: DogSearchResult[];
+  items: DogListItem[];
+};
+
+export const emptyDogFormValues: DogFormValues = {
+  cwaNumber: "",
+  akcNumber: "",
+  ckcNumber: "",
+  currentGrade: "",
+  foreignNumber: "",
+  foreignType: "",
+  callName: "",
+  registeredName: "",
+  birthdate: "",
+  pedigreeLink: "",
+  status: "ACTIVE",
+  notes: "",
 };
