@@ -39,13 +39,13 @@ export default function AdminDogsPage() {
         const json = await res.json().catch(() => null);
 
         if (!res.ok || !json?.signedIn || !json?.canManageDogs) {
-          router.replace("/login");
+          router.replace("/admin/login");
           return;
         }
 
         if (!cancelled) setAuthorized(true);
       } catch {
-        router.replace("/login");
+        router.replace("/admin/login");
       } finally {
         if (!cancelled) setAuthLoading(false);
       }

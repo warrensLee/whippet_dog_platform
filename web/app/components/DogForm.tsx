@@ -35,6 +35,7 @@ export default function DogForm({
           <input
             value={values.cwaNumber}
             onChange={(e) => onChange("cwaNumber", e.target.value)}
+            placeholder="1234, 3124, 8754, etc."
             className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
           />
         </div>
@@ -53,6 +54,7 @@ export default function DogForm({
           <input
             value={values.callName}
             onChange={(e) => onChange("callName", e.target.value)}
+            placeholder="One name like Bob, Sally, etc."
             className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
           />
         </div>
@@ -90,6 +92,7 @@ export default function DogForm({
           <input
             value={values.currentGrade}
             onChange={(e) => onChange("currentGrade", e.target.value)}
+            placeholder="A, B, C, D, or FTE (failed to enter)"
             className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
           />
         </div>
@@ -98,6 +101,78 @@ export default function DogForm({
           <label className="mb-2 block text-sm font-medium text-[#12301D]">Foreign Number</label>
           <input
             value={values.foreignNumber}
+            onChange={(e) => onChange("foreignNumber", e.target.value)}
+            className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
+          />
+        </div>
+
+        <div>
+          <label className="mb-2 block text-sm font-medium text-[#12301D]">Meet Points</label>
+          <input
+            value={values.meetPoints}
+            onChange={(e) => onChange("foreignNumber", e.target.value)}
+            className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
+          />
+        </div>
+
+        <div>
+          <label className="mb-2 block text-sm font-medium text-[#12301D]">Arx Points</label>
+          <input
+            value={values.arxPoints}
+            onChange={(e) => onChange("foreignNumber", e.target.value)}
+            className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
+          />
+        </div>
+
+        <div>
+          <label className="mb-2 block text-sm font-medium text-[#12301D]">Narx Points</label>
+          <input
+            value={values.narxPoints}
+            onChange={(e) => onChange("foreignNumber", e.target.value)}
+            className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
+          />
+        </div>
+
+        <div>
+          <label className="mb-2 block text-sm font-medium text-[#12301D]">Show Points</label>
+          <input
+            value={values.showPoints}
+            onChange={(e) => onChange("foreignNumber", e.target.value)}
+            className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
+          />
+        </div>
+
+        <div>
+          <label className="mb-2 block text-sm font-medium text-[#12301D]">DPC Legs</label>
+          <input
+            value={values.dpcLegs}
+            onChange={(e) => onChange("foreignNumber", e.target.value)}
+            className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
+          />
+        </div>
+
+        <div>
+          <label className="mb-2 block text-sm font-medium text-[#12301D]">Meet Wins</label>
+          <input
+            value={values.meetWins}
+            onChange={(e) => onChange("foreignNumber", e.target.value)}
+            className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
+          />
+        </div>
+
+        <div>
+          <label className="mb-2 block text-sm font-medium text-[#12301D]">Meet Appearences</label>
+          <input
+            value={values.meetAppearences}
+            onChange={(e) => onChange("foreignNumber", e.target.value)}
+            className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
+          />
+        </div>
+
+        <div>
+          <label className="mb-2 block text-sm font-medium text-[#12301D]">High Combined Wins</label>
+          <input
+            value={values.highCombinedWins}
             onChange={(e) => onChange("foreignNumber", e.target.value)}
             className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
           />
@@ -136,6 +211,7 @@ export default function DogForm({
         <textarea
           value={values.notes}
           onChange={(e) => onChange("notes", e.target.value)}
+          placeholder="Anything relevant to this dog..."
           rows={5}
           className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
         />

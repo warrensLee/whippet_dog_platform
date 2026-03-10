@@ -18,6 +18,15 @@ export type DogFormValues = {
   pedigreeLink: string;
   status: string;
   notes: string;
+
+  meetPoints: string;
+  arxPoints: string;
+  narxPoints: string;
+  showPoints: string;
+  dpcLegs: string;
+  meetWins: string;
+  meetAppearences: string;
+  highCombinedWins: string;
 };
 
 export type DogListItem = {
@@ -50,4 +59,13 @@ export const emptyDogFormValues: DogFormValues = {
   pedigreeLink: "",
   status: "Active",
   notes: "",
+  
+  meetPoints: "0",
+  arxPoints: "0",
+  narxPoints: "0",
+  showPoints: "0",
+  dpcLegs: "0",
+  meetWins: "0",
+  meetAppearences: "0",
+  highCombinedWins: "0",
 };
