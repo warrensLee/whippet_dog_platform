@@ -589,7 +589,7 @@ export default function DogPage() {
               {loading ? <p className="text-[#12301D]/40 text-sm">Loading…</p> : dog ? (
                 <>
                   <FieldRow label="CWA #"       value={dog.cwaNumber} />
-                  <FieldRow label="Birthdate"    value={formatDate(dog.birthdate)} />
+                  <FieldRow label="birthdate"    value={formatDate(dog.birthdate)} />
                   <FieldRow label="Age"          value={ageLabelStr(ageMonths)} />
                   <FieldRow label="AKC #"        value={dog.akcNumber} />
                   <FieldRow label="CKC #"        value={dog.ckcNumber} />

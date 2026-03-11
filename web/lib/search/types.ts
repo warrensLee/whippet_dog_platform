@@ -1,11 +1,31 @@
 // @/lib/search/type.ts
 // What will be a result from a search? What does a user search for?
 // This will be where we define parameters that will be used in searching and filtering!
-// For filtering lets use sex, year, active, and title 
+// For filtering lets use sex, year, active, and title
 
-                            
+export type DogSearchRequest = 
+{
+  q?: string;
+  page?: number;
+  limit?: number;
+  sort?: "relevance" | "name_asc" | "name_desc" | "newest";
+  year?: number;
+  active?: string;
+};
 
-export type DogFormValues = {
+export type DogSearchResult = 
+{
+  id: string;
+  name: string;
+  regNo?: string;
+  year?: number;
+  ownerName?: string;
+  title?: string;
+  active: string;
+};
+
+export type DogFormValues = 
+{
   cwaNumber: string;
   akcNumber: string;
   ckcNumber: string;
@@ -29,7 +49,8 @@ export type DogFormValues = {
   highCombinedWins: string;
 };
 
-export type DogListItem = {
+export type DogListItem = 
+{
   id: string;
   cwaNumber: string;
   registeredName: string;
@@ -40,13 +61,15 @@ export type DogListItem = {
   title: string;
 };
 
-export type DogSearchResponse = {
+export type DogSearchResponse = 
+{
   ok: boolean;
   total: number;
   items: DogListItem[];
 };
 
-export const emptyDogFormValues: DogFormValues = {
+export const emptyDogFormValues: DogFormValues = 
+{
   cwaNumber: "",
   akcNumber: "",
   ckcNumber: "",
@@ -59,7 +82,7 @@ export const emptyDogFormValues: DogFormValues = {
   pedigreeLink: "",
   status: "Active",
   notes: "",
-  
+
   meetPoints: "0",
   arxPoints: "0",
   narxPoints: "0",

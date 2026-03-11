@@ -1,9 +1,10 @@
 // app/api/search/route.ts
 import { NextResponse } from "next/server";
 import pool from "@/lib/db/mysql";
-import type { DogSearchResponse, DogSearchResult } from "@/lib/search/types";
+import type { DogSearchResponse } from "@/lib/search/types";
 
-function clampInteger(num: number, min: number, max: number) {
+function clampInteger(num: number, min: number, max: number) 
+{
   if (!Number.isFinite(num)) return min;
   return Math.max(min, Math.min(max, Math.floor(num)));
 }
@@ -12,17 +13,20 @@ function fixLength(q: string) {
   return (q ?? "").trim().slice(0, 64);
 }
 
-function parseSort(x: string | null): "relevance" | "name_asc" | "name_desc" | "newest" {
+function parseSort(x: string | null): "relevance" | "name_asc" | "name_desc" | "newest" 
+{
   if (x === "name_asc" || x === "name_desc" || x === "newest" || x === "relevance") return x;
   return "relevance";
 }
 
-function parseActive(x: string | null): "Y" | "N" | undefined {
+function parseActive(x: string | null): "Y" | "N" | undefined 
+{
   if (x === "Y" || x === "N") return x;
   return undefined;
 }
 
-function parseBirthYear(x: string | null): number | undefined {
+function parseBirthYear(x: string | null): number | undefined 
+{
   if (!x) return undefined;
   const n = Number(x);
   if (!Number.isFinite(n)) return undefined;
@@ -31,7 +35,8 @@ function parseBirthYear(x: string | null): number | undefined {
   return yr;
 }
 
-export async function GET(req: Request) {
+export async function GET(req: Request) 
+{
   const url = new URL(req.url);
   const sp = url.searchParams;
 
@@ -43,17 +48,15 @@ export async function GET(req: Request) {
     );
   }
 
-  // Normalize inputs
   const q = fixLength(sp.get("q") ?? "");
   const page = clampInteger(Number(sp.get("page") ?? "1"), 1, 1_000_000);
   const limit = clampInteger(Number(sp.get("limit") ?? "20"), 1, 50);
   const sort = parseSort(sp.get("sort"));
   const active = parseActive(sp.get("active"));
-  const birthYear = parseBirthYear(sp.get("birthYear")); // <-- keep this; you said birthYear is "fixed"
+  const birthYear = parseBirthYear(sp.get("year"));
 
   const offset = (page - 1) * limit;
 
-  // Build WHERE
   const where: string[] = [];
   const params: Record<string, any> = { limit, offset };
 
@@ -83,25 +86,20 @@ export async function GET(req: Request) {
 
   const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
 
-  // Sort mapping
   let orderBy = "displayName ASC, d.CWANumber ASC";
   if (sort === "name_desc") orderBy = "displayName DESC, d.CWANumber DESC";
   if (sort === "newest") orderBy = "d.Birthdate DESC, displayName ASC";
-  if (sort === "relevance") {
-    // cheap relevance: prefer registered/call name matches over owner/title matches
-    // Only apply if q exists; otherwise fall back to name ASC.
-    if (q) {
-      orderBy = `
-        CASE
-          WHEN LOWER(d.CallName) LIKE :qLike THEN 0
-          WHEN LOWER(d.RegisteredName) LIKE :qLike THEN 1
-          WHEN LOWER(d.CWANumber) LIKE :qLike THEN 2
-          ELSE 3
-        END,
-        displayName ASC,
-        d.CWANumber ASC
-      `;
-    }
+  if (sort === "relevance" && q) {
+    orderBy = `
+      CASE
+        WHEN LOWER(d.CallName) LIKE :qLike THEN 0
+        WHEN LOWER(d.RegisteredName) LIKE :qLike THEN 1
+        WHEN LOWER(d.CWANumber) LIKE :qLike THEN 2
+        ELSE 3
+      END,
+      displayName ASC,
+      d.CWANumber ASC
+    `;
   }
 
   const baseFrom = `
@@ -124,21 +122,20 @@ export async function GET(req: Request) {
     ) titles ON titles.CWANumber = d.CWANumber
   `;
 
-  // total count
   const countSql = `SELECT COUNT(*) AS total ${baseFrom} ${whereSql}`;
   const [countRows] = await pool.query<any[]>(countSql, params);
   const total = Number(countRows?.[0]?.total ?? 0);
 
-  // page query
   const dataSql = `
     SELECT
       d.CWANumber AS id,
-      COALESCE(NULLIF(d.CallName,''), d.RegisteredName) AS displayName,
-      d.CWANumber AS regNo,
+      d.CWANumber AS cwaNumber,
+      d.RegisteredName AS registeredName,
+      IFNULL(d.CallName, '') AS callName,
       YEAR(d.Birthdate) AS birthYear,
-      owners.ownerNames AS ownerName,
-      titles.titleList AS titleList,
-      CASE WHEN d.Status = 'Active' THEN 'Y' ELSE 'N' END AS activeYN
+      d.Status AS status,
+      IFNULL(owners.ownerNames, '') AS ownerName,
+      IFNULL(titles.titleList, '') AS title
     ${baseFrom}
     ${whereSql}
     ORDER BY ${orderBy}
@@ -147,26 +144,21 @@ export async function GET(req: Request) {
 
   const [rows] = await pool.query<any[]>(dataSql, params);
 
-  const items: DogSearchResult[] = rows.map((r) => ({
+  const items = rows.map((r) => 
+    ({
     id: String(r.id),
-    name: String(r.displayName ?? ""),
-    regNo: r.regNo ?? undefined,
-    // keep YOUR TS field as `year` if that’s what you want in UI:
-    year: typeof r.birthYear === "number" ? r.birthYear : undefined,
-    ownerName: r.ownerName ?? undefined,
-    title: r.titleList ?? undefined,
-    active: r.activeYN === "Y" ? "Y" : "N",
+    cwaNumber: String(r.cwaNumber ?? ""),
+    registeredName: String(r.registeredName ?? ""),
+    callName: String(r.callName ?? ""),
+    birthYear: String(r.birthYear ?? ""),
+    status: String(r.status ?? ""),
+    ownerName: String(r.ownerName ?? ""),
+    title: String(r.title ?? ""),
   }));
 
-  const body: DogSearchResponse = {
-    params: {
-      q,
-      page,
-      limit,
-      sort,
-      year: typeof birthYear === "number" ? birthYear : undefined, // keeping your existing response shape
-      active,
-    },
+  const body: DogSearchResponse = 
+  {
+    ok: true,
     total,
     items,
   };
