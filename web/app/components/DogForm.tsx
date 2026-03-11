@@ -3,7 +3,9 @@
 import * as React from "react";
 import type { DogFormValues } from "@/lib/search/types.ts";
 
-type Props = {
+
+type Props = 
+{
   values: DogFormValues;
   onChange: <K extends keyof DogFormValues>(key: K, value: DogFormValues[K]) => void;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
@@ -12,9 +14,14 @@ type Props = {
   error: string;
   success: string;
   onCancel: () => void;
+  form: DogFormValues;
+  setForm: React.Dispatch<React.SetStateAction<DogFormValues>>;
+
+  isEditMode?: boolean;
 };
 
-export default function DogForm({
+export default function DogForm
+({
   values,
   onChange,
   onSubmit,
@@ -23,6 +30,10 @@ export default function DogForm({
   error,
   success,
   onCancel,
+  form,
+  setForm,
+  isEditMode = false,
+
 }: Props) {
   return (
     <form
@@ -36,7 +47,11 @@ export default function DogForm({
             value={values.cwaNumber}
             onChange={(e) => onChange("cwaNumber", e.target.value)}
             placeholder="1234, 3124, 8754, etc."
-            className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
+            //className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
+            readOnly={isEditMode}
+            className={`mt-1 block w-full rounded-md border px-3 py-2 ${
+              isEditMode ? "bg-gray-100 text-gray-500 cursor-not-allowed" : "bg-white"
+            }`}
           />
         </div>
 
@@ -110,7 +125,7 @@ export default function DogForm({
           <label className="mb-2 block text-sm font-medium text-[#12301D]">Meet Points</label>
           <input
             value={values.meetPoints}
-            onChange={(e) => onChange("foreignNumber", e.target.value)}
+            onChange={(e) => onChange("meetPoints", e.target.value)}
             className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
           />
         </div>
@@ -119,7 +134,7 @@ export default function DogForm({
           <label className="mb-2 block text-sm font-medium text-[#12301D]">Arx Points</label>
           <input
             value={values.arxPoints}
-            onChange={(e) => onChange("foreignNumber", e.target.value)}
+            onChange={(e) => onChange("arxPoints", e.target.value)}
             className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
           />
         </div>
@@ -128,7 +143,7 @@ export default function DogForm({
           <label className="mb-2 block text-sm font-medium text-[#12301D]">Narx Points</label>
           <input
             value={values.narxPoints}
-            onChange={(e) => onChange("foreignNumber", e.target.value)}
+            onChange={(e) => onChange("narxPoints", e.target.value)}
             className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
           />
         </div>
@@ -137,7 +152,7 @@ export default function DogForm({
           <label className="mb-2 block text-sm font-medium text-[#12301D]">Show Points</label>
           <input
             value={values.showPoints}
-            onChange={(e) => onChange("foreignNumber", e.target.value)}
+            onChange={(e) => onChange("showPoints", e.target.value)}
             className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
           />
         </div>
@@ -146,7 +161,7 @@ export default function DogForm({
           <label className="mb-2 block text-sm font-medium text-[#12301D]">DPC Legs</label>
           <input
             value={values.dpcLegs}
-            onChange={(e) => onChange("foreignNumber", e.target.value)}
+            onChange={(e) => onChange("dpcLegs", e.target.value)}
             className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
           />
         </div>
@@ -155,7 +170,7 @@ export default function DogForm({
           <label className="mb-2 block text-sm font-medium text-[#12301D]">Meet Wins</label>
           <input
             value={values.meetWins}
-            onChange={(e) => onChange("foreignNumber", e.target.value)}
+            onChange={(e) => onChange("meetWins", e.target.value)}
             className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
           />
         </div>
@@ -164,7 +179,7 @@ export default function DogForm({
           <label className="mb-2 block text-sm font-medium text-[#12301D]">Meet Appearences</label>
           <input
             value={values.meetAppearences}
-            onChange={(e) => onChange("foreignNumber", e.target.value)}
+            onChange={(e) => onChange("meetAppearences", e.target.value)}
             className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
           />
         </div>
@@ -173,7 +188,7 @@ export default function DogForm({
           <label className="mb-2 block text-sm font-medium text-[#12301D]">High Combined Wins</label>
           <input
             value={values.highCombinedWins}
-            onChange={(e) => onChange("foreignNumber", e.target.value)}
+            onChange={(e) => onChange("highCombinedWins", e.target.value)}
             className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
           />
         </div>

@@ -183,6 +183,9 @@ export default function AddDogPage() {
             error={error}
             success={success}
             onCancel={() => router.push("/admin/dogs")}
+            form={form}
+            setForm={setForm}
+            isEditMode={false}
           />
         </div>
       </section>

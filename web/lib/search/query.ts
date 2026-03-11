@@ -15,8 +15,8 @@ function clampInteger(num: number, min: number, max: number)
 
 
 // fixLength will make sure nobody pastes a book into the search
-// or anything with a length greater than 64.
-function fixLength(q: string)
+// or anything with a length greater than 64. 
+function fixLength(q?: string)
 {
     return (q ?? "").trim().slice(0, 64);
 }
@@ -31,7 +31,7 @@ function buildDogSearchParameters(request: DogSearchRequest)
     const limit = clampInteger(request.limit ?? 20, 1, 50);
     const sortMethod = request.sort ?? "relevance";                     // relevance by default if no sort method is selected
 
-    const usp = new URLSearchParams();                                  // the URLSearchParams interface defines utility methods to work with the query string of a URL and is iterable
+    const usp = new URLSearchParams();                                  // the URLSearchParams interface defines utility metPhods to work with the query string of a URL and is iterable
     usp.set("type", "dog");
     usp.set("q", q);
     usp.set("page", String(pageNum));

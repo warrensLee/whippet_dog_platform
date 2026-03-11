@@ -7,11 +7,17 @@ import DogForm from "@/app/components/DogForm";
 import type { DogFormValues } from "@/lib/search/types";
 import { emptyDogFormValues } from "@/lib/search/types";
 
-function normalizeText(x: unknown): string {
-  return typeof x === "string" ? x : "";
+function normalizeText(x: unknown): string 
+{
+  if (typeof x === "string") 
+    return x;
+  if (typeof x === "number") 
+    return String(x);
+  return "";
 }
 
-type RawDogGetResponse = {
+type RawDogGetResponse = 
+{
   ok: boolean;
   data?: {
     cwaNumber?: string;
@@ -166,7 +172,7 @@ export default function EditDogPage() {
         foreignType: form.foreignType.trim(),
         callName: form.callName.trim(),
         registeredName: form.registeredName.trim(),
-        birthdate: form.birthdate,
+        birthdate: normalizeText(form.birthdate).slice(0, 10),
         pedigreeLink: form.pedigreeLink.trim(),
         status: form.status.trim(),
         notes: form.notes.trim(),
@@ -191,6 +197,7 @@ export default function EditDogPage() {
       });
 
       const json = await res.json().catch(() => null);
+      console.log(json.data);
 
       if (!res.ok || !json?.ok) {
         throw new Error(json?.error || `Save failed (${res.status})`);
@@ -282,6 +289,9 @@ export default function EditDogPage() {
             error={error}
             success={success}
             onCancel={() => router.push("/admin/dogs")}
+            form={form}
+            setForm={setForm}
+            isEditMode
           />
         </div>
       </section>
