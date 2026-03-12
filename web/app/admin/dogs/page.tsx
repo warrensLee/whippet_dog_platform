@@ -39,6 +39,8 @@ export default function AdminDogsPage()
     const q = (sp.get("q") ?? "").trim();
     const page = clampInteger(Number(sp.get("page") ?? "1"), 1, 1_000_000);
     const limit = clampInteger(Number(sp.get("limit") ?? "12"), 1, 50);
+    const sort = (sp.get("sort") ?? "nameAsc").trim();
+
 
     /*
         Auth state protects the page from unauthorized access.
@@ -90,28 +92,30 @@ export default function AdminDogsPage()
                   throw new Error(json?.error || `Request failed (${res.status})`);
               }
 
-              const mapped: DogSearchResponse =
-              {
-                  ok: true,
-                  total: Number(json.total ?? 0),
-                  items: Array.isArray(json.items)
-                      ? json.items.map(
-                          (item: any) =>
-                          {
-                              return {
-                                  id: String(item.id ?? ""),
-                                  cwaNumber: String(item.regNo ?? item.id ?? ""),
-                                  registeredName: String(item.name ?? ""),
-                                  callName: "",
-                                  birthYear: item.year ? String(item.year) : "",
-                                  status: String(item.active ?? ""),
-                                  ownerName: String(item.ownerName ?? ""),
-                                  title: String(item.title ?? ""),
-                              };
-                          }
-                      )
-                      : [],
-              };
+                const mappedItems = Array.isArray(json.items)
+                    ? json.items.map(
+                        (item: any) =>
+                        {
+                            return {
+                                id: String(item.id ?? ""),
+                                cwaNumber: String(item.regNo ?? item.id ?? ""),
+                                registeredName: String(item.name ?? ""),
+                                callName: "",
+                                birthYear: item.year ? String(item.year) : "",
+                                status: String(item.active ?? ""),
+                                ownerName: String(item.ownerName ?? ""),
+                                title: String(item.title ?? ""),
+                            };
+                        }
+                    )
+                    : [];
+
+                const mapped: DogSearchResponse =
+                {
+                    ok: true,
+                    total: mappedItems.length,
+                    items: mappedItems,
+                };
 
               setData(mapped);
           }
@@ -211,6 +215,23 @@ export default function AdminDogsPage()
     );
 
     /*
+        Keep selection list in sync with currently loaded data.
+        Removes selected dogs that no longer exist in the loaded result set.
+    */
+    React.useEffect(
+        () =>
+        {
+            const validIds = new Set((data?.items ?? []).map((d) => d.cwaNumber));
+
+            setSelectedDogs((prev) =>
+            {
+                return prev.filter((id) => validIds.has(id));
+            });
+        },
+        [data]
+    );
+
+    /*
         Handles deleting a single dog from the admin page.
         For now, the page is refreshed after delete so the list updates.
     */
@@ -259,6 +280,11 @@ export default function AdminDogsPage()
                 throw new Error(json?.error || "Failed to delete dog.");
             }
 
+            setSelectedDogs((prev) =>
+            {
+                return prev.filter((id) => id !== cwaNumber);
+            });
+
             await loadDogs();
         }
         catch (e)
@@ -295,16 +321,54 @@ export default function AdminDogsPage()
         return null;
     }
 
-    const total = data?.total ?? 0;
+    // updated to ouptput correct data and counts based on search results, not just total in DB
     const items = data?.items ?? [];
+    const total = items.length;
+    /*
+        Sort the loaded dog records on the frontend based on the selected option.
+        This keeps the admin page easy to work with for now without changing the API yet.
+    */
+    const sortedItems = [...items].sort(
+        (a, b) =>
+        {
+            switch (sort)
+            {
+                case "nameDesc":
+                    return (b.registeredName || "").localeCompare(a.registeredName || "");
 
+                case "cwaAsc":
+                    return (a.cwaNumber || "").localeCompare(
+                        b.cwaNumber || "",
+                        undefined,
+                        { numeric: true }
+                    );
+
+                case "cwaDesc":
+                    return (b.cwaNumber || "").localeCompare(
+                        a.cwaNumber || "",
+                        undefined,
+                        { numeric: true }
+                    );
+
+                case "yearAsc":
+                    return Number(a.birthYear || 0) - Number(b.birthYear || 0);
+
+                case "yearDesc":
+                    return Number(b.birthYear || 0) - Number(a.birthYear || 0);
+
+                case "nameAsc":
+                default:
+                    return (a.registeredName || "").localeCompare(b.registeredName || "");
+            }
+        }
+    );
     /*
         Paging calculations for the current result set.
     */
     const totalPages = Math.max(1, Math.ceil(total / limit));
     const safePage = Math.min(page, totalPages);
     const start = (safePage - 1) * limit;
-    const pagedItems = items.slice(start, start + limit);
+    const pagedItems = sortedItems.slice(start, start + limit);
 
     /*
         Quick page-level status counts.
@@ -322,13 +386,126 @@ export default function AdminDogsPage()
     const nextPage = Math.min(totalPages, safePage + 1);
 
     /*
+        Selection helpers for the current visible page.
+        "Select all" only applies to dogs currently shown on this page.
+    */
+    const pageDogIds = pagedItems.map((d) => d.cwaNumber);
+
+    const allPageDogsSelected =
+        pageDogIds.length > 0 &&
+        pageDogIds.every((id) => selectedDogs.includes(id));
+
+    const somePageDogsSelected =
+        pageDogIds.some((id) => selectedDogs.includes(id));
+
+    function toggleDogSelection(cwaNumber: string)
+    {
+        setSelectedDogs((prev) =>
+        {
+            if (prev.includes(cwaNumber))
+            {
+                return prev.filter((id) => id !== cwaNumber);
+            }
+
+            return [...prev, cwaNumber];
+        });
+    }
+
+    function toggleSelectAllOnPage()
+    {
+        setSelectedDogs((prev) =>
+        {
+            if (allPageDogsSelected)
+            {
+                return prev.filter((id) => !pageDogIds.includes(id));
+            }
+
+            const merged = new Set([...prev, ...pageDogIds]);
+            return Array.from(merged);
+        });
+    }
+
+    async function handleDeleteSelectedDogs()
+    {
+        if (selectedDogs.length === 0)
+        {
+            return;
+        }
+
+        const confirmed = window.confirm(
+            `Are you sure you want to remove ${selectedDogs.length} selected dog(s)?`
+        );
+
+        if (!confirmed)
+        {
+            return;
+        }
+
+        try
+        {
+            setDeleting(true);
+
+            for (const cwaNumber of selectedDogs)
+            {
+                const res = await fetch(
+                    "/api/dog/delete",
+                    {
+                        method: "POST",
+                        headers:
+                        {
+                            "Content-Type": "application/json",
+                        },
+                        credentials: "include",
+                        body: JSON.stringify(
+                        {
+                            cwaNumber,
+                            confirm: true,
+                        }),
+                    }
+                );
+
+                const json = await res.json().catch(
+                    () =>
+                    {
+                        return null;
+                    }
+                );
+
+                if (!res.ok || !json?.ok)
+                {
+                    throw new Error(
+                        json?.error || `Failed to delete dog #${cwaNumber}.`
+                    );
+                }
+            }
+
+            setSelectedDogs([]);
+            await loadDogs();
+        }
+        catch (e)
+        {
+            alert(
+                e instanceof Error
+                    ? e.message
+                    : "Failed to delete selected dogs."
+            );
+        }
+        finally
+        {
+            setDeleting(false);
+        }
+    }
+
+    /*
         Builds pagination links while preserving existing query params.
     */
     function makeLink(next: number)
     {
         const params = new URLSearchParams(sp.toString());
+
         params.set("page", String(next));
         params.set("limit", String(limit));
+        params.set("sort", sort);
 
         return `/admin/dogs?${params.toString()}`;
     }
@@ -347,10 +524,6 @@ export default function AdminDogsPage()
                 <div className="relative z-10 max-w-6xl mx-auto px-6">
                     <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
                         <div className="max-w-2xl">
-                            <div className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm text-white/80">
-                                Admin Panel
-                            </div>
-
                             <h1 className="mt-4 text-white text-5xl font-bold tracking-tight">
                                 Manage Dogs
                             </h1>
@@ -390,6 +563,8 @@ export default function AdminDogsPage()
                                 placeholder="Search by dog name, CWA number, owner, or title..."
                                 className="w-full rounded-full border border-white/25 bg-white/95 px-6 py-3 text-[#12301D] text-base outline-none shadow-sm focus:ring-4 focus:ring-[#2E6B3F]/35 focus:border-[#2E6B3F]/60"
                             />
+
+                            <input type="hidden" name="sort" value={sort} />
 
                             <button className="rounded-full bg-white px-6 py-3 font-semibold text-[#12301D] shadow-sm hover:bg-white/90 transition">
                                 Search
@@ -488,6 +663,38 @@ export default function AdminDogsPage()
                                 }
                             </div>
 
+                            {/* 
+                                Sort options are placed next to the search box so they are easy to find
+                                but do not distract from the main search input.
+                            */}
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                            <form method="GET" action="/admin/dogs" className="flex items-center gap-2">
+                                <input type="hidden" name="q" value={q} />
+                                <input type="hidden" name="page" value="1" />
+                                <input type="hidden" name="limit" value={String(limit)} />
+
+                                <select
+                                    name="sort"
+                                    defaultValue={sort}
+                                    className="rounded-full border border-black/10 bg-white px-4 py-2 text-sm text-[#12301D] shadow-sm outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
+                                >
+                                    <option value="nameAsc">Name A–Z</option>
+                                    <option value="nameDesc">Name Z–A</option>
+                                    <option value="cwaAsc">CWA Ascending</option>
+                                    <option value="cwaDesc">CWA Descending</option>
+                                    <option value="yearAsc">Year Ascending</option>
+                                    <option value="yearDesc">Year Descending</option>
+                                </select>
+
+                                <button
+                                    type="submit"
+                                    className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#12301D] shadow-sm hover:bg-[#12301D]/5 transition"
+                                >
+                                    Sort
+                                </button>
+                            </form>
+                            </div>    
+
                             <div className="flex items-center gap-2 rounded-full border border-black/10 bg-white/80 backdrop-blur px-3 py-1 shadow-sm">
                                 <Link
                                     href={makeLink(prevPage)}
@@ -551,6 +758,47 @@ export default function AdminDogsPage()
                                 >
                                     View Public Search
                                 </Link>
+
+                                <button
+                                    type="button"
+                                    onClick={handleDeleteSelectedDogs}
+                                    disabled={selectedDogs.length === 0 || deleting}
+                                    className="rounded-full border border-red-200 bg-red-50 px-5 py-2.5 text-sm font-semibold text-red-700 hover:bg-red-100 transition disabled:opacity-50"
+                                >
+                                    {deleting
+                                        ? "Removing..."
+                                        : `Remove Selected (${selectedDogs.length})`}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Selection controls */}
+                    <div className="mb-5 rounded-2xl border border-black/10 bg-white/80 p-4 shadow-sm">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                            <label className="inline-flex items-center gap-3 text-sm text-[#12301D]">
+                                <input
+                                    type="checkbox"
+                                    checked={allPageDogsSelected}
+                                    ref={(el) =>
+                                    {
+                                        if (el)
+                                        {
+                                            el.indeterminate =
+                                                !allPageDogsSelected && somePageDogsSelected;
+                                        }
+                                    }}
+                                    onChange={toggleSelectAllOnPage}
+                                    disabled={pagedItems.length === 0 || deleting}
+                                    className="h-4 w-4 rounded border-black/20"
+                                />
+                                <span className="font-medium">
+                                    Select all dogs on this page
+                                </span>
+                            </label>
+
+                            <div className="text-sm text-[#12301D]/70">
+                                {selectedDogs.length} selected
                             </div>
                         </div>
                     </div>
@@ -567,13 +815,23 @@ export default function AdminDogsPage()
                                             className="rounded-2xl border border-black/10 bg-white/90 backdrop-blur p-5 shadow-sm transition hover:shadow-md hover:-translate-y-[2px] hover:border-[#2E6B3F]/35"
                                         >
                                             <div className="flex items-start justify-between gap-3">
-                                                <div>
-                                                    <div className="text-xl font-semibold text-[#12301D]">
-                                                        {d.registeredName || d.cwaNumber}
-                                                    </div>
+                                                <div className="flex items-start gap-3">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedDogs.includes(d.cwaNumber)}
+                                                        onChange={() => toggleDogSelection(d.cwaNumber)}
+                                                        disabled={deleting}
+                                                        className="mt-1 h-4 w-4 rounded border-black/20"
+                                                    />
 
-                                                    <div className="mt-1 text-sm text-[#12301D]/65">
-                                                        Record #{d.cwaNumber}
+                                                    <div>
+                                                        <div className="text-xl font-semibold text-[#12301D]">
+                                                            {d.registeredName || d.cwaNumber}
+                                                        </div>
+
+                                                        <div className="mt-1 text-sm text-[#12301D]/65">
+                                                            Record #{d.cwaNumber}
+                                                        </div>
                                                     </div>
                                                 </div>
 
