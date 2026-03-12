@@ -872,35 +872,35 @@ export default function AdminDogsPage()
 
                                             <div className="mt-4 h-px w-full bg-gradient-to-r from-[#2E6B3F]/35 via-black/5 to-transparent" />
 
-                                            <div className="mt-4 flex flex-wrap gap-3">
-                                                <Link
-                                                    href={`/admin/dogs/${d.cwaNumber}/edit`}
-                                                    className="rounded-full bg-[#2E6B3F] px-4 py-2 text-sm font-semibold text-white hover:bg-[#255733] transition"
-                                                >
-                                                    Edit
-                                                </Link>
+                                                <div className="mt-4 flex items-center justify-between gap-3">
+                                                    <div className="flex flex-wrap gap-3">
+                                                        <Link
+                                                            href={`/admin/dogs/${d.cwaNumber}/edit`}
+                                                            className="rounded-full bg-[#2E6B3F] px-4 py-2 text-sm font-semibold text-white hover:bg-[#255733] transition"
+                                                        >
+                                                            Edit
+                                                        </Link>
 
-                                                <Link
-                                                    href={`/search?q=${encodeURIComponent(d.cwaNumber)}`}
-                                                    className="rounded-full border border-[#12301D]/15 bg-white px-4 py-2 text-sm font-semibold text-[#12301D] hover:bg-[#12301D]/5 transition"
-                                                >
-                                                    View in Search
-                                                </Link>
+                                                        <Link
+                                                            href={`/search?q=${encodeURIComponent(d.cwaNumber)}`}
+                                                            className="rounded-full border border-[#12301D]/15 bg-white px-4 py-2 text-sm font-semibold text-[#12301D] hover:bg-[#12301D]/5 transition"
+                                                        >
+                                                            View in Search
+                                                        </Link>
+                                                    </div>
 
-                                                <button
-                                                    type="button"
-                                                    onClick={
-                                                        () =>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
                                                         {
                                                             handleDeleteDog(d.cwaNumber);
-                                                        }
-                                                    }
-                                                    disabled={deleting}
-                                                    className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 transition disabled:opacity-50"
-                                                >
-                                                    Remove
-                                                </button>
-                                            </div>
+                                                        }}
+                                                        disabled={deleting}
+                                                        className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 transition disabled:opacity-50"
+                                                    >
+                                                        Remove
+                                                    </button>
+                                                </div>
                                         </div>
                                     );
                                 }
