@@ -1,0 +1,301 @@
+cwaNumber,registeredName,callName,birthdate,status,currentGrade,akcNumber,ckcNumber,foreignNumber,foreignType,pedigreeLink,average,meetPoints,arxPoints,narxPoints,showPoints,dpcLegs,meetWins,meetAppearences,highCombinedWins,notes
+T91000,CSV NEON FLASH,ACE,2018-04-08,Active,A,,,,,https://example.com/pedigree/t91000,9.75,46,1,0,12,3,1,38,1,Sample racing profile
+T91001,CSV VELVET RUNNER,DASH,2019-02-03,Active,B,AKC377370,,,,,9.2,190,23,12,10,0,17,59,4,Generated for bulk CSV testing
+T91002,CSV BRIGHT FURY,LUNA,2017-02-13,Active,B,,,,,,9.43,121,13,16,10,1,17,38,11,Sample racing profile
+T91003,CSV BLUE DRIFT,SAGE,2014-04-27,Active,A,AKC321231,,,,,9.46,45,4,4,5,4,6,13,5,Synthetic training record
+T91004,CSV IRON STORM,ZARA,2019-04-05,Active,A,AKC214975,CKC267753,,,,9.83,72,11,7,11,2,8,29,0,Synthetic demo import row
+T91005,CSV WILD ECHO,BLAZE,2021-01-24,Inactive,A,,CKC211579,,,,9.7,59,9,6,11,4,6,40,1,Sample racing profile
+T91006,CSV BLAZING ROCKET,FLASH,2019-05-08,Active,FTE,,CKC609597,,,,9.77,144,16,8,8,1,17,42,2,Sample racing profile
+T91007,CSV ROYAL FALCON,TRIX,2019-08-17,Active,A,AKC122056,,,,,9.57,2,0,0,5,3,0,4,0,Generated for bulk CSV testing
+T91008,CSV SCARLET RUNNER,JETT,2023-10-16,Active,B,,CKC790993,,,,8.7,138,26,8,4,4,20,43,1,Synthetic training record
+T91009,CSV CRIMSON ECHO,BLAZE,2018-08-08,Inactive,A,,,F95477,NZKC,,9.68,11,1,1,2,0,1,5,0,Synthetic training record
+T91010,CSV VELVET FLARE,STORM,2021-05-14,Active,C,,,,,https://example.com/pedigree/t91010,8.72,88,14,7,3,2,10,47,0,Synthetic demo import row
+T91011,CSV COPPER ARROW,LUNA,2023-02-22,Inactive,B,,,,,https://example.com/pedigree/t91011,9.19,19,1,2,3,3,2,5,2,Generated for bulk CSV testing
+T91012,CSV CLASSIC HUNTER,SCOUT,2021-06-25,Inactive,A,,,F80468,UKC,,9.66,10,1,1,12,4,1,4,1,Synthetic demo import row
+T91013,CSV CLASSIC JET,ROGUE,2018-11-04,Inactive,A,AKC212235,,,,,9.67,28,4,1,8,2,3,13,2,Synthetic demo import row
+T91014,CSV SWIFT BLAZE,SAGE,2016-11-09,Active,B,,,F29536,NZKC,https://example.com/pedigree/t91014,8.88,50,3,2,5,1,2,27,1,Synthetic demo import row
+T91015,CSV SOUTHERN DRIFT,ROGUE,2020-10-24,Active,FTE,,,,,,10.13,1,0,0,11,0,0,1,0,Synthetic training record
+T91016,CSV COPPER STRIDE,MADDIE,2021-04-07,Inactive,B,AKC933980,,,,,8.94,10,1,1,11,0,1,4,1,Sample racing profile
+T91017,CSV SHADOW STORM,ECHO,2014-02-20,Active,C,AKC735656,,F85574,UKC,,8.82,153,20,12,6,0,16,45,12,Sample racing profile
+T91018,CSV ARCTIC BLAZE,VEGA,2015-12-10,Active,C,AKC831076,,,,,9.05,127,7,4,11,2,9,57,4,Sample racing profile
+T91019,CSV LUCKY PHANTOM,FINN,2024-04-17,Active,FTE,,CKC188914,,,,9.76,96,17,5,3,3,13,39,12,Import validation sample
+T91020,CSV COPPER DRIFT,LUNA,2021-07-21,Active,C,,,,,,9.09,110,6,2,5,0,6,56,1,Synthetic training record
+T91021,CSV CRIMSON LEGEND,FINN,2024-09-18,Active,D,,,,,,7.99,247,21,13,10,2,28,53,2,Synthetic training record
+T91022,CSV NEON SPIRIT,ECHO,2021-02-23,Active,A,AKC666390,CKC258157,,,,9.58,64,6,6,13,0,7,26,6,Import validation sample
+T91023,CSV ROYAL BOLT,ACE,2019-05-25,Active,FTE,,,,,,9.81,70,6,5,7,1,7,57,4,Synthetic training record
+T91024,CSV STARLIT RUNNER,PIPER,2022-01-13,Active,C,AKC549433,CKC584125,,,,8.57,70,5,2,2,2,6,21,2,Synthetic demo import row
+T91025,CSV SOUTHERN SPIRIT,TRIX,2015-11-02,Inactive,FTE,AKC121369,,,,,10.14,16,1,1,9,0,1,7,1,Generated for bulk CSV testing
+T91026,CSV WILD FLASH,NIKO,2014-05-19,Active,D,,,F92213,UKC,https://example.com/pedigree/t91026,8.37,114,21,6,10,0,18,38,12,Synthetic training record
+T91027,CSV BLUE BOLT,FLASH,2020-06-21,Inactive,B,AKC284692,,,,,8.62,235,23,27,10,0,30,51,7,Sample racing profile
+T91028,CSV IRON PHANTOM,NOVA,2021-10-20,Active,A,,,,,,9.59,87,5,6,8,1,8,38,8,Synthetic training record
+T91029,CSV NEON CHARM,JUNO,2021-01-03,Active,B,AKC796212,,,,,9.3,118,14,8,11,2,17,27,5,Synthetic demo import row
+T91030,CSV SILENT NOVA,SAGE,2016-04-07,Inactive,A,,,,,,9.7,34,0,0,2,3,0,23,0,Synthetic demo import row
+T91031,CSV COPPER ROCKET,NIKO,2018-08-16,Active,A,AKC600935,CKC168517,,,https://example.com/pedigree/t91031,9.42,87,2,2,9,3,4,40,1,Import validation sample
+T91032,CSV ARCTIC LEGEND,PIPER,2017-09-13,Active,B,,,,,,8.78,126,9,5,2,3,13,60,4,Import validation sample
+T91033,CSV BLAZING FURY,BOLT,2017-05-23,Active,FTE,AKC344762,,,,,9.64,57,4,3,4,0,6,42,3,Generated for bulk CSV testing
+T91034,CSV STORM FURY,PIPER,2023-05-15,Active,C,,,,,,8.76,74,11,6,13,2,8,27,0,Sample racing profile
+T91035,CSV DUSTY STRIDE,SAGE,2016-08-17,Active,FTE,AKC713762,,,,,9.93,74,4,4,5,3,5,30,2,Import validation sample
+T91036,CSV SILVER PHANTOM,LUNA,2019-05-11,Active,C,,,F81118,Australian,,8.79,96,9,7,13,1,14,48,12,Synthetic demo import row
+T91037,CSV SWIFT HUNTER,PIPER,2017-12-06,Active,A,,,,,https://example.com/pedigree/t91037,9.82,151,13,6,12,3,13,60,2,Generated for bulk CSV testing
+T91038,CSV LUCKY NOVA,COMET,2020-04-20,Active,FTE,,,,,,10.17,86,5,2,8,2,4,52,4,Import validation sample
+T91039,CSV BRIGHT NOVA,ZARA,2021-06-28,Active,C,,,,,https://example.com/pedigree/t91039,8.58,156,14,5,14,0,12,47,6,Import validation sample
+T91040,CSV DUSTY BLAZE,MADDIE,2015-08-04,Active,B,,,,,https://example.com/pedigree/t91040,8.45,43,7,4,13,3,6,21,5,Import validation sample
+T91041,CSV SILVER GLIDER,LUNA,2017-11-22,Inactive,D,,,F93066,KC,,8.33,45,2,1,2,2,2,28,0,Synthetic training record
+T91042,CSV DUSTY FALCON,STORM,2016-03-06,Active,FTE,,,,,https://example.com/pedigree/t91042,9.71,58,7,4,9,3,7,16,4,Sample racing profile
+T91043,CSV LUCKY RACER,SCOUT,2017-07-28,Active,A,,,,,,9.65,113,10,3,9,3,8,53,0,Sample racing profile
+T91044,CSV BRIGHT LEGEND,NOVA,2023-06-08,Active,B,,,,,,8.73,95,4,4,11,1,7,41,0,Generated for bulk CSV testing
+T91045,CSV SCARLET ORBIT,REX,2022-09-09,Inactive,A,,,,,,9.21,63,10,6,12,4,7,21,1,Sample racing profile
+T91046,CSV GOLDEN LEGEND,ZARA,2014-05-18,Active,B,,,,,,8.84,52,2,4,13,2,4,30,2,Synthetic training record
+T91047,CSV MIDNIGHT RUNNER,BOLT,2014-05-16,Active,A,,,,,,9.87,210,24,10,8,3,26,44,9,Sample racing profile
+T91048,CSV SILVER CHARM,REX,2017-08-15,Inactive,FTE,AKC818987,,,,,9.99,28,3,1,9,1,3,7,0,Generated for bulk CSV testing
+T91049,CSV STORM STORM,DASH,2015-09-07,Active,C,AKC911984,CKC724932,F28964,UKC,,8.77,89,13,7,2,1,10,51,0,Synthetic demo import row
+T91050,CSV CRIMSON SPARK,MILO,2022-02-24,Active,B,,,,,,8.8,277,19,21,7,0,33,58,4,Synthetic training record
+T91051,CSV FIERCE FLARE,FINN,2015-02-11,Active,A,AKC763829,,,,,9.33,113,17,13,10,4,14,38,8,Generated for bulk CSV testing
+T91052,CSV ELECTRIC PHANTOM,EMBER,2017-07-11,Inactive,B,,,,,,9.46,37,0,0,1,4,0,30,0,Import validation sample
+T91053,CSV NORTHERN FALCON,FLASH,2020-06-28,Active,C,,,,,,8.59,40,5,2,9,0,4,22,1,Sample racing profile
+T91054,CSV DUSTY SPIRIT,STORM,2020-09-25,Inactive,B,,CKC789786,,,,9.26,36,6,2,9,0,5,19,0,Synthetic demo import row
+T91055,CSV SILENT WIND,DASH,2020-07-15,Active,B,,,,,https://example.com/pedigree/t91055,9.45,3,0,0,5,4,0,3,0,Synthetic demo import row
+T91056,CSV SOUTHERN ECHO,FLASH,2018-11-22,Active,B,AKC331230,,,,https://example.com/pedigree/t91056,9.05,17,2,1,8,1,2,8,1,Import validation sample
+T91057,CSV SCARLET JET,VEGA,2019-02-13,Inactive,A,AKC181644,,,,,9.76,117,6,9,6,2,9,45,1,Synthetic demo import row
+T91058,CSV ELECTRIC RACER,FLASH,2017-07-19,Active,A,,,,,,9.91,120,14,5,4,1,11,33,5,Generated for bulk CSV testing
+T91059,CSV ARCTIC RUNNER,SAGE,2024-02-06,Inactive,B,,,,,,9.16,188,16,12,6,2,20,56,9,Sample racing profile
+T91060,CSV SOUTHERN WIND,LUNA,2018-08-15,Active,B,AKC775981,,,,,8.82,179,26,12,8,1,23,35,0,Synthetic demo import row
+T91061,CSV LUCKY FLASH,STORM,2019-12-03,Active,A,AKC559022,,,,,9.59,42,4,3,10,0,4,23,3,Sample racing profile
+T91062,CSV MIDNIGHT NOVA,VEGA,2020-05-09,Inactive,C,,,,,,8.85,136,10,7,9,0,12,41,2,Import validation sample
+T91063,CSV GOLDEN HUNTER,VEGA,2020-09-12,Active,A,,,,,https://example.com/pedigree/t91063,9.78,14,1,1,10,4,1,8,0,Generated for bulk CSV testing
+T91064,CSV ARCTIC WHISPER,COMET,2016-03-27,Active,B,,,F57749,KC,,9.44,125,18,9,12,2,14,48,3,Import validation sample
+T91065,CSV BRIGHT WHISPER,KODA,2022-07-06,Inactive,C,AKC362147,CKC603935,,,,8.63,4,0,0,10,0,0,6,0,Generated for bulk CSV testing
+T91066,CSV BLUE PHANTOM,EMBER,2019-01-14,Active,B,AKC185569,,F22987,KC,,9.13,67,8,7,2,1,7,18,2,Generated for bulk CSV testing
+T91067,CSV SCARLET SPARK,PIPER,2022-07-04,Inactive,A,AKC350021,,,,,9.47,27,4,2,0,2,3,7,0,Generated for bulk CSV testing
+T91068,CSV DUSTY ECHO,BLAZE,2024-11-03,Active,B,,,,,,9.6,9,1,0,10,0,1,2,1,Import validation sample
+T91069,CSV SILENT DRIFT,SKYE,2016-01-12,Active,C,AKC916990,,,,,8.76,12,1,1,6,1,1,11,1,Import validation sample
+T91070,CSV ROYAL JET,ROGUE,2021-05-02,Inactive,A,,,,,,9.77,113,17,8,10,2,14,56,6,Synthetic demo import row
+T91071,CSV SILENT ECHO,LUNA,2020-10-27,Active,A,AKC443848,,,,,9.77,50,4,2,7,0,3,27,2,Synthetic demo import row
+T91072,CSV ROYAL TRACKER,KODA,2024-03-01,Active,B,,CKC170499,,,,8.7,8,1,1,7,2,1,2,1,Generated for bulk CSV testing
+T91073,CSV MIDNIGHT ROCKET,JETT,2016-08-17,Active,B,AKC372933,,,,,9.57,127,14,14,7,0,15,44,3,Sample racing profile
+T91074,CSV CLASSIC TRACKER,ARLO,2015-09-18,Active,A,AKC844031,,,,,9.47,25,3,3,9,4,3,12,3,Synthetic demo import row
+T91075,CSV GOLDEN FURY,ZARA,2021-09-14,Inactive,C,AKC432427,,,,,8.69,51,4,4,1,0,4,22,4,Import validation sample
+T91076,CSV CRIMSON FURY,BLAZE,2016-06-23,Active,FTE,,,F35729,KC,,9.85,131,10,12,11,4,16,39,10,Sample racing profile
+T91077,CSV BLUE FLARE,NIKO,2014-01-03,Active,B,,,,,,9.45,84,5,4,10,2,5,40,4,Synthetic training record
+T91078,CSV GOLDEN CHARM,BOLT,2016-08-14,Active,A,,,,,,10.04,24,2,2,4,0,4,8,4,Sample racing profile
+T91079,CSV ROYAL RACER,PIPER,2020-04-28,Inactive,C,,,,,https://example.com/pedigree/t91079,8.08,63,4,4,3,1,4,32,3,Synthetic demo import row
+T91080,CSV SILVER FURY,JUNO,2023-11-22,Active,B,,,,,,9.12,42,4,2,9,4,4,25,1,Import validation sample
+T91081,CSV MIDNIGHT WHISPER,REX,2019-09-12,Inactive,A,,,F27961,KC,,9.36,34,3,1,5,4,2,30,2,Sample racing profile
+T91082,CSV EMERALD JET,KODA,2022-08-23,Active,B,AKC447329,,,,,9.22,147,28,13,5,0,19,44,7,Import validation sample
+T91083,CSV BLAZING ARROW,KODA,2024-12-20,Inactive,B,,,,,,8.72,19,1,1,11,0,1,12,1,Generated for bulk CSV testing
+T91084,CSV EMERALD DASH,ROGUE,2019-11-16,Active,A,AKC659024,,,,,9.53,89,6,7,14,2,7,44,3,Generated for bulk CSV testing
+T91085,CSV FIERCE CHARM,JUNO,2019-08-12,Active,FTE,,,,,,9.55,204,17,18,6,3,22,57,12,Sample racing profile
+T91086,CSV SILENT BOLT,DASH,2017-09-09,Inactive,C,AKC745584,,,,https://example.com/pedigree/t91086,8.75,15,1,0,7,0,1,14,1,Synthetic training record
+T91087,CSV NEON FLARE,EMBER,2021-08-21,Active,D,AKC777273,CKC906066,F85252,UKC,,8.2,67,1,0,12,1,1,46,0,Generated for bulk CSV testing
+T91088,CSV STARLIT SPARK,MADDIE,2018-01-01,Active,B,,,,,,8.58,19,2,2,5,1,3,8,2,Synthetic demo import row
+T91089,CSV SILENT BLAZE,STORM,2018-10-22,Inactive,A,,,,,,9.52,5,0,0,5,3,0,5,0,Sample racing profile
+T91090,CSV NORTHERN FURY,NIKO,2023-01-09,Active,C,AKC223967,,,,,9.16,52,4,2,7,2,3,49,2,Sample racing profile
+T91091,CSV ELECTRIC CHARM,ROGUE,2021-09-26,Active,A,AKC891401,,,,,9.36,53,3,1,8,1,2,33,2,Sample racing profile
+T91092,CSV COPPER WIND,FINN,2015-11-07,Inactive,B,,,F27294,NZKC,,8.81,185,29,16,1,2,23,43,0,Synthetic demo import row
+T91093,CSV SCARLET STRIDE,SUNNY,2015-08-02,Active,A,AKC772687,,,,,9.47,135,16,5,12,0,12,57,6,Generated for bulk CSV testing
+T91094,CSV SCARLET WHISPER,KODA,2016-12-08,Inactive,C,,,,,,8.57,67,2,3,5,0,4,29,1,Generated for bulk CSV testing
+T91095,CSV RAPID COMET,FLASH,2023-01-15,Active,C,AKC876513,CKC560285,,,https://example.com/pedigree/t91095,8.82,104,11,6,9,2,8,55,8,Sample racing profile
+T91096,CSV THUNDER FURY,EMBER,2016-11-17,Active,A,AKC720407,,,,,9.34,99,11,6,4,4,12,22,12,Synthetic training record
+T91097,CSV THUNDER RACER,NOVA,2018-12-05,Inactive,FTE,,,,,https://example.com/pedigree/t91097,10.03,23,2,1,10,0,2,15,2,Sample racing profile
+T91098,CSV ARCTIC GLIDER,BOLT,2015-04-26,Inactive,C,,,,,,8.74,94,4,2,3,1,3,59,3,Sample racing profile
+T91099,CSV ROYAL PHANTOM,ROGUE,2024-06-10,Active,B,,CKC857505,,,,9.09,121,12,3,9,4,10,58,6,Import validation sample
+T91100,CSV WILD RUNNER,DASH,2019-04-13,Active,A,,,,,,9.2,67,6,3,13,4,5,47,5,Synthetic demo import row
+T91101,CSV EMERALD STRIDE,RIO,2015-11-02,Inactive,B,,,,,https://example.com/pedigree/t91101,9.13,17,0,0,0,2,0,32,0,Import validation sample
+T91102,CSV WILD ROCKET,KODA,2024-07-26,Inactive,A,,,,,,9.5,101,13,6,10,0,11,50,6,Synthetic demo import row
+T91103,CSV GOLDEN WHISPER,ZARA,2020-09-16,Active,A,AKC624139,,,,,9.83,238,39,23,5,0,33,54,0,Sample racing profile
+T91104,CSV IRON NOVA,NIKO,2024-01-06,Inactive,A,,,,,,9.42,37,4,3,9,0,4,10,3,Import validation sample
+T91105,CSV SILENT TRACKER,BOLT,2015-07-08,Inactive,A,,,,,,9.66,1,0,0,7,3,0,1,0,Synthetic demo import row
+T91106,CSV BRIGHT GLIDER,SCOUT,2017-12-03,Active,A,,,,,,9.62,31,4,3,7,0,4,19,0,Synthetic demo import row
+T91107,CSV SOUTHERN NOVA,LUNA,2023-10-26,Active,B,AKC506637,,,,,9.12,21,2,1,3,3,2,15,2,Sample racing profile
+T91108,CSV ELECTRIC FURY,JUNO,2015-06-09,Inactive,C,,,,,https://example.com/pedigree/t91108,8.85,193,33,19,7,1,25,53,5,Sample racing profile
+T91109,CSV ARCTIC CHARM,DASH,2021-06-06,Inactive,D,AKC828716,,,,,8.21,48,7,4,8,2,6,20,2,Synthetic demo import row
+T91110,CSV SILENT PHANTOM,ARLO,2017-08-26,Active,C,,,,,,8.58,73,7,4,8,2,6,42,6,Synthetic training record
+T91111,CSV STORM TRACKER,ARLO,2022-10-21,Inactive,A,AKC796982,,,,https://example.com/pedigree/t91111,9.36,117,7,4,3,4,12,41,12,Import validation sample
+T91112,CSV DUSTY CHARM,NIKO,2017-08-12,Active,C,,,,,https://example.com/pedigree/t91112,8.91,5,0,0,8,1,0,5,0,Synthetic training record
+T91113,CSV NORTHERN COMET,SCOUT,2014-12-04,Active,A,AKC938913,CKC876459,,,https://example.com/pedigree/t91113,9.76,24,2,2,7,0,3,10,3,Import validation sample
+T91114,CSV IRON DASH,FINN,2023-07-13,Active,A,AKC837945,,F23336,NZKC,https://example.com/pedigree/t91114,9.47,62,8,4,12,4,7,16,5,Generated for bulk CSV testing
+T91115,CSV BLUE FALCON,ARLO,2018-10-19,Active,A,AKC420214,CKC491439,,,,9.85,77,9,8,13,1,9,26,6,Import validation sample
+T91116,CSV SHADOW BOLT,SCOUT,2016-03-11,Inactive,B,,,,,https://example.com/pedigree/t91116,8.86,141,10,10,10,1,15,41,6,Sample racing profile
+T91117,CSV SILVER CHASER,NOVA,2022-05-06,Inactive,B,,,,,,9.31,46,6,3,12,0,5,17,4,Generated for bulk CSV testing
+T91118,CSV WILD RACER,BOLT,2021-05-12,Inactive,A,,CKC951327,,,,9.4,142,17,11,7,4,13,45,2,Sample racing profile
+T91119,CSV ARCTIC NOVA,BLAZE,2019-12-10,Active,A,,,,,https://example.com/pedigree/t91119,9.48,297,18,26,5,2,29,48,0,Generated for bulk CSV testing
+T91120,CSV BRIGHT JET,VEGA,2020-08-05,Active,A,,,,,,9.85,53,3,4,11,3,5,17,3,Sample racing profile
+T91121,CSV COPPER COMET,STORM,2022-07-07,Inactive,C,,,,,,8.77,33,2,2,10,0,3,8,2,Synthetic demo import row
+T91122,CSV STARLIT RACER,BLAZE,2021-08-01,Inactive,B,,,,,,9.36,13,1,1,4,1,1,5,0,Synthetic training record
+T91123,CSV NEON COMET,ARLO,2015-01-07,Active,A,AKC813013,,F55032,FCI,,9.24,90,20,6,6,2,15,27,1,Generated for bulk CSV testing
+T91124,CSV ROYAL DRIFT,RIO,2016-11-22,Active,B,AKC781595,CKC468247,,,,9.25,73,4,5,6,3,6,43,0,Sample racing profile
+T91125,CSV STORM RUNNER,NOVA,2018-11-03,Active,B,,,,,https://example.com/pedigree/t91125,9.31,109,11,5,3,1,9,54,3,Synthetic training record
+T91126,CSV ROYAL FLASH,NOVA,2021-11-20,Active,FTE,AKC478638,,,,,9.68,53,5,2,3,3,7,43,1,Import validation sample
+T91127,CSV WILD HUNTER,ARLO,2022-07-14,Inactive,A,,,,,,9.5,56,5,3,8,2,4,32,4,Synthetic training record
+T91128,CSV SILENT RACER,NOVA,2014-04-03,Inactive,A,,CKC798435,,,,9.79,75,4,1,2,2,3,44,2,Synthetic demo import row
+T91129,CSV BRIGHT ORBIT,ACE,2019-07-09,Active,A,,,,,,9.87,4,0,0,3,4,0,3,0,Synthetic demo import row
+T91130,CSV SILVER RACER,MADDIE,2014-04-02,Active,B,AKC999138,CKC942127,,,,8.91,101,6,8,3,1,10,26,4,Import validation sample
+T91131,CSV SILVER WHISPER,LUNA,2021-05-25,Inactive,A,,CKC310418,,,,9.71,136,18,6,11,1,14,47,5,Generated for bulk CSV testing
+T91132,CSV SWIFT FLARE,MILO,2014-04-18,Active,C,,,F96154,Australian,,8.68,151,8,6,3,0,13,33,7,Import validation sample
+T91133,CSV IRON TRACKER,FINN,2015-10-04,Active,B,,,F96827,UKC,,8.98,57,6,3,13,1,6,16,5,Import validation sample
+T91134,CSV MIDNIGHT ARROW,FINN,2021-06-14,Active,B,,,,,,9.48,71,9,4,5,2,11,19,9,Synthetic training record
+T91135,CSV CLASSIC FURY,ECHO,2016-01-13,Inactive,B,,CKC206857,,,https://example.com/pedigree/t91135,9.34,0,0,0,1,4,0,0,0,Sample racing profile
+T91136,CSV STARLIT JET,LUNA,2014-02-07,Inactive,B,AKC988432,,,,https://example.com/pedigree/t91136,8.85,98,10,6,11,2,11,36,6,Sample racing profile
+T91137,CSV LUCKY ORBIT,COMET,2014-10-20,Active,B,,,,,https://example.com/pedigree/t91137,9.14,38,1,1,11,2,1,24,0,Synthetic training record
+T91138,CSV SCARLET LEGEND,JUNO,2019-10-17,Active,A,AKC726121,,,,,10.32,91,10,4,12,0,9,33,3,Generated for bulk CSV testing
+T91139,CSV DUSTY RACER,STORM,2020-06-27,Inactive,A,AKC433451,,,,,9.78,1,0,0,6,2,0,1,0,Generated for bulk CSV testing
+T91140,CSV BLAZING STRIDE,LUNA,2014-04-20,Active,B,AKC743966,,,,,9.52,34,1,1,6,3,1,20,0,Import validation sample
+T91141,CSV MIDNIGHT BLAZE,SCOUT,2019-03-06,Inactive,B,,,,,,8.86,144,25,11,9,2,19,35,12,Generated for bulk CSV testing
+T91142,CSV SHADOW SPARK,ACE,2023-07-28,Inactive,D,AKC731650,,,,,8.13,31,1,1,10,2,1,31,0,Sample racing profile
+T91143,CSV LUCKY ROCKET,ECHO,2017-04-23,Active,A,AKC101343,CKC559507,,,,9.51,108,12,11,10,1,12,56,5,Generated for bulk CSV testing
+T91144,CSV LUCKY COMET,STORM,2014-05-01,Active,D,AKC278368,,,,https://example.com/pedigree/t91144,8.95,81,10,7,7,0,9,21,7,Synthetic demo import row
+T91145,CSV NORTHERN DASH,DASH,2020-12-18,Inactive,C,AKC395198,,F61498,NZKC,,8.45,53,6,4,2,0,5,31,0,Generated for bulk CSV testing
+T91146,CSV SHADOW HUNTER,SCOUT,2015-08-28,Active,C,,,,,,8.52,59,5,3,3,2,7,24,0,Synthetic demo import row
+T91147,CSV GOLDEN FALCON,REX,2022-07-25,Active,B,,,,,,9.26,244,50,29,8,4,36,55,3,Import validation sample
+T91148,CSV CLASSIC GLIDER,COMET,2015-08-06,Inactive,A,AKC302087,CKC543940,F99538,Australian,https://example.com/pedigree/t91148,9.56,88,12,10,6,0,11,38,1,Import validation sample
+T91149,CSV DUSTY WIND,STORM,2020-02-14,Active,B,,,F23845,NZKC,,8.97,113,12,7,4,3,11,50,6,Generated for bulk CSV testing
+T91150,CSV CLASSIC CHARM,ZARA,2014-07-11,Active,A,,,,,,9.66,169,14,22,7,2,22,53,10,Sample racing profile
+T91151,CSV ARCTIC HUNTER,LUNA,2017-08-07,Inactive,B,,,,,https://example.com/pedigree/t91151,8.79,86,4,3,2,1,4,50,4,Synthetic demo import row
+T91152,CSV THUNDER STRIDE,FINN,2014-06-23,Active,B,,,,,,9.11,75,5,6,3,0,7,28,5,Synthetic training record
+T91153,CSV SILVER ARROW,MADDIE,2023-04-28,Active,A,AKC783238,,F99417,FCI,,9.89,28,6,3,11,2,4,8,0,Synthetic training record
+T91154,CSV IRON WHISPER,MADDIE,2019-08-09,Active,A,,,,,https://example.com/pedigree/t91154,10.25,160,19,10,5,2,19,53,9,Sample racing profile
+T91155,CSV VELVET HUNTER,ARLO,2024-05-07,Active,C,,,,,,8.7,50,2,2,7,2,2,42,2,Synthetic demo import row
+T91156,CSV DUSTY JET,DASH,2019-12-23,Active,B,,,,,,9.37,122,11,6,13,2,9,56,1,Synthetic demo import row
+T91157,CSV THUNDER TRACKER,NOVA,2018-07-26,Inactive,B,,,F17035,KC,,8.7,262,26,15,1,1,30,60,3,Generated for bulk CSV testing
+T91158,CSV RAPID BLAZE,MILO,2023-08-05,Active,C,,,,,https://example.com/pedigree/t91158,8.68,27,1,1,10,1,1,17,0,Synthetic training record
+T91159,CSV BLAZING WHISPER,ACE,2014-09-07,Inactive,D,,,,,https://example.com/pedigree/t91159,8.28,0,0,0,7,0,0,0,0,Synthetic demo import row
+T91160,CSV BLUE STRIDE,SCOUT,2018-08-24,Active,B,,,,,,8.68,42,4,5,9,1,6,10,0,Synthetic demo import row
+T91161,CSV SOUTHERN CHARM,TRIX,2014-07-21,Active,B,AKC150290,,,,https://example.com/pedigree/t91161,9.13,65,8,3,10,0,7,44,6,Sample racing profile
+T91162,CSV ELECTRIC FALCON,FLASH,2024-09-09,Active,C,,,,,,8.61,68,3,2,4,2,3,31,2,Synthetic training record
+T91163,CSV STARLIT DASH,ARLO,2021-06-08,Active,C,,,,,https://example.com/pedigree/t91163,9.13,6,0,0,5,0,0,5,0,Synthetic demo import row
+T91164,CSV BLUE ARROW,MADDIE,2014-05-12,Inactive,A,,CKC895034,,,https://example.com/pedigree/t91164,9.83,65,9,3,5,3,7,21,4,Sample racing profile
+T91165,CSV BLUE WHISPER,ARLO,2021-07-21,Inactive,A,AKC861697,CKC985364,,,,9.88,138,16,13,11,1,14,37,2,Synthetic training record
+T91166,CSV STARLIT BOLT,FLASH,2020-08-02,Active,C,AKC810859,,,,,8.8,142,19,8,6,2,16,55,11,Synthetic training record
+T91167,CSV CRIMSON JET,RIO,2022-10-02,Active,FTE,,,,,https://example.com/pedigree/t91167,10.5,82,5,5,7,1,7,48,5,Synthetic demo import row
+T91168,CSV COPPER BOLT,FINN,2019-02-16,Inactive,A,,CKC675771,F21913,NZKC,,9.26,58,5,4,7,4,7,35,5,Import validation sample
+T91169,CSV BLAZING CHARM,VEGA,2019-12-15,Active,C,AKC457938,,,,,8.3,57,4,2,7,1,3,35,0,Import validation sample
+T91170,CSV RAPID DASH,FLASH,2020-04-15,Inactive,A,AKC893928,,,,,9.24,69,9,3,11,4,9,28,8,Synthetic training record
+T91171,CSV STARLIT WIND,SAGE,2016-12-19,Active,C,AKC789461,,,,,8.47,81,13,6,4,1,9,24,3,Import validation sample
+T91172,CSV FIERCE ORBIT,JETT,2022-05-27,Inactive,FTE,,,,,https://example.com/pedigree/t91172,9.75,50,3,2,4,3,4,22,1,Import validation sample
+T91173,CSV FIERCE ECHO,VEGA,2022-05-28,Active,A,AKC499371,CKC802812,F44993,UKC,,9.45,45,0,0,9,4,0,43,0,Generated for bulk CSV testing
+T91174,CSV SILENT HUNTER,ROGUE,2020-04-17,Inactive,C,AKC796772,CKC500118,,,,8.91,72,7,3,3,2,5,35,2,Sample racing profile
+T91175,CSV BRIGHT STORM,ROGUE,2023-04-25,Inactive,A,,,F32779,KC,,9.57,26,3,1,6,1,2,24,2,Synthetic demo import row
+T91176,CSV CRIMSON FLARE,SKYE,2023-01-25,Inactive,B,,,,,,9.05,66,8,5,4,1,8,14,1,Sample racing profile
+T91177,CSV NORTHERN TRACKER,SCOUT,2017-10-17,Active,B,,,F55351,Australian,,8.89,197,16,18,13,3,19,41,3,Sample racing profile
+T91178,CSV STORM WIND,FINN,2021-01-10,Inactive,A,,,,,,9.57,3,0,0,9,3,0,4,0,Synthetic demo import row
+T91179,CSV SILENT FALCON,COMET,2014-08-23,Active,A,AKC932794,,F39837,Irish,,9.59,57,6,4,9,4,6,28,2,Synthetic demo import row
+T91180,CSV FIERCE RACER,LUNA,2019-09-04,Active,C,,,,,,8.73,21,1,1,6,2,1,10,1,Sample racing profile
+T91181,CSV SWIFT NOVA,MADDIE,2022-03-04,Active,B,,,F37532,KC,,9.04,126,9,10,5,0,13,46,10,Generated for bulk CSV testing
+T91182,CSV CLASSIC LEGEND,NIKO,2014-09-15,Active,A,,,,,,9.82,78,2,2,9,2,3,42,2,Import validation sample
+T91183,CSV CRIMSON STORM,NIKO,2019-06-14,Active,A,,,,,,9.53,60,4,3,9,1,5,23,2,Import validation sample
+T91184,CSV GOLDEN JET,ECHO,2016-09-07,Active,FTE,AKC179062,,,,,10.03,80,1,1,6,1,1,49,1,Import validation sample
+T91185,CSV LUCKY WIND,KODA,2015-07-12,Active,C,,,,,https://example.com/pedigree/t91185,8.4,47,3,1,11,1,2,32,0,Synthetic demo import row
+T91186,CSV THUNDER DRIFT,JUNO,2017-02-09,Active,A,AKC929906,,,,,10.27,45,4,2,10,2,4,20,2,Import validation sample
+T91187,CSV NEON ORBIT,RIO,2015-09-09,Active,FTE,,,,,,10.1,22,0,0,4,1,0,30,0,Sample racing profile
+T91188,CSV BLUE FLASH,VEGA,2017-07-26,Active,A,,,,,,9.44,11,1,0,5,1,1,8,0,Import validation sample
+T91189,CSV ROYAL GLIDER,NIKO,2024-01-24,Inactive,C,,,,,,8.8,60,8,4,6,0,6,30,4,Sample racing profile
+T91190,CSV STARLIT PHANTOM,PIPER,2023-02-08,Active,A,AKC648102,,,,,9.67,174,24,7,10,4,19,30,0,Import validation sample
+T91191,CSV BLUE ROCKET,EMBER,2024-11-14,Active,B,AKC655552,,,,,9.19,187,22,7,4,3,18,49,12,Generated for bulk CSV testing
+T91192,CSV ARCTIC ORBIT,ROGUE,2020-05-07,Active,C,AKC647923,CKC107543,,,https://example.com/pedigree/t91192,8.79,13,1,0,10,0,1,6,1,Synthetic training record
+T91193,CSV SCARLET BOLT,BLAZE,2019-09-18,Active,D,,,,,https://example.com/pedigree/t91193,8.06,199,15,10,7,1,23,55,3,Import validation sample
+T91194,CSV ROYAL HUNTER,ACE,2015-03-16,Inactive,B,AKC332542,,,,,9.23,45,1,1,10,2,1,41,0,Generated for bulk CSV testing
+T91195,CSV SILVER LEGEND,PIPER,2022-09-23,Active,A,AKC350878,,,,https://example.com/pedigree/t91195,9.49,46,5,4,3,0,5,17,5,Import validation sample
+T91196,CSV WILD SPARK,RIO,2022-10-12,Active,C,AKC303974,,,,https://example.com/pedigree/t91196,8.83,61,3,2,12,2,2,35,1,Sample racing profile
+T91197,CSV FIERCE PHANTOM,ZARA,2023-08-25,Active,A,,,,,,9.86,45,0,0,6,2,0,30,0,Import validation sample
+T91198,CSV SCARLET ROCKET,ARLO,2018-04-10,Active,C,,CKC287155,,,,8.86,127,9,6,5,0,12,60,7,Import validation sample
+T91199,CSV SOUTHERN RUNNER,SAGE,2015-02-03,Active,C,,,,,https://example.com/pedigree/t91199,8.58,79,5,2,4,2,5,30,3,Sample racing profile
+T91200,CSV ROYAL SPIRIT,SAGE,2023-03-02,Active,B,,CKC464158,,,,9.41,72,11,5,9,2,10,44,0,Generated for bulk CSV testing
+T91201,CSV SCARLET CHASER,NOVA,2018-08-20,Active,A,,,,,,10.21,36,1,1,5,1,2,25,2,Import validation sample
+T91202,CSV ROYAL DASH,COMET,2016-08-26,Active,B,AKC990649,,,,,8.91,111,16,8,10,3,12,54,1,Sample racing profile
+T91203,CSV VELVET TRACKER,REX,2022-09-26,Active,A,AKC812597,,,,,9.62,89,11,6,3,4,9,41,5,Sample racing profile
+T91204,CSV LUCKY HUNTER,COMET,2016-11-26,Inactive,B,,,,,https://example.com/pedigree/t91204,8.88,58,4,4,4,4,4,41,4,Import validation sample
+T91205,CSV LUCKY ECHO,BLAZE,2016-01-05,Inactive,C,,,F31877,Australian,https://example.com/pedigree/t91205,8.88,8,1,0,3,0,1,4,0,Synthetic demo import row
+T91206,CSV WILD SPIRIT,NOVA,2018-08-21,Active,B,AKC136862,,,,,8.43,126,18,12,7,4,17,34,7,Synthetic training record
+T91207,CSV EMERALD HUNTER,TRIX,2022-05-12,Active,A,AKC422823,,,,,9.7,0,0,0,11,2,0,0,0,Synthetic demo import row
+T91208,CSV BRIGHT ECHO,STORM,2018-10-08,Inactive,B,AKC687783,,,,,8.81,36,3,2,3,4,3,14,1,Sample racing profile
+T91209,CSV ELECTRIC DASH,MADDIE,2015-03-05,Active,B,,,,,https://example.com/pedigree/t91209,8.73,1,0,0,2,0,0,1,0,Generated for bulk CSV testing
+T91210,CSV SWIFT BOLT,DASH,2019-07-10,Inactive,B,,,F20515,UKC,https://example.com/pedigree/t91210,9.12,48,5,2,9,3,4,30,3,Generated for bulk CSV testing
+T91211,CSV SILENT STRIDE,DASH,2021-12-25,Active,C,AKC508024,,,,,8.61,170,26,10,13,2,23,40,8,Generated for bulk CSV testing
+T91212,CSV MIDNIGHT SPIRIT,TRIX,2020-06-01,Active,A,AKC927477,,,,,9.46,5,0,0,14,0,0,9,0,Synthetic demo import row
+T91213,CSV SOUTHERN HUNTER,COMET,2022-02-05,Active,A,,,,,,9.24,89,15,7,7,2,11,46,6,Import validation sample
+T91214,CSV FIERCE BOLT,DASH,2023-03-18,Active,C,AKC971733,,,,https://example.com/pedigree/t91214,8.43,103,10,5,2,1,11,52,7,Import validation sample
+T91215,CSV THUNDER BLAZE,JETT,2015-11-18,Inactive,A,,,,,,9.55,21,1,0,10,1,1,26,0,Synthetic demo import row
+T91216,CSV BLAZING DASH,FLASH,2014-10-21,Inactive,C,,,,,,8.62,395,40,31,4,2,41,59,7,Synthetic training record
+T91217,CSV BLUE TRACKER,STORM,2014-10-09,Active,C,,CKC326387,,,https://example.com/pedigree/t91217,8.64,82,6,6,9,2,6,46,1,Synthetic training record
+T91218,CSV SILENT FLASH,SAGE,2024-10-12,Active,C,,CKC930956,,,,8.62,125,15,6,10,2,11,38,5,Sample racing profile
+T91219,CSV ARCTIC SPIRIT,NIKO,2022-04-13,Inactive,FTE,AKC574379,,,,,10.03,78,6,4,10,0,8,18,2,Sample racing profile
+T91220,CSV STARLIT NOVA,KODA,2022-10-19,Active,A,,CKC484914,,,,9.59,141,18,6,12,4,14,36,3,Synthetic demo import row
+T91221,CSV WILD STRIDE,JETT,2023-07-03,Inactive,FTE,AKC956835,,,,https://example.com/pedigree/t91221,10.11,133,11,3,6,2,10,49,9,Import validation sample
+T91222,CSV DUSTY RUNNER,SKYE,2022-12-08,Active,C,,,,,,8.92,71,2,2,3,2,4,50,2,Synthetic training record
+T91223,CSV BRIGHT CHARM,COMET,2016-08-18,Active,B,,,,,,9.24,23,1,1,6,1,1,15,1,Sample racing profile
+T91224,CSV SOUTHERN GLIDER,TRIX,2014-05-06,Inactive,B,,,,,https://example.com/pedigree/t91224,9.07,35,7,5,10,2,5,23,0,Synthetic demo import row
+T91225,CSV NORTHERN CHARM,STORM,2015-05-15,Active,A,,,,,,9.45,71,4,2,3,1,4,35,0,Import validation sample
+T91226,CSV VELVET STRIDE,FINN,2024-01-03,Active,A,,,,,https://example.com/pedigree/t91226,9.84,75,9,3,4,3,8,14,1,Import validation sample
+T91227,CSV STARLIT CHARM,ACE,2014-04-17,Active,B,,CKC817552,,,,8.83,75,11,7,12,0,8,15,4,Import validation sample
+T91228,CSV VELVET SPIRIT,COMET,2019-07-22,Active,C,,,,,,8.42,127,22,13,10,0,19,27,5,Generated for bulk CSV testing
+T91229,CSV WILD CHARM,ARLO,2022-03-14,Inactive,D,AKC692282,,,,,8.36,120,6,6,12,1,11,60,5,Sample racing profile
+T91230,CSV LUCKY SPARK,SUNNY,2024-12-09,Active,A,AKC127470,,,,,9.43,18,0,0,8,2,0,14,0,Generated for bulk CSV testing
+T91231,CSV COPPER WHISPER,JUNO,2021-03-06,Active,A,,CKC382967,,,,9.53,122,12,10,10,3,13,42,1,Generated for bulk CSV testing
+T91232,CSV ELECTRIC WHISPER,SAGE,2014-10-24,Inactive,C,,,,,,8.45,1,0,0,5,2,0,2,0,Synthetic demo import row
+T91233,CSV EMERALD DRIFT,TRIX,2014-04-10,Active,FTE,,,,,,9.6,113,5,5,4,4,8,58,2,Import validation sample
+T91234,CSV CRIMSON WHISPER,MILO,2019-08-01,Active,B,,,,,,8.9,108,12,4,10,4,11,50,1,Import validation sample
+T91235,CSV SHADOW WHISPER,ROGUE,2020-01-25,Active,A,,,,,https://example.com/pedigree/t91235,9.09,130,12,10,3,1,13,49,4,Generated for bulk CSV testing
+T91236,CSV SWIFT GLIDER,SAGE,2018-01-15,Active,B,,,,,https://example.com/pedigree/t91236,8.95,49,4,3,12,0,4,28,0,Generated for bulk CSV testing
+T91237,CSV CRIMSON STRIDE,TRIX,2019-01-05,Inactive,C,,,,,https://example.com/pedigree/t91237,8.47,56,6,4,7,1,5,26,5,Import validation sample
+T91238,CSV SOUTHERN FLARE,BOLT,2015-05-11,Active,B,AKC548081,,F71710,UKC,https://example.com/pedigree/t91238,9.24,87,14,8,14,3,11,26,3,Import validation sample
+T91239,CSV STARLIT LEGEND,ARLO,2018-07-20,Inactive,A,,,,,,9.43,81,11,8,12,0,10,31,7,Synthetic demo import row
+T91240,CSV SWIFT PHANTOM,TRIX,2015-12-28,Active,B,,CKC466634,,,,9.27,19,0,0,6,3,0,18,0,Import validation sample
+T91241,CSV ARCTIC ROCKET,RIO,2016-04-11,Inactive,FTE,,,F27793,Australian,https://example.com/pedigree/t91241,9.91,138,24,6,6,4,17,29,5,Sample racing profile
+T91242,CSV SCARLET NOVA,ACE,2017-10-22,Active,FTE,,CKC256557,,,https://example.com/pedigree/t91242,10.25,75,12,5,12,0,9,53,6,Sample racing profile
+T91243,CSV ELECTRIC COMET,JUNO,2017-06-15,Inactive,A,,CKC492393,,,,9.56,139,5,4,6,4,8,58,0,Sample racing profile
+T91244,CSV BRIGHT BLAZE,COMET,2015-09-22,Inactive,A,AKC506415,,,,https://example.com/pedigree/t91244,9.85,98,13,8,0,2,10,38,7,Generated for bulk CSV testing
+T91245,CSV RAPID FURY,ECHO,2022-06-25,Active,A,AKC386929,CKC753205,,,https://example.com/pedigree/t91245,9.44,64,4,2,3,4,5,34,2,Sample racing profile
+T91246,CSV SCARLET PHANTOM,BOLT,2016-01-16,Inactive,A,,CKC510954,,,,9.1,89,14,10,1,3,11,44,4,Import validation sample
+T91247,CSV CRIMSON COMET,RIO,2021-02-15,Active,B,,,,,https://example.com/pedigree/t91247,8.84,230,34,25,13,3,29,57,5,Synthetic training record
+T91248,CSV SWIFT COMET,JUNO,2015-06-16,Active,A,,,,,https://example.com/pedigree/t91248,9.78,24,1,1,9,3,1,20,1,Synthetic training record
+T91249,CSV GOLDEN BLAZE,DASH,2023-07-26,Inactive,B,AKC827851,,,,https://example.com/pedigree/t91249,8.59,254,33,27,2,3,31,59,1,Synthetic demo import row
+T91250,CSV ARCTIC FLASH,VEGA,2023-07-11,Active,C,AKC956721,CKC708979,,,,8.84,21,1,2,6,2,2,9,1,Sample racing profile
+T91251,CSV STARLIT FLARE,MILO,2019-02-19,Active,D,,CKC408474,F81943,FCI,https://example.com/pedigree/t91251,8.3,130,8,9,7,1,11,35,1,Synthetic training record
+T91252,CSV ROYAL WHISPER,MILO,2022-04-22,Active,A,,,,,,9.48,11,0,0,4,1,0,8,0,Synthetic training record
+T91253,CSV COPPER PHANTOM,EMBER,2023-07-20,Active,B,,,,,https://example.com/pedigree/t91253,9.59,50,4,2,2,0,3,38,1,Import validation sample
+T91254,CSV SOUTHERN FLASH,NIKO,2021-12-03,Active,C,,,,,,9.16,7,0,0,7,1,0,5,0,Import validation sample
+T91255,CSV ELECTRIC TRACKER,STORM,2018-05-06,Active,FTE,,,,,https://example.com/pedigree/t91255,10.15,83,11,3,8,1,9,30,0,Import validation sample
+T91256,CSV GOLDEN RACER,STORM,2018-05-05,Active,A,AKC877444,CKC283095,,,,9.47,16,1,1,14,4,1,11,1,Generated for bulk CSV testing
+T91257,CSV THUNDER FALCON,FINN,2024-03-07,Active,C,AKC377238,,F31967,Australian,,8.5,67,8,3,12,0,8,19,3,Sample racing profile
+T91258,CSV LUCKY WHISPER,VEGA,2019-09-22,Inactive,A,,,,,,9.38,15,0,0,9,4,0,17,0,Generated for bulk CSV testing
+T91259,CSV EMERALD BLAZE,VEGA,2016-06-18,Active,A,AKC531225,CKC208954,,,,9.44,40,4,2,12,4,3,46,0,Synthetic demo import row
+T91260,CSV FIERCE FLASH,LUNA,2023-03-13,Active,FTE,,,,,,9.89,120,8,6,5,0,7,59,4,Sample racing profile
+T91261,CSV BRIGHT STRIDE,ZARA,2020-06-02,Active,C,AKC172769,,,,,8.98,10,0,0,7,1,0,11,0,Synthetic demo import row
+T91262,CSV SILVER COMET,LUNA,2023-12-09,Inactive,A,,,F14959,KC,,9.73,70,10,7,1,1,8,25,7,Synthetic demo import row
+T91263,CSV ROYAL CHARM,RIO,2021-02-19,Active,D,AKC417538,,,,,8.48,14,1,0,9,1,1,5,0,Generated for bulk CSV testing
+T91264,CSV ROYAL ORBIT,FLASH,2024-12-12,Active,FTE,,,F13324,KC,,9.92,122,9,9,2,0,9,50,7,Sample racing profile
+T91265,CSV STORM SPARK,BOLT,2020-02-07,Inactive,C,,,,,https://example.com/pedigree/t91265,8.95,44,1,1,7,0,1,37,0,Generated for bulk CSV testing
+T91266,CSV SWIFT ARROW,TRIX,2014-05-27,Inactive,B,AKC719752,CKC957179,F75161,NZKC,,9.18,59,6,3,12,1,6,27,2,Synthetic demo import row
+T91267,CSV DUSTY ARROW,SKYE,2015-02-09,Active,B,,,,,,9.54,2,0,0,3,4,0,2,0,Sample racing profile
+T91268,CSV STORM LEGEND,SAGE,2021-12-05,Active,B,,,,,,9.25,39,2,1,4,4,2,31,2,Synthetic demo import row
+T91269,CSV ARCTIC TRACKER,MADDIE,2022-09-08,Active,B,AKC155646,,,,,9.14,65,6,2,7,2,5,58,1,Import validation sample
+T91270,CSV STORM ORBIT,SAGE,2021-01-04,Inactive,FTE,AKC923648,CKC639915,F40841,KC,,9.67,110,6,8,10,3,10,47,3,Generated for bulk CSV testing
+T91271,CSV GOLDEN BOLT,NIKO,2021-01-14,Active,FTE,,,,,,9.77,43,4,2,3,3,4,40,1,Synthetic training record
+T91272,CSV ELECTRIC ARROW,SAGE,2019-04-10,Active,C,,,,,,8.77,87,3,4,12,0,6,54,4,Sample racing profile
+T91273,CSV ELECTRIC STORM,NOVA,2023-03-19,Inactive,B,AKC593515,,,,,9.02,21,1,1,5,1,1,25,1,Generated for bulk CSV testing
+T91274,CSV SOUTHERN FURY,NOVA,2024-02-01,Active,A,,,,,https://example.com/pedigree/t91274,9.19,138,6,8,7,2,11,55,5,Import validation sample
+T91275,CSV ELECTRIC DRIFT,ECHO,2023-09-19,Inactive,C,AKC452001,,F98428,Irish,,8.82,10,1,0,9,0,1,7,0,Generated for bulk CSV testing
+T91276,CSV NORTHERN SPIRIT,ROGUE,2015-11-16,Inactive,C,,,,,,8.47,61,8,5,1,2,8,32,0,Import validation sample
+T91277,CSV WILD PHANTOM,PIPER,2019-11-23,Inactive,FTE,AKC580115,CKC509660,,,,10.38,4,0,0,8,2,0,4,0,Synthetic training record
+T91278,CSV CLASSIC NOVA,SUNNY,2016-08-12,Active,C,AKC298244,CKC940946,,,,8.54,57,7,3,6,0,5,21,3,Sample racing profile
+T91279,CSV SHADOW LEGEND,ECHO,2017-08-12,Inactive,C,AKC470274,,,,,8.4,29,2,2,2,0,2,10,0,Synthetic demo import row
+T91280,CSV SILVER BLAZE,NIKO,2016-08-09,Active,A,,,,,https://example.com/pedigree/t91280,8.95,43,0,0,4,4,0,34,0,Import validation sample
+T91281,CSV NORTHERN HUNTER,ARLO,2018-08-10,Inactive,C,,,,,,8.82,235,14,15,4,1,22,59,1,Import validation sample
+T91282,CSV BLUE SPIRIT,FINN,2019-02-11,Active,B,,,,,,9.41,39,2,1,3,2,2,28,2,Synthetic training record
+T91283,CSV CRIMSON CHARM,MADDIE,2020-06-13,Active,A,,,,,https://example.com/pedigree/t91283,9.64,181,32,24,11,3,26,46,12,Generated for bulk CSV testing
+T91284,CSV BLUE STORM,PIPER,2015-03-07,Active,D,,,,,,8.28,129,16,5,4,1,13,40,2,Sample racing profile
+T91285,CSV SILVER JET,RIO,2018-10-10,Active,C,AKC929653,CKC375436,,,,8.72,99,10,3,11,1,9,40,6,Synthetic demo import row
+T91286,CSV ARCTIC SPARK,REX,2023-08-19,Active,A,,,,,,9.59,22,0,0,5,3,0,16,0,Sample racing profile
+T91287,CSV WILD WIND,TRIX,2015-09-07,Inactive,A,AKC889188,CKC438277,,,,9.55,82,11,2,6,2,8,43,5,Synthetic training record
+T91288,CSV ELECTRIC BLAZE,SUNNY,2016-02-07,Active,A,AKC685792,,,,,9.29,129,8,4,6,2,13,48,7,Generated for bulk CSV testing
+T91289,CSV IRON GLIDER,KODA,2019-03-23,Active,C,AKC234966,,,,,8.64,10,0,0,11,0,0,8,0,Generated for bulk CSV testing
+T91290,CSV MIDNIGHT STRIDE,STORM,2024-09-19,Active,A,AKC169465,,F22648,FCI,,9.75,14,0,0,6,4,0,11,0,Import validation sample
+T91291,CSV THUNDER WIND,NIKO,2015-02-27,Active,A,AKC300852,,,,,10.12,0,0,0,4,0,0,0,0,Generated for bulk CSV testing
+T91292,CSV ROYAL ECHO,DASH,2022-04-14,Active,D,AKC215674,,,,,8.2,6,0,0,7,2,0,5,0,Synthetic training record
+T91293,CSV IRON JET,STORM,2021-11-12,Active,D,,CKC559337,,,,8.69,17,1,1,4,0,1,7,0,Import validation sample
+T91294,CSV BLUE ECHO,JETT,2021-05-25,Inactive,B,AKC927843,,,,,8.79,32,2,1,2,0,2,31,1,Synthetic demo import row
+T91295,CSV BLUE COMET,JUNO,2024-01-06,Active,C,AKC752179,,,,,8.17,105,14,10,12,2,14,33,3,Import validation sample
+T91296,CSV SWIFT DRIFT,BOLT,2020-02-13,Active,FTE,,CKC285460,,,,9.77,43,5,3,10,4,4,31,3,Synthetic training record
+T91297,CSV BLAZING NOVA,MADDIE,2016-09-02,Active,B,,,,,,9.47,17,0,0,13,2,0,20,0,Synthetic training record
+T91298,CSV MIDNIGHT ECHO,REX,2019-07-12,Active,A,AKC427260,,,,https://example.com/pedigree/t91298,9.52,1,0,0,2,3,0,1,0,Import validation sample
+T91299,CSV ROYAL STORM,ZARA,2019-10-04,Inactive,A,,,,,,9.81,30,2,2,1,4,2,21,1,Generated for bulk CSV testing
