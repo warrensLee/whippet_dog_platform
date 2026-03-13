@@ -311,7 +311,6 @@ class Dog:
         sql += """
             GROUP BY d.CWANumber
             ORDER BY d.RegisteredName ASC, d.CWANumber ASC
-            LIMIT 100
         """
 
         rows = fetch_all(sql, params)
