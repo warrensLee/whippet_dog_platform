@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { DogSearchResponse } from "@/lib/search/types";
+import HeroSection from "@/app/components/HeroSection";
 
 /*
     Clamps a number to a safe integer range.
@@ -56,7 +57,7 @@ export default function AdminDogsPage()
     const [error, setError] = React.useState("");
 
     /*
-        Delete & selectionstate for single-record removal.
+        Delete & selection state for single-record removal.
     */
     const [deleting, setDeleting] = React.useState(false);
     const [selectedDogs, setSelectedDogs] = React.useState<string[]>([]);
@@ -513,88 +514,58 @@ export default function AdminDogsPage()
     return (
         <main className="pt-24 bg-[#1F4D2E]">
             {/* Hero section */}
-            <section className="relative pt-16 pb-40 bg-gradient-to-b from-[#1F4D2E] to-[#18452A] overflow-hidden">
-                {/* Decorative background layers */}
-                <div className="pointer-events-none absolute inset-0">
-                    <div className="absolute -top-36 left-1/2 h-[520px] w-[920px] -translate-x-1/2 rounded-full bg-white/10 blur-3xl" />
-                    <div className="absolute -top-24 left-1/2 h-[380px] w-[680px] -translate-x-1/2 rounded-full bg-[#2E6B3F]/25 blur-3xl" />
-                    <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-black/25" />
-                </div>
+            {/* 
+                Hero section for the main search entry area.
 
-                <div className="relative z-10 max-w-6xl mx-auto px-6">
-                    <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
-                        <div className="max-w-2xl">
-                            <h1 className="mt-4 text-white text-5xl font-bold tracking-tight">
-                                Manage Dogs
-                            </h1>
-
-                            <p className="mt-3 text-white/70 max-w-xl">
-                                Search, edit, and add dog records through the administrative dashboard.
-                            </p>
-                        </div>
-
-                        <div className="flex flex-col sm:flex-row gap-3">
-                            <Link
-                                href="/admin"
-                                className="rounded-full border border-white/20 bg-white/10 px-5 py-3 font-semibold text-white hover:bg-white/15 transition text-center"
-                            >
-                                Back to Admin
-                            </Link>
-
-                            <Link
-                                href="/admin/dogs/add"
-                                className="rounded-full bg-[#2E6B3F] px-5 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] hover:shadow-md transition text-center"
-                            >
-                                + Add New Dog
-                            </Link>
-                        </div>
-                    </div>
-
-                    {/* Search bar */}
-                    <div className="mt-8 rounded-3xl border border-white/15 bg-white/10 p-4 md:p-5 backdrop-blur">
-                        <form
-                            method="GET"
-                            action="/admin/dogs"
-                            className="flex flex-col md:flex-row gap-3"
-                        >
-                            <input
-                                name="q"
-                                defaultValue={q}
-                                placeholder="Search by dog name, CWA number, owner, or title..."
-                                className="w-full rounded-full border border-white/25 bg-white/95 px-6 py-3 text-[#12301D] text-base outline-none shadow-sm focus:ring-4 focus:ring-[#2E6B3F]/35 focus:border-[#2E6B3F]/60"
-                            />
-
-                            <input type="hidden" name="sort" value={sort} />
-
-                            <button className="rounded-full bg-white px-6 py-3 font-semibold text-[#12301D] shadow-sm hover:bg-white/90 transition">
-                                Search
-                            </button>
-                        </form>
-
-                        <div className="mt-4 text-sm text-white/75">
-                            {
-                                loading
-                                    ? "Loading dashboard..."
-                                    : error
-                                    ? `Error: ${error}`
-                                    : `${total} dog record(s) found`
-                            }
-                        </div>
-                    </div>
-                </div>
-
-                {/* Bottom wave divider */}
-                <svg
-                    viewBox="0 0 1440 100"
-                    preserveAspectRatio="none"
-                    className="absolute left-0 -bottom-px w-full h-28"
+                I kept this visually strong so the page feels more polished
+                and less like a plain database dump.
+            */}
+            <HeroSection
+                title="Manage Dogs" 
+                subtitle="Search, edit, and manage dog records through the admin panel."
+                topContent={
+                <Link
+                    href="/admin"
+                    className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
                 >
-                    <path
-                        d="M 0 0 L 144 19 L 288 36 L 432 51 L 576 64 L 720 75 L 864 84 L 1008 91 L 1152 96 L 1296 99 L 1440 100 L 1440 100 L 0 100 Z"
-                        fill="#E7F0E9"
-                    />
-                </svg>
-            </section>
+                    Back to Admin Dashboard
+                </Link>
+                        }
+            >    
+                <div className="rounded-3xl border border-white/15 bg-white/10 p-4 md:p-5 backdrop-blur">
+                    <form
+                        method="GET"
+                        action="/admin/dogs"
+                        className="flex flex-col md:flex-row gap-3"
+                    >
+                        <input
+                            name="q"
+                            defaultValue={q}
+                            placeholder="Search dog name, CWA number, owner, or title..."
+                            className="w-full rounded-full border border-white/25 bg-white/95 px-6 py-3 text-[#12301D] text-base outline-none shadow-sm focus:ring-4 focus:ring-[#2E6B3F]/35 focus:border-[#2E6B3F]/60"
+                        />
+                        
+                        <input type="hidden" name="sort" value={sort} />
+
+                        <button className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] hover:shadow-md transition">
+                            Search
+                        </button>
+                    </form>
+                    
+                    {/* 
+                        Small status line gives feedback without taking up too much space.
+                    */}
+                    <div className="mt-4 text-sm text-white/75">
+                        {
+                            loading
+                                ? "Searching..."
+                                : error
+                                ? `Error: ${error}`
+                                : `${total} result(s) found`
+                        }
+                    </div>
+                </div>
+            </HeroSection>
 
             {/* Main content section */}
             <section className="bg-[#E7F0E9] pt-12 pb-24">
@@ -919,26 +890,7 @@ export default function AdminDogsPage()
                 </div>
             </section>
 
-            {/* Footer */}
-            <footer className="bg-[#DCE7DF] pb-2">
-                <hr className="h-px bg-black/25 border-0 -mt-6 mb-4" />
 
-                <p className="text-[#12301D] text-sm text-center leading-relaxed">
-                    <span className="block">
-                        Questions? Email{" "}
-                        <a
-                            href="mailto:cwawhippetracing@gmail.com"
-                            className="underline hover:text-[#2E6B3F] transition"
-                        >
-                            cwawhippetracing@gmail.com
-                        </a>
-                    </span>
-
-                    <span className="block mt-1">
-                        © 2026 Continental Whippet Alliance. All rights reserved.
-                    </span>
-                </p>
-            </footer>
         </main>
     );
 }

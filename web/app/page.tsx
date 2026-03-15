@@ -114,28 +114,6 @@ export default function Home() {
         </div>
       </section>
 
-
-      {/* Footer Section */}
-
-
-      <footer className="bg-neutral-300 pb-2">
-        <hr className="h-px bg-black/60 border-0 -mt-6 mb-4" />
-        <p className="text-black text-sm text-center leading-relaxed">
-          <span className="block">
-            Questions? Email{" "}
-            <a
-              href="mailto:cwawhippetracing@gmail.com"
-              className="underline hover:text-zinc-700 transition"
-            >
-              cwawhippetracing@gmail.com
-            </a>
-          </span>
-          <span className="block mt-1">
-            © 2026 Continental Whippet Alliance. All rights reserved.
-          </span>
-        </p>
-      </footer>
-
     </main>
   )
 }
