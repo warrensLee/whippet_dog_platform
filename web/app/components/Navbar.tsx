@@ -8,7 +8,8 @@ import { usePathname } from 'next/navigation'
 
 
 
-const Navbar = () => {
+const Navbar = () => 
+    {
     const pathname = usePathname()
     return (
         <nav className="fixed top-0 w-full flex items-center justify-around py-1 px-12 border-b border-gray-500 bg-black/30 backdrop-blur-md z-50">

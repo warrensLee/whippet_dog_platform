@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import type { DogSearchResponse } from "@/lib/search/types";
+import HeroSection from "@/app/components/HeroSection";
 
 /*
     Keeps page and limit values from becoming invalid or weird.
@@ -240,85 +241,44 @@ export default function SearchPage()
                 I kept this visually strong so the page feels more polished
                 and less like a plain database dump.
             */}
-            <section className="relative pt-16 pb-32 bg-gradient-to-b from-[#1F4D2E] to-[#18452A] overflow-hidden">
-                {/* 
-                    Soft layered background shapes help add depth without
-                    needing heavy graphics or extra assets.
-                */}
-                <div className="pointer-events-none absolute inset-0">
-                    <div className="absolute -top-36 left-1/2 h-[520px] w-[920px] -translate-x-1/2 rounded-full bg-white/10 blur-3xl" />
-                    <div className="absolute -top-24 left-1/2 h-[380px] w-[680px] -translate-x-1/2 rounded-full bg-[#2E6B3F]/25 blur-3xl" />
-                    <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-black/25" />
-                </div>
+            <HeroSection
+                title="Search Dogs" 
+                subtitle="Search by CWA number, registered name, owner, or title." 
+            >    
+                <div className="rounded-3xl border border-white/15 bg-white/10 p-4 md:p-5 backdrop-blur">
+                    <form
+                        method="GET"
+                        action="/search"
+                        className="flex flex-col md:flex-row gap-3"
+                    >
+                        <input
+                            name="q"
+                            defaultValue={q}
+                            placeholder="Search dog name, CWA number, owner, or title..."
+                            className="w-full rounded-full border border-white/25 bg-white/95 px-6 py-3 text-[#12301D] text-base outline-none shadow-sm focus:ring-4 focus:ring-[#2E6B3F]/35 focus:border-[#2E6B3F]/60"
+                        />
+                        
+                        <input type="hidden" name="sort" value={sort} />
 
-                <div className="relative z-10 max-w-5xl mx-auto px-6">
-                    <div className="flex flex-col items-center text-center">
-
-                        <h1 className="mt-4 text-white text-5xl font-bold tracking-tight">
-                            Search Dogs
-                        </h1>
-
-                        <p className="mt-3 max-w-2xl text-white/70">
-                            Search by CWA number, registered name, owner, or title.
-                        </p>
-
-                        {/* 
-                            Search box is centered and kept in the hero so the page
-                            immediately communicates its main purpose.
-                        */}
-                        <div className="mt-8 w-full max-w-3xl rounded-3xl border border-white/15 bg-white/10 p-4 md:p-5 backdrop-blur">
-                            <form
-                                method="GET"
-                                action="/search"
-                                className="flex flex-col md:flex-row gap-3"
-                            >
-                                <input
-                                    name="q"
-                                    defaultValue={q}
-                                    placeholder="Search dog name, CWA number, owner, or title..."
-                                    className="w-full rounded-full border border-white/25 bg-white/95 px-6 py-3 text-[#12301D] text-base outline-none shadow-sm focus:ring-4 focus:ring-[#2E6B3F]/35 focus:border-[#2E6B3F]/60"
-                                />
-                                
-                                <input type="hidden" name="sort" value={sort} />
-
-                                <button className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] hover:shadow-md transition">
-                                    Search
-                                </button>
-                            </form>
-                            
-                            {/* 
-                                Small status line gives feedback without taking up too much space.
-                            */}
-                            <div className="mt-4 text-sm text-white/75">
-                                {
-                                    loading
-                                        ? "Searching..."
-                                        : error
-                                        ? `Error: ${error}`
-                                        : `${total} result(s) found`
-                                }
-                            </div>
-                        </div>
+                        <button className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] hover:shadow-md transition">
+                            Search
+                        </button>
+                    </form>
+                    
+                    {/* 
+                        Small status line gives feedback without taking up too much space.
+                    */}
+                    <div className="mt-4 text-sm text-white/75">
+                        {
+                            loading
+                                ? "Searching..."
+                                : error
+                                ? `Error: ${error}`
+                                : `${total} result(s) found`
+                        }
                     </div>
                 </div>
-
-                {/* 
-                    Decorative wave divider between hero and content.
-
-                    The slight negative bottom offset helps prevent the thin seam
-                    that can appear between sections on some screens.
-                */}
-                <svg
-                    viewBox="0 0 1440 100"
-                    preserveAspectRatio="none"
-                    className="absolute left-0 -bottom-px block w-full h-28"
-                >
-                    <path
-                        d="M 0 0 L 144 19 L 288 36 L 432 51 L 576 64 L 720 75 L 864 84 L 1008 91 L 1152 96 L 1296 99 L 1440 100 L 1440 100 L 0 100 Z"
-                        fill="#E7F0E9"
-                    />
-                </svg>
-            </section>
+            </HeroSection>
 
             {/* 
                 Main results section.
@@ -574,30 +534,6 @@ export default function SearchPage()
                     }
                 </div>
             </section>
-
-            {/* 
-                Footer stays minimal since this page is search-focused
-                and does not need extra distractions at the bottom.
-            */}
-            <footer className="bg-[#DCE7DF] pb-2">
-                <hr className="h-px bg-black/25 border-0 -mt-6 mb-4" />
-
-                <p className="text-[#12301D] text-sm text-center leading-relaxed">
-                    <span className="block">
-                        Questions? Email{" "}
-                        <a
-                            href="mailto:cwawhippetracing@gmail.com"
-                            className="underline hover:text-[#2E6B3F] transition"
-                        >
-                            cwawhippetracing@gmail.com
-                        </a>
-                    </span>
-
-                    <span className="block mt-1">
-                        © 2026 Continental Whippet Alliance. All rights reserved.
-                    </span>
-                </p>
-            </footer>
         </main>
     );
 }

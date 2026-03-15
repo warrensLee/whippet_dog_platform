@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import DogForm from "@/app/components/DogForm";
 import type { DogFormValues } from "@/lib/search/types";
 import { emptyDogFormValues } from "@/lib/search/types";
+import HeroSection from "@/app/components/HeroSection";
 
 /*
     Builds a clean payload from the current form state before sending
@@ -221,61 +222,26 @@ export default function AddDogPage()
 
     return (
         <main className="pt-24 bg-[#1F4D2E]">
-            {/* Hero / page heading section */}
-            <section className="relative pt-16 pb-40 bg-gradient-to-b from-[#1F4D2E] to-[#18452A] overflow-hidden">
-                {/* Decorative background layers */}
-                <div className="pointer-events-none absolute inset-0">
-                    <div className="absolute -top-36 left-1/2 h-[520px] w-[920px] -translate-x-1/2 rounded-full bg-white/10 blur-3xl" />
-                    <div className="absolute -top-24 left-1/2 h-[380px] w-[680px] -translate-x-1/2 rounded-full bg-[#2E6B3F]/25 blur-3xl" />
-                    <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-black/25" />
-                </div>
+            {/* 
+                Hero section for the main search entry area.
 
-                <div className="relative z-10 max-w-5xl mx-auto px-6 flex flex-col items-center">
-                    <div className="w-full max-w-3xl text-center">
-                        {/* Back button */}
-                        <div className="mb-4 flex items-center justify-center gap-3 text-sm text-white/75">
-                            <Link
-                                href="/admin/dogs"
-                                className="rounded-full border border-white/20 bg-white/10 px-4 py-2 hover:bg-white/15 transition"
-                            >
-                                ← Back to Admin Dogs
-                            </Link>
-                        </div>
-
-                        {/* Page title */}
-                        <h1 className="text-white text-5xl font-bold tracking-tight">
-                            Add Dog
-                        </h1>
-
-                        <p className="mt-3 text-white/70">
-                            Create a new dog record through the admin panel.
-                        </p>
-
-                        {/* Live page status text */}
-                        <div className="mt-5 text-sm text-white/70">
-                            {
-                                error
-                                    ? `Error: ${error}`
-                                    : success
-                                    ? success
-                                    : "Enter the information for the new dog record."
-                            }
-                        </div>
-                    </div>
-                </div>
-
-                {/* Bottom divider wave */}
-                <svg
-                    viewBox="0 0 1440 100"
-                    preserveAspectRatio="none"
-                    className="absolute left-0 -bottom-px w-full h-28"
+                I kept this visually strong so the page feels more polished
+                and less like a plain database dump.
+            */}
+            <HeroSection
+                title="Add Dog" 
+                subtitle="Create a new dog record through the admin panel." 
+                topContent={
+                <Link
+                    href="/admin/dogs"
+                    className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
                 >
-                    <path
-                        d="M 0 0 L 144 19 L 288 36 L 432 51 L 576 64 L 720 75 L 864 84 L 1008 91 L 1152 96 L 1296 99 L 1440 100 L 1440 100 L 0 100 Z"
-                        fill="#E7F0E9"
-                    />
-                </svg>
-            </section>
+                    Back to Admin Dogs
+                </Link>
+                        }
+            >    
+            </HeroSection>
+
 
             {/* Main form section */}
             <section className="bg-[#E7F0E9] pt-12 pb-24">
