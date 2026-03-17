@@ -29,7 +29,7 @@ export default function HeroSection({ title, subtitle, children, topContent }: H
 {
     return (
     <section className="relative pt-16 pb-32 bg-gradient-to-b from-[#1F4D2E] to-[#18452A] overflow-hidden">
-        {/* The main container for the hero section, with a background gradient and some decorative elements */}
+      {/* The main container for the hero section, with a background gradient and some decorative elements */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -top-36 left-1/2 h-[520px] w-[920px] -translate-x-1/2 rounded-full bg-white/10 blur-3xl" />
         <div className="absolute -top-24 left-1/2 h-[380px] w-[680px] -translate-x-1/2 rounded-full bg-[#2E6B3F]/25 blur-3xl" />

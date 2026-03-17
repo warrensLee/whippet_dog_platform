@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { DogSearchResponse } from "@/lib/search/types";
 import HeroSection from "@/app/components/HeroSection";
+import SearchBar from "@/app/components/SearchBar";
 
 /*
     Clamps a number to a safe integer range.
@@ -532,25 +533,19 @@ export default function AdminDogsPage()
                 </Link>
                         }
             >    
-                <div className="rounded-3xl border border-white/15 bg-white/10 p-4 md:p-5 backdrop-blur">
-                    <form
-                        method="GET"
-                        action="/admin/dogs"
-                        className="flex flex-col md:flex-row gap-3"
-                    >
-                        <input
-                            name="q"
-                            defaultValue={q}
-                            placeholder="Search dog name, CWA number, owner, or title..."
-                            className="w-full rounded-full border border-white/25 bg-white/95 px-6 py-3 text-[#12301D] text-base outline-none shadow-sm focus:ring-4 focus:ring-[#2E6B3F]/35 focus:border-[#2E6B3F]/60"
-                        />
-                        
-                        <input type="hidden" name="sort" value={sort} />
+                {/* 
+                    Now for searching we will use the SearchBar component.
 
-                        <button className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] hover:shadow-md transition">
-                            Search
-                        </button>
-                    </form>
+                    This keeps the search input consistent across the site and allows us to 
+                    reuse styling and logic without repeating code.
+                */}
+                <div className="rounded-3xl border border-white/15 bg-white/10 p-4 md:p-5 backdrop-blur">
+                    <SearchBar
+                        action="/search"
+                        query={q}
+                        sort={sort}
+                        placeholder="Search by CWA number, AKC number, registered name, owner, or title."
+                    />
                     
                     {/* 
                         Small status line gives feedback without taking up too much space.

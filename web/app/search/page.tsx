@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import type { DogSearchResponse } from "@/lib/search/types";
 import HeroSection from "@/app/components/HeroSection";
+import SearchBar from "@/app/components/SearchBar";
 
 /*
     Keeps page and limit values from becoming invalid or weird.
@@ -96,7 +97,7 @@ export default function SearchPage()
                         Map backend data into the frontend shape used by the page.
 
                         I do this in one place so the UI stays simpler and does not
-                        need to care about backend naming differences like regNo vs id.
+                        need to care about backend naming differences like registeredNo vs id.
                     */
                     const mapped: DogSearchResponse =
                     {
@@ -109,6 +110,7 @@ export default function SearchPage()
                                     return {
                                         id: String(item.id ?? ""),
                                         cwaNumber: String(item.regNo ?? item.id ?? ""),
+                                        akcNumber: String(item.akcNo ?? ""),
                                         registeredName: String(item.name ?? ""),
                                         callName: "",
                                         birthYear: item.year ? String(item.year) : "",
@@ -175,6 +177,12 @@ export default function SearchPage()
 
             case "cwaDesc":
                 return (b.cwaNumber || "").localeCompare(a.cwaNumber || "", undefined, { numeric: true });
+            
+            case "akcAsc":
+                return (a.akcNumber || "").localeCompare(b.akcNumber || "", undefined, { numeric: true });
+                
+            case "akcDesc":
+                return (b.akcNumber || "").localeCompare(a.akcNumber || "", undefined, { numeric: true });
 
             case "yearAsc":
                 return Number(a.birthYear || 0) - Number(b.birthYear || 0);
@@ -245,26 +253,19 @@ export default function SearchPage()
                 title="Search Dogs" 
                 subtitle="Search by CWA number, registered name, owner, or title." 
             >    
-                <div className="rounded-3xl border border-white/15 bg-white/10 p-4 md:p-5 backdrop-blur">
-                    <form
-                        method="GET"
-                        action="/search"
-                        className="flex flex-col md:flex-row gap-3"
-                    >
-                        <input
-                            name="q"
-                            defaultValue={q}
-                            placeholder="Search dog name, CWA number, owner, or title..."
-                            className="w-full rounded-full border border-white/25 bg-white/95 px-6 py-3 text-[#12301D] text-base outline-none shadow-sm focus:ring-4 focus:ring-[#2E6B3F]/35 focus:border-[#2E6B3F]/60"
-                        />
-                        
-                        <input type="hidden" name="sort" value={sort} />
+                {/* 
+                    Now for searching we will use the SearchBar component.
 
-                        <button className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] hover:shadow-md transition">
-                            Search
-                        </button>
-                    </form>
-                    
+                    This keeps the search input consistent across the site and allows us to 
+                    reuse styling and logic without repeating code.
+                */}
+                <div className="rounded-3xl border border-white/15 bg-white/10 p-4 md:p-5 backdrop-blur">
+                    <SearchBar
+                        action="/search"
+                        query={q}
+                        sort={sort}
+                        placeholder="Search by CWA number, AKC number, registered name, owner, or title."
+                    />
                     {/* 
                         Small status line gives feedback without taking up too much space.
                     */}
@@ -376,6 +377,8 @@ export default function SearchPage()
                                       <option value="nameDesc">Name Z–A</option>
                                       <option value="cwaAsc">CWA Ascending</option>
                                       <option value="cwaDesc">CWA Descending</option>
+                                      <option value="akcAsc">AKC Ascending</option>
+                                      <option value="akcDesc">AKC Descending</option>
                                       <option value="yearAsc">Year Ascending</option>
                                       <option value="yearDesc">Year Descending</option>
                                   </select>

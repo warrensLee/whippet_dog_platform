@@ -295,6 +295,7 @@ class Dog:
             WHERE (
                 d.CWANumber LIKE %s
                 OR d.RegisteredName LIKE %s
+                OR d.AKCNumber LIKE %s
                 OR d.CallName LIKE %s
                 OR do.PersonID LIKE %s
                 OR CONCAT(p.FirstName, ' ', p.LastName) LIKE %s
@@ -302,7 +303,7 @@ class Dog:
                 OR dt.Title LIKE %s
             )
         """
-        params = [like, like, like, like, like, like, like]
+        params = [like, like, like, like, like, like, like, like]
 
         if only_owner_person_id:
             sql += " AND do.PersonID = %s"

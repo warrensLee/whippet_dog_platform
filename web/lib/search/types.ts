@@ -53,6 +53,7 @@ export type DogListItem =
 {
   id: string;
   cwaNumber: string;
+  akcNumber: string;
   registeredName: string;
   callName: string;
   birthYear: string;
