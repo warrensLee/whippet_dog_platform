@@ -7,7 +7,7 @@ from classes.dog_owner import DogOwner
 from classes.change_log import ChangeLog
 from classes.user_role import UserRole
 from utils.auth_helpers import current_editor_id, current_role, require_scope
-
+from classes.title_type import TitleType 
 
 dog_bp = Blueprint("dog", __name__, url_prefix="/api/dog")
 
@@ -243,6 +243,18 @@ def list_all_dogs():
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
+@dog_bp.get("/title_descriptions/<cwa_number>")
+def list_dog_title_descriptions(cwa_number):
+
+    dog = Dog.find_by_identifier(cwa_number)
+    if not dog:
+        return jsonify({"ok": False, "error": "Dog does not exist"}), 404
+
+    try:
+        dog_titles = [ TitleType.find_by_identifier(x).title_description for x in dog.check_titles()]
+        return jsonify({"ok": True, "data": dog_titles}), 200
+    except Error as e:
+        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
 @dog_bp.get("/titles/<cwa_number>")
 def list_dog_titles(cwa_number):

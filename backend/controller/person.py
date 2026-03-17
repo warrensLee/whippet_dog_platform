@@ -92,11 +92,11 @@ def edit_person():
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
+    data = request.get_json(silent=True) or {}
     deny = require_scope(role.edit_person_scope, "edit people")
-    if deny:
+    if deny and current_editor_id() != data.get("personId", ""):
         return deny
 
-    data = request.get_json(silent=True) or {}
     person_id = (data.get("personId") or "").strip()
     if not person_id:
         return jsonify({"ok": False, "error": "Person ID is required"}), 400
@@ -267,6 +267,22 @@ def get_person(person_id: str):
         return jsonify({"ok": False, "error": "Person does not exist"}), 404
 
     return jsonify({"ok": True, "data": person.to_dict()}), 200
+
+@person_bp.get("/name/<person_id>")
+def get_person_name(person_id: str):
+    """
+    Return just the person's first and last name.
+    """
+    person = Person.find_by_identifier(person_id)
+    if not person:
+        return jsonify({"ok": False, "error": "Person does not exist"}), 404
+
+    name_data = {
+        "firstName": person.first_name,
+        "lastName": person.last_name
+    }
+    return jsonify({"ok": True, "data": name_data}), 200
+
 
 
 @person_bp.get("/get")

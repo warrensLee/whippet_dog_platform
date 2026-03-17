@@ -14,14 +14,12 @@ import SearchBar from "@/app/components/SearchBar";
     invalid page/limit values do not break the UI.
 */
 function clampInteger
-(
-    num: number,
-    min: number,
-    max: number
-)
-{
-    if (!Number.isFinite(num))
-    {
+    (
+        num: number,
+        min: number,
+        max: number
+    ) {
+    if (!Number.isFinite(num)) {
         return min;
     }
 
@@ -30,8 +28,7 @@ function clampInteger
 
 
 
-export default function AdminDogsPage()
-{
+export default function AdminDogsPage() {
     const router = useRouter();
     const sp = useSearchParams();
 
@@ -64,40 +61,35 @@ export default function AdminDogsPage()
     const [selectedDogs, setSelectedDogs] = React.useState<string[]>([]);
 
     const loadDogs = React.useCallback(
-      async function ()
-      {
-          setLoading(true);
-          setError("");
+        async function () {
+            setLoading(true);
+            setError("");
 
-          try
-          {
-              const usp = new URLSearchParams();
-              usp.set("q", q);
+            try {
+                const usp = new URLSearchParams();
+                usp.set("q", q);
 
-              const res = await fetch(
-                  `/api/dog/search?${usp.toString()}`,
-                  {
-                      cache: "no-store",
-                      credentials: "include",
-                  }
-              );
+                const res = await fetch(
+                    `/api/dog/search?${usp.toString()}`,
+                    {
+                        cache: "no-store",
+                        credentials: "include",
+                    }
+                );
 
-              const json = await res.json().catch(
-                  () =>
-                  {
-                      return null;
-                  }
-              );
+                const json = await res.json().catch(
+                    () => {
+                        return null;
+                    }
+                );
 
-              if (!res.ok || !json?.ok)
-              {
-                  throw new Error(json?.error || `Request failed (${res.status})`);
-              }
+                if (!res.ok || !json?.ok) {
+                    throw new Error(json?.error || `Request failed (${res.status})`);
+                }
 
                 const mappedItems = Array.isArray(json.items)
                     ? json.items.map(
-                        (item: any) =>
-                        {
+                        (item: any) => {
                             return {
                                 id: String(item.id ?? ""),
                                 cwaNumber: String(item.regNo ?? item.id ?? ""),
@@ -119,37 +111,32 @@ export default function AdminDogsPage()
                     items: mappedItems,
                 };
 
-              setData(mapped);
-          }
-          catch (e)
-          {
-              setError(
-                  e instanceof Error
-                      ? e.message
-                      : "Failed to load dogs."
-              );
-          }
-          finally
-          {
-              setLoading(false);
-          }
-      },
-      [q]
-  );  
+                setData(mapped);
+            }
+            catch (e) {
+                setError(
+                    e instanceof Error
+                        ? e.message
+                        : "Failed to load dogs."
+                );
+            }
+            finally {
+                setLoading(false);
+            }
+        },
+        [q]
+    );
 
     /*
         Check whether the current user is authorized to manage dogs.
         If not, redirect to the admin login page.
     */
     React.useEffect(
-        () =>
-        {
+        () => {
             let cancelled = false;
 
-            async function checkAccess()
-            {
-                try
-                {
+            async function checkAccess() {
+                try {
                     const res = await fetch(
                         "/api/auth/me",
                         {
@@ -159,31 +146,25 @@ export default function AdminDogsPage()
                     );
 
                     const json = await res.json().catch(
-                        () =>
-                        {
+                        () => {
                             return null;
                         }
                     );
 
-                    if (!res.ok || !json?.signedIn || !json?.canManageDogs)
-                    {
-                        router.replace("/admin/login");
+                    if (!res.ok || !json?.signedIn || !json?.canManageDogs) {
+                        router.replace("/login");
                         return;
                     }
 
-                    if (!cancelled)
-                    {
+                    if (!cancelled) {
                         setAuthorized(true);
                     }
                 }
-                catch
-                {
-                    router.replace("/admin/login");
+                catch {
+                    router.replace("/login");
                 }
-                finally
-                {
-                    if (!cancelled)
-                    {
+                finally {
+                    if (!cancelled) {
                         setAuthLoading(false);
                     }
                 }
@@ -191,8 +172,7 @@ export default function AdminDogsPage()
 
             checkAccess();
 
-            return () =>
-            {
+            return () => {
                 cancelled = true;
             };
         },
@@ -204,10 +184,8 @@ export default function AdminDogsPage()
         This fetches dogs based on the current query string.
     */
     React.useEffect(
-        () =>
-        {
-            if (!authorized)
-            {
+        () => {
+            if (!authorized) {
                 return;
             }
 
@@ -221,12 +199,10 @@ export default function AdminDogsPage()
         Removes selected dogs that no longer exist in the loaded result set.
     */
     React.useEffect(
-        () =>
-        {
+        () => {
             const validIds = new Set((data?.items ?? []).map((d) => d.cwaNumber));
 
-            setSelectedDogs((prev) =>
-            {
+            setSelectedDogs((prev) => {
                 return prev.filter((id) => validIds.has(id));
             });
         },
@@ -237,19 +213,16 @@ export default function AdminDogsPage()
         Handles deleting a single dog from the admin page.
         For now, the page is refreshed after delete so the list updates.
     */
-    async function handleDeleteDog(cwaNumber: string)
-    {
+    async function handleDeleteDog(cwaNumber: string) {
         const confirmed = window.confirm(
             `Are you sure you want to remove dog #${cwaNumber}?`
         );
 
-        if (!confirmed)
-        {
+        if (!confirmed) {
             return;
         }
 
-        try
-        {
+        try {
             setDeleting(true);
 
             const res = await fetch(
@@ -262,43 +235,38 @@ export default function AdminDogsPage()
                     },
                     credentials: "include",
                     body: JSON.stringify(
-                      { 
-                        cwaNumber,
-                        confirm: true, // This is required to prevent accidental deletes if the endpoint is misused, it must be explicitly set to true to work.
-                      }
+                        {
+                            cwaNumber,
+                            confirm: true, // This is required to prevent accidental deletes if the endpoint is misused, it must be explicitly set to true to work.
+                        }
                     ),
                 }
             );
 
             const json = await res.json().catch(
-                () =>
-                {
+                () => {
                     return null;
                 }
             );
 
-            if (!res.ok || !json?.ok)
-            {
+            if (!res.ok || !json?.ok) {
                 throw new Error(json?.error || "Failed to delete dog.");
             }
 
-            setSelectedDogs((prev) =>
-            {
+            setSelectedDogs((prev) => {
                 return prev.filter((id) => id !== cwaNumber);
             });
 
             await loadDogs();
         }
-        catch (e)
-        {
+        catch (e) {
             alert(
                 e instanceof Error
                     ? e.message
                     : "Failed to delete dog."
             );
         }
-        finally
-        {
+        finally {
             setDeleting(false);
         }
     }
@@ -306,8 +274,7 @@ export default function AdminDogsPage()
     /*
         Show auth gate while access is still being checked.
     */
-    if (authLoading)
-    {
+    if (authLoading) {
         return (
             <main className="min-h-screen flex items-center justify-center bg-[#1F4D2E] text-white">
                 Checking access...
@@ -318,8 +285,7 @@ export default function AdminDogsPage()
     /*
         If not authorized, return nothing because redirect is already in progress.
     */
-    if (!authorized)
-    {
+    if (!authorized) {
         return null;
     }
 
@@ -331,10 +297,8 @@ export default function AdminDogsPage()
         This keeps the admin page easy to work with for now without changing the API yet.
     */
     const sortedItems = [...items].sort(
-        (a, b) =>
-        {
-            switch (sort)
-            {
+        (a, b) => {
+            switch (sort) {
                 case "nameDesc":
                     return (b.registeredName || "").localeCompare(a.registeredName || "");
 
@@ -376,8 +340,7 @@ export default function AdminDogsPage()
         Quick page-level status counts.
     */
     const activeCount = pagedItems.filter(
-        (d) =>
-        {
+        (d) => {
             return String(d.status).toUpperCase() === "ACTIVE";
         }
     ).length;
@@ -400,12 +363,9 @@ export default function AdminDogsPage()
     const somePageDogsSelected =
         pageDogIds.some((id) => selectedDogs.includes(id));
 
-    function toggleDogSelection(cwaNumber: string)
-    {
-        setSelectedDogs((prev) =>
-        {
-            if (prev.includes(cwaNumber))
-            {
+    function toggleDogSelection(cwaNumber: string) {
+        setSelectedDogs((prev) => {
+            if (prev.includes(cwaNumber)) {
                 return prev.filter((id) => id !== cwaNumber);
             }
 
@@ -413,12 +373,9 @@ export default function AdminDogsPage()
         });
     }
 
-    function toggleSelectAllOnPage()
-    {
-        setSelectedDogs((prev) =>
-        {
-            if (allPageDogsSelected)
-            {
+    function toggleSelectAllOnPage() {
+        setSelectedDogs((prev) => {
+            if (allPageDogsSelected) {
                 return prev.filter((id) => !pageDogIds.includes(id));
             }
 
@@ -427,10 +384,8 @@ export default function AdminDogsPage()
         });
     }
 
-    async function handleDeleteSelectedDogs()
-    {
-        if (selectedDogs.length === 0)
-        {
+    async function handleDeleteSelectedDogs() {
+        if (selectedDogs.length === 0) {
             return;
         }
 
@@ -438,17 +393,14 @@ export default function AdminDogsPage()
             `Are you sure you want to remove ${selectedDogs.length} selected dog(s)?`
         );
 
-        if (!confirmed)
-        {
+        if (!confirmed) {
             return;
         }
 
-        try
-        {
+        try {
             setDeleting(true);
 
-            for (const cwaNumber of selectedDogs)
-            {
+            for (const cwaNumber of selectedDogs) {
                 const res = await fetch(
                     "/api/dog/delete",
                     {
@@ -459,22 +411,20 @@ export default function AdminDogsPage()
                         },
                         credentials: "include",
                         body: JSON.stringify(
-                        {
-                            cwaNumber,
-                            confirm: true,
-                        }),
+                            {
+                                cwaNumber,
+                                confirm: true,
+                            }),
                     }
                 );
 
                 const json = await res.json().catch(
-                    () =>
-                    {
+                    () => {
                         return null;
                     }
                 );
 
-                if (!res.ok || !json?.ok)
-                {
+                if (!res.ok || !json?.ok) {
                     throw new Error(
                         json?.error || `Failed to delete dog #${cwaNumber}.`
                     );
@@ -484,16 +434,14 @@ export default function AdminDogsPage()
             setSelectedDogs([]);
             await loadDogs();
         }
-        catch (e)
-        {
+        catch (e) {
             alert(
                 e instanceof Error
                     ? e.message
                     : "Failed to delete selected dogs."
             );
         }
-        finally
-        {
+        finally {
             setDeleting(false);
         }
     }
@@ -501,8 +449,7 @@ export default function AdminDogsPage()
     /*
         Builds pagination links while preserving existing query params.
     */
-    function makeLink(next: number)
-    {
+    function makeLink(next: number) {
         const params = new URLSearchParams(sp.toString());
 
         params.set("page", String(next));
@@ -522,17 +469,17 @@ export default function AdminDogsPage()
                 and less like a plain database dump.
             */}
             <HeroSection
-                title="Manage Dogs" 
+                title="Manage Dogs"
                 subtitle="Search, edit, and manage dog records through the admin panel."
                 topContent={
-                <Link
-                    href="/admin"
-                    className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
-                >
-                    Back to Admin Dashboard
-                </Link>
-                        }
-            >    
+                    <Link
+                        href="/admin"
+                        className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
+                    >
+                        Back to Admin Dashboard
+                    </Link>
+                }
+            >
                 {/* 
                     Now for searching we will use the SearchBar component.
 
@@ -546,7 +493,7 @@ export default function AdminDogsPage()
                         sort={sort}
                         placeholder="Search by CWA number, AKC number, registered name, owner, or title."
                     />
-                    
+
                     {/* 
                         Small status line gives feedback without taking up too much space.
                     */}
@@ -555,8 +502,8 @@ export default function AdminDogsPage()
                             loading
                                 ? "Searching..."
                                 : error
-                                ? `Error: ${error}`
-                                : `${total} result(s) found`
+                                    ? `Error: ${error}`
+                                    : `${total} result(s) found`
                         }
                     </div>
                 </div>
@@ -634,32 +581,32 @@ export default function AdminDogsPage()
                                 but do not distract from the main search input.
                             */}
                             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                            <form method="GET" action="/admin/dogs" className="flex items-center gap-2">
-                                <input type="hidden" name="q" value={q} />
-                                <input type="hidden" name="page" value="1" />
-                                <input type="hidden" name="limit" value={String(limit)} />
+                                <form method="GET" action="/admin/dogs" className="flex items-center gap-2">
+                                    <input type="hidden" name="q" value={q} />
+                                    <input type="hidden" name="page" value="1" />
+                                    <input type="hidden" name="limit" value={String(limit)} />
 
-                                <select
-                                    name="sort"
-                                    defaultValue={sort}
-                                    className="rounded-full border border-black/10 bg-white px-4 py-2 text-sm text-[#12301D] shadow-sm outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
-                                >
-                                    <option value="nameAsc">Name A–Z</option>
-                                    <option value="nameDesc">Name Z–A</option>
-                                    <option value="cwaAsc">CWA Ascending</option>
-                                    <option value="cwaDesc">CWA Descending</option>
-                                    <option value="yearAsc">Year Ascending</option>
-                                    <option value="yearDesc">Year Descending</option>
-                                </select>
+                                    <select
+                                        name="sort"
+                                        defaultValue={sort}
+                                        className="rounded-full border border-black/10 bg-white px-4 py-2 text-sm text-[#12301D] shadow-sm outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
+                                    >
+                                        <option value="nameAsc">Name A–Z</option>
+                                        <option value="nameDesc">Name Z–A</option>
+                                        <option value="cwaAsc">CWA Ascending</option>
+                                        <option value="cwaDesc">CWA Descending</option>
+                                        <option value="yearAsc">Year Ascending</option>
+                                        <option value="yearDesc">Year Descending</option>
+                                    </select>
 
-                                <button
-                                    type="submit"
-                                    className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#12301D] shadow-sm hover:bg-[#12301D]/5 transition"
-                                >
-                                    Sort
-                                </button>
-                            </form>
-                            </div>    
+                                    <button
+                                        type="submit"
+                                        className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#12301D] shadow-sm hover:bg-[#12301D]/5 transition"
+                                    >
+                                        Sort
+                                    </button>
+                                </form>
+                            </div>
 
                             <div className="flex items-center gap-2 rounded-full border border-black/10 bg-white/80 backdrop-blur px-3 py-1 shadow-sm">
                                 <Link
@@ -746,10 +693,8 @@ export default function AdminDogsPage()
                                 <input
                                     type="checkbox"
                                     checked={allPageDogsSelected}
-                                    ref={(el) =>
-                                    {
-                                        if (el)
-                                        {
+                                    ref={(el) => {
+                                        if (el) {
                                             el.indeterminate =
                                                 !allPageDogsSelected && somePageDogsSelected;
                                         }
@@ -773,8 +718,7 @@ export default function AdminDogsPage()
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                         {
                             pagedItems.map(
-                                (d) =>
-                                {
+                                (d) => {
                                     return (
                                         <div
                                             key={d.id}
@@ -838,35 +782,34 @@ export default function AdminDogsPage()
 
                                             <div className="mt-4 h-px w-full bg-gradient-to-r from-[#2E6B3F]/35 via-black/5 to-transparent" />
 
-                                                <div className="mt-4 flex items-center justify-between gap-3">
-                                                    <div className="flex flex-wrap gap-3">
-                                                        <Link
-                                                            href={`/admin/dogs/${d.cwaNumber}/edit`}
-                                                            className="rounded-full bg-[#2E6B3F] px-4 py-2 text-sm font-semibold text-white hover:bg-[#255733] transition"
-                                                        >
-                                                            Edit
-                                                        </Link>
-
-                                                        <Link
-                                                            href={`/search?q=${encodeURIComponent(d.cwaNumber)}`}
-                                                            className="rounded-full border border-[#12301D]/15 bg-white px-4 py-2 text-sm font-semibold text-[#12301D] hover:bg-[#12301D]/5 transition"
-                                                        >
-                                                            View in Search
-                                                        </Link>
-                                                    </div>
-
-                                                    <button
-                                                        type="button"
-                                                        onClick={() =>
-                                                        {
-                                                            handleDeleteDog(d.cwaNumber);
-                                                        }}
-                                                        disabled={deleting}
-                                                        className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 transition disabled:opacity-50"
+                                            <div className="mt-4 flex items-center justify-between gap-3">
+                                                <div className="flex flex-wrap gap-3">
+                                                    <Link
+                                                        href={`/admin/dogs/${d.cwaNumber}/edit`}
+                                                        className="rounded-full bg-[#2E6B3F] px-4 py-2 text-sm font-semibold text-white hover:bg-[#255733] transition"
                                                     >
-                                                        Remove
-                                                    </button>
+                                                        Edit
+                                                    </Link>
+
+                                                    <Link
+                                                        href={`/search?q=${encodeURIComponent(d.cwaNumber)}`}
+                                                        className="rounded-full border border-[#12301D]/15 bg-white px-4 py-2 text-sm font-semibold text-[#12301D] hover:bg-[#12301D]/5 transition"
+                                                    >
+                                                        View in Search
+                                                    </Link>
                                                 </div>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        handleDeleteDog(d.cwaNumber);
+                                                    }}
+                                                    disabled={deleting}
+                                                    className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 transition disabled:opacity-50"
+                                                >
+                                                    Remove
+                                                </button>
+                                            </div>
                                         </div>
                                     );
                                 }

@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request, session
 from mysql.connector import Error
 import secrets
+from werkzeug.security import check_password_hash, generate_password_hash 
 import email_validator
 from classes.person import Person
 from classes.change_log import ChangeLog
@@ -11,6 +12,8 @@ from classes.registration_invite import RegistrationInvite
 from utils.email_service import send_invite_email
 from utils.email_service import send_reset_email
 
+
+DUMMY_HASH = generate_password_hash("dummy_password")
 auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
 @auth_bp.post("/register-new")
@@ -205,6 +208,9 @@ def login():
 
     person = Person.find_by_identifier(identifier)
     if not person:
+        person = Person.find_by_email(identifier)
+    if not person:
+        check_password_hash(DUMMY_HASH, password) #This prevents timing based enumeration attacks
         return jsonify({"ok": False, "error": "Invalid credentials"}), 401
 
     if not person.check_password(password):

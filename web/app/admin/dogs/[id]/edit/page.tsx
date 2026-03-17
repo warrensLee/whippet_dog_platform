@@ -15,15 +15,12 @@ import HeroSection from "@/app/components/HeroSection";
     This helps normalize API data before putting it into form state.
     If the backend gives us null/undefined, we fall back to an empty string.
 */
-function normalizeText(x: unknown): string
-{
-    if (typeof x === "string")
-    {
+function normalizeText(x: unknown): string {
+    if (typeof x === "string") {
         return x;
     }
 
-    if (typeof x === "number")
-    {
+    if (typeof x === "number") {
         return String(x);
     }
 
@@ -31,40 +28,39 @@ function normalizeText(x: unknown): string
 }
 
 type RawDogGetResponse =
-{
-    ok: boolean;
-    data?:
     {
-        cwaNumber?: string;
-        akcNumber?: string | null;
-        ckcNumber?: string | null;
-        currentGrade?: string | null;
-        foreignNumber?: string | null;
-        foreignType?: string | null;
-        callName?: string | null;
-        registeredName?: string | null;
-        birthdate?: string | null;
-        pedigreeLink?: string | null;
-        status?: string | null;
-        notes?: string | null;
-        meetPoints?: string | null;
-        arxPoints?: string | null;
-        narxPoints?: string | null;
-        showPoints?: string | null;
-        dpcLegs?: string | null;
-        meetWins?: string | null;
-        meetAppearences?: string | null;
-        highCombinedWins?: string | null;
+        ok: boolean;
+        data?:
+        {
+            cwaNumber?: string;
+            akcNumber?: string | null;
+            ckcNumber?: string | null;
+            currentGrade?: string | null;
+            foreignNumber?: string | null;
+            foreignType?: string | null;
+            callName?: string | null;
+            registeredName?: string | null;
+            birthdate?: string | null;
+            pedigreeLink?: string | null;
+            status?: string | null;
+            notes?: string | null;
+            meetPoints?: string | null;
+            arxPoints?: string | null;
+            narxPoints?: string | null;
+            showPoints?: string | null;
+            dpcLegs?: string | null;
+            meetWins?: string | null;
+            meetAppearences?: string | null;
+            highCombinedWins?: string | null;
+        };
+        error?: string;
     };
-    error?: string;
-};
 
 /*
     Converts backend dog data into the exact DogFormValues shape
     expected by the shared DogForm component.
 */
-function buildFormFromDog(data: NonNullable<RawDogGetResponse["data"]>): DogFormValues
-{
+function buildFormFromDog(data: NonNullable<RawDogGetResponse["data"]>): DogFormValues {
     return {
         cwaNumber: normalizeText(data.cwaNumber),
         akcNumber: normalizeText(data.akcNumber),
@@ -95,8 +91,7 @@ function buildFormFromDog(data: NonNullable<RawDogGetResponse["data"]>): DogForm
     This keeps trimming logic in one place instead of stuffing it
     directly into the submit handler like a junk drawer.
 */
-function buildEditPayload(form: DogFormValues): DogFormValues
-{
+function buildEditPayload(form: DogFormValues): DogFormValues {
     return {
         cwaNumber: form.cwaNumber.trim(),
         akcNumber: form.akcNumber.trim(),
@@ -121,8 +116,7 @@ function buildEditPayload(form: DogFormValues): DogFormValues
     };
 }
 
-export default function EditDogPage()
-{
+export default function EditDogPage() {
     const params = useParams();
     const router = useRouter();
 
@@ -148,14 +142,11 @@ export default function EditDogPage()
         to manage dog records.
     */
     React.useEffect(
-        () =>
-        {
+        () => {
             let cancelled = false;
 
-            async function checkAccess()
-            {
-                try
-                {
+            async function checkAccess() {
+                try {
                     const res = await fetch(
                         "/api/auth/me",
                         {
@@ -165,31 +156,25 @@ export default function EditDogPage()
                     );
 
                     const json = await res.json().catch(
-                        () =>
-                        {
+                        () => {
                             return null;
                         }
                     );
 
-                    if (!res.ok || !json?.signedIn || !json?.canManageDogs)
-                    {
-                        router.replace("/admin/login");
+                    if (!res.ok || !json?.signedIn || !json?.canManageDogs) {
+                        router.replace("/login");
                         return;
                     }
 
-                    if (!cancelled)
-                    {
+                    if (!cancelled) {
                         setAuthorized(true);
                     }
                 }
-                catch
-                {
-                    router.replace("/admin/login");
+                catch {
+                    router.replace("/login");
                 }
-                finally
-                {
-                    if (!cancelled)
-                    {
+                finally {
+                    if (!cancelled) {
                         setAuthLoading(false);
                     }
                 }
@@ -197,8 +182,7 @@ export default function EditDogPage()
 
             checkAccess();
 
-            return () =>
-            {
+            return () => {
                 cancelled = true;
             };
         },
@@ -210,23 +194,19 @@ export default function EditDogPage()
         the route id and populate the edit form.
     */
     React.useEffect(
-        () =>
-        {
-            if (!authorized)
-            {
+        () => {
+            if (!authorized) {
                 return;
             }
 
             let cancelled = false;
 
-            async function loadDog()
-            {
+            async function loadDog() {
                 setLoading(true);
                 setError("");
                 setSuccess("");
 
-                try
-                {
+                try {
                     const res = await fetch(
                         `/api/dog/get/${encodeURIComponent(id)}`,
                         {
@@ -237,28 +217,23 @@ export default function EditDogPage()
                     );
 
                     const json = (await res.json().catch(
-                        () =>
-                        {
+                        () => {
                             return null;
                         }
                     )) as RawDogGetResponse | null;
 
-                    if (!res.ok || !json?.ok || !json.data)
-                    {
+                    if (!res.ok || !json?.ok || !json.data) {
                         throw new Error(json?.error || "Failed to load dog.");
                     }
 
-                    if (cancelled)
-                    {
+                    if (cancelled) {
                         return;
                     }
 
                     setForm(buildFormFromDog(json.data));
                 }
-                catch (e)
-                {
-                    if (!cancelled)
-                    {
+                catch (e) {
+                    if (!cancelled) {
                         setError(
                             e instanceof Error
                                 ? e.message
@@ -266,10 +241,8 @@ export default function EditDogPage()
                         );
                     }
                 }
-                finally
-                {
-                    if (!cancelled)
-                    {
+                finally {
+                    if (!cancelled) {
                         setLoading(false);
                     }
                 }
@@ -277,8 +250,7 @@ export default function EditDogPage()
 
             loadDog();
 
-            return () =>
-            {
+            return () => {
                 cancelled = true;
             };
         },
@@ -289,14 +261,12 @@ export default function EditDogPage()
         Generic form field updater passed down into DogForm.
     */
     function updateField<K extends keyof DogFormValues>
-    (
-        key: K,
-        value: DogFormValues[K]
-    )
-    {
+        (
+            key: K,
+            value: DogFormValues[K]
+        ) {
         setForm(
-            (prev) =>
-            {
+            (prev) => {
                 return {
                     ...prev,
                     [key]: value,
@@ -309,15 +279,13 @@ export default function EditDogPage()
         Handles form submission and sends the cleaned payload
         to the edit API route.
     */
-    async function handleSubmit(e: React.FormEvent<HTMLFormElement>)
-    {
+    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         setSaving(true);
         setError("");
         setSuccess("");
 
-        try
-        {
+        try {
             const payload = buildEditPayload(form);
 
             const res = await fetch(
@@ -334,29 +302,25 @@ export default function EditDogPage()
             );
 
             const json = await res.json().catch(
-                () =>
-                {
+                () => {
                     return null;
                 }
             );
 
-            if (!res.ok || !json?.ok)
-            {
+            if (!res.ok || !json?.ok) {
                 throw new Error(json?.error || `Save failed (${res.status})`);
             }
 
             setSuccess("Dog information updated successfully.");
         }
-        catch (e)
-        {
+        catch (e) {
             setError(
                 e instanceof Error
                     ? e.message
                     : "Failed to save changes."
             );
         }
-        finally
-        {
+        finally {
             setSaving(false);
         }
     }
@@ -364,8 +328,7 @@ export default function EditDogPage()
     /*
         While auth is still being checked, show a simple gate screen.
     */
-    if (authLoading)
-    {
+    if (authLoading) {
         return (
             <main className="min-h-screen flex items-center justify-center bg-[#1F4D2E] text-white">
                 Checking access...
@@ -377,8 +340,7 @@ export default function EditDogPage()
         If auth check finished but user is not authorized, we return null
         because the redirect is already being handled.
     */
-    if (!authorized)
-    {
+    if (!authorized) {
         return null;
     }
 
@@ -391,26 +353,26 @@ export default function EditDogPage()
                 and less like a plain database dump.
             */}
             <HeroSection
-                title="Edit Dog" 
-                subtitle="Update dog information securely through the admin panel." 
+                title="Edit Dog"
+                subtitle="Update dog information securely through the admin panel."
                 topContent={
-                <div className="mt-4 flex flex-wrap justify-center gap-3">
-                    <Link
-                        href="/admin/dogs"
-                        className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
-                    >
-                        Back to Admin Dogs
-                    </Link>
+                    <div className="mt-4 flex flex-wrap justify-center gap-3">
+                        <Link
+                            href="/admin/dogs"
+                            className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
+                        >
+                            Back to Admin Dogs
+                        </Link>
 
-                    <Link
-                        href={`/search?q=${encodeURIComponent(form.cwaNumber || id)}`}
-                        className="rounded-full bg-[#2E6B3F] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#255733]"
-                    >
-                        View in Public Search
-                    </Link>
-                </div>
-                        }
-            >    
+                        <Link
+                            href={`/search?q=${encodeURIComponent(form.cwaNumber || id)}`}
+                            className="rounded-full bg-[#2E6B3F] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#255733]"
+                        >
+                            View in Public Search
+                        </Link>
+                    </div>
+                }
+            >
 
                 <div className="-mt-6 text-white/80 text-sm">
                     Editing record: <span className="font-semibold text-white">{form.registeredName || id}</span>
@@ -439,8 +401,7 @@ export default function EditDogPage()
                         error={error}
                         success={success}
                         onCancel={
-                            () =>
-                            {
+                            () => {
                                 router.push("/admin/dogs");
                             }
                         }

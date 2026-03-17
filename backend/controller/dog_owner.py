@@ -38,8 +38,7 @@ def list_dog_owner_links():
     # if deny:
     #     return deny
 
-    cwa_id = (request.args.get("cwaId") or "").strip()
-    person_id = (request.args.get("personId") or "").strip()
+    person_id = request.args.get("personID")
 
     try:
         # if role.edit_dog_owner_scope == UserRole.SELF:
@@ -49,7 +48,7 @@ def list_dog_owner_links():
             # rows = DogOwner.list_all(cwa_id=cwa_id, person_id=current_editor_id())
 
         # else:
-        rows = DogOwner.list_all_with_people()
+        rows = DogOwner.list_for_person(person_id)
 
         data = [r.to_dict() if hasattr(r, "to_dict") else r for r in (rows or [])]
         return jsonify({"ok": True, "data": data}), 200

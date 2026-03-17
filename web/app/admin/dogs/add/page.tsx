@@ -15,8 +15,7 @@ import HeroSection from "@/app/components/HeroSection";
     This keeps trimming and formatting logic in one place instead of
     stuffing it all directly into the submit handler.
 */
-function buildCreatePayload(form: DogFormValues): DogFormValues
-{
+function buildCreatePayload(form: DogFormValues): DogFormValues {
     return {
         cwaNumber: form.cwaNumber.trim(),
         akcNumber: form.akcNumber.trim(),
@@ -41,8 +40,7 @@ function buildCreatePayload(form: DogFormValues): DogFormValues
     };
 }
 
-export default function AddDogPage()
-{
+export default function AddDogPage() {
     const router = useRouter();
 
     /*
@@ -64,14 +62,11 @@ export default function AddDogPage()
         If not, redirect them to the admin login page.
     */
     React.useEffect(
-        () =>
-        {
+        () => {
             let cancelled = false;
 
-            async function checkAccess()
-            {
-                try
-                {
+            async function checkAccess() {
+                try {
                     const res = await fetch(
                         "/api/auth/me",
                         {
@@ -81,31 +76,25 @@ export default function AddDogPage()
                     );
 
                     const json = await res.json().catch(
-                        () =>
-                        {
+                        () => {
                             return null;
                         }
                     );
 
-                    if (!res.ok || !json?.signedIn || !json?.canManageDogs)
-                    {
-                        router.replace("/admin/login");
+                    if (!res.ok || !json?.signedIn || !json?.canManageDogs) {
+                        router.replace("/login");
                         return;
                     }
 
-                    if (!cancelled)
-                    {
+                    if (!cancelled) {
                         setAuthorized(true);
                     }
                 }
-                catch
-                {
-                    router.replace("/admin/login");
+                catch {
+                    router.replace("/login");
                 }
-                finally
-                {
-                    if (!cancelled)
-                    {
+                finally {
+                    if (!cancelled) {
                         setAuthLoading(false);
                     }
                 }
@@ -113,8 +102,7 @@ export default function AddDogPage()
 
             checkAccess();
 
-            return () =>
-            {
+            return () => {
                 cancelled = true;
             };
         },
@@ -125,14 +113,12 @@ export default function AddDogPage()
         Generic field updater passed down into the shared DogForm component.
     */
     function updateField<K extends keyof DogFormValues>
-    (
-        key: K,
-        value: DogFormValues[K]
-    )
-    {
+        (
+            key: K,
+            value: DogFormValues[K]
+        ) {
         setForm(
-            (prev) =>
-            {
+            (prev) => {
                 return {
                     ...prev,
                     [key]: value,
@@ -145,15 +131,13 @@ export default function AddDogPage()
         Handles form submission and sends a create request to the backend.
         On success, the user is redirected to the edit page for the new dog.
     */
-    async function handleSubmit(e: React.FormEvent<HTMLFormElement>)
-    {
+    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         setSaving(true);
         setError("");
         setSuccess("");
 
-        try
-        {
+        try {
             const payload = buildCreatePayload(form);
 
             const res = await fetch(
@@ -170,14 +154,12 @@ export default function AddDogPage()
             );
 
             const json = await res.json().catch(
-                () =>
-                {
+                () => {
                     return null;
                 }
             );
 
-            if (!res.ok || !json?.ok)
-            {
+            if (!res.ok || !json?.ok) {
                 throw new Error(json?.error || `Create failed (${res.status})`);
             }
 
@@ -185,16 +167,14 @@ export default function AddDogPage()
 
             router.push(`/admin/dogs/${encodeURIComponent(payload.cwaNumber)}/edit`);
         }
-        catch (e)
-        {
+        catch (e) {
             setError(
                 e instanceof Error
                     ? e.message
                     : "Failed to create dog."
             );
         }
-        finally
-        {
+        finally {
             setSaving(false);
         }
     }
@@ -202,8 +182,7 @@ export default function AddDogPage()
     /*
         While auth is being checked, show a simple access gate.
     */
-    if (authLoading)
-    {
+    if (authLoading) {
         return (
             <main className="min-h-screen flex items-center justify-center bg-[#1F4D2E] text-white">
                 Checking access...
@@ -215,8 +194,7 @@ export default function AddDogPage()
         If the auth check is done and the user is not authorized,
         return nothing because the redirect is already happening.
     */
-    if (!authorized)
-    {
+    if (!authorized) {
         return null;
     }
 
@@ -229,17 +207,17 @@ export default function AddDogPage()
                 and less like a plain database dump.
             */}
             <HeroSection
-                title="Add Dog" 
-                subtitle="Create a new dog record through the admin panel." 
+                title="Add Dog"
+                subtitle="Create a new dog record through the admin panel."
                 topContent={
-                <Link
-                    href="/admin/dogs"
-                    className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
-                >
-                    Back to Admin Dogs
-                </Link>
-                        }
-            >    
+                    <Link
+                        href="/admin/dogs"
+                        className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
+                    >
+                        Back to Admin Dogs
+                    </Link>
+                }
+            >
             </HeroSection>
 
 
@@ -263,8 +241,7 @@ export default function AddDogPage()
                         error={error}
                         success={success}
                         onCancel={
-                            () =>
-                            {
+                            () => {
                                 router.push("/admin/dogs");
                             }
                         }

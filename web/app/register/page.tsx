@@ -44,7 +44,7 @@ export default function RegisterPage() {
       if (res.ok && data?.ok) {
         setStatus("success");
         setMessage("Registered! Redirecting to login…");
-        window.location.assign("/admin/login");
+        window.location.assign("/login");
         return;
       }
 
@@ -177,7 +177,7 @@ export default function RegisterPage() {
             Already have an account?{" "}
             <Typography
               component="a"
-              href="/admin/login"
+              href="/login"
               variant="body2"
               color="primary"
               sx={{ textDecoration: "underline", cursor: "pointer" }}

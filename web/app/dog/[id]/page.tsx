@@ -84,13 +84,13 @@ interface TitleFamily {
 }
 
 const TIER_STYLES: Record<TierColor, { bg: string; text: string; border: string; badge: string }> = {
-  gray:   { bg: "bg-neutral-100",  text: "text-neutral-400",  border: "border-neutral-200",  badge: "bg-neutral-200 text-neutral-500" },
-  yellow: { bg: "bg-emerald-50",   text: "text-emerald-700",  border: "border-emerald-300",  badge: "bg-[#2E6B3F] text-white" },
-  blue:   { bg: "bg-emerald-50",   text: "text-emerald-700",  border: "border-emerald-300",  badge: "bg-[#2E6B3F] text-white" },
-  purple: { bg: "bg-emerald-50",   text: "text-emerald-700",  border: "border-emerald-300",  badge: "bg-[#2E6B3F] text-white" },
-  gold:   { bg: "bg-emerald-50",   text: "text-emerald-700",  border: "border-emerald-300",  badge: "bg-[#2E6B3F] text-white" },
-  teal:   { bg: "bg-emerald-50",   text: "text-emerald-700",  border: "border-emerald-300",  badge: "bg-[#2E6B3F] text-white" },
-  green:  { bg: "bg-emerald-50",   text: "text-emerald-700",  border: "border-emerald-300",  badge: "bg-[#2E6B3F] text-white" },
+  gray: { bg: "bg-neutral-100", text: "text-neutral-400", border: "border-neutral-200", badge: "bg-neutral-200 text-neutral-500" },
+  yellow: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-300", badge: "bg-[#2E6B3F] text-white" },
+  blue: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-300", badge: "bg-[#2E6B3F] text-white" },
+  purple: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-300", badge: "bg-[#2E6B3F] text-white" },
+  gold: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-300", badge: "bg-[#2E6B3F] text-white" },
+  teal: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-300", badge: "bg-[#2E6B3F] text-white" },
+  green: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-300", badge: "bg-[#2E6B3F] text-white" },
 };
 
 const TITLE_FAMILIES: TitleFamily[] = [
@@ -118,7 +118,7 @@ const TITLE_FAMILIES: TitleFamily[] = [
     unit: "meet pts",
     getValue: (d) => d.meetPoints ?? 0,
     tiers: [
-      { name: "PR",  threshold: 50,  color: "yellow" },
+      { name: "PR", threshold: 50, color: "yellow" },
       { name: "PR2", threshold: 150, color: "blue" },
       { name: "PR3", threshold: 250, color: "purple" },
       { name: "PR4", threshold: 350, color: "gold" },
@@ -131,14 +131,14 @@ const TITLE_FAMILIES: TitleFamily[] = [
     unit: "NARX pts",
     getValue: (d) => d.narxPoints ?? 0,
     tiers: [
-      { name: "NARX",  threshold: 15,  color: "yellow" },
-      { name: "NARX2", threshold: 30,  color: "blue" },
-      { name: "NARX3", threshold: 45,  color: "purple" },
-      { name: "NARX4", threshold: 60,  color: "gold" },
-      { name: "SRA",   threshold: 75,  color: "teal" },
-      { name: "SRA2",  threshold: 150, color: "teal" },
-      { name: "SRA3",  threshold: 225, color: "teal" },
-      { name: "SRA4",  threshold: 300, color: "green" },
+      { name: "NARX", threshold: 15, color: "yellow" },
+      { name: "NARX2", threshold: 30, color: "blue" },
+      { name: "NARX3", threshold: 45, color: "purple" },
+      { name: "NARX4", threshold: 60, color: "gold" },
+      { name: "SRA", threshold: 75, color: "teal" },
+      { name: "SRA2", threshold: 150, color: "teal" },
+      { name: "SRA3", threshold: 225, color: "teal" },
+      { name: "SRA4", threshold: 300, color: "green" },
     ],
   },
   {
@@ -147,7 +147,7 @@ const TITLE_FAMILIES: TitleFamily[] = [
     unit: "DPC legs",
     getValue: (d) => d.dpcLegs ?? 0,
     tiers: [
-      { name: "DPC",  threshold: 5, color: "blue" },
+      { name: "DPC", threshold: 5, color: "blue" },
       { name: "DPCX", threshold: 5, color: "green" }, // also requires ARX
     ],
     extraCheck: (d) => {
@@ -162,8 +162,8 @@ const TITLE_FAMILIES: TitleFamily[] = [
     unit: "HC wins",
     getValue: (d) => d.highCombinedWins ?? 0,
     tiers: [
-      { name: "HC",   threshold: 5,  color: "yellow" },
-      { name: "HCX",  threshold: 10, color: "blue" },
+      { name: "HC", threshold: 5, color: "yellow" },
+      { name: "HCX", threshold: 10, color: "blue" },
       { name: "HCX2", threshold: 15, color: "purple" },
       { name: "HCX3", threshold: 20, color: "gold" },
       { name: "HCX4", threshold: 25, color: "green" },
@@ -206,9 +206,8 @@ function ageLabelStr(months: number | null): string | null {
 
 function StatPill({ label, value, accent }: { label: string; value: string | number; accent?: boolean }) {
   return (
-    <div className={`flex flex-col items-center justify-center rounded-2xl px-4 py-4 ${
-      accent ? "bg-[#2E6B3F] text-white" : "bg-white/70 border border-black/10 text-[#12301D]"
-    }`}>
+    <div className={`flex flex-col items-center justify-center rounded-2xl px-4 py-4 ${accent ? "bg-[#2E6B3F] text-white" : "bg-white/70 border border-black/10 text-[#12301D]"
+      }`}>
       <span className={`text-2xl font-bold tabular-nums ${accent ? "text-white" : "text-[#12301D]"}`}>{value}</span>
       <span className={`text-[10px] uppercase tracking-widest mt-1 font-semibold ${accent ? "text-white/70" : "text-[#12301D]/50"}`}>{label}</span>
     </div>
@@ -263,21 +262,18 @@ function TitleFamilyCard({ family, dog }: { family: TitleFamily; dog: DogDetail 
     : TIER_STYLES.gray;
 
   return (
-    <div className={`rounded-2xl border overflow-hidden transition-all ${
-      hasAnyEarned ? `${currentStyle.border} shadow-sm` : "border-black/10"
-    }`}>
+    <div className={`rounded-2xl border overflow-hidden transition-all ${hasAnyEarned ? `${currentStyle.border} shadow-sm` : "border-black/10"
+      }`}>
       {/* Header */}
       <button
         onClick={() => setOpen((o) => !o)}
-        className={`w-full flex items-center justify-between px-5 py-4 text-left transition-colors ${
-          hasAnyEarned ? currentStyle.bg : "bg-white/60 hover:bg-white/80"
-        }`}
+        className={`w-full flex items-center justify-between px-5 py-4 text-left transition-colors ${hasAnyEarned ? currentStyle.bg : "bg-white/60 hover:bg-white/80"
+          }`}
       >
         <div className="flex items-center gap-3">
           {/* Current title badge */}
-          <span className={`text-sm font-bold px-3 py-1 rounded-full ${
-            hasAnyEarned ? currentStyle.badge : "bg-black/8 text-[#12301D]/30"
-          }`}>
+          <span className={`text-sm font-bold px-3 py-1 rounded-full ${hasAnyEarned ? currentStyle.badge : "bg-black/8 text-[#12301D]/30"
+            }`}>
             {highestEarned ? highestEarned.name : family.family}
           </span>
           <div>
@@ -288,8 +284,8 @@ function TitleFamilyCard({ family, dog }: { family: TitleFamily; dog: DogDetail 
               {locked
                 ? locked
                 : nextTier
-                ? `${nextTier.threshold - value} ${family.unit} until ${nextTier.name}`
-                : "All tiers earned!"}
+                  ? `${nextTier.threshold - value} ${family.unit} until ${nextTier.name}`
+                  : "All tiers earned!"}
             </p>
           </div>
         </div>
@@ -352,18 +348,16 @@ function TitleFamilyCard({ family, dog }: { family: TitleFamily; dog: DogDetail 
               return (
                 <div
                   key={tier.name}
-                  className={`flex items-center gap-3 rounded-xl px-4 py-2.5 border transition-all ${
-                    isCurrent
+                  className={`flex items-center gap-3 rounded-xl px-4 py-2.5 border transition-all ${isCurrent
                       ? `${style.bg} ${style.border} shadow-sm`
                       : earned
-                      ? `${style.bg} ${style.border} opacity-70`
-                      : "bg-black/3 border-black/8 opacity-50"
-                  }`}
+                        ? `${style.bg} ${style.border} opacity-70`
+                        : "bg-black/3 border-black/8 opacity-50"
+                    }`}
                 >
                   {/* Check / dot */}
-                  <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
-                    earned ? style.badge : "bg-black/10"
-                  }`}>
+                  <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${earned ? style.badge : "bg-black/10"
+                    }`}>
                     {earned ? (
                       <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -401,9 +395,8 @@ function TitleFamilyCard({ family, dog }: { family: TitleFamily; dog: DogDetail 
               </p>
               <div className="flex gap-1.5">
                 {[1, 2, 3, 4, 5].map((n) => (
-                  <div key={n} className={`flex-1 h-2.5 rounded-full ${
-                    (dog.dpcLegs ?? 0) >= n ? "bg-[#2E6B3F]" : "bg-black/10"
-                  }`} />
+                  <div key={n} className={`flex-1 h-2.5 rounded-full ${(dog.dpcLegs ?? 0) >= n ? "bg-[#2E6B3F]" : "bg-black/10"
+                    }`} />
                 ))}
               </div>
               <p className="text-[10px] text-[#12301D]/40 mt-1.5">
@@ -449,10 +442,10 @@ function MeetCard({ meet }: { meet: MeetEntry }) {
               {meet.meetResults!.map((mr, i) => (
                 <div key={i} className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-[#12301D]/70 py-1 border-b border-black/5 last:border-0">
                   {mr.MeetPlacement != null && <span>Place: <b className="text-[#2E6B3F]">#{mr.MeetPlacement}</b></span>}
-                  {mr.MeetPoints    != null && <span>Pts: <b>{mr.MeetPoints}</b></span>}
-                  {mr.ARXEarned != null && mr.ARXEarned > 0  && <span>ARX: <b>{mr.ARXEarned}</b></span>}
+                  {mr.MeetPoints != null && <span>Pts: <b>{mr.MeetPoints}</b></span>}
+                  {mr.ARXEarned != null && mr.ARXEarned > 0 && <span>ARX: <b>{mr.ARXEarned}</b></span>}
                   {mr.NARXEarned != null && mr.NARXEarned > 0 && <span>NARX: <b>{mr.NARXEarned}</b></span>}
-                  {mr.ShowPoints != null && mr.ShowPoints > 0  && <span>Show: <b>{mr.ShowPoints}</b></span>}
+                  {mr.ShowPoints != null && mr.ShowPoints > 0 && <span>Show: <b>{mr.ShowPoints}</b></span>}
                   {mr.DPCLeg === 1 && <span className="text-amber-600 font-semibold">DPC Leg ✓</span>}
                 </div>
               ))}
@@ -515,11 +508,11 @@ export default function DogPage() {
 
     fetchJson<{ ok: boolean; data: MeetEntry[] }>(`/api/dog/meets/${enc}`)
       .then((r) => setMeets(Array.isArray(r.data) ? r.data : []))
-      .catch(() => {});
+      .catch(() => { });
 
     fetchJson<{ ok: boolean; data: DogOwner[] }>(`/api/dog_owner/owners/${enc}`)
       .then((r) => setOwners(Array.isArray(r.data) ? r.data : []))
-      .catch(() => {});
+      .catch(() => { });
   }, [cwaNumber]);
 
   const ageMonths = dog ? calcAgeMonths(dog.birthdate) : null;
@@ -577,9 +570,9 @@ export default function DogPage() {
           {/* Stat pills */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3"
             style={{ opacity: mounted ? 1 : 0, transition: "opacity 0.6s ease 0.15s" }}>
-            <StatPill label="Meet Points"  value={dog?.meetPoints  ?? "—"} accent />
-            <StatPill label="Meet Wins"    value={dog?.meetWins    ?? "—"} />
-            <StatPill label="Appearances"  value={dog?.meetAppearences ?? "—"} />
+            <StatPill label="Meet Points" value={dog?.meetPoints ?? "—"} accent />
+            <StatPill label="Meet Wins" value={dog?.meetWins ?? "—"} />
+            <StatPill label="Appearances" value={dog?.meetAppearences ?? "—"} />
             <StatPill label="High Combo W" value={dog?.highCombinedWins ?? "—"} />
           </div>
 
@@ -588,12 +581,12 @@ export default function DogPage() {
             <Card title="Details" className="lg:col-span-2 h-fit">
               {loading ? <p className="text-[#12301D]/40 text-sm">Loading…</p> : dog ? (
                 <>
-                  <FieldRow label="CWA #"       value={dog.cwaNumber} />
-                  <FieldRow label="birthdate"    value={formatDate(dog.birthdate)} />
-                  <FieldRow label="Age"          value={ageLabelStr(ageMonths)} />
-                  <FieldRow label="AKC #"        value={dog.akcNumber} />
-                  <FieldRow label="CKC #"        value={dog.ckcNumber} />
-                  <FieldRow label="Foreign #"    value={dog.foreignNumber} />
+                  <FieldRow label="CWA #" value={dog.cwaNumber} />
+                  <FieldRow label="birthdate" value={formatDate(dog.birthdate)} />
+                  <FieldRow label="Age" value={ageLabelStr(ageMonths)} />
+                  <FieldRow label="AKC #" value={dog.akcNumber} />
+                  <FieldRow label="CKC #" value={dog.ckcNumber} />
+                  <FieldRow label="Foreign #" value={dog.foreignNumber} />
                   <FieldRow label="Foreign Type" value={dog.foreignType} />
                   {dog.pedigreeLink && (
                     <div className="py-2">
@@ -611,10 +604,10 @@ export default function DogPage() {
             <Card title="Points Breakdown" className="lg:col-span-3 h-fit">
               {dog ? (
                 <>
-                  <PointBar label="Meet Pts"  value={dog.meetPoints  ?? 0} max={maxPoints} />
-                  <PointBar label="ARX Pts"   value={dog.arxPoints   ?? 0} max={maxPoints} />
-                  <PointBar label="NARX Pts"  value={dog.narxPoints  ?? 0} max={maxPoints} />
-                  <PointBar label="Show Pts"  value={dog.showPoints  ?? 0} max={maxPoints} />
+                  <PointBar label="Meet Pts" value={dog.meetPoints ?? 0} max={maxPoints} />
+                  <PointBar label="ARX Pts" value={dog.arxPoints ?? 0} max={maxPoints} />
+                  <PointBar label="NARX Pts" value={dog.narxPoints ?? 0} max={maxPoints} />
+                  <PointBar label="Show Pts" value={dog.showPoints ?? 0} max={maxPoints} />
                 </>
               ) : <p className="text-[#12301D]/40 text-sm">Loading…</p>}
             </Card>

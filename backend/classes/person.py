@@ -80,7 +80,7 @@ class Person:
 
     @classmethod
     def find_by_identifier(cls, identifier):
-        """Find a person by email or person_id."""
+        """Find a person by person_id."""
         row = fetch_one(
             """
             SELECT PersonID, FirstName, LastName, EmailAddress, SystemRole, PasswordHash,
@@ -94,6 +94,21 @@ class Person:
         )
         return cls.from_db_row(row)
 
+    @classmethod
+    def find_by_email(cls, identifier):
+        """Find a person by email."""
+        row = fetch_one(
+            """
+            SELECT PersonID, FirstName, LastName, EmailAddress, SystemRole, PasswordHash,
+                    AddressLineOne, AddressLineTwo, City, StateProvince, ZipCode, Country,
+                   PrimaryPhone, SecondaryPhone, Notes, LastEditedBy, LastEditedAt
+            FROM Person
+            WHERE EmailAddress= %s
+            LIMIT 1
+            """,
+            (identifier,),
+        )
+        return cls.from_db_row(row)
     @classmethod
     def exists(cls, person_id):
         """Check if a person with given ID already exists."""
