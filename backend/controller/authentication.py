@@ -269,25 +269,27 @@ def forgot_password():
         "ok": True,
         "message": "If an account exists, a password reset email has been sent."
     }), 200
+
 @auth_bp.post("/reset-password")
 def reset_password():
     data = request.get_json(silent=True) or {}
     token = (data.get("token") or "").strip()
-    password = data.get("password") or ""
+    new_password = data.get("password") or ""
 
-    if not token or not password:
-        return jsonify({"ok": False, "error": "Token and password are required"}), 400
+    if not token or not new_password:
+        return jsonify({"ok": False, "error": "Missing token or password"}), 400
 
-    reset_record = PasswordResetToken.find_valid(token)
-    if not reset_record:
+    reset = PasswordResetToken.find_valid(token)
+    if not reset:
         return jsonify({"ok": False, "error": "Invalid or expired token"}), 400
 
-    person = Person.find_by_identifier(reset_record.person_id)
+    person = Person.find_by_identifier(reset.person_id)
     if not person:
-        return jsonify({"ok": False, "error": "Invalid token"}), 400
+        return jsonify({"ok": False, "error": "User not found"}), 404
 
-    person.set_password(password)
-    person.save()
-    reset_record.mark_used()
+    person.set_password(new_password)
+    person.last_edited_by = person.person_id
+    person.last_edited_at = datetime.now(timezone.utc)
+    person.update()
 
-    return jsonify({"ok": True, "message": "Password reset successfully."}), 200
+    return jsonify({"ok": True, "message": "Password reset successful"}), 200
