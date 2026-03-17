@@ -1,5 +1,4 @@
 from flask import Flask
-from flask_mail import Mail
 from config import get_config
 from router import register_routes
 
@@ -7,11 +6,9 @@ def create_app(config_name='development'):
     """Application factory pattern"""
     app = Flask(__name__)
     app.config.from_object(get_config())
-    mail.init_app(app)
     register_routes(app)
     return app
 
-mail = Mail()
 app = create_app()
 
 if __name__ == "__main__":

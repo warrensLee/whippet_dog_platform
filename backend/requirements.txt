@@ -2,4 +2,4 @@ flask
 gunicorn
 mysql-connector-python
 email-validator
-flask-mail
+resend

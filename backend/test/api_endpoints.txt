@@ -42,6 +42,15 @@ curl -i -c cookies.txt -b cookies.txt \
     "password": "dog12345"
   }'
 
+--------------------------------------------------
+POST /api/auth/invite (invite a user)
+--------------------------------------------------
+curl -i -b cookies.txt -c cookies.txt \
+  -H "Content-Type: application/json" \
+  -X POST http://localhost/api/auth/invite \
+  -d '{
+    "email": "brayden.campbell100@gmail.com"
+  }'
 
 --------------------------------------------------
 GET /api/auth/me (more for debugging, but shows if a user is logged in and keeps session details)

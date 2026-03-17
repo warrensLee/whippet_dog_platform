@@ -161,6 +161,28 @@ CREATE TABLE `ChangeLog` (
     `AfterData` TEXT
 );
 
+CREATE TABLE PasswordResetToken (
+    TokenID INT AUTO_INCREMENT PRIMARY KEY,
+    PersonID VARCHAR(50) NOT NULL,
+    TokenHash CHAR(64) NOT NULL,
+    ExpiresAt DATETIME NOT NULL,
+    Used TINYINT(1) DEFAULT 0,
+    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (PersonID) REFERENCES Person(PersonID) ON DELETE CASCADE
+);
+
+CREATE TABLE RegistrationInvite (
+    InviteID INT AUTO_INCREMENT PRIMARY KEY,
+    Email VARCHAR(255) NOT NULL,
+    Token VARCHAR(255) NOT NULL UNIQUE,
+    ExpiresAt DATETIME NOT NULL,
+    Used TINYINT(1) NOT NULL DEFAULT 0,
+    CreatedBy VARCHAR(255) NOT NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UsedAt DATETIME NULL,
+    FOREIGN KEY (CreatedBy) REFERENCES Person(PersonID) ON DELETE CASCADE
+);
+
 -- =========================
 -- FOREIGN KEYS
 -- =========================

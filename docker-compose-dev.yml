@@ -6,7 +6,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: dogs
       MYSQL_DATABASE: cwa_db
-    user: 1000:1000
+      user: 1000:1000
     ports:
       - 127.0.0.1:3307:3306
     volumes:
@@ -51,13 +51,10 @@ services:
       - FLASK_ENV=development
       - FLASK_RUN_HOST=0.0.0.0
       - FLASK_RUN_PORT=8000 
-      # ===== EMAIL CONFIG =====
+      - RESEND_API_KEY=REDACTED
+      - FROM_EMAIL=onboarding@resend.dev
       - CONTACT_TO_EMAIL=##YOUR_CONTACT_EMAIL_HERE##
-      - SMTP_HOST=smtp.gmail.com
-      - SMTP_PORT=587
-      - SMTP_USER=##YOUR_CONTACT_EMAIL_HERE##
-      - SMTP_PASS=##GOOGLE_APP_PASSWORD##
-      - FROM_EMAIL=##YOUR_CONTACT_EMAIL_HERE##
+
 
   backup:
     image: mysql:8.0.44

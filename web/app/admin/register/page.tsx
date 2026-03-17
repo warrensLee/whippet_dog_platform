@@ -1,9 +1,13 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useState } from "react";
 import { Box, Paper, TextField, Button, Typography, Grid } from "@mui/material";
+import { useSearchParams } from "next/navigation";
+
 
 export default function RegisterPage() {
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token") || "";
   const [personId, setPersonId] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -13,38 +17,6 @@ export default function RegisterPage() {
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [submitting, setSubmitting] = useState(false);
-  const [checkingAuth, setCheckingAuth] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const res = await fetch("/api/auth/me", {
-          credentials: "include",
-        });
-
-        if (!res.ok) {
-          setCheckingAuth(false);
-          return;
-        }
-
-        const data = await res.json();
-
-        if (!cancelled && data?.user) {
-          window.location.replace("/settings");
-        } else {
-          setCheckingAuth(false);
-        }
-      } catch {
-        setCheckingAuth(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -58,6 +30,7 @@ export default function RegisterPage() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
+          token,
           personId: personId.trim(),
           firstName: firstName.trim(),
           lastName: lastName.trim(),
@@ -85,23 +58,18 @@ export default function RegisterPage() {
     }
   }
 
-  if (checkingAuth) {
-    return null;
-  }
-
   return (
     <Box
-  sx={{
-    minHeight: "100vh",
-    pt: "120px",              
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "flex-start",
-    backgroundColor: "background.default",
-    boxSizing: "border-box",
-  }}
->
-
+      sx={{
+        minHeight: "100vh",
+        pt: "120px",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "flex-start",
+        backgroundColor: "background.default",
+        boxSizing: "border-box",
+      }}
+    >
       <Paper
         elevation={3}
         sx={{
