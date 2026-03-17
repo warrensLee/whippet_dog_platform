@@ -13,15 +13,12 @@ class UserRole:
         edit_dog_scope=0,
         edit_person_scope=0,
         edit_dog_owner_scope=0,
-        edit_officer_role_scope=0,
         edit_user_role_scope=0,
-        edit_club_scope=0,
         edit_meet_scope=0,
         edit_meet_results_scope=0,
         edit_race_results_scope=0,
         edit_dog_titles_scope=0,
         edit_title_type_scope=0,
-        edit_news_scope=0,
         edit_database_scope=0,
         last_edited_by=None,
         last_edited_at=None,
@@ -31,15 +28,12 @@ class UserRole:
         self.edit_dog_scope = int(edit_dog_scope or 0)
         self.edit_person_scope = int(edit_person_scope or 0)
         self.edit_dog_owner_scope = int(edit_dog_owner_scope or 0)
-        self.edit_officer_role_scope = int(edit_officer_role_scope or 0)
         self.edit_user_role_scope = int(edit_user_role_scope or 0)
-        self.edit_club_scope = int(edit_club_scope or 0)
         self.edit_meet_scope = int(edit_meet_scope or 0)
         self.edit_meet_results_scope = int(edit_meet_results_scope or 0)
         self.edit_race_results_scope = int(edit_race_results_scope or 0)
         self.edit_dog_titles_scope = int(edit_dog_titles_scope or 0)
         self.edit_title_type_scope = int(edit_title_type_scope or 0)
-        self.edit_news_scope = int(edit_news_scope or 0)
         self.edit_database_scope = int(edit_database_scope or 0)
         self.last_edited_by = last_edited_by
         self.last_edited_at = last_edited_at
@@ -52,15 +46,12 @@ class UserRole:
             edit_dog_scope=data.get("editDogScope", 0),
             edit_person_scope=data.get("editPersonScope", 0),
             edit_dog_owner_scope=data.get("editDogOwnerScope", 0),
-            edit_officer_role_scope=data.get("editOfficerRoleScope", 0),
             edit_user_role_scope=data.get("editUserRoleScope", 0),
-            edit_club_scope=data.get("editClubScope", 0),
             edit_meet_scope=data.get("editMeetScope", 0),
             edit_meet_results_scope=data.get("editMeetResultsScope", 0),
             edit_race_results_scope=data.get("editRaceResultsScope", 0),
             edit_dog_titles_scope=data.get("editDogTitlesScope", 0),
             edit_title_type_scope=data.get("editTitleTypeScope", 0),
-            edit_news_scope=data.get("editNewsScope", 0),
             edit_database_scope=data.get("editDatabaseScope", 0),
             last_edited_by=data.get("lastEditedBy"),
             last_edited_at=data.get("lastEditedAt"),
@@ -76,15 +67,12 @@ class UserRole:
             edit_dog_scope=row.get("EditDogScope"),
             edit_person_scope=row.get("EditPersonScope"),
             edit_dog_owner_scope=row.get("EditDogOwnerScope"),
-            edit_officer_role_scope=row.get("EditOfficerRoleScope"),
             edit_user_role_scope=row.get("EditUserRoleScope"),
-            edit_club_scope=row.get("EditClubScope"),
             edit_meet_scope=row.get("EditMeetScope"),
             edit_meet_results_scope=row.get("EditMeetResultsScope"),
             edit_race_results_scope=row.get("EditRaceResultsScope"),
             edit_dog_titles_scope=row.get("EditDogTitlesScope"),
             edit_title_type_scope=row.get("EditTitleTypeScope"),
-            edit_news_scope=row.get("EditNewsScope"),
             edit_database_scope=row.get("EditDatabaseScope"),
             last_edited_by=row.get("LastEditedBy"),
             last_edited_at=row.get("LastEditedAt"),
@@ -147,15 +135,12 @@ class UserRole:
             self.edit_dog_scope,
             self.edit_person_scope,
             self.edit_dog_owner_scope,
-            self.edit_officer_role_scope,
             self.edit_user_role_scope,
-            self.edit_club_scope,
             self.edit_meet_scope,
             self.edit_meet_results_scope,
             self.edit_race_results_scope,
             self.edit_dog_titles_scope,
             self.edit_title_type_scope,
-            self.edit_news_scope,
             self.edit_database_scope,
         ]:
             if field not in (0, 1, 2):
@@ -172,20 +157,17 @@ class UserRole:
                 EditDogScope,
                 EditPersonScope,
                 EditDogOwnerScope,
-                EditOfficerRoleScope,
                 EditUserRoleScope,
-                EditClubScope,
                 EditMeetScope,
                 EditMeetResultsScope,
                 EditRaceResultsScope,
                 EditDogTitlesScope,
                 EditTitleTypeScope,
-                EditNewsScope,
                 EditDatabaseScope,
                 LastEditedBy,
                 LastEditedAt
             ) VALUES (
-                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW()
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW()
             )
             """,
             (
@@ -193,15 +175,12 @@ class UserRole:
                 self.edit_dog_scope,
                 self.edit_person_scope,
                 self.edit_dog_owner_scope,
-                self.edit_officer_role_scope,
                 self.edit_user_role_scope,
-                self.edit_club_scope,
                 self.edit_meet_scope,
                 self.edit_meet_results_scope,
                 self.edit_race_results_scope,
                 self.edit_dog_titles_scope,
                 self.edit_title_type_scope,
-                self.edit_news_scope,
                 self.edit_database_scope,
                 self.last_edited_by,
             ),
@@ -221,13 +200,11 @@ class UserRole:
                 EditDogOwnerScope = %s,
                 EditOfficerRoleScope = %s,
                 EditUserRoleScope = %s,
-                EditClubScope = %s,
                 EditMeetScope = %s,
                 EditMeetResultsScope = %s,
                 EditRaceResultsScope = %s,
                 EditDogTitlesScope = %s,
                 EditTitleTypeScope = %s,
-                EditNewsScope = %s,
                 EditDatabaseScope = %s,
                 LastEditedBy = %s,
                 LastEditedAt = NOW()
@@ -237,15 +214,12 @@ class UserRole:
                 self.edit_dog_scope,
                 self.edit_person_scope,
                 self.edit_dog_owner_scope,
-                self.edit_officer_role_scope,
                 self.edit_user_role_scope,
-                self.edit_club_scope,
                 self.edit_meet_scope,
                 self.edit_meet_results_scope,
                 self.edit_race_results_scope,
                 self.edit_dog_titles_scope,
                 self.edit_title_type_scope,
-                self.edit_news_scope,
                 self.edit_database_scope,
                 self.last_edited_by,
                 self.id,
@@ -264,15 +238,12 @@ class UserRole:
             "edit_dog_scope": self.edit_dog_scope,
             "edit_person_scope": self.edit_person_scope,
             "edit_dog_owner_scope": self.edit_dog_owner_scope,
-            "edit_officer_role_scope": self.edit_officer_role_scope,
             "edit_user_role_scope": self.edit_user_role_scope,
-            "edit_club_scope": self.edit_club_scope,
             "edit_meet_scope": self.edit_meet_scope,
             "edit_meet_results_scope": self.edit_meet_results_scope,
             "edit_race_results_scope": self.edit_race_results_scope,
             "edit_dog_titles_scope": self.edit_dog_titles_scope,
             "edit_title_type_scope": self.edit_title_type_scope,
-            "edit_news_scope": self.edit_news_scope,
             "edit_database_scope": self.edit_database_scope,
         }
 
@@ -290,15 +261,12 @@ class UserRole:
         self.edit_dog_scope = other.edit_dog_scope
         self.edit_person_scope = other.edit_person_scope
         self.edit_dog_owner_scope = other.edit_dog_owner_scope
-        self.edit_officer_role_scope = other.edit_officer_role_scope
         self.edit_user_role_scope = other.edit_user_role_scope
-        self.edit_club_scope = other.edit_club_scope
         self.edit_meet_scope = other.edit_meet_scope
         self.edit_meet_results_scope = other.edit_meet_results_scope
         self.edit_race_results_scope = other.edit_race_results_scope
         self.edit_dog_titles_scope = other.edit_dog_titles_scope
         self.edit_title_type_scope = other.edit_title_type_scope
-        self.edit_news_scope = other.edit_news_scope
         self.edit_database_scope = other.edit_database_scope
 
     def to_dict(self):
@@ -308,15 +276,12 @@ class UserRole:
             "editDogScope": self.edit_dog_scope,
             "editPersonScope": self.edit_person_scope,
             "editDogOwnerScope": self.edit_dog_owner_scope,
-            "editOfficerRoleScope": self.edit_officer_role_scope,
             "editUserRoleScope": self.edit_user_role_scope,
-            "editClubScope": self.edit_club_scope,
             "editMeetScope": self.edit_meet_scope,
             "editMeetResultsScope": self.edit_meet_results_scope,
             "editRaceResultsScope": self.edit_race_results_scope,
             "editDogTitlesScope": self.edit_dog_titles_scope,
             "editTitleTypeScope": self.edit_title_type_scope,
-            "editNewsScope": self.edit_news_scope,
             "editDatabaseScope": self.edit_database_scope,
             "lastEditedBy": self.last_edited_by,
             "lastEditedAt": self.last_edited_at.isoformat() if self.last_edited_at else None,

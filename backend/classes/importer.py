@@ -3,10 +3,7 @@ import csv
 import io
 from datetime import datetime, timezone
 
-from classes.club import Club
 from classes.dog_owner import DogOwner
-# from classes.news import News
-# from classes.officer_role import OfficerRole
 from classes.person import Person
 from classes.title_type import TitleType
 from classes.user_role import UserRole
@@ -78,22 +75,6 @@ class CsvImporter:
             "namePrefix": ("namePrefix", "NamePrefix", "NAME PREFIX", "Name Prefix"),
             "nameSuffix": ("nameSuffix", "NameSuffix", "NAME SUFFIX", "Name Suffix"),
         },
-        # "news": {
-        #     "id": ("id", "ID"),
-        #     "title": ("title", "Title"),
-        #     "content": ("content", "Content", "CONTENT"),
-        #     "createdAt": ("createdAt", "CreatedAt", "CREATED AT", "Created At"),
-        #     "updatedAt": ("updatedAt", "UpdatedAt", "UPDATED AT", "Updated At"),
-        #     "authorId": ("authorId", "AuthorId", "AUTHOR ID", "Author", "AUTHOR"),
-        #     "authorName": ("authorName", "AuthorName", "AUTHOR NAME", "Author Name"),
-        # },
-        # "officer_roles": {
-        #     "roleId": ("Role ID", "ROLE ID", "RoleId", "roleId"),
-        #     "roleName": ("Role Name", "ROLE NAME", "RoleName", "roleName"),
-        #     "personId": ("Person ID", "PERSON ID", "PersonId", "personId"),
-        #     "displayOrder": ("display_order", "Display Order", "DISPLAY ORDER", "DisplayOrder", "displayOrder"),
-        #     "active": ("active", "Active", "ACTIVE"),
-        # },
         "persons": {
             "personId": ("Person ID", "PERSON ID", "PersonId", "personId"),
             "firstName": ("First Name", "FIRST NAME", "FirstName", "firstName"),
@@ -109,15 +90,6 @@ class CsvImporter:
             "secondaryPhone": ("Secondary Phone", "SECONDARY PHONE", "SecondaryPhone", "secondaryPhone", "secondary_phone"),
             "systemRole": ("System Role", "SYSTEM ROLE", "SystemRole", "systemRole"),
             "passwordHash": ("Password Hash", "PASSWORD HASH", "PasswordHash", "passwordHash"),
-        },
-        "clubs": {
-            "clubAbbreviation": ("clubAbbreviation", "ClubAbbreviation", "club abbreviation", "ClubAbbreviation"),
-            "clubName": ("clubName", "ClubName", "club name", "ClubName"),
-            "beginDate": ("beginDate", "BeginDate", "BEGIN DATE", "Begin Date"),
-            "endDate": ("endDate", "EndDate", "END DATE", "End Date"),
-            "boardMember1": ("boardMember1", "BoardMember1", "BOARD MEMBER 1", "Board Member 1"),
-            "boardMember2": ("boardMember2", "BoardMember2", "BOARD MEMBER 2", "Board Member 2"),
-            "defaultRaceSecretary": ("defaultRaceSecretary", "DefaultRaceSecretary", "DEFAULT RACE SECRETARY", "Default Race Secretary"),
         },
         "change_logs": {
             "id": ("id", "ID"),
@@ -149,10 +121,7 @@ class CsvImporter:
         "race_results": [],
         "dog_owners": [],
         "dog_titles": [],
-        # "news": [],
-        # "officer_roles": [],
         "persons": [],
-        "clubs": [],
         "change_logs": [],
         "title_types": [],
         "user_roles": [],
@@ -192,28 +161,11 @@ class CsvImporter:
             "exists": lambda pk: DogTitle.exists(pk["cwaNumber"], pk["title"]),
             "find": lambda pk: DogTitle.find_by_identifier(pk["cwaNumber"], pk["title"]),
         },
-        # "news": {
-        #     "model": News, "table_name": "News",
-        #     "pk_fields": ["id"],
-        #     # No exists method
-        #     "find": lambda pk: News.find_by_identifier(pk["id"]),
-        # },
-        # "officer_roles": {
-        #     "model": OfficerRole, "table_name": "OfficerRoles",
-        #     "pk_fields": ["roleId"],
-        #     "exists": lambda pk: OfficerRole.exists_by_id(pk["roleId"]),
-        #     "find": lambda pk: OfficerRole.find_by_identifier(pk["roleId"]),
-        # },
         "persons": {
             "model": Person, "table_name": "Persons",
             "pk_fields": ["personId"],
             "exists": lambda pk: Person.exists_by_id(pk["personId"]),
             "find": lambda pk: Person.find_by_identifier(pk["personId"]),
-        },
-        "clubs": {
-            "model": Club, "table_name": "Clubs", "pk_fields": ["clubAbbreviation"],
-            "exists": lambda pk: Club.exists_by_abbreviation(pk["clubAbbreviation"]),
-            "find": lambda pk: Club.find_by_identifier(pk["clubAbbreviation"]),
         },
         "change_logs": {
             "model": ChangeLog, "table_name": "ChangeLog", "pk_fields": ["id"],
@@ -244,8 +196,7 @@ class CsvImporter:
         type_map = {"dog": "dogs", "meet_result": "meet_results", "meetresult": "meet_results",
                     "race_result": "race_results", "raceresult": "race_results", "meet": "meets",
                     "dog_owner": "dog_owners", "dogowner": "dog_owners", "dog_title": "dog_titles", "dogtitle": "dog_titles",
-                    "news": "news", "officer_role": "officer_roles", "officerrole": "officer_roles",
-                    "person": "persons", "club": "clubs", "change_log": "change_logs", "changelog": "change_logs",
+                    "person": "persons", "change_log": "change_logs", "changelog": "change_logs",
                     "title_type": "title_types", "titletype": "title_types", "user_role": "user_roles", "userrole": "user_roles"}
         for key, value in type_map.items():
             if key in name:
