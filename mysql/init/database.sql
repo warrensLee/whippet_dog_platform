@@ -329,45 +329,6 @@ VALUES
   NULL
 );
 
-
-INSERT INTO Person (
-  PersonID,
-  FirstName,
-  LastName,
-  EmailAddress,
-  AddressLineOne,
-  AddressLineTwo,
-  City,
-  StateProvince,
-  ZipCode,
-  Country,
-  PrimaryPhone,
-  SecondaryPhone,
-  SystemRole,
-  PasswordHash,
-  Notes,
-  LastEditedBy,
-  LastEditedAt
-) VALUES (
-  'SYSTEM',
-  'System',
-  'Account',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  'US',
-  NULL,
-  NULL,
-  'ADMIN',
-  'SYSTEM_ACCOUNT_NO_LOGIN',
-  'Internal system account used for migrations, seed data, and automated edits.',
-  NULL,
-  CURRENT_TIMESTAMP
-);
-
 INSERT INTO TitleType (Title, TitleDescription)
 VALUES
   ('ARX',  'Title of Racing Excellence'),
