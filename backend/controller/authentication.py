@@ -205,6 +205,8 @@ def forgot_password():
         }), 200
 
     person = Person.find_by_identifier(identifier)
+    if not person:
+        person = Person.find_by_email(identifier)
 
     if person and person.email:
         token = secrets.token_urlsafe(32)
@@ -239,5 +241,6 @@ def reset_password():
     person.last_edited_by = person.person_id
     person.last_edited_at = datetime.now(timezone.utc)
     person.update()
+    reset.mark_used() 
 
     return jsonify({"ok": True, "message": "Password reset successful"}), 200

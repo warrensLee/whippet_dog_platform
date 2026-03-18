@@ -44,7 +44,7 @@ services:
     volumes:
       - ./backend:/app
       - ./mysql/migrations:/app/mysql/migrations:ro
-    command: /bin/bash -c "python -m venv venv && source venv/bin/activate && pip install -r requirements.txt && gunicorn -b 0.0.0.0:8000 --reload main:app"
+    command: /bin/bash -c "python -m venv venv && source venv/bin/activate && pip install -r requirements.txt &&  sleep 30 && venv/bin/python3 test/seed_user.py; gunicorn -b 0.0.0.0:8000 --reload main:app"
     depends_on: [db]
     environment:
       - FLASK_ENV=development
@@ -59,6 +59,7 @@ services:
       - RESEND_API_KEY=REDACTED
       - FROM_EMAIL=onboarding@resend.dev
       - CONTACT_TO_EMAIL=##YOUR_CONTACT_EMAIL_HERE##
+      - SITE_URL=http://localhost
 
   backup:
     image: mysql:8.0.44

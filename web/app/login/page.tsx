@@ -95,6 +95,9 @@ export default function LoginPage() {
           >
             Login
           </Button>
+          <Typography align="center" sx={{ mt: 2, fontSize: 13 }}>
+            <a href="/forgot-password" style={{ color: "gray" }}>Forgot password?</a>
+          </Typography>
         </Box>
       </Paper>
     </Box>
