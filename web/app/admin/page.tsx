@@ -37,6 +37,7 @@ export default function Admin() {
           <a href="/admin/users" style={s.link}>Users</a>
           <a href="/admin/user_roles" style={s.link}>User Roles</a>
           <a href="/admin/history" style={s.link}>History</a>
+          <a href="/admin/import" style={s.link}>Importer</a>
         </div>
       </section>
 

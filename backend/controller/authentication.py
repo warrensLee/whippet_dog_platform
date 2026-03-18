@@ -16,8 +16,8 @@ from utils.email_service import send_reset_email
 DUMMY_HASH = generate_password_hash("dummy_password")
 auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
-@auth_bp.post("/register-new")
-def registernew():
+@auth_bp.post("/register")
+def register():
     data = request.get_json(silent=True) or {}
     password = data.get("password") or ""
     invite_token = (data.get("token") or "").strip()
@@ -82,64 +82,6 @@ def registernew():
 
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
-
-@auth_bp.post("/register")
-def register():
-    """Register a new user account."""
-    data = request.get_json(silent=True) or {}
-    password = data.get("password") or ""
-
-    person = Person.from_request_data(data)
-
-    if not password:
-        return jsonify({"ok": False, "error": "Password is required"}), 400
-
-    if person.email:
-        try:
-            valid = email_validator.validate_email(
-                person.email,
-                allow_smtputf8=True,
-                check_deliverability=False
-            )
-            person.email = valid.normalized
-        except email_validator.EmailNotValidError as e:
-            return jsonify({"ok": False, "error": f"Invalid email address: {str(e)}"}), 400
-
-    if not person.system_role:
-        person.system_role = "PUBLIC"
-
-    current_user = session.get("user") or {}
-    editor_id = current_user.get("PersonID")
-    person.last_edited_by = editor_id if editor_id else person.person_id
-    person.last_edited_at = datetime.now(timezone.utc)
-
-    validation_errors = person.validate()
-    if validation_errors:
-        return jsonify({"ok": False, "error": ", ".join(validation_errors)}), 400
-
-    if person.person_id != current_user.get("PersonID") and Person.exists(person.person_id):
-        return jsonify({"ok": False, "error": "Username already exists"}), 409
-
-    person.set_password(password)
-
-    try:
-        person.save()
-
-        ChangeLog.log(
-            changed_table="Person",
-            record_pk=person.person_id,
-            operation="INSERT",
-            changed_by=person.last_edited_by,
-            source="api/auth/register POST",
-            before_obj=None,
-            after_obj=person.to_dict(),
-        )
-
-        return jsonify({"ok": True}), 201
-
-    except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
-
     
 @auth_bp.post("/invite")
 def invite_user():
