@@ -19,28 +19,6 @@ export class Role {
     editUserRoleScope: RoleValue = 0;
 }
 
-export enum Permission {
-    editOwnDogs,
-    editOwnDatabase,
-    editOwnDogOwners,
-    editOwnDogTitles,
-    editOwnMeetResults,
-    editOwnMeet,
-    editOwnPersons,
-    editOwnRaceResults,
-    editOwnTitleTypes,
-    editOwnUserRoles,
-    editAllDatabase,
-    editAllDogOwners,
-    editAllDogs,
-    editAllDogTitles,
-    editAllMeetResults,
-    editAllMeet,
-    editAllPersons,
-    editAllRaceResults,
-    editAllTitleTypes,
-    editAllUserRoles,
-}
 
 export const PermissionMappings: Record<string, { roleField: keyof Role, minimum: RoleValue }> = {
     editOwnDogs: { roleField: "editDogScope", minimum: RoleValue.SELF },
@@ -84,8 +62,9 @@ export class User {
         this.SystemRole = userObj.SystemRole || "";
         this.role = userObj.role!;
     }
-    hasPermission(perm: Permission): boolean {
-        return this.role[PermissionMappings[perm].roleField] >= PermissionMappings[perm].minimum;
+    hasPermission(perm: keyof typeof PermissionMappings): boolean {
+        const p = PermissionMappings[perm]
+        return this.role[p.roleField] >= PermissionMappings[perm].minimum;
     }
 
 }

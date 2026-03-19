@@ -1,12 +1,13 @@
 "use client"
 import { ReactNode, useContext, useEffect } from "react"
-import authContext, { Permission } from "./auth"
-export default function AuthGuard({ permissions, redirect = true, children }: { permissions?: Permission[] | undefined, redirect?: boolean, children?: ReactNode }) {
+import authContext, { PermissionMappings } from "./auth"
+export default function AuthGuard({ permissions, redirect = true, children }: { permissions?: Array<keyof typeof PermissionMappings> | undefined, redirect?: boolean, children?: ReactNode }) {
     console.log("Rendering AuthGuard")
 
     const authctx = useContext(authContext);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     console.log(authctx)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const isAuthenticated = (): boolean => {
         if (authctx == undefined) return false;
         if (authctx == "NotAuthenticated") return false;

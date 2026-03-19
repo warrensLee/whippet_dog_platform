@@ -21,6 +21,7 @@ import {
 } from '@mui/material';
 import HeroSection from '@/app/components/HeroSection';
 import axios from 'axios';
+import AuthGuard from '@/lib/auth/authGuard';
 
 const getScopeLabel = (scope: number) => {
   switch (scope) {
@@ -64,63 +65,65 @@ export default function UserRoles() {
   if (error) return <Typography color="error">{error}</Typography>;
 
   return (
-    <main className="pt-24 bg-[#1F4D2E]">
-      <HeroSection title="Edit User Roles" />
-      <section className="bg-[#E7F0E9] pt-12 pb-24 flex-center" style={{ display: "flex", justifyContent: "center", flexDirection: "column", alignItems: "center" }}>
+    <AuthGuard permissions={["editAllUserRoles"]}>
+      <main className="pt-24 bg-[#1F4D2E]">
+        <HeroSection title="Edit User Roles" />
+        <section className="bg-[#E7F0E9] pt-12 pb-24 flex-center" style={{ display: "flex", justifyContent: "center", flexDirection: "column", alignItems: "center" }}>
 
-        <EditRoleDialog open={editDialogOpen} roleData={selectedRole} onClose={() => { setEditDialogOpen(false); fetchRoles() }} onSave={() => { fetchRoles() }} />
-        <TableContainer component={Paper} sx={{ maxWidth: '80%', mt: 4 }}>
-          <Table size="small" aria-label="user roles table">
-            <TableHead>
-              <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                <TableCell><strong>Title</strong></TableCell>
-                {SCOPE_FIELDS.map((col) => (
-                  <TableCell key={col.key} align="center"><strong>{col.label}</strong></TableCell>
-                ))}
-                <TableCell><strong>Actions</strong></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {roles.map((role: UserRole) => (
-                <TableRow key={role.id} hover>
-                  <TableCell component="th" scope="row">
-                    {role.title}
-                  </TableCell>
-
-                  {SCOPE_FIELDS.map((col) => {
-                    console.log(col.key)
-                    const scopeData = getScopeLabel(role[col.key] as number);
-                    return (
-                      <TableCell key={col.key} align="center">
-                        <Chip
-                          label={scopeData.label}
-                          size="small"
-                          color={scopeData.color as never}
-                          variant="outlined"
-                        />
-                      </TableCell>
-                    );
-                  })}
-                  <TableCell component="th" scope="row">
-                    <Box display={(role.title != "ADMIN" && role.title != "PUBLIC") ? "flex" : "none"} >
-                      <IconButton color="error"><DeleteIcon /> </IconButton>
-                      <IconButton onClick={() => {
-                        setSelectedRole(role);
-                        setEditDialogOpen(true);
-                      }}><EditIcon /></IconButton>
-                    </Box>
-                  </TableCell>
-
+          <EditRoleDialog open={editDialogOpen} roleData={selectedRole} onClose={() => { setEditDialogOpen(false); fetchRoles() }} onSave={() => { fetchRoles() }} />
+          <TableContainer component={Paper} sx={{ maxWidth: '80%', mt: 4 }}>
+            <Table size="small" aria-label="user roles table">
+              <TableHead>
+                <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                  <TableCell><strong>Title</strong></TableCell>
+                  {SCOPE_FIELDS.map((col) => (
+                    <TableCell key={col.key} align="center"><strong>{col.label}</strong></TableCell>
+                  ))}
+                  <TableCell><strong>Actions</strong></TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer >
-        <Button color="success" sx={{ width: "80%" }} variant="contained" onClick={() => {
-          setSelectedRole(new UserRole())
-          setEditDialogOpen(true)
-        }}>Add Role</Button>
-      </section>
-    </main >
+              </TableHead>
+              <TableBody>
+                {roles.map((role: UserRole) => (
+                  <TableRow key={role.id} hover>
+                    <TableCell component="th" scope="row">
+                      {role.title}
+                    </TableCell>
+
+                    {SCOPE_FIELDS.map((col) => {
+                      console.log(col.key)
+                      const scopeData = getScopeLabel(role[col.key] as number);
+                      return (
+                        <TableCell key={col.key} align="center">
+                          <Chip
+                            label={scopeData.label}
+                            size="small"
+                            color={scopeData.color as never}
+                            variant="outlined"
+                          />
+                        </TableCell>
+                      );
+                    })}
+                    <TableCell component="th" scope="row">
+                      <Box display={(role.title != "ADMIN" && role.title != "PUBLIC") ? "flex" : "none"} >
+                        <IconButton color="error"><DeleteIcon /> </IconButton>
+                        <IconButton onClick={() => {
+                          setSelectedRole(role);
+                          setEditDialogOpen(true);
+                        }}><EditIcon /></IconButton>
+                      </Box>
+                    </TableCell>
+
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer >
+          <Button color="success" sx={{ width: "80%" }} variant="contained" onClick={() => {
+            setSelectedRole(new UserRole())
+            setEditDialogOpen(true)
+          }}>Add Role</Button>
+        </section>
+      </main >
+    </AuthGuard>
   );
 };

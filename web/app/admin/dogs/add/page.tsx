@@ -8,7 +8,6 @@ import type { DogFormValues } from "@/lib/search/types";
 import { emptyDogFormValues } from "@/lib/search/types";
 import HeroSection from "@/app/components/HeroSection";
 import AuthGuard from "@/lib/auth/authGuard";
-import { Permission } from "@/lib/auth/auth";
 
 /*
     Builds a clean payload from the current form state before sending
@@ -201,7 +200,7 @@ export default function AddDogPage() {
     }*/
 
     return (
-        <AuthGuard redirect={true} permissions={[Permission.editAllDogs]}>
+        <AuthGuard>
             <main className="pt-24 bg-[#1F4D2E]">
                 {/* 
                 Hero section for the main search entry area.
