@@ -44,8 +44,6 @@ export default function AdminDogsPage() {
     /*
         Auth state protects the page from unauthorized access.
     */
-    const [authLoading, setAuthLoading] = React.useState(true);
-    const [authorized, setAuthorized] = React.useState(false);
 
     /*
         Data/loading state for the dog search results.
@@ -135,42 +133,6 @@ export default function AdminDogsPage() {
         () => {
             let cancelled = false;
 
-            async function checkAccess() {
-                try {
-                    const res = await fetch(
-                        "/api/auth/me",
-                        {
-                            cache: "no-store",
-                            credentials: "include",
-                        }
-                    );
-
-                    const json = await res.json().catch(
-                        () => {
-                            return null;
-                        }
-                    );
-
-                    if (!res.ok || !json?.signedIn || !json?.canManageDogs) {
-                        router.replace("/login");
-                        return;
-                    }
-
-                    if (!cancelled) {
-                        setAuthorized(true);
-                    }
-                }
-                catch {
-                    router.replace("/login");
-                }
-                finally {
-                    if (!cancelled) {
-                        setAuthLoading(false);
-                    }
-                }
-            }
-
-            checkAccess();
 
             return () => {
                 cancelled = true;
@@ -185,13 +147,9 @@ export default function AdminDogsPage() {
     */
     React.useEffect(
         () => {
-            if (!authorized) {
-                return;
-            }
-
             loadDogs();
         },
-        [authorized, loadDogs]
+        [loadDogs]
     );
 
     /*
@@ -271,23 +229,6 @@ export default function AdminDogsPage() {
         }
     }
 
-    /*
-        Show auth gate while access is still being checked.
-    */
-    if (authLoading) {
-        return (
-            <main className="min-h-screen flex items-center justify-center bg-[#1F4D2E] text-white">
-                Checking access...
-            </main>
-        );
-    }
-
-    /*
-        If not authorized, return nothing because redirect is already in progress.
-    */
-    if (!authorized) {
-        return null;
-    }
 
     // updated to ouptput correct data and counts based on search results, not just total in DB
     const items = data?.items ?? [];

@@ -186,12 +186,14 @@ def me():
 
     role_title = (user.get("SystemRole") or "").strip().upper()
     role = UserRole.find_by_title(role_title) if role_title else None
-
     dog_scope = getattr(role, "edit_dog_scope",
                         UserRole.NONE) if role else UserRole.NONE
     can_manage_dogs = dog_scope == UserRole.ALL
-
-    return jsonify({"ok": True, "user": user, "signedIn": True, "canManageDogs": can_manage_dogs }), 200
+    role_dict = role.to_dict()
+    del role_dict["id"]
+    del role_dict["lastEditedAt"]
+    del role_dict["lastEditedBy"]
+    return jsonify({"ok": True, "user": {**user, "role":role_dict}, "signedIn": True, "canManageDogs": can_manage_dogs,  }), 200
 
 @auth_bp.post("/forgot-password")
 def forgot_password():

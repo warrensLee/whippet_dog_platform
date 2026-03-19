@@ -349,10 +349,10 @@ function TitleFamilyCard({ family, dog }: { family: TitleFamily; dog: DogDetail 
                 <div
                   key={tier.name}
                   className={`flex items-center gap-3 rounded-xl px-4 py-2.5 border transition-all ${isCurrent
-                      ? `${style.bg} ${style.border} shadow-sm`
-                      : earned
-                        ? `${style.bg} ${style.border} opacity-70`
-                        : "bg-black/3 border-black/8 opacity-50"
+                    ? `${style.bg} ${style.border} shadow-sm`
+                    : earned
+                      ? `${style.bg} ${style.border} opacity-70`
+                      : "bg-black/3 border-black/8 opacity-50"
                     }`}
                 >
                   {/* Check / dot */}
@@ -548,7 +548,7 @@ export default function DogPage() {
                 style={{ fontSize: "clamp(2.2rem, 6vw, 4rem)", fontFamily: "'Georgia', serif", textShadow: "0 2px 30px rgba(0,0,0,0.3)" }}>
                 {dog.registeredName}
               </h1>
-              {dog.callName && <p className="mt-2 text-white/50 text-base italic">"{dog.callName}"</p>}
+              {dog.callName && <p className="mt-2 text-white/50 text-base italic">&quot;{dog.callName}&quot;</p>}
               <div className="mt-4 flex items-center justify-center gap-3 flex-wrap">
                 {dog.status && <span className={`rounded-full px-4 py-1 text-xs font-semibold ${statusColor}`}>{dog.status}</span>}
                 {dog.currentGrade && <span className="rounded-full bg-white/10 px-4 py-1 text-white/80 text-xs font-mono tracking-wider">Grade {dog.currentGrade}</span>}

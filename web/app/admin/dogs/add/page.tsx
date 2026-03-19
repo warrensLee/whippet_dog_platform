@@ -7,6 +7,8 @@ import DogForm from "@/app/components/DogForm";
 import type { DogFormValues } from "@/lib/search/types";
 import { emptyDogFormValues } from "@/lib/search/types";
 import HeroSection from "@/app/components/HeroSection";
+import AuthGuard from "@/lib/auth/authGuard";
+import { Permission } from "@/lib/auth/auth";
 
 /*
     Builds a clean payload from the current form state before sending
@@ -82,7 +84,7 @@ export default function AddDogPage() {
                     );
 
                     if (!res.ok || !json?.signedIn || !json?.canManageDogs) {
-                        router.replace("/login");
+                        //router.replace("/login");
                         return;
                     }
 
@@ -91,7 +93,7 @@ export default function AddDogPage() {
                     }
                 }
                 catch {
-                    router.replace("/login");
+                    //router.replace("/login");
                 }
                 finally {
                     if (!cancelled) {
@@ -182,96 +184,98 @@ export default function AddDogPage() {
     /*
         While auth is being checked, show a simple access gate.
     */
-    if (authLoading) {
+    /*if (authLoading) {
         return (
             <main className="min-h-screen flex items-center justify-center bg-[#1F4D2E] text-white">
                 Checking access...
             </main>
         );
-    }
+    }*/
 
     /*
         If the auth check is done and the user is not authorized,
         return nothing because the redirect is already happening.
     */
-    if (!authorized) {
+    /*if (!authorized) {
         return null;
-    }
+    }*/
 
     return (
-        <main className="pt-24 bg-[#1F4D2E]">
-            {/* 
+        <AuthGuard redirect={true} permissions={[Permission.editAllDogs]}>
+            <main className="pt-24 bg-[#1F4D2E]">
+                {/* 
                 Hero section for the main search entry area.
 
                 I kept this visually strong so the page feels more polished
                 and less like a plain database dump.
             */}
-            <HeroSection
-                title="Add Dog"
-                subtitle="Create a new dog record through the admin panel."
-                topContent={
-                    <Link
-                        href="/admin/dogs"
-                        className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
-                    >
-                        Back to Admin Dogs
-                    </Link>
-                }
-            >
-            </HeroSection>
-
-
-            {/* Main form section */}
-            <section className="bg-[#E7F0E9] pt-12 pb-24">
-                <div className="max-w-5xl mx-auto px-4">
-                    <div className="mb-8">
-                        <h2 className="text-2xl font-bold text-[#12301D]">
-                            New Dog Information
-                        </h2>
-
-                        <div className="mt-1 h-1 w-14 rounded-full bg-[#2E6B3F]/70" />
-                    </div>
-
-                    <DogForm
-                        values={form}
-                        onChange={updateField}
-                        onSubmit={handleSubmit}
-                        saving={saving}
-                        submitLabel="Create Dog"
-                        error={error}
-                        success={success}
-                        onCancel={
-                            () => {
-                                router.push("/admin/dogs");
-                            }
-                        }
-                        form={form}
-                        setForm={setForm}
-                        isEditMode={false}
-                    />
-                </div>
-            </section>
-
-            {/* Footer */}
-            <footer className="bg-[#DCE7DF] pb-2">
-                <hr className="h-px bg-black/25 border-0 -mt-6 mb-4" />
-
-                <p className="text-[#12301D] text-sm text-center leading-relaxed">
-                    <span className="block">
-                        Questions? Email{" "}
-                        <a
-                            href="mailto:cwawhippetracing@gmail.com"
-                            className="underline hover:text-[#2E6B3F] transition"
+                <HeroSection
+                    title="Add Dog"
+                    subtitle="Create a new dog record through the admin panel."
+                    topContent={
+                        <Link
+                            href="/admin/dogs"
+                            className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
                         >
-                            cwawhippetracing@gmail.com
-                        </a>
-                    </span>
+                            Back to Admin Dogs
+                        </Link>
+                    }
+                >
+                </HeroSection>
 
-                    <span className="block mt-1">
-                        © 2026 Continental Whippet Alliance. All rights reserved.
-                    </span>
-                </p>
-            </footer>
-        </main>
+
+                {/* Main form section */}
+                <section className="bg-[#E7F0E9] pt-12 pb-24">
+                    <div className="max-w-5xl mx-auto px-4">
+                        <div className="mb-8">
+                            <h2 className="text-2xl font-bold text-[#12301D]">
+                                New Dog Information
+                            </h2>
+
+                            <div className="mt-1 h-1 w-14 rounded-full bg-[#2E6B3F]/70" />
+                        </div>
+
+                        <DogForm
+                            values={form}
+                            onChange={updateField}
+                            onSubmit={handleSubmit}
+                            saving={saving}
+                            submitLabel="Create Dog"
+                            error={error}
+                            success={success}
+                            onCancel={
+                                () => {
+                                    router.push("/admin/dogs");
+                                }
+                            }
+                            form={form}
+                            setForm={setForm}
+                            isEditMode={false}
+                        />
+                    </div>
+                </section>
+
+                {/* Footer */}
+                <footer className="bg-[#DCE7DF] pb-2">
+                    <hr className="h-px bg-black/25 border-0 -mt-6 mb-4" />
+
+                    <p className="text-[#12301D] text-sm text-center leading-relaxed">
+                        <span className="block">
+                            Questions? Email{" "}
+                            <a
+                                href="mailto:cwawhippetracing@gmail.com"
+                                className="underline hover:text-[#2E6B3F] transition"
+                            >
+                                cwawhippetracing@gmail.com
+                            </a>
+                        </span>
+
+                        <span className="block mt-1">
+                            © 2026 Continental Whippet Alliance. All rights reserved.
+                        </span>
+                    </p>
+                </footer>
+            </main>
+        </AuthGuard>
     );
 }
