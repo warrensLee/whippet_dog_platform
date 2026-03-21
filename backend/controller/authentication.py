@@ -11,6 +11,7 @@ from classes.password_reset import PasswordResetToken
 from classes.registration_invite import RegistrationInvite
 from utils.email_service import send_invite_email
 from utils.email_service import send_reset_email
+from utils.turnstile import validate_turnstile
 
 
 DUMMY_HASH = generate_password_hash("dummy_password")
@@ -133,9 +134,16 @@ def login():
     data = request.get_json(silent=True) or {}
     identifier = (data.get("username") or "").strip()
     password = data.get("password") or ""
-
+    token = data.get("cf_token") or ""
     if not identifier or not password:
         return jsonify({"ok": False, "error": "Missing username or password"}), 400
+
+    if not token:
+        return jsonify({"ok": False, "error": "Missing Security Token"}), 400
+
+    if not validate_turnstile(token):
+        return jsonify({"ok": False, "error": "Invalid Security Token, Please try again"}), 400
+
 
     if "@" in identifier:
         try:
@@ -199,6 +207,18 @@ def me():
 def forgot_password():
     data = request.get_json(silent=True) or {}
     identifier = (data.get("identifier") or "").strip()
+    token = data.get("cf_token") or ""
+    if not token:
+        return jsonify({
+            "ok": False,
+            "message": "Security Token is missing"
+        }), 400
+
+    if not validate_turnstile(token):
+        jsonify({
+            "ok": False,
+            "message": "Invalid/Expired Security Token. Please Try Again"
+        }), 400
 
     if not identifier:
         return jsonify({

@@ -1,12 +1,14 @@
 "use client"
 import { useState } from "react";
 import { Box, Paper, TextField, Button, Typography } from '@mui/material';
+import Turnstile from "@/lib/Turnstile";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
   const [message, setMessage] = useState("");
+  const [token, setToken] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit<T>(e: React.MouseEvent<T>) {
@@ -22,6 +24,7 @@ export default function LoginPage() {
         body: JSON.stringify({
           username: username.trim(),
           password,
+          cf_token: token,
         }),
       });
 
@@ -31,7 +34,8 @@ export default function LoginPage() {
         window.location.assign("/admin");
         return;
       } else {
-        setMessage("Incorrect username or password");
+        setMessage(data.error);
+        window.turnstile.reset()
       }
 
     } catch (err) {
@@ -56,7 +60,8 @@ export default function LoginPage() {
         elevation={3}
         sx={{
           p: 4,
-          width: 350,
+          maxWidth: 600,
+          width: "50%",
           minWidth: 280,
         }}
       >
@@ -84,13 +89,14 @@ export default function LoginPage() {
             required
           />
           <Typography color="red">{message}</Typography>
+          <Turnstile onSuccess={(hi: string) => setToken(hi)} />
           <Button
             type="submit"
             variant="contained"
             color="success"
             fullWidth
             sx={{ mt: 2 }}
-            disabled={submitting}
+            disabled={submitting || !token || !username || !password}
             onClick={handleSubmit}
           >
             Login
@@ -100,7 +106,7 @@ export default function LoginPage() {
           </Typography>
         </Box>
       </Paper>
-    </Box>
+    </Box >
   )
 
 
