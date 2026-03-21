@@ -3,9 +3,8 @@ services:
     image: mysql:8.0.44
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: dogs
-      MYSQL_DATABASE: cwa_db
       user: 1000:1000
+    env_file: ".env.database"
     ports:
       - 127.0.0.1:3306:3306
     volumes:
@@ -20,6 +19,7 @@ services:
     command: sh -c "npm install && npm run dev"
     depends_on:
       - db
+      - backend
     ports:
       - 127.0.0.1:3000:3000
     volumes:
@@ -27,13 +27,7 @@ services:
       - next_cache:/home/node/.cache
       - next_node_modules:/app/node_modules
       - next_next:/app/.next
-    environment:
-      - NODE_ENV=development
-      - MYSQL_HOST=db
-      - MYSQL_PORT=3306
-      - MYSQL_USER=root
-      - MYSQL_PASSWORD=dogs
-      - MYSQL_DATABASE=cwa_db
+    env_file: ".env.frontend"
 
   backend:
     image: python:3.12
@@ -46,20 +40,7 @@ services:
       - ./mysql/migrations:/app/mysql/migrations:ro
     command: /bin/bash -c "python -m venv venv && source venv/bin/activate && pip install -r requirements.txt &&  sleep 30 && venv/bin/python3 test/seed_user.py; gunicorn -b 0.0.0.0:8000 --reload main:app"
     depends_on: [db]
-    environment:
-      - FLASK_ENV=development
-      - FLASK_RUN_HOST=0.0.0.0
-      - FLASK_RUN_PORT=8000
-      - SEED_ADMIN_ID=admin
-      - SEED_ADMIN_FIRST_NAME=Krista
-      - SEED_ADMIN_LAST_NAME=Siehndel
-      - SEED_ADMIN_EMAIL=cwawhippetracing@gmail.com
-      - SEED_ADMIN_PASSWORD=dogs
-      - SEED_ADMIN_ROLE=ADMIN
-      - RESEND_API_KEY=REDACTED
-      - FROM_EMAIL=onboarding@resend.dev
-      - CONTACT_TO_EMAIL=##YOUR_CONTACT_EMAIL_HERE##
-      - SITE_URL=http://localhost
+    env_file: ".env.backend"
 
   backup:
     image: mysql:8.0.44
