@@ -1,140 +1,61 @@
 'use client'
 
-import React from 'react'
+import React, { useContext, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import Image from 'next/image'
+import authContext from '@/lib/auth/auth'
+import SearchBar from './SearchBar'
+import { Drawer, Menu, MenuItem } from '@mui/material'
+import MenuIcon from '@mui/icons-material/Menu';
+import axios from 'axios'
 
+function UserMenu() {
+    const user = useContext(authContext)
+    const [open, setOpen] = useState(false);
+    const [menuAnchor, setMenuAnchor] = useState<undefined | HTMLElement>(undefined)
+    if(user == undefined || user == "NotAuthenticated") {
+            return (<button onClick={() => window.location.href = "/login"} className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] hover:shadow-md transition">
+                Login
+            </button>) 
+    }
 
-
+    return (<div>
+        <button onClick={(event: React.MouseEvent<HTMLButtonElement>) => {setMenuAnchor(event.currentTarget); setOpen(true)}} className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] hover:shadow-md transition">
+               {user.PersonID} <MenuIcon/>
+            </button>
+            <Menu open={open} onClose={() => setOpen(false)} anchorEl={menuAnchor}         MenuListProps={{
+          style: { width: menuAnchor ? menuAnchor.clientWidth : "auto" },
+        }}>
+                <MenuItem onClick={() => axios.post("/api/auth/logout").then(() => window.location.href = "/")}>Logout</MenuItem>
+                <MenuItem onClick={() => window.location.href = "/edit/profile"}>Edit Profile</MenuItem>
+                <MenuItem>View My Dogs</MenuItem>
+            </Menu>
+            </div>
+            ) 
+}
 
 
 const Navbar = () => 
     {
+    const user = useContext(authContext)
     const pathname = usePathname()
     return (
         <nav className="fixed top-0 w-full flex items-center justify-around py-1 px-12 border-b border-gray-500 bg-black/30 backdrop-blur-md z-50">
-        
-            <Link
+            <div style={{display:"flex", justifyContent:"space-between", width: "100%", verticalAlign:"center", alignItems:"center"}}>
 
-                href="/"
-                className="mr-auto transition hover:scale-110">
-
-                <img
+                <Image
                     src="/CWAlogo-lg.gif"
                     alt="Home"
                     width={100}
                     height={100}
                     className="object-contain"
                 />
-
-            </Link>
-
-            {/* Each of these links is a page that can be routed to from the navbar */}
-
-            <ul className="flex gap-10 text-xl font-medium text-white/90">
-
-                <li><Link
-
-                    href="/search"
-                    className={`
-                        transition-colors
-                        ${pathname === '/search'
-                            ? 'font-semibold underline underline-offset-8'
-                            : 'hover:underline hover:underline-offset-8'}
-                            `}>
-
-                    Search
-
-                </Link></li>
-
-                <li><Link
-
-                    href="/getting_started"
-                    className={`
-                        transition-colors
-                        ${pathname === '/getting_started'
-                            ? 'font-semibold underline underline-offset-8'
-                            : 'hover:underline hover:underline-offset-8'}
-                            `}>
-
-                    Getting Started
-
-                </Link></li>
-
-                <li><Link
-
-                    href="/events"
-                    className={`
-                        transition-colors
-                        ${pathname === '/events'
-                            ? 'font-semibold underline underline-offset-8'
-                            : 'hover:underline hover:underline-offset-8'}
-                            `}>
-
-                    Events
-
-                </Link></li>
-
-                <li><Link
-
-                    href="/news"
-                    className={`
-                        transition-colors
-                        ${pathname === '/news'
-                            ? 'font-semibold underline underline-offset-8'
-                            : 'hover:underline hover:underline-offset-8'}
-                            `}>
-
-                    News
-
-                </Link></li>
-
-
-                <li><Link
-
-                    href="/stats_and_titles"
-                    className={`
-                        transition-colors
-                        ${pathname === '/stats_and_titles'
-                            ? 'font-semibold underline underline-offset-8'
-                            : 'hover:underline hover:underline-offset-8'}
-                            `}>
-
-                    Stats & Titles
-
-                </Link></li>
-
-
-
-                <li><Link
-
-                    href="/rules_and_grading"
-                    className={`
-                        transition-colors
-                        ${pathname === '/rules_and_grading'
-                            ? 'font-semibold underline underline-offset-8'
-                            : 'hover:underline hover:underline-offset-8'}
-                            `}>
-
-                    Rules & Grading
-
-                </Link></li>
-
-                <li><Link
-
-                    href="/contact"
-                    className={`
-                        transition-colors
-                        ${pathname === '/contact'
-                            ? 'font-semibold underline underline-offset-8'
-                            : 'hover:underline hover:underline-offset-8'}
-                            `}>
-
-                    Contact
-
-                </Link></li>
-            </ul>
-
+                <div style={{width:"50%", maxWidth:"750px"}}>
+                    <SearchBar action="/search" query="" sort=""/>
+                </div>
+           <UserMenu/>
+            </div>
         </nav>
 
 
