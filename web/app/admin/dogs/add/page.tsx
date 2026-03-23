@@ -4,8 +4,8 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import DogForm from "@/app/components/DogForm";
-import type { DogFormValues } from "@/lib/search/types";
-import { emptyDogFormValues } from "@/lib/search/types";
+import type { DogFormValues } from "@/app/admin/dogs/types";
+import { emptyDogFormValues } from "@/app/admin/dogs/types";
 import HeroSection from "@/app/components/HeroSection";
 import AuthGuard from "@/lib/auth/authGuard";
 

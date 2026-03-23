@@ -1,12 +1,13 @@
-// [id]/edit/page.tsx
+// admin/events/[meetNumber]/edit/page.tsx
+
 "use client";
 
 import * as React from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import DogForm from "@/app/components/DogForm";
-import type { DogFormValues } from "@/app/admin/dogs/types";
-import { emptyDogFormValues } from "@/app/admin/dogs/types";
+import EventForm from "@/app/components/EventForm";
+import type { EventFormValues } from "@/app/admin/events/types";
+import { emptyEventFormValues } from "@/app/admin/events/types";
 import HeroSection from "@/app/components/HeroSection";
 
 /*
@@ -27,61 +28,57 @@ function normalizeText(x: unknown): string {
     return "";
 }
 
-type RawDogGetResponse =
+/*
+    Converts dates to the correct format,
+    ensuring that it is in form: YYYY-MM-DD
+*/
+function toDateInputValue(value?: string) {
+    if (!value) {
+        return "";
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return "";
+    }
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+}
+
+type RawEventGetResponse =
     {
         ok: boolean;
         data?:
         {
-            cwaNumber?: string;
-            akcNumber?: string | null;
-            ckcNumber?: string | null;
-            currentGrade?: string | null;
-            foreignNumber?: string | null;
-            foreignType?: string | null;
-            callName?: string | null;
-            registeredName?: string | null;
-            birthdate?: string | null;
-            pedigreeLink?: string | null;
-            status?: string | null;
-            notes?: string | null;
-            meetPoints?: string | null;
-            arxPoints?: string | null;
-            narxPoints?: string | null;
-            showPoints?: string | null;
-            dpcLegs?: string | null;
-            meetWins?: string | null;
-            meetAppearences?: string | null;
-            highCombinedWins?: string | null;
+            meetNumber?: string;
+            clubAbbreviation?: string | null;
+            meetDate?: string;
+            raceSecretary?: string | null;
+            judge?: string | null;
+            location?: string | null;
+            yards?: string | null;
         };
         error?: string;
     };
 
 /*
-    Converts backend dog data into the exact DogFormValues shape
-    expected by the shared DogForm component.
+    Converts backend Event data into the exact EventFormValues shape
+    expected by the shared EventForm component.
 */
-function buildFormFromDog(data: NonNullable<RawDogGetResponse["data"]>): DogFormValues {
+function buildFormFromEvent(data: NonNullable<RawEventGetResponse["data"]>): EventFormValues {
     return {
-        cwaNumber: normalizeText(data.cwaNumber),
-        akcNumber: normalizeText(data.akcNumber),
-        ckcNumber: normalizeText(data.ckcNumber),
-        currentGrade: normalizeText(data.currentGrade),
-        foreignNumber: normalizeText(data.foreignNumber),
-        foreignType: normalizeText(data.foreignType),
-        callName: normalizeText(data.callName),
-        registeredName: normalizeText(data.registeredName),
-        birthdate: normalizeText(data.birthdate),
-        pedigreeLink: normalizeText(data.pedigreeLink),
-        status: normalizeText(data.status) || "Active",
-        notes: normalizeText(data.notes),
-        meetPoints: normalizeText(data.meetPoints),
-        arxPoints: normalizeText(data.arxPoints),
-        narxPoints: normalizeText(data.narxPoints),
-        showPoints: normalizeText(data.showPoints),
-        dpcLegs: normalizeText(data.dpcLegs),
-        meetWins: normalizeText(data.meetWins),
-        meetAppearences: normalizeText(data.meetAppearences),
-        highCombinedWins: normalizeText(data.highCombinedWins),
+        meetNumber: normalizeText(data.meetNumber),
+        clubAbbreviation: normalizeText(data.clubAbbreviation),
+        meetDate: toDateInputValue(data.meetDate),
+        raceSecretary: normalizeText(data.raceSecretary),
+        judge: normalizeText(data.judge),
+        location: normalizeText(data.location),
+        yards: normalizeText(data.yards),
     };
 }
 
@@ -91,36 +88,23 @@ function buildFormFromDog(data: NonNullable<RawDogGetResponse["data"]>): DogForm
     This keeps trimming logic in one place instead of stuffing it
     directly into the submit handler like a junk drawer.
 */
-function buildEditPayload(form: DogFormValues): DogFormValues {
+function buildEditPayload(form: EventFormValues): EventFormValues {
     return {
-        cwaNumber: form.cwaNumber.trim(),
-        akcNumber: form.akcNumber.trim(),
-        ckcNumber: form.ckcNumber.trim(),
-        currentGrade: form.currentGrade.trim(),
-        foreignNumber: form.foreignNumber.trim(),
-        foreignType: form.foreignType.trim(),
-        callName: form.callName.trim(),
-        registeredName: form.registeredName.trim(),
-        birthdate: normalizeText(form.birthdate).slice(0, 10),
-        pedigreeLink: form.pedigreeLink.trim(),
-        status: form.status.trim(),
-        notes: form.notes.trim(),
-        meetPoints: form.meetPoints.trim(),
-        arxPoints: form.arxPoints.trim(),
-        narxPoints: form.narxPoints.trim(),
-        showPoints: form.showPoints.trim(),
-        dpcLegs: form.dpcLegs.trim(),
-        meetWins: form.meetWins.trim(),
-        meetAppearences: form.meetAppearences.trim(),
-        highCombinedWins: form.highCombinedWins.trim(),
+        meetNumber: form.meetNumber.trim(),
+        clubAbbreviation: form.clubAbbreviation.trim(),
+        meetDate: form.meetDate ? `${form.meetDate}T00:00:00` : "",
+        raceSecretary: form.raceSecretary.trim(),
+        judge: form.judge.trim(),
+        location: form.location.trim(),
+        yards: form.yards.trim(),
     };
 }
 
-export default function EditDogPage() {
+export default function EditEventPage() {
     const params = useParams();
     const router = useRouter();
 
-    const id = String(params?.id ?? "");
+    const meetNumber = String(params?.meetNumber ?? "");
 
     /*
         Auth/loading state for protecting the page.
@@ -135,11 +119,11 @@ export default function EditDogPage() {
     const [saving, setSaving] = React.useState(false);
     const [error, setError] = React.useState("");
     const [success, setSuccess] = React.useState("");
-    const [form, setForm] = React.useState<DogFormValues>(emptyDogFormValues);
+    const [form, setForm] = React.useState<EventFormValues>(emptyEventFormValues);
 
     /*
         Checks whether the current user is signed in and allowed
-        to manage dog records.
+        to manage Event records.
     */
     React.useEffect(
         () => {
@@ -160,8 +144,8 @@ export default function EditDogPage() {
                             return null;
                         }
                     );
-
-                    if (!res.ok || !json?.signedIn || !json?.canManageDogs) {
+                    // once canManageEvents is a role it will be added here
+                    if (!res.ok || !json?.signedIn) {
                         router.replace("/login");
                         return;
                     }
@@ -190,7 +174,7 @@ export default function EditDogPage() {
     );
 
     /*
-        After authorization succeeds, load the dog record that matches
+        After authorization succeeds, load the Event record that matches
         the route id and populate the edit form.
     */
     React.useEffect(
@@ -201,14 +185,14 @@ export default function EditDogPage() {
 
             let cancelled = false;
 
-            async function loadDog() {
+            async function loadEvent() {
                 setLoading(true);
                 setError("");
                 setSuccess("");
 
                 try {
                     const res = await fetch(
-                        `/api/dog/get/${encodeURIComponent(id)}`,
+                        `/api/meet/get/${encodeURIComponent(meetNumber)}`,
                         {
                             method: "GET",
                             cache: "no-store",
@@ -220,24 +204,24 @@ export default function EditDogPage() {
                         () => {
                             return null;
                         }
-                    )) as RawDogGetResponse | null;
+                    )) as RawEventGetResponse | null;
 
                     if (!res.ok || !json?.ok || !json.data) {
-                        throw new Error(json?.error || "Failed to load dog.");
+                        throw new Error(json?.error || "Failed to load Event.");
                     }
 
                     if (cancelled) {
                         return;
                     }
 
-                    setForm(buildFormFromDog(json.data));
+                    setForm(buildFormFromEvent(json.data));
                 }
                 catch (e) {
                     if (!cancelled) {
                         setError(
                             e instanceof Error
                                 ? e.message
-                                : "Failed to load dog."
+                                : "Failed to load Event."
                         );
                     }
                 }
@@ -248,22 +232,22 @@ export default function EditDogPage() {
                 }
             }
 
-            loadDog();
+            loadEvent();
 
             return () => {
                 cancelled = true;
             };
         },
-        [authorized, id]
+        [authorized, meetNumber]
     );
 
     /*
-        Generic form field updater passed down into DogForm.
+        Generic form field updater passed down into EventForm.
     */
-    function updateField<K extends keyof DogFormValues>
+    function updateField<K extends keyof EventFormValues>
         (
             key: K,
-            value: DogFormValues[K]
+            value: EventFormValues[K]
         ) {
         setForm(
             (prev) => {
@@ -289,7 +273,7 @@ export default function EditDogPage() {
             const payload = buildEditPayload(form);
 
             const res = await fetch(
-                "/api/dog/edit",
+                "/api/meet/edit",
                 {
                     method: "POST",
                     headers:
@@ -311,7 +295,7 @@ export default function EditDogPage() {
                 throw new Error(json?.error || `Save failed (${res.status})`);
             }
 
-            setSuccess("Dog information updated successfully.");
+            setSuccess("Event information updated successfully.");
         }
         catch (e) {
             setError(
@@ -353,19 +337,19 @@ export default function EditDogPage() {
                 and less like a plain database dump.
             */}
             <HeroSection
-                title="Edit Dog"
-                subtitle="Update dog information securely through the admin panel."
+                title="Edit Event"
+                subtitle="Update Event information securely through the admin panel."
                 topContent={
                     <div className="mt-4 flex flex-wrap justify-center gap-3">
                         <Link
-                            href="/admin/dogs"
+                            href="/admin/events"
                             className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
                         >
-                            Back to Admin Dogs
+                            Back to Admin Events
                         </Link>
 
                         <Link
-                            href={`/search?q=${encodeURIComponent(form.cwaNumber || id)}`}
+                            href={`/search?q=${encodeURIComponent(form.meetNumber || meetNumber)}`}
                             className="rounded-full bg-[#2E6B3F] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#255733]"
                         >
                             View in Public Search
@@ -375,7 +359,7 @@ export default function EditDogPage() {
             >
 
                 <div className="-mt-6 text-white/80 text-sm">
-                    Editing record: <span className="font-semibold text-white">{form.registeredName || id}</span>
+                    Editing record: <span className="font-semibold text-white">{form.meetNumber || meetNumber}</span>
                 </div>
 
 
@@ -386,13 +370,13 @@ export default function EditDogPage() {
                 <div className="max-w-5xl mx-auto px-4">
                     <div className="mb-8">
                         <h2 className="text-2xl font-bold text-[#12301D]">
-                            Dog Information
+                            Event Information
                         </h2>
 
                         <div className="mt-1 h-1 w-14 rounded-full bg-[#2E6B3F]/70" />
                     </div>
 
-                    <DogForm
+                    <EventForm
                         values={form}
                         onChange={updateField}
                         onSubmit={handleSubmit}
@@ -402,11 +386,9 @@ export default function EditDogPage() {
                         success={success}
                         onCancel={
                             () => {
-                                router.push("/admin/dogs");
+                                router.push("/admin/events");
                             }
                         }
-                        form={form}
-                        setForm={setForm}
                         isEditMode={true}
                     />
                 </div>

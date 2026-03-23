@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import type { DogSearchResponse } from "@/lib/search/types";
+import type { DogSearchResponse } from "@/app/admin/dogs/types";
 import HeroSection from "@/app/components/HeroSection";
 import SearchBar from "@/app/components/SearchBar";
 
@@ -13,18 +13,15 @@ import SearchBar from "@/app/components/SearchBar";
     Since these come from the URL, I do not want bad input like NaN,
     decimals, or negative values breaking pagination logic.
 */
-function clampInteger(num: number, min: number, max: number)
-{
-    if (!Number.isFinite(num))
-    {
+function clampInteger(num: number, min: number, max: number) {
+    if (!Number.isFinite(num)) {
         return min;
     }
 
     return Math.max(min, Math.min(max, Math.floor(num)));
 }
 
-export default function SearchPage()
-{
+export default function SearchPage() {
     const sp = useSearchParams();
 
     /*
@@ -51,17 +48,14 @@ export default function SearchPage()
         after the component changes or unmounts. That helps avoid weird UI bugs.
     */
     React.useEffect(
-        () =>
-        {
+        () => {
             let cancelled = false;
 
-            (async () =>
-            {
+            (async () => {
                 setLoading(true);
                 setError("");
 
-                try
-                {
+                try {
                     /*
                         Build query params here instead of writing the string manually.
                         It keeps the request cleaner and easier to extend later.
@@ -78,8 +72,7 @@ export default function SearchPage()
                     );
 
                     const json = await res.json().catch(
-                        () =>
-                        {
+                        () => {
                             return null;
                         }
                     );
@@ -88,8 +81,7 @@ export default function SearchPage()
                         If the backend fails or returns an invalid shape,
                         stop early and show a real error message.
                     */
-                    if (!res.ok || !json?.ok)
-                    {
+                    if (!res.ok || !json?.ok) {
                         throw new Error(json?.error || `Request failed (${res.status})`);
                     }
 
@@ -105,8 +97,7 @@ export default function SearchPage()
                         total: Number(json.total ?? 0),
                         items: Array.isArray(json.items)
                             ? json.items.map(
-                                (item: any) =>
-                                {
+                                (item: any) => {
                                     return {
                                         id: String(item.id ?? ""),
                                         cwaNumber: String(item.regNo ?? item.id ?? ""),
@@ -123,15 +114,12 @@ export default function SearchPage()
                             : [],
                     };
 
-                    if (!cancelled)
-                    {
+                    if (!cancelled) {
                         setData(mapped);
                     }
                 }
-                catch (e)
-                {
-                    if (!cancelled)
-                    {
+                catch (e) {
+                    if (!cancelled) {
                         setError(
                             e instanceof Error
                                 ? e.message
@@ -139,17 +127,14 @@ export default function SearchPage()
                         );
                     }
                 }
-                finally
-                {
-                    if (!cancelled)
-                    {
+                finally {
+                    if (!cancelled) {
                         setLoading(false);
                     }
                 }
             })();
 
-            return () =>
-            {
+            return () => {
                 cancelled = true;
             };
         },
@@ -165,10 +150,8 @@ export default function SearchPage()
     /*
         Safely sort the items based on the selected sort option.
     */
-    const sortedItems = [...items].sort((a, b) =>
-    {
-        switch (sort)
-        {
+    const sortedItems = [...items].sort((a, b) => {
+        switch (sort) {
             case "nameDesc":
                 return (b.registeredName || "").localeCompare(a.registeredName || "");
 
@@ -177,10 +160,10 @@ export default function SearchPage()
 
             case "cwaDesc":
                 return (b.cwaNumber || "").localeCompare(a.cwaNumber || "", undefined, { numeric: true });
-            
+
             case "akcAsc":
                 return (a.akcNumber || "").localeCompare(b.akcNumber || "", undefined, { numeric: true });
-                
+
             case "akcDesc":
                 return (b.akcNumber || "").localeCompare(a.akcNumber || "", undefined, { numeric: true });
 
@@ -216,8 +199,7 @@ export default function SearchPage()
         which makes the stats match what the user is actually looking at.
     */
     const activeCount = pagedItems.filter(
-        (d) =>
-        {
+        (d) => {
             return String(d.status).toUpperCase() === "ACTIVE";
         }
     ).length;
@@ -228,8 +210,7 @@ export default function SearchPage()
         Keeps pagination links consistent while preserving the current query
         and any other URL params already in place.
     */
-    function makeLink(p: number)
-    {
+    function makeLink(p: number) {
         const params = new URLSearchParams(sp.toString());
 
         // Update only the page, limit, and sort params while keeping others intact
@@ -250,9 +231,9 @@ export default function SearchPage()
                 and less like a plain database dump.
             */}
             <HeroSection
-                title="Search Dogs" 
-                subtitle="Search by CWA number, registered name, owner, or title." 
-            >    
+                title="Search Dogs"
+                subtitle="Search by CWA number, registered name, owner, or title."
+            >
                 {/* 
                     Now for searching we will use the SearchBar component.
 
@@ -274,8 +255,8 @@ export default function SearchPage()
                             loading
                                 ? "Searching..."
                                 : error
-                                ? `Error: ${error}`
-                                : `${total} result(s) found`
+                                    ? `Error: ${error}`
+                                    : `${total} result(s) found`
                         }
                     </div>
                 </div>
@@ -358,39 +339,39 @@ export default function SearchPage()
                                         : `Showing ${pagedItems.length} of ${total}`
                                 }
                             </div>
-                              {/* 
+                            {/* 
                                 Sort options are placed next to the search box so they are easy to find
                                 but do not distract from the main search input.
                             */}
                             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                              <form method="GET" action="/search" className="flex items-center gap-2">
-                                  <input type="hidden" name="q" value={q} />
-                                  <input type="hidden" name="page" value="1" />
-                                  <input type="hidden" name="limit" value={String(limit)} />
+                                <form method="GET" action="/search" className="flex items-center gap-2">
+                                    <input type="hidden" name="q" value={q} />
+                                    <input type="hidden" name="page" value="1" />
+                                    <input type="hidden" name="limit" value={String(limit)} />
 
-                                  <select
-                                      name="sort"
-                                      defaultValue={sort}
-                                      className="rounded-full border border-black/10 bg-white px-4 py-2 text-sm text-[#12301D] shadow-sm outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
-                                  >
-                                      <option value="nameAsc">Name A–Z</option>
-                                      <option value="nameDesc">Name Z–A</option>
-                                      <option value="cwaAsc">CWA Ascending</option>
-                                      <option value="cwaDesc">CWA Descending</option>
-                                      <option value="akcAsc">AKC Ascending</option>
-                                      <option value="akcDesc">AKC Descending</option>
-                                      <option value="yearAsc">Year Ascending</option>
-                                      <option value="yearDesc">Year Descending</option>
-                                  </select>
+                                    <select
+                                        name="sort"
+                                        defaultValue={sort}
+                                        className="rounded-full border border-black/10 bg-white px-4 py-2 text-sm text-[#12301D] shadow-sm outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
+                                    >
+                                        <option value="nameAsc">Name A–Z</option>
+                                        <option value="nameDesc">Name Z–A</option>
+                                        <option value="cwaAsc">CWA Ascending</option>
+                                        <option value="cwaDesc">CWA Descending</option>
+                                        <option value="akcAsc">AKC Ascending</option>
+                                        <option value="akcDesc">AKC Descending</option>
+                                        <option value="yearAsc">Year Ascending</option>
+                                        <option value="yearDesc">Year Descending</option>
+                                    </select>
 
-                                  <button
-                                      type="submit"
-                                      className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#12301D] shadow-sm hover:bg-[#12301D]/5 transition"
-                                  >
-                                      Sort
-                                  </button>
-                              </form>
-                            </div>    
+                                    <button
+                                        type="submit"
+                                        className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#12301D] shadow-sm hover:bg-[#12301D]/5 transition"
+                                    >
+                                        Sort
+                                    </button>
+                                </form>
+                            </div>
 
                             {/* 
                                 Pagination uses links instead of buttons so the URL stays updated.
@@ -439,8 +420,7 @@ export default function SearchPage()
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         {
                             pagedItems.map(
-                                (d) =>
-                                {
+                                (d) => {
                                     return (
                                         <div
                                             key={d.id}

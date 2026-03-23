@@ -1,12 +1,11 @@
 // @/lib/search/query.ts
-import type { DogSearchRequest, DogSearchResponse } from "./types";
+import type { DogSearchRequest, DogSearchResponse } from "../../app/admin/dogs/types";
 
 
 // clampInteger will fix the number between two values.
 // It will be particulary useful for safeguarding
 // the pagenumber and other integer values as needed
-function clampInteger(num: number, min: number, max: number)
-{
+function clampInteger(num: number, min: number, max: number) {
     if (!Number.isFinite(num))           // if number is not finite then clamp to the minimum value  
         return min;
 
@@ -16,16 +15,14 @@ function clampInteger(num: number, min: number, max: number)
 
 // fixLength will make sure nobody pastes a book into the search
 // or anything with a length greater than 64. 
-function fixLength(q?: string)
-{
+function fixLength(q?: string) {
     return (q ?? "").trim().slice(0, 64);
 }
 
 
 // this will normalize and make all searching parameters
 // for dogs is correct and clean
-function buildDogSearchParameters(request: DogSearchRequest)
-{
+function buildDogSearchParameters(request: DogSearchRequest) {
     const q = fixLength(request.q);                                      // the query (text) in the search like "Rocket" when searching for a dog named rocket
     const pageNum = clampInteger(request.page ?? 1, 1, 10000);
     const limit = clampInteger(request.limit ?? 20, 1, 50);
@@ -50,12 +47,10 @@ function buildDogSearchParameters(request: DogSearchRequest)
 }
 
 
-async function fetchJSON<T>(url: string): Promise<T> 
-{
+async function fetchJSON<T>(url: string): Promise<T> {
     const res = await fetch(url, { cache: "no-store" });
 
-    if (!res.ok)
-    {
+    if (!res.ok) {
         const text = await res.text().catch(() => "");
         throw new Error(`Request failed ${res.status}: ${text || res.statusText}`);
     }
@@ -64,15 +59,14 @@ async function fetchJSON<T>(url: string): Promise<T>
 }
 
 
-export async function searchDogs(request: DogSearchRequest): Promise<DogSearchResponse> 
-{
+export async function searchDogs(request: DogSearchRequest): Promise<DogSearchResponse> {
     const usp = buildDogSearchParameters(request);
 
     // Node/server fetch needs an absolute URL. Browser fetch is fine with relative.
     const base =
         typeof window === "undefined"
-        ? process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
-        : "";
+            ? process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
+            : "";
 
     const url = `${base}/api/search?${usp.toString()}`;
     return fetchJSON<DogSearchResponse>(url);

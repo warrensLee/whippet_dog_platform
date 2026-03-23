@@ -1,16 +1,16 @@
-// DogForm.tsx
+// EventForm.tsx
 "use client";
 
 import * as React from "react";
-import type { DogFormValues } from "@/app/admin/dogs/types";
+import type { EventFormValues } from "@/app/admin/events/types";
 
 type Props =
     {
-        values: DogFormValues;
-        onChange: <K extends keyof DogFormValues>
+        values: EventFormValues;
+        onChange: <K extends keyof EventFormValues>
             (
                 key: K,
-                value: DogFormValues[K]
+                value: EventFormValues[K]
             ) => void;
         onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
         saving: boolean;
@@ -19,11 +19,7 @@ type Props =
         success: string;
         onCancel: () => void;
 
-        // Kept for compatibility with the current parent props.
-        form: DogFormValues;
-        setForm: React.Dispatch<React.SetStateAction<DogFormValues>>;
-
-        // If true, user is editing an existing dog,
+        // If true, user is editing an existing Event,
         // so the CWA number should not be changed.
         isEditMode?: boolean;
     };
@@ -31,12 +27,12 @@ type Props =
 type InputFieldProps =
     {
         label: string;
-        field: keyof DogFormValues;
+        field: keyof EventFormValues;
         value: string;
-        onChange: <K extends keyof DogFormValues>
+        onChange: <K extends keyof EventFormValues>
             (
                 key: K,
-                value: DogFormValues[K]
+                value: EventFormValues[K]
             ) => void;
         placeholder?: string;
         type?: string;
@@ -47,12 +43,12 @@ type InputFieldProps =
 type TextAreaFieldProps =
     {
         label: string;
-        field: keyof DogFormValues;
+        field: keyof EventFormValues;
         value: string;
-        onChange: <K extends keyof DogFormValues>
+        onChange: <K extends keyof EventFormValues>
             (
                 key: K,
-                value: DogFormValues[K]
+                value: EventFormValues[K]
             ) => void;
         placeholder?: string;
         rows?: number;
@@ -62,12 +58,12 @@ type TextAreaFieldProps =
 type SelectFieldProps =
     {
         label: string;
-        field: keyof DogFormValues;
+        field: keyof EventFormValues;
         value: string;
-        onChange: <K extends keyof DogFormValues>
+        onChange: <K extends keyof EventFormValues>
             (
                 key: K,
-                value: DogFormValues[K]
+                value: EventFormValues[K]
             ) => void;
         options: string[];
         placeholder?: string;
@@ -77,7 +73,7 @@ type SelectFieldProps =
 /*
     Reusable single-line input field.
 
-    Used for most normal text/date inputs in the dog form.
+    Used for most normal text/date inputs in the Event form.
 */
 function InputField
     (
@@ -213,7 +209,7 @@ function SelectField
     );
 }
 
-export default function DogForm
+export default function EventForm
     (
         {
             values,
@@ -224,29 +220,9 @@ export default function DogForm
             error,
             success,
             onCancel,
-            form,
-            setForm,
             isEditMode = false,
         }: Props
     ) {
-    /*
-        Valid options for dropdown-backed fields. They will 
-        be used for input validation in edit / add mode.
-    */
-    const gradeOptions =
-        [
-            "FTE",
-            "D",
-            "C",
-            "B",
-            "A",
-        ];
-
-    const statusOptions =
-        [
-            "Active",
-            "Inactive",
-        ];
 
     /*
         standardFields is a config list that defines the label, form field key, 
@@ -261,81 +237,39 @@ export default function DogForm
         Array<
             {
                 label: string;
-                field: keyof DogFormValues;
+                field: keyof EventFormValues;
                 placeholder?: string;
                 type?: string;
             }
         > =
         [
+
             {
-                label: "Registered Name",
-                field: "registeredName",
+                label: "Club Abbreviation",
+                field: "clubAbbreviation",
+                placeholder: "AAWC, BWA, CMANYWHIPS, DWC, WINE, SMART, etc.",
             },
             {
-                label: "Call Name",
-                field: "callName",
-                placeholder: "One name like Bob, Sally, etc.",
-            },
-            {
-                label: "Birthdate",
-                field: "birthdate",
+                label: "Meet Date",
+                field: "meetDate",
                 type: "date",
             },
             {
-                label: "AKC Number",
-                field: "akcNumber",
+                label: "Location",
+                field: "location",                   
             },
             {
-                label: "CKC Number",
-                field: "ckcNumber",
-            },
-            {
-                label: "Foreign Number",
-                field: "foreignNumber",
-            },
-            {
-                label: "Meet Points",
-                field: "meetPoints",
+                label: "Yards",
+                field: "yards",
                 type: "number",
             },
             {
-                label: "Arx Points",
-                field: "arxPoints",
-                type: "number",
+                label: "Race Secretary",
+                field: "raceSecretary",
             },
             {
-                label: "Narx Points",
-                field: "narxPoints",
-                type: "number",
-            },
-            {
-                label: "Show Points",
-                field: "showPoints",
-                type: "number",
-            },
-            {
-                label: "DPC Legs",
-                field: "dpcLegs",
-                type: "number",
-            },
-            {
-                label: "Meet Wins",
-                field: "meetWins",
-                type: "number",
-            },
-            {
-                label: "Meet Appearences",
-                field: "meetAppearences",
-                type: "number",
-            },
-            {
-                label: "High Combined Wins",
-                field: "highCombinedWins",
-                type: "number",
-            },
-            {
-                label: "Foreign Type",
-                field: "foreignType",
+                label: "Judge",
+                field: "judge",
             },
         ];
 
@@ -350,13 +284,13 @@ export default function DogForm
             */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {/* 
-                    CWA Number has special read-only behavior in edit mode,
+                    Meet Number has special read-only behavior in edit mode,
                     so it stays as its own field outside the mapped list.
                 */}
                 <InputField
-                    label="CWA Number"
-                    field="cwaNumber"
-                    value={values.cwaNumber}
+                    label="Meet Number"
+                    field="meetNumber"
+                    value={values.meetNumber}
                     onChange={onChange}
                     placeholder="1234, 3124, 8754, etc."
                     readOnly={isEditMode}
@@ -381,49 +315,7 @@ export default function DogForm
                             }
                         )
                 }
-
-                {/* Grade dropdown */}
-                <SelectField
-                    label="Grade"
-                    field="currentGrade"
-                    value={values.currentGrade}
-                    onChange={onChange}
-                    options={gradeOptions}
-                    placeholder="Select a grade"
-                />
-
-                {/* Status dropdown */}
-                <SelectField
-                    label="Status"
-                    field="status"
-                    value={values.status}
-                    onChange={onChange}
-                    options={statusOptions}
-                    placeholder="Select a status"
-                />
-
-                {/* Pedigree Link spans both columns */}
-                <InputField
-                    label="Pedigree Link"
-                    field="pedigreeLink"
-                    value={values.pedigreeLink}
-                    onChange={onChange}
-                    className="md:col-span-2"
-                />
             </div>
-
-            {/* Notes section */}
-            <div className="mt-5">
-                <TextAreaField
-                    label="Notes"
-                    field="notes"
-                    value={values.notes}
-                    onChange={onChange}
-                    placeholder="Anything relevant to this dog..."
-                    rows={5}
-                />
-            </div>
-
             {/* Show either error or success message if present */}
             {
                 (error || success) && (

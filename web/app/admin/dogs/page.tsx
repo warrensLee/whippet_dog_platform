@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { DogSearchResponse } from "@/lib/search/types";
+import type { DogSearchResponse } from "@/app/admin/dogs/types";
 import HeroSection from "@/app/components/HeroSection";
 import SearchBar from "@/app/components/SearchBar";
 

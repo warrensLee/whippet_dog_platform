@@ -3,6 +3,7 @@
 # pyton venv
 backend/venv
 # dependencies
+node_modules/
 web/node_modules
 web/.next
 /.pnp
