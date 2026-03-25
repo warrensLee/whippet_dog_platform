@@ -251,16 +251,16 @@ def change_user_role():
 
 @person_bp.get("/get/<person_id>")
 def get_person(person_id: str):
-    # role = current_role()
-    # if not role:
-    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
+    role = current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    # deny = require_scope(role.view_person_scope, "view people")
-    # if deny:
-    #     return deny
+    deny = require_scope(role.edit_person_scope, "view people")
+    if deny:
+        return deny
 
-    # if role.view_person_scope == UserRole.SELF and not _is_owner(person_id):
-    #     return jsonify({"ok": False, "error": "Forbidden"}), 403
+    if role.edit_person_scope == UserRole.SELF and not _is_owner(person_id):
+        return jsonify({"ok": False, "error": "Forbidden"}), 403
 
     person = Person.find_by_identifier(person_id)
     if not person:
@@ -288,15 +288,15 @@ def get_person_name(person_id: str):
 @person_bp.get("/get")
 def list_all_persons():
     role = current_role()
-    # if not role:
-    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    # deny = require_scope(role.view_person_scope, "view people")
-    # if deny:
-    #     return deny
+    deny = require_scope(role.edit_person_scope, "view people")
+    if deny:
+        return deny
 
-    # if role.view_person_scope != UserRole.ALL:
-    #     return jsonify({"ok": False, "error": "Not allowed to list all people"}), 403
+    if role.edit_person_scope != UserRole.ALL:
+        return jsonify({"ok": False, "error": "Not allowed to list all people"}), 403
 
     try:
         persons = Person.list_all_persons()
@@ -308,56 +308,19 @@ def list_all_persons():
 
 @person_bp.get("/search")
 def search_people():
-    # role = current_role()
-    # if not role:
-    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
+    role = current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    # deny = require_scope(role.view_person_scope, "search people")
-    # if deny:
-    #     return deny
+    deny = require_scope(role.edit_person_scope, "search people")
+    if deny:
+        return deny
 
     q = (request.args.get("q") or "").strip()
-    if not q:
-        return jsonify({"ok": False, "error": "Query param 'q' is required"}), 400
-
     active_only = (request.args.get("activeOnly") or "true").strip().lower() != "false"
 
-    # if role.view_person_scope == UserRole.SELF:
-    #     pid = current_editor_id()
-    #     if not pid:
-    #         return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    #     person = Person.find_by_identifier(pid)
-    #     if not person:
-    #         return jsonify({"ok": True, "data": []}), 200
-
-    #     haystack = " ".join([
-    #         person.person_id or "",
-    #         person.first_name or "",
-    #         person.last_name or "",
-    #         person.email_address or "",
-    #     ]).lower()
-
-    #     if q.lower() in haystack:
-    #         return jsonify({"ok": True, "data": [person.to_dict()]}), 200
-    #     return jsonify({"ok": True, "data": []}), 200
-
-    like = f"%{q}%"
-    q_norm = q.lower()
-    
-    role_terms = []
-    if "board" in q_norm:
-        role_terms.append("%board%")
-    if "judge" in q_norm:
-        role_terms.append("%judge%")
-    if "secretary" in q_norm:
-        role_terms.append("%secretary%")
-    role_terms.append(like)  
-
-    role_like_sql = " OR ".join(["orole.RoleName LIKE %s"] * len(role_terms))
-
-    sql = f"""
-        SELECT DISTINCT
+    sql = """
+        SELECT
             p.PersonID,
             p.FirstName,
             p.LastName,
@@ -375,20 +338,23 @@ def search_people():
             p.LastEditedBy,
             p.LastEditedAt
         FROM Person p
-        LEFT JOIN OfficerRole orole ON orole.PersonID = p.PersonID
-        WHERE (
-            p.PersonID LIKE %s
-            OR CONCAT(p.FirstName, ' ', p.LastName) LIKE %s
-            OR p.FirstName LIKE %s
-            OR p.LastName LIKE %s
-            OR p.EmailAddress LIKE %s
-            OR ({role_like_sql})
-        )
+        WHERE 1=1
     """
-    params = [like, like, like, like, like] + role_terms
+    params = []
 
-    if active_only:
-        sql += " AND (orole.PersonID IS NULL OR orole.Active = 1)"
+    if q:
+        like = f"%{q}%"
+        sql += """
+            AND (
+                p.PersonID LIKE %s
+                OR CONCAT(p.FirstName, ' ', p.LastName) LIKE %s
+                OR p.FirstName LIKE %s
+                OR p.LastName LIKE %s
+                OR p.EmailAddress LIKE %s
+                OR p.SystemRole LIKE %s
+            )
+        """
+        params.extend([like, like, like, like, like, like])
 
     sql += """
         ORDER BY p.LastName ASC, p.FirstName ASC, p.PersonID ASC

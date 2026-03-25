@@ -246,7 +246,7 @@ class Person:
             "SystemRole": self.system_role
         }
 
-    def to_dict(self, include_sensitive=False):
+    def to_dict(self):
         """Convert to dictionary for JSON responses."""
         data = {
             "personId": self.person_id,
@@ -266,6 +266,4 @@ class Person:
             "lastEditedBy": self.last_edited_by,
             "lastEditedAt": self.last_edited_at.isoformat() if self.last_edited_at else None
         }
-        if include_sensitive:
-            data["passwordHash"] = self.password_hash
         return data
