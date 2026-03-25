@@ -243,33 +243,36 @@ export default function EventForm
             }
         > =
         [
-
             {
                 label: "Club Abbreviation",
                 field: "clubAbbreviation",
                 placeholder: "AAWC, BWA, CMANYWHIPS, DWC, WINE, SMART, etc.",
             },
+
+            {
+                label: "Location",
+                field: "location",                   
+            },
+
             {
                 label: "Meet Date",
                 field: "meetDate",
                 type: "date",
             },
-            {
-                label: "Location",
-                field: "location",                   
-            },
-            {
-                label: "Yards",
-                field: "yards",
-                type: "number",
-            },
+
             {
                 label: "Race Secretary",
                 field: "raceSecretary",
             },
+            
             {
                 label: "Judge",
                 field: "judge",
+            },
+                        {
+                label: "Yards",
+                field: "yards",
+                type: "number",
             },
         ];
 

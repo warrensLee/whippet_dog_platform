@@ -9,7 +9,8 @@ export default function ForgotPassword() {
   const [submitting, setSubmitting] = useState(false);
   const [token, setToken] = useState("")
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) 
+  {
     e.preventDefault();
     setSubmitting(true);
     const r = await fetch("/api/auth/forgot-password", {
@@ -19,7 +20,7 @@ export default function ForgotPassword() {
     });
     const d = await r.json();
     setMsg(d.message);
-    window.turnstile.reset()
+    window.turnstile?.reset?.();
     setSubmitting(false);
   }
 

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Box, Paper, TextField, Button, Typography } from '@mui/material';
 import Turnstile from "@/lib/Turnstile";
+import Link from "next/link";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -11,7 +12,9 @@ export default function LoginPage() {
   const [token, setToken] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  async function handleSubmit<T>(e: React.MouseEvent<T>) {
+  // the change from: handleSubmit<T>(e: React.MouseEvent<T>) to: handleSubmit(e: React.FormEvent<HTMLFormElement>)
+  // was made to allow the form to be submitted by pressing enter, in addition to clicking the button.
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setMessage("");
     setSubmitting(true);
@@ -34,13 +37,17 @@ export default function LoginPage() {
         window.location.assign("/admin");
         return;
       } else {
-        setMessage(data.error);
-        window.turnstile.reset()
+        // if there is no error message from the backend, show a generic one.
+        setMessage(data?.error || "Login failed");
+        setToken("");
+        window.turnstile?.reset?.();
       }
 
     } catch (err) {
-      setMessage("Error has occured");
-      console.log(err);
+      setMessage("An error has occurred.");
+      setToken("");
+      window.turnstile?.reset?.();
+      console.error(err);
     } finally {
       setSubmitting(false);
     }
@@ -49,27 +56,30 @@ export default function LoginPage() {
   return (
     <Box
       sx={{
-        height: '100vh',
+        minHeight: '100dvh',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: 'background.default',
+        // add padding for smaller screens so the form doesn't touch the edges (phones and tablets)
+        px: 2,
       }}
     >
       <Paper
         elevation={3}
         sx={{
           p: 4,
-          maxWidth: 600,
-          width: "50%",
+          width: "100%",
+          maxWidth: 420,
           minWidth: 280,
         }}
       >
         <Typography variant="h5" component="h1" gutterBottom align="center">
           Login
         </Typography>
-        <Box component="form">
+        <Box component="form" onSubmit={handleSubmit}>
           <TextField
+            autoComplete="username"
             label="Username"
             variant="outlined"
             fullWidth
@@ -79,6 +89,7 @@ export default function LoginPage() {
             required
           />
           <TextField
+            autoComplete="current-password"
             label="Password"
             variant="outlined"
             type="password"
@@ -96,13 +107,16 @@ export default function LoginPage() {
             color="success"
             fullWidth
             sx={{ mt: 2 }}
-            disabled={submitting || !token || !username || !password}
-            onClick={handleSubmit}
+            disabled={submitting || !token || !username.trim() || !password}
           >
-            Login
+            {/* Adds loading state for visualization */}
+            {submitting ? "Logging in..." : "Login"}
           </Button>
           <Typography align="center" sx={{ mt: 2, fontSize: 13 }}>
-            <a href="/forgot-password" style={{ color: "gray" }}>Forgot password?</a>
+            {/* Utilize the Link component for internal navigation */}
+            <Link href="/forgot-password" style={{ color: "gray" }}>
+              Forgot password?
+            </Link>
           </Typography>
         </Box>
       </Paper>
