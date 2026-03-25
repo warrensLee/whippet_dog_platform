@@ -62,34 +62,44 @@ def edit_title_type():
         return deny
 
     data = request.get_json(silent=True) or {}
-    title = (data.get("title") or "").strip()
-    if not title:
+
+    original_title = (data.get("originalTitle") or "").strip()
+    new_title = (data.get("title") or "").strip()
+    title_description = (data.get("titleDescription") or "").strip()
+
+    if not original_title:
+        return jsonify({"ok": False, "error": "Original title is required"}), 400
+
+    if not new_title:
         return jsonify({"ok": False, "error": "Title is required"}), 400
 
-    existing = TitleType.find_by_identifier(title)
+    existing = TitleType.find_by_identifier(original_title)
     if not existing:
         return jsonify({"ok": False, "error": "Title type does not exist"}), 404
 
+    if original_title != new_title and TitleType.exists(new_title):
+        return jsonify({"ok": False, "error": "Title type already exists"}), 409
+
     before_snapshot = existing.to_dict()
 
-    title_type = TitleType.from_request_data(data)
-    title_type.title = title
-    title_type.last_edited_by = current_editor_id()
-    title_type.last_edited_at = datetime.now(timezone.utc)
+    existing.title = new_title
+    existing.title_description = title_description
+    existing.last_edited_by = current_editor_id()
+    existing.last_edited_at = datetime.now(timezone.utc)
 
-    errors = title_type.validate()
+    errors = existing.validate()
     if errors:
         return jsonify({"ok": False, "error": ", ".join(errors)}), 400
 
     try:
-        title_type.update()
+        existing.update()
 
-        refreshed = TitleType.find_by_identifier(title)
-        after_snapshot = refreshed.to_dict() if refreshed else title_type.to_dict()
+        refreshed = TitleType.find_by_identifier(new_title)
+        after_snapshot = refreshed.to_dict() if refreshed else existing.to_dict()
 
         ChangeLog.log(
             changed_table="TitleType",
-            record_pk=title,
+            record_pk=new_title,
             operation="UPDATE",
             changed_by=current_editor_id(),
             source="api/title_type/edit POST",
@@ -116,8 +126,6 @@ def delete_title_type():
     data = request.get_json(silent=True) or {}
     title = (data.get("title") or "").strip()
 
-    if data.get("confirm") is not True:
-        return jsonify({"ok": False, "error": "Confirmation required"}), 400
     if not title:
         return jsonify({"ok": False, "error": "Title is required"}), 400
 
@@ -138,17 +146,7 @@ def delete_title_type():
             before_obj={**before_snapshot, "deletedDogTitles": deleted_count},
             after_obj=None,
         )
-        existing.delete(title)
-
-        ChangeLog.log(
-            changed_table="TitleType",
-            record_pk=title,
-            operation="DELETE",
-            changed_by=current_editor_id(),
-            source="api/title_type/delete POST",
-            before_obj=before_snapshot,
-            after_obj=None,
-        )
+        existing.delete()
 
         return jsonify({"ok": True, "data": {"title": title}}), 200
 

@@ -1,24 +1,17 @@
-'''
-Docstring for title
-
-TODO:
-Finish check_eligibility method
-Finish award_title method
-'''
-
 from database import fetch_all, fetch_one, execute
 from mysql.connector import Error
 
 class TitleType:
 
-    def __init__(self, title, title_description, last_edited_by=None, last_edited_at=None):
+    def __init__(self, id, title, title_description, last_edited_by=None, last_edited_at=None):
+        self.id = id
         self.title = title
         self.title_description = title_description
         self.last_edited_by = last_edited_by
         self.last_edited_at = last_edited_at
 
     @classmethod
-    def check_eligibility():
+    def check_eligibility(cls):
         pass
 
     @classmethod
@@ -27,8 +20,8 @@ class TitleType:
 
     @classmethod
     def from_request_data(cls, data):
-        """Create a TitleType instance from request JSON data."""
         return cls(
+            id=data.get("id"),
             title=(data.get("title") or "").strip(),
             title_description=(data.get("titleDescription") or "").strip(),
             last_edited_by=data.get("lastEditedBy"),
@@ -37,10 +30,10 @@ class TitleType:
 
     @classmethod
     def from_db_row(cls, row):
-        """Create a TitleType instance from a database row."""
         if not row:
             return None
         return cls(
+            id=row.get("Id"),
             title=row.get("Title"),
             title_description=row.get("TitleDescription"),
             last_edited_by=row.get("LastEditedBy"),
@@ -49,10 +42,9 @@ class TitleType:
 
     @classmethod
     def find_by_identifier(cls, identifier):
-        """Find a title type by title."""
         row = fetch_one(
             """
-            SELECT Title, TitleDescription, LastEditedBy, LastEditedAt
+            SELECT Id, Title, TitleDescription, LastEditedBy, LastEditedAt
             FROM TitleType
             WHERE Title = %s
             LIMIT 1
@@ -63,7 +55,6 @@ class TitleType:
 
     @classmethod
     def exists(cls, title):
-        """Check if a title type with given title already exists."""
         existing = fetch_one(
             """
             SELECT Title
@@ -76,7 +67,6 @@ class TitleType:
         return existing is not None
 
     def validate(self):
-        """Validate required fields. Returns list of errors (empty if valid)."""
         errors = []
         if not self.title:
             errors.append("Title is required")
@@ -89,7 +79,6 @@ class TitleType:
         return errors
 
     def save(self):
-        """Save title type to database. Returns True on success, raises Error on failure."""
         try:
             execute(
                 """
@@ -106,64 +95,62 @@ class TitleType:
             raise e
 
     def update(self):
-        """Update title type in database. Returns True on success, raises Error on failure."""
         try:
             execute(
                 """
                 UPDATE TitleType
-                SET TitleDescription = %s,
+                SET Title = %s,
+                    TitleDescription = %s,
                     LastEditedBy = %s,
                     LastEditedAt = %s
-                WHERE Title = %s
+                WHERE Id = %s
                 """,
                 (
+                    self.title,
                     self.title_description,
                     self.last_edited_by,
                     self.last_edited_at,
-                    self.title
+                    self.id
                 ),
             )
             return True
         except Error as e:
             raise e
         
-    def delete(self, title):
-        """Delete title type from database. Returns True on success, raises Error on failure."""
+    def delete(self):
         try:
             execute(
                 """
                 DELETE FROM TitleType
-                WHERE Title = %s
+                WHERE Id = %s
                 """,
-                (title,),
+                (self.id,),
             )
             return True
         except Error as e:
             raise e
 
-    def list_all_title_types():
-        """Retrieve all title types from the database."""
+    @classmethod
+    def list_all_title_types(cls):
         rows = fetch_all(
             """
-            SELECT Title, TitleDescription, LastEditedBy, LastEditedAt
+            SELECT Id, Title, TitleDescription, LastEditedBy, LastEditedAt
             FROM TitleType
             """
         )
-        return [TitleType.from_db_row(row) for row in rows]
-        
+        return [cls.from_db_row(row) for row in rows]
+
     def to_session_dict(self):
-        """Convert to minimal dictionary for session storage."""
         return {
             "Title": self.title,
             "TitleDescription": self.title_description,
         }
 
-    def to_dict(self, include_sensitive=False):
-        """Convert to dictionary for JSON responses."""
-        data = {
+    def to_dict(self):
+        return {
+            "id": self.id,
             "title": self.title,
             "titleDescription": self.title_description,
             "lastEditedBy": self.last_edited_by,
             "lastEditedAt": self.last_edited_at.isoformat() if self.last_edited_at else None
         }
-        return data
