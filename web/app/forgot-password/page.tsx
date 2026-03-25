@@ -2,6 +2,8 @@
 import { useState } from "react";
 import { Box, Paper, TextField, Button, Typography } from "@mui/material";
 import Turnstile from "@/lib/Turnstile";
+import Link from "next/link";
+
 
 export default function ForgotPassword() {
   const [identifier, setIdentifier] = useState("");
@@ -12,31 +14,75 @@ export default function ForgotPassword() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) 
   {
     e.preventDefault();
+    if (submitting) 
+      return;
+
     setSubmitting(true);
-    const r = await fetch("/api/auth/forgot-password", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ identifier, "cf_token": token }),
-    });
-    const d = await r.json();
-    setMsg(d.message);
-    window.turnstile?.reset?.();
-    setSubmitting(false);
+    setMsg("");
+    try {
+      const r = await fetch("/api/auth/forgot-password", 
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier: identifier.trim(), cf_token: token }),
+      });
+      const d = await r.json();
+      setMsg(d?.message || "If an account exists, a reset link has been sent.");
+      setToken("");
+      window.turnstile?.reset?.();
+    }
+    catch (error) {
+      setMsg("An error occurred. Please try again.");
+      setToken("");
+      window.turnstile?.reset?.();
+      console.error(error);
+    }
+    finally {
+      setSubmitting(false);
+    }
   }
 
   return (
-    <Box sx={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <Paper elevation={3} sx={{ p: 4, width: 350 }}>
+    <Box sx = {{ minHeight: "100dvh", display: "flex", alignItems: "center", justifyContent: "center", px: 2 }}>
+      <Paper elevation={3} sx={{ p: 4, width: "100%", maxWidth: 420 }}>
         <Typography variant="h5" align="center" gutterBottom>Forgot Password</Typography>
-        <TextField label="Username or Email" fullWidth margin="normal" value={identifier} onChange={(e) => setIdentifier(e.target.value)} />
-        <Turnstile onSuccess={(x: string) => setToken(x)} />
-        {msg && <Typography fontSize={13} color="gray">{msg}</Typography>}
-        <Button variant="contained" fullWidth sx={{ mt: 2 }} disabled={submitting || !identifier.trim()} onClick={handleSubmit}>
+        <Box component="form" onSubmit={handleSubmit}>
+          <TextField 
+            autoComplete="username"
+            label="Username or Email" 
+            fullWidth 
+            margin="normal" 
+            value={identifier} 
+            onChange={(e) => setIdentifier(e.target.value)} 
+            required 
+          />
+          <Turnstile onSuccess={(x: string) => setToken(x)} />
+
+          {/* Display message if exists, made slightly cleaner with MUI themes 
+          (this will make our theme palette consistent and allow for dark mode) */}
+
+          {msg && (
+            <Typography fontSize={13} color="text.secondary" sx={{ mt: 1 }}>
+              {msg}
+            </Typography>
+          )}
+
+        {/* Adds loading state for visualization */}
+        
+        <Button 
+          type="submit"
+          variant="contained"
+          fullWidth sx={{ mt: 2 }} 
+          disabled={submitting || !identifier.trim() || !token} 
+        >
           {submitting ? "Sending…" : "Send Reset Link"}
         </Button>
         <Typography align="center" sx={{ mt: 2, fontSize: 13 }}>
-          <a href="/login" style={{ color: "gray" }}>Back to login</a>
+          <Link href="/login" style={{ color: "gray" }}>
+            Back to login
+          </Link>
         </Typography>
+      </Box>
       </Paper>
     </Box>
   );
