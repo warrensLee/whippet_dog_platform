@@ -114,9 +114,9 @@ def edit_person():
     person.person_id = person_id
 
     person.password_hash = existing.password_hash
-
-    if role.edit_person_scope != UserRole.ALL:
-        person.system_role = existing.system_role
+    person.email = existing.email                  
+    person.notes = existing.notes 
+    person.system_role = existing.system_role
 
     person.last_edited_by = current_editor_id()
     person.last_edited_at = datetime.now(timezone.utc)
