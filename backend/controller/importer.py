@@ -38,14 +38,11 @@ def import_csv():
     elif import_type == "dog_owners":
         deny = require_scope(role.edit_dog_owner_scope, "import dog owners")
 
-    #elif import_type == "dog_titles":
-    #    deny = require_scope(role.edit_dog_title_scope, "import dog titles")
+    elif import_type == "dog_titles":
+       deny = require_scope(role.edit_dog_titles_scope, "import dog titles")
 
     elif import_type == "persons":
         deny = require_scope(role.edit_person_scope, "import persons")
-
-    #elif import_type == "change_logs":
-    #    deny = require_scope(role.edit_change_log_scope, "import change logs")
 
     elif import_type == "title_types":
         deny = require_scope(role.edit_title_type_scope, "import title types")
@@ -64,9 +61,8 @@ def import_csv():
             or (import_type == "meet_results" and role.edit_meet_results_scope != UserRole.ALL)
             or (import_type == "race_results" and role.edit_race_results_scope != UserRole.ALL)
             or (import_type == "dog_owners" and role.edit_dog_owner_scope != UserRole.ALL)
-            #or (import_type == "dog_titles" and role.edit_dog_title_scope != UserRole.ALL)
+            or (import_type == "dog_titles" and role.edit_dog_titles_scope != UserRole.ALL)
             or (import_type == "persons" and role.edit_person_scope != UserRole.ALL)
-            #or (import_type == "change_logs" and role.edit_change_log_scope != UserRole.ALL)
             or (import_type == "title_types" and role.edit_title_type_scope != UserRole.ALL)
             or (import_type == "user_roles" and role.edit_user_role_scope != UserRole.ALL)
         ):

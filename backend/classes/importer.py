@@ -4,9 +4,6 @@ import io
 from datetime import datetime, timezone
 
 from classes.dog_owner import DogOwner
-from classes.person import Person
-from classes.title_type import TitleType
-from classes.user_role import UserRole
 from classes.dog import Dog
 from classes.meet import Meet
 from classes.meet_result import MeetResult
@@ -64,8 +61,8 @@ class CsvImporter:
             "incident": ("incident", "Incident", "INCIDENT"),
         },
         "dog_owners": {
-            "cwaNumber": ("cwaNumber", "CWANumber", "CWA NO", "CWA No", "CWA No.", "CWA #"),
-            "personID": ("personID", "PersonID", "PERSON ID", "Person", "PERSON", "person"),
+            "cwaId": ("cwaId", "CWAID", "CWA ID", "cwa_id", "cwaid"),
+            "personId": ("personId", "PersonID", "PERSON ID", "person_id", "personid", "Person", "PERSON", "person"),
         },
         "dog_titles": {
             "cwaNumber": ("cwaNumber", "CWANumber", "CWA NO", "CWA No", "CWA No.", "CWA #"),
@@ -75,41 +72,6 @@ class CsvImporter:
             "namePrefix": ("namePrefix", "NamePrefix", "NAME PREFIX", "Name Prefix"),
             "nameSuffix": ("nameSuffix", "NameSuffix", "NAME SUFFIX", "Name Suffix"),
         },
-        "persons": {
-            "personId": ("Person ID", "PERSON ID", "PersonId", "personId"),
-            "firstName": ("First Name", "FIRST NAME", "FirstName", "firstName"),
-            "lastName": ("Last Name", "LAST NAME", "LastName", "lastName"),
-            "email": ("email", "Email", "EMAIL"),
-            "address_line_one": ("Address Line One", "ADDRESS LINE ONE", "AddressLineOne", "addressLineOne", "addressLine1", "AddressLine1", "AddressOne", "Address1"),
-            "address_line_two": ("Address Line Two", "ADDRESS LINE TWO", "AddressLineTwo", "addressLineTwo", "addressLine2", "AddressLine2", "AddressTwo", "Address2"),
-            "city": ("City", "CITY"),
-            "stateProvince": ("state", "State", "STATE", "stateProvince", "StateProvince", "state province", "State Province", "STATE PROVINCE"),
-            "zipCode": ("Zip Code", "ZIP CODE", "ZipCode", "zipCode"),
-            "country": ("Country", "COUNTRY", "country"),
-            "primaryPhone": ("Primary Phone", "PRIMARY PHONE", "PrimaryPhone", "primaryPhone", "primary_phone"),
-            "secondaryPhone": ("Secondary Phone", "SECONDARY PHONE", "SecondaryPhone", "secondaryPhone", "secondary_phone"),
-            "systemRole": ("System Role", "SYSTEM ROLE", "SystemRole", "systemRole"),
-            "passwordHash": ("Password Hash", "PASSWORD HASH", "PasswordHash", "passwordHash"),
-        },
-        "change_logs": {
-            "id": ("id", "ID"),
-            "changedTable": ("changedTable", "ChangedTable", "CHANGED TABLE", "Changed Table"),
-            "recordPK": ("recordPK", "RecordPK", "RECORD PK", "Record PK"),
-            "operation": ("operation", "Operation", "OPERATION"),
-            "changedBy": ("changedBy", "ChangedBy", "CHANGED BY", "Changed By"),
-            "changedAt": ("changedAt", "ChangedAt", "CHANGED AT", "Changed At"),
-            "source": ("source", "Source", "SOURCE"),
-            "beforeData": ("beforeData", "BeforeData", "BEFORE DATA", "Before Data"),
-            "afterData": ("afterData", "AfterData", "AFTER DATA", "After Data"),
-        },
-        "title_types": {
-            "title": ("title", "Title", "TITLE"),
-            "titleDescription": ("titleDescription", "TitleDescription", "TITLE DESCRIPTION", "Title Description"),
-        },
-        "user_roles": {
-            "title": ("title", "Title", "TITLE"),
-            "id": ("id", "ID"),
-        },  
     }
 
     PASSTHROUGH = {
@@ -121,10 +83,6 @@ class CsvImporter:
         "race_results": [],
         "dog_owners": [],
         "dog_titles": [],
-        "persons": [],
-        "change_logs": [],
-        "title_types": [],
-        "user_roles": [],
     }
 
     ENTITIES = {
@@ -151,37 +109,15 @@ class CsvImporter:
         },
         "dog_owners": {
             "model": DogOwner, "table_name": "DogOwners",
-            "pk_fields": ["cwaNumber", "personID"],
-            "exists": lambda pk: DogOwner.exists(pk["cwaNumber"], pk["personID"]),
-            "find": lambda pk: DogOwner.find_by_identifier(pk["cwaNumber"], pk["personID"]),
+            "pk_fields": ["cwaId", "personId"],
+            "exists": lambda pk: DogOwner.exists(pk["cwaId"], pk["personId"]),
+            "find": lambda pk: DogOwner.find_by_identifier(pk["cwaId"], pk["personId"]),
         },
         "dog_titles": {
             "model": DogTitle, "table_name": "DogTitles",
             "pk_fields": ["cwaNumber", "title"],
             "exists": lambda pk: DogTitle.exists(pk["cwaNumber"], pk["title"]),
             "find": lambda pk: DogTitle.find_by_identifier(pk["cwaNumber"], pk["title"]),
-        },
-        "persons": {
-            "model": Person, "table_name": "Persons",
-            "pk_fields": ["personId"],
-            "exists": lambda pk: Person.exists_by_id(pk["personId"]),
-            "find": lambda pk: Person.find_by_identifier(pk["personId"]),
-        },
-        "change_logs": {
-            "model": ChangeLog, "table_name": "ChangeLog", "pk_fields": ["id"],
-            "exists": lambda pk: ChangeLog.exists(pk["id"]),
-            "find": lambda pk: ChangeLog.find_by_identifier(pk["id"]),
-        },
-        "title_types": {
-            "model": TitleType, "table_name": "TitleTypes", "pk_fields": ["title"],
-            "exists": lambda pk: TitleType.exists(pk["title"]),
-            "find": lambda pk: TitleType.find_by_identifier(pk["title"]),
-        },
-        "user_roles": {
-            "model": UserRole, "table_name": "UserRoles", "pk_fields": ["id", "title"],
-            "exists": lambda pk: UserRole.exists(pk["title"]),
-            "find": lambda pk: UserRole.find_by_id(pk["id"]),
-            # Find by title?
         },
     }
 
@@ -193,14 +129,21 @@ class CsvImporter:
 
     def detect_type(self, filename):
         name = (filename or "").lower()
-        type_map = {"dog": "dogs", "meet_result": "meet_results", "meetresult": "meet_results",
-                    "race_result": "race_results", "raceresult": "race_results", "meet": "meets",
-                    "dog_owner": "dog_owners", "dogowner": "dog_owners", "dog_title": "dog_titles", "dogtitle": "dog_titles",
-                    "person": "persons", "change_log": "change_logs", "changelog": "change_logs",
-                    "title_type": "title_types", "titletype": "title_types", "user_role": "user_roles", "userrole": "user_roles"}
-        for key, value in type_map.items():
+        type_map = {
+            "meet_result": "meet_results",
+            "meetresult": "meet_results",
+            "race_result": "race_results",
+            "raceresult": "race_results",
+            "dog_owner": "dog_owners",
+            "dogowner": "dog_owners",
+            "dog_title": "dog_titles",
+            "dogtitle": "dog_titles",
+            "meet": "meets",
+            "dog": "dogs",
+        }
+        for key in sorted(type_map, key=len, reverse=True):
             if key in name:
-                return value
+                return type_map[key]
         raise ValueError("Cannot determine import type from filename")
 
     def get_field(self, row, *names):
@@ -392,7 +335,7 @@ class CsvImporter:
     def _pk_string(self, pk):
         return "|".join(f"{k}={pk[k]}" for k in sorted(pk.keys()))
 
-    def run(self, file_storage, *, import_type=None, mode="udate"):
+    def run(self, file_storage, *, import_type=None, mode="update"):
         filename = getattr(file_storage, "filename", "") or "upload.csv"
         if not import_type:
             import_type = self.detect_type(filename)

@@ -110,10 +110,7 @@ class Meet:
 
         if self.location and len((self.location)) > 20:
             errors.append("Location must be 20 characters or less")
-        
-        if self.club_abbreviation and not fetch_one("SELECT ClubAbbreviation FROM Club WHERE ClubAbbreviation = %s", (self.club_abbreviation,)):
-            errors.append(f"Club '{self.club_abbreviation}' does not exist")
-        
+                
         if self.judge and not fetch_one( "SELECT PersonID FROM Person WHERE PersonID = %s", (self.judge,)):
             errors.append(f"Judge '{self.judge}' does not exist")
         

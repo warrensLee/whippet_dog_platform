@@ -14,6 +14,7 @@ import {
   CircularProgress,
   Divider,
 } from "@mui/material";
+import AuthGuard from "@/lib/auth/authGuard";
 
 type RowError = { row: number; pk?: string; error: string };
 
@@ -33,19 +34,19 @@ type ApiResponse =
   | { ok: true; report: ImportReport }
   | { ok: false; error: string };
 
-const TYPE_OPTIONS: Array<{ value: string; label: string; disabled?: boolean }> = [
-  { value: "dogs", label: "dogs" },
-  { value: "meets", label: "meets" },
-  { value: "meet_results", label: "meet_results" },
-  { value: "race_results", label: "race_results" },
+const TYPE_OPTIONS = [
+  "dogs",
+  "meets",
+  "meet_results",
+  "race_results",
+  "dog_owners",
+  "dog_titles",
 ];
 
 export default function ImportCsvPage() {
   const [file, setFile] = useState<File | null>(null);
-
-  const [type, setType] = useState<string>("dogs");
+  const [type, setType] = useState(TYPE_OPTIONS[0]);
   const [mode, setMode] = useState<"insert" | "update">("insert");
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<ImportReport | null>(null);
@@ -61,12 +62,10 @@ export default function ImportCsvPage() {
       return;
     }
 
-    const qs = new URLSearchParams();
-    qs.set("type", type);
-    qs.set("mode", mode);
-
     const form = new FormData();
     form.append("file", file);
+
+    const qs = new URLSearchParams({ type, mode });
 
     setLoading(true);
     try {
@@ -76,21 +75,14 @@ export default function ImportCsvPage() {
         credentials: "include",
       });
 
-      let payload: ApiResponse | null = null;
-      try {
-        payload = (await res.json()) as ApiResponse;
-      } catch {
-        const text = await res.text();
-        throw new Error(`Non-JSON response (${res.status}): ${text.slice(0, 300)}`);
+      const data: ApiResponse = await res.json();
+
+      if (!res.ok || !data.ok) {
+        setError(data.ok ? "Import failed." : data.error);
+        return;
       }
 
-      if (!res.ok || !payload || payload.ok === false) {
-        const msg =
-          payload && "error" in payload ? payload.error : `Request failed (${res.status})`;
-        throw new Error(msg);
-      }
-
-      setReport(payload.report);
+      setReport(data.report);
     } catch (e: any) {
       setError(e?.message || "Import failed.");
     } finally {
@@ -99,109 +91,109 @@ export default function ImportCsvPage() {
   };
 
   return (
-    <Box sx={{ maxWidth: 900, mx: "auto", p: 3, pt: 15 }}>
-      <Typography variant="h4" sx={{ mb: 2 }}>
-        Import CSV
-      </Typography>
+    <AuthGuard requiredPermissions={["editDatabase"]}>
+      <Box sx={{ maxWidth: 900, mx: "auto", p: 3, pt: 15 }}>
+        <Typography variant="h4" sx={{ mb: 2 }}>
+          Import CSV
+        </Typography>
 
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <Box sx={{ display: "grid", gap: 2 }}>
-          <Box>
-            <Button variant="contained" component="label">
-              Choose CSV
-              <input
-                type="file"
-                accept=".csv,text/csv"
-                hidden
-                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-              />
-            </Button>
-            <Typography variant="body2" sx={{ mt: 1 }}>
-              {file ? `Selected: ${file.name}` : "No file selected"}
-            </Typography>
+        <Paper sx={{ p: 2, mb: 2 }}>
+          <Box sx={{ display: "grid", gap: 2 }}>
+            <Box>
+              <Button variant="contained" component="label">
+                Choose CSV
+                <input
+                  hidden
+                  type="file"
+                  accept=".csv,text/csv"
+                  onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                />
+              </Button>
+
+              <Typography variant="body2" sx={{ mt: 1 }}>
+                {file ? `Selected: ${file.name}` : "No file selected"}
+              </Typography>
+            </Box>
+
+            <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
+              <FormControl fullWidth>
+                <InputLabel id="type-label">Import Type</InputLabel>
+                <Select
+                  labelId="type-label"
+                  value={type}
+                  label="Import Type"
+                  onChange={(e) => setType(e.target.value)}
+                >
+                  {TYPE_OPTIONS.map((option) => (
+                    <MenuItem key={option} value={option}>
+                      {option}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <FormControl fullWidth>
+                <InputLabel id="mode-label">Mode</InputLabel>
+                <Select
+                  labelId="mode-label"
+                  value={mode}
+                  label="Mode"
+                  onChange={(e) => setMode(e.target.value as "insert" | "update")}
+                >
+                  <MenuItem value="insert">insert</MenuItem>
+                  <MenuItem value="update">update</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+
+            <Box>
+              <Button variant="contained" disabled={!canSubmit} onClick={onSubmit}>
+                {loading ? "Importing..." : "Upload & Import"}
+              </Button>
+              {loading && <CircularProgress size={20} sx={{ ml: 2 }} />}
+            </Box>
+
+            {error && <Alert severity="error">{error}</Alert>}
           </Box>
-
-          <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
-            <FormControl fullWidth>
-              <InputLabel id="type-label">Type</InputLabel>
-              <Select
-                labelId="type-label"
-                label="Type"
-                value={type}
-                onChange={(e) => setType(e.target.value)}
-              >
-                {TYPE_OPTIONS.map((opt) => (
-                  <MenuItem key={opt.value} value={opt.value} disabled={opt.disabled}>
-                    {opt.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <FormControl fullWidth>
-              <InputLabel id="mode-label">Mode</InputLabel>
-              <Select
-                labelId="mode-label"
-                label="Mode"
-                value={mode}
-                onChange={(e) => setMode(e.target.value as "insert" | "update")}
-              >
-                <MenuItem value="insert">insert (skip existing)</MenuItem>
-                <MenuItem value="update">update (existing only)</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
-
-          <Box>
-            <Button variant="contained" disabled={!canSubmit} onClick={onSubmit}>
-              {loading ? "Importing..." : "Upload & Import"}
-            </Button>
-            {loading && <CircularProgress size={20} sx={{ ml: 2 }} />}
-          </Box>
-
-          {error && <Alert severity="error">{error}</Alert>}
-        </Box>
-      </Paper>
-
-      {report && (
-        <Paper sx={{ p: 2 }}>
-          <Typography variant="h6">Result</Typography>
-          <Typography variant="body2" sx={{ mt: 1 }}>
-            File: {report.file} | Type: {report.type} | Mode: {report.mode}
-          </Typography>
-
-          <Divider sx={{ my: 2 }} />
-
-          <Box sx={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 2 }}>
-            <Stat label="Rows" value={report.rows} />
-            <Stat label="Inserted" value={report.inserted} />
-            <Stat label="Updated" value={report.updated} />
-            <Stat label="Skipped" value={report.skipped} />
-            <Stat label="Failed" value={report.failed} />
-          </Box>
-
-          {report.rowErrors?.length > 0 && (
-            <>
-              <Divider sx={{ my: 2 }} />
-              <Typography variant="subtitle1">Row errors</Typography>
-              <Box component="ul" sx={{ m: 0, mt: 1, pl: 3 }}>
-                {report.rowErrors.slice(0, 200).map((re, i) => (
-                  <li key={`${re.row}-${i}`}>
-                    <Typography variant="body2">
-                      Row {re.row}
-                      {re.pk ? ` (${re.pk})` : ""}: {re.error}
-                    </Typography>
-                  </li>
-                ))}
-              </Box>
-              {report.rowErrors.length > 200 && (
-                <Typography variant="caption">Showing first 200 errors.</Typography>
-              )}
-            </>
-          )}
         </Paper>
-      )}
-    </Box>
+
+        {report && (
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="h6">Result</Typography>
+            <Typography variant="body2" sx={{ mt: 1 }}>
+              File: {report.file} | Type: {report.type} | Mode: {report.mode}
+            </Typography>
+
+            <Divider sx={{ my: 2 }} />
+
+            <Box sx={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 2 }}>
+              <Stat label="Rows" value={report.rows} />
+              <Stat label="Inserted" value={report.inserted} />
+              <Stat label="Updated" value={report.updated} />
+              <Stat label="Skipped" value={report.skipped} />
+              <Stat label="Failed" value={report.failed} />
+            </Box>
+
+            {!!report.rowErrors?.length && (
+              <>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="subtitle1">Row Errors</Typography>
+                <Box component="ul" sx={{ pl: 3, mt: 1, mb: 0 }}>
+                  {report.rowErrors.map((r, i) => (
+                    <li key={i}>
+                      <Typography variant="body2">
+                        Row {r.row}
+                        {r.pk ? ` (${r.pk})` : ""}: {r.error}
+                      </Typography>
+                    </li>
+                  ))}
+                </Box>
+              </>
+            )}
+          </Paper>
+        )}
+      </Box>
+    </AuthGuard>
   );
 }
 
