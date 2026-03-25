@@ -1,19 +1,28 @@
 "use client";
-import { useState, useEffect } from "react";
+
+import React, { useEffect, useMemo, useState } from "react";
 import {
-  Box,
-  Typography,
-  CircularProgress,
-  Paper,
   Alert,
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  Paper,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
-  TableRow,
   TablePagination,
+  TableRow,
+  Typography,
 } from "@mui/material";
+import axios from "axios";
+import AuthGuard from "@/lib/auth/authGuard";
+import HeroSection from "@/app/components/HeroSection";
 
 interface ChangeLog {
   id: number;
@@ -22,126 +31,267 @@ interface ChangeLog {
   recordPk: string;
   changedBy: string;
   changedAt: string;
-  source: string;
+  beforeData: any;
+  afterData: any;
 }
 
-const ChangeLogManager = () => {
-  const [changeLogs, setChangeLogs] = useState<ChangeLog[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState<number>(0); // Page state to track which page user is on
-  const [rowsPerPage, setRowsPerPage] = useState<number>(10); // Default rows per page
-  const [allLogs, setAllLogs] = useState<ChangeLog[]>([]); // Store all logs fetched
+const getOperationChip = (operation: string) => {
+  switch ((operation || "").toLowerCase()) {
+    case "insert":
+    case "create":
+      return { label: operation, color: "success" };
+    case "update":
+    case "edit":
+      return { label: operation, color: "primary" };
+    case "delete":
+      return { label: operation, color: "error" };
+    default:
+      return { label: operation || "Unknown", color: "default" };
+  }
+};
 
-  useEffect(() => {
-    loadChangeLogs();
-  }, []);
+const formatDate = (value: string) => {
+  if (!value) return "";
+  const d = new Date(value);
+  return isNaN(d.getTime()) ? value : d.toLocaleString();
+};
 
-  useEffect(() => {
-    // Update the paginated rows when `page` or `rowsPerPage` changes
-    const indexOfLastLog = (page + 1) * rowsPerPage;
-    const indexOfFirstLog = indexOfLastLog - rowsPerPage;
-    setChangeLogs(allLogs.slice(indexOfFirstLog, indexOfLastLog));
-  }, [page, rowsPerPage, allLogs]);
+const parseJson = (value: any) => {
+  if (!value) return null;
+  if (typeof value === "object") return value;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return value;
+  }
+};
 
-  const loadChangeLogs = async () => {
-    setLoading(true);
+const JsonBlock = ({ data }: { data: any }) => {
+  const parsed = parseJson(data);
+
+  if (!parsed) {
+    return <Typography color="text.secondary">No data</Typography>;
+  }
+
+  return (
+    <Box
+      sx={{
+        maxHeight: 400,
+        overflow: "auto",
+        fontSize: "0.8rem",
+        fontFamily: "monospace",
+        backgroundColor: "#f8f8f8",
+        p: 2,
+        borderRadius: 2,
+        border: "1px solid #ddd",
+        whiteSpace: "pre-wrap",
+        wordBreak: "break-word",
+      }}
+    >
+      <pre style={{ margin: 0 }}>
+        {typeof parsed === "string" ? parsed : JSON.stringify(parsed, null, 2)}
+      </pre>
+    </Box>
+  );
+};
+
+export default function ChangeLogManager() {
+  const [logs, setLogs] = useState<ChangeLog[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [selectedLog, setSelectedLog] = useState<ChangeLog | null>(null);
+
+  const fetchLogs = async () => {
     try {
-      const response = await fetch("/api/change_log/get"); // Fetch all change logs
+      setLoading(true);
+      setError("");
+      const response = await axios.get("/api/change_log/get");
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch change logs");
-      }
-
-      const result = await response.json();
-
-      if (result.error) {
-        setError(result.error);
-        setAllLogs([]);
+      if (response.data.ok) {
+        setLogs(response.data.data || []);
       } else {
-        setAllLogs(result.data);
+        setError(response.data.error || "Failed to load change logs");
       }
     } catch (err) {
-      console.error("Error loading change logs:", err);
+      console.error(err);
       setError("Failed to load change logs");
-      setAllLogs([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChangePage = (event: any, newPage: number) => {
-    setPage(newPage);
-  };
+  useEffect(() => {
+    fetchLogs();
+  }, []);
 
-  const handleChangeRowsPerPage = (event: any) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0); // Reset to first page when rows per page changes
-  };
+  const paginatedLogs = useMemo(() => {
+    const start = page * rowsPerPage;
+    return logs.slice(start, start + rowsPerPage);
+  }, [logs, page, rowsPerPage]);
 
-  return (
-    <Box sx={{ p: 3, pt: 15 }}>
-      <Typography variant="h4" gutterBottom>
-        Change Log History
-      </Typography>
-
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
-          {error}
-        </Alert>
-      )}
-
-      {loading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
+  if (loading) {
+    return (
+      <AuthGuard permissions={["editAllDatabase"]}>
+        <Box display="flex" justifyContent="center" p={5}>
           <CircularProgress />
         </Box>
-      ) : changeLogs.length === 0 ? (
-        <Typography sx={{ p: 2, textAlign: "center", color: "text.secondary" }}>
-          No change logs available.
-        </Typography>
-      ) : (
-        <Paper sx={{ mb: 3, p: 2 }}>
-          <TableContainer sx={{ maxHeight: 440 }}>
-            <Table stickyHeader>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Table Name</TableCell>
-                  <TableCell>Record ID</TableCell>
-                  <TableCell>Operation</TableCell>
-                  <TableCell>Changed By</TableCell>
-                  <TableCell>Changed At</TableCell>
-                  <TableCell>Source</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {changeLogs.map((log) => (
-                  <TableRow key={log.id} hover>
-                    <TableCell>{log.changedTable}</TableCell>
-                    <TableCell>{log.recordPk}</TableCell>
-                    <TableCell>{log.operation}</TableCell>
-                    <TableCell>{log.changedBy}</TableCell>
-                    <TableCell>{log.changedAt}</TableCell>
-                    <TableCell>{log.source}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+      </AuthGuard>
+    );
+  }
 
-          {/* Table Pagination */}
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={allLogs.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
-        </Paper>
-      )}
-    </Box>
+  if (error) {
+    return (
+      <AuthGuard permissions={["editAllDatabase"]}>
+        <Box p={4}>
+          <Alert severity="error">{error}</Alert>
+        </Box>
+      </AuthGuard>
+    );
+  }
+
+  return (
+    <AuthGuard permissions={["editAllDatabase"]}>
+      <main className="pt-24 bg-[#1F4D2E]">
+        <HeroSection title="Change Log History" />
+
+        <section
+          className="bg-[#E7F0E9] pt-12 pb-24"
+          style={{ display: "flex", justifyContent: "center" }}
+        >
+          <Box sx={{ width: "90%" }}>
+            <Paper
+              elevation={3}
+              sx={{
+                p: 3,
+                borderRadius: 3,
+                overflow: "hidden",
+              }}
+            >
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                Database Change History
+              </Typography>
+
+              {logs.length === 0 ? (
+                <Typography sx={{ py: 4, textAlign: "center", color: "text.secondary" }}>
+                  No change logs available.
+                </Typography>
+              ) : (
+                <>
+                  <TableContainer sx={{ maxHeight: 600 }}>
+                    <Table size="small" stickyHeader>
+                      <TableHead>
+                        <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+                          <TableCell><strong>Table</strong></TableCell>
+                          <TableCell><strong>Record ID</strong></TableCell>
+                          <TableCell align="center"><strong>Operation</strong></TableCell>
+                          <TableCell><strong>Changed By</strong></TableCell>
+                          <TableCell><strong>Changed At</strong></TableCell>
+                          <TableCell align="center"><strong>History</strong></TableCell>
+                        </TableRow>
+                      </TableHead>
+
+                      <TableBody>
+                        {paginatedLogs.map((log) => {
+                          const op = getOperationChip(log.operation);
+
+                          return (
+                            <TableRow key={log.id} hover>
+                              <TableCell>{log.changedTable}</TableCell>
+                              <TableCell>{log.recordPk}</TableCell>
+                              <TableCell align="center">
+                                <Chip
+                                  label={op.label}
+                                  color={op.color as never}
+                                  size="small"
+                                  variant="outlined"
+                                />
+                              </TableCell>
+                              <TableCell>{log.changedBy}</TableCell>
+                              <TableCell>{formatDate(log.changedAt)}</TableCell>
+                              <TableCell align="center">
+                                <Button
+                                  variant="outlined"
+                                  size="small"
+                                  onClick={() => setSelectedLog(log)}
+                                >
+                                  View
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+
+                  <TablePagination
+                    component="div"
+                    count={logs.length}
+                    page={page}
+                    rowsPerPage={rowsPerPage}
+                    onPageChange={(_, newPage) => setPage(newPage)}
+                    onRowsPerPageChange={(e) => {
+                      setRowsPerPage(parseInt(e.target.value, 10));
+                      setPage(0);
+                    }}
+                    rowsPerPageOptions={[5, 10, 25, 50]}
+                  />
+                </>
+              )}
+            </Paper>
+          </Box>
+        </section>
+
+        <Dialog
+          open={!!selectedLog}
+          onClose={() => setSelectedLog(null)}
+          maxWidth="lg"
+          fullWidth
+        >
+          <DialogTitle>
+            Change History Details
+          </DialogTitle>
+
+          <DialogContent>
+            {selectedLog && (
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 3, pt: 1 }}>
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+                    gap: 2,
+                  }}
+                >
+                </Box>
+
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+                    gap: 2,
+                  }}
+                >
+                  <Box>
+                    <Typography variant="h6" sx={{ mb: 1 }}>
+                      Before Data
+                    </Typography>
+                    <JsonBlock data={selectedLog.beforeData} />
+                  </Box>
+
+                  <Box>
+                    <Typography variant="h6" sx={{ mb: 1 }}>
+                      After Data
+                    </Typography>
+                    <JsonBlock data={selectedLog.afterData} />
+                  </Box>
+                </Box>
+              </Box>
+            )}
+          </DialogContent>
+        </Dialog>
+      </main>
+    </AuthGuard>
   );
-};
-
-export default ChangeLogManager;
+}
