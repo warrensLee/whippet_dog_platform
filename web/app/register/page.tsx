@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { Box, Paper, TextField, Button, Typography, Grid } from "@mui/material";
 import { useSearchParams } from "next/navigation";
+import PasswordRequirements from "@/lib/passwordRequirements/passwordRequirements";
 
 
 export default function RegisterPage() {
@@ -13,10 +14,12 @@ export default function RegisterPage() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [submitting, setSubmitting] = useState(false);
+  const [passwordRequirementsMet, setPasswordRequirementsMet] = useState(false)
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -149,11 +152,24 @@ export default function RegisterPage() {
             margin="normal"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="At least 6 characters"
+            placeholder="At least 8 characters"
             autoComplete="new-password"
             required
           />
-
+          <PasswordRequirements password={password} setRequirementsMet={(met) => setPasswordRequirementsMet(met)} />
+          <TextField
+            label="Confirm Password"
+            variant="outlined"
+            type="password"
+            fullWidth
+            margin="normal"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            error={password != confirmPassword}
+            helperText={(password != confirmPassword) ? "Passwords do not match" : ""}
+            autoComplete="new-password"
+            required
+          />
           {message && (
             <Typography
               color={status === "success" ? "success.main" : "error.main"}
@@ -168,6 +184,7 @@ export default function RegisterPage() {
             variant="contained"
             color="primary"
             fullWidth
+            disabled={!passwordRequirementsMet || password != confirmPassword}
             sx={{ mt: 2 }}
           >
             {submitting ? "Registering…" : "Register"}
