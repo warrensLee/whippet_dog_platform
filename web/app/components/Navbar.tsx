@@ -25,10 +25,11 @@ function UserMenu() {
                {user.PersonID} <MenuIcon/>
             </button>
             <Menu open={open} onClose={() => setOpen(false)} anchorEl={menuAnchor}         MenuListProps={{
-          style: { width: menuAnchor ? menuAnchor.clientWidth : "auto" },
+          style: { width: "auto" },
         }}>
                 <MenuItem onClick={() => axios.post("/api/auth/logout").then(() => window.location.href = "/")}>Logout</MenuItem>
                 <MenuItem onClick={() => window.location.href = "/edit/profile"}>Edit Profile</MenuItem>
+                <MenuItem onClick={() => window.location.href = "/change-password"}>Change Password</MenuItem>
                 <MenuItem>View My Dogs</MenuItem>
             </Menu>
             </div>

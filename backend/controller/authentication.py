@@ -12,6 +12,7 @@ from classes.registration_invite import RegistrationInvite
 from utils.email_service import send_invite_email
 from utils.email_service import send_reset_email
 from utils.turnstile import validate_turnstile
+from utils.auth_helpers import current_user
 
 
 DUMMY_HASH = generate_password_hash("dummy_password")
@@ -255,7 +256,7 @@ def reset_password():
     if not reset:
         return jsonify({"ok": False, "error": "Invalid or expired token"}), 400
 
-    person = Person.find_by_identifier(reset.person_id)
+    person = Person.find_by_identifier(session("user"))
     if not person:
         return jsonify({"ok": False, "error": "User not found"}), 404
 
@@ -264,5 +265,30 @@ def reset_password():
     person.last_edited_at = datetime.now(timezone.utc)
     person.update()
     reset.mark_used() 
+
+    return jsonify({"ok": True, "message": "Password reset successful"}), 200
+
+@auth_bp.post("/change-password")
+def change_password():
+    data = request.get_json(silent=True) or {}
+    password = data.get("password") or ""
+    new_password = data.get("new_password") or ""
+
+
+    if not password or not new_password:
+        return jsonify({"ok": False, "error": "Missing password or new password"}),200 
+
+
+    person = current_user()
+    if not person:
+        return jsonify({"ok": False, "error": "User not found"}),200 
+    person = Person.find_by_identifier(person["PersonID"])
+    if not person.check_password(password):
+        return jsonify({"ok": False, "error": "Current Password is incorrect"}),200 
+
+    person.set_password(new_password)
+    person.last_edited_by = person.person_id
+    person.last_edited_at = datetime.now(timezone.utc)
+    person.update()
 
     return jsonify({"ok": True, "message": "Password reset successful"}), 200
