@@ -43,8 +43,26 @@ export default function ForgotPassword() {
   }
 
   return (
-    <Box sx = {{ minHeight: "100dvh", display: "flex", alignItems: "center", justifyContent: "center", px: 2 }}>
-      <Paper elevation={3} sx={{ p: 4, width: "100%", maxWidth: 420 }}>
+        <Box
+          sx={{
+            minHeight: "100vh",
+            pt: "120px",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "flex-start",
+            backgroundColor: "background.default",
+            boxSizing: "border-box",
+          }}
+        >
+        <Paper
+          elevation={3}
+          sx={{
+            p: 4,
+            width: 500,
+            minWidth: 280,
+            maxWidth: "90%",
+          }}
+        >
         <Typography variant="h5" align="center" gutterBottom>Forgot Password</Typography>
         <Box component="form" onSubmit={handleSubmit}>
           <TextField 

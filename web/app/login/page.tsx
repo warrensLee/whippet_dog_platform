@@ -56,22 +56,22 @@ export default function LoginPage() {
   return (
     <Box
       sx={{
-        minHeight: '100dvh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'background.default',
-        // add padding for smaller screens so the form doesn't touch the edges (phones and tablets)
-        px: 2,
-      }}
+        minHeight: "100vh",
+        pt: "120px",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "flex-start",
+        backgroundColor: "background.default",
+        boxSizing: "border-box",
+        }}
     >
       <Paper
         elevation={3}
         sx={{
           p: 4,
-          width: "100%",
-          maxWidth: 420,
+          width: 500,
           minWidth: 280,
+          maxWidth: "90%",
         }}
       >
         <Typography variant="h5" component="h1" gutterBottom align="center">

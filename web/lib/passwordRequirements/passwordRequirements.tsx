@@ -18,7 +18,7 @@ export default function PasswordRequirements({ password, setRequirementsMet }: {
 
     let commonPasswords = new Set()
     const requirements = [
-        new PasswordRequirement("Must be at least 8 characters", (password) => password.length >= 12),
+        new PasswordRequirement("Must be at least 12 characters", (password) => password.length >= 12),
         new PasswordRequirement("Must have at least 1 uppercase character", (password) => password.toLowerCase() != password),
         new PasswordRequirement("Must have at least 1 symbol", (password) => new RegExp("[^A-z0-9]").test(password)),
         new PasswordRequirement("Must have at least 1 number", (password) => new RegExp("[0-9]").test(password)),
