@@ -7,10 +7,13 @@ def current_user():
 
 
 def current_editor_id():
-    """Best-effort PersonID extraction (supports older key variants)."""
+    """Return the current user's internal Person table ID."""
+    u = current_user()
+    return u.get("ID") or None
+
+def current_editor_person_id():
     u = current_user()
     return u.get("PersonID") or None
-
 
 def current_role():
     """Lookup UserRole from session user."""

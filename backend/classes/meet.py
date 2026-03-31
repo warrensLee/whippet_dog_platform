@@ -111,13 +111,13 @@ class Meet:
         if self.location and len((self.location)) > 20:
             errors.append("Location must be 20 characters or less")
                 
-        if self.judge and not fetch_one( "SELECT PersonID FROM Person WHERE PersonID = %s", (self.judge,)):
+        if self.judge and not fetch_one( "SELECT PersonID FROM Person WHERE ID = %s", (self.judge,)):
             errors.append(f"Judge '{self.judge}' does not exist")
         
-        if self.race_secretary and not fetch_one("SELECT PersonID FROM Person WHERE PersonID = %s", (self.race_secretary,)):
+        if self.race_secretary and not fetch_one("SELECT PersonID FROM Person WHERE ID = %s", (self.race_secretary,)):
             errors.append(f"Race secretary '{self.race_secretary}' does not exist")
         
-        if self.last_edited_by and not fetch_one("SELECT PersonID FROM Person WHERE PersonID = %s", (self.last_edited_by,)):
+        if self.last_edited_by and not fetch_one("SELECT PersonID FROM Person WHERE ID = %s", (self.last_edited_by,)):
             errors.append("LastEditedBy must reference an existing Person")
         return errors
 

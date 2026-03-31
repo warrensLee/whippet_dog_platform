@@ -214,8 +214,6 @@ def delete_user_role():
             }
         ), 403
 
-    if data.get("confirm") is not True:
-        return jsonify({"ok": False, "error": "Confirmation required"}), 400
 
     before_snapshot = target.to_dict()
 

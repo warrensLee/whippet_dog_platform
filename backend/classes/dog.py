@@ -503,7 +503,7 @@ class Dog:
         int_field(errors, self.meet_appearences, "Meet Appearances", min_value=0, max_value=32767)
         int_field(errors, self.high_combined_wins, "High Combined Wins", min_value=0, max_value=32767)
         
-        fk_exists(errors, self.last_edited_by, "Last edited by", "Person", "PersonID")
+        fk_exists(errors, self.last_edited_by, "Last edited by", "Person", "ID")
         
         return errors
 

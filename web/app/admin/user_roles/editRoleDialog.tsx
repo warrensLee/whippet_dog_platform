@@ -15,7 +15,6 @@ import {
 } from '@mui/material';
 import UserRole, { SCOPE_FIELDS } from './types';
 import axios from 'axios';
-import { title } from 'process';
 
 const SCOPE_OPTIONS = [
     { value: 0, label: 'None' },
@@ -46,18 +45,28 @@ const EditRoleDialog = ({ open, onClose, roleData, onSave }: { open: boolean, on
         setFormData((prev) => ({ ...prev, [field]: value }));
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (!formData.title) {
-            setTitleError("A Name is required")
+            setTitleError("A Name is required");
             return;
         }
-        if (isEditMode) {
-            axios.post("/api/user_role/edit", formData)
-        } else {
-            axios.post("/api/user_role/add", formData)
+
+        try {
+            const response = isEditMode
+                ? await axios.post("/api/user_role/edit", formData)
+                : await axios.post("/api/user_role/add", formData);
+
+            if (!response.data.ok) {
+                setTitleError(response.data.error || "Failed to save role");
+                return;
+            }
+
+            setTitleError(null);
+            onSave();
+            onClose();
+        } catch (err: any) {
+            setTitleError(err.response?.data?.error || "Failed to save role");
         }
-        onSave();
-        onClose();
     };
 
     return (
@@ -65,6 +74,7 @@ const EditRoleDialog = ({ open, onClose, roleData, onSave }: { open: boolean, on
             <DialogTitle>Edit User Role</DialogTitle>
             <DialogContent dividers>
                 <TextField
+                    disabled={isEditMode}
                     error={titleError != null}
                     helperText={titleError || ""}
                     fullWidth

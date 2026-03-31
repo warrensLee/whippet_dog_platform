@@ -13,8 +13,6 @@ export default function Admin() {
           <h2 style={s.h2}>Manage</h2>
           <div style={s.links}>
             <a href="/admin/dogs" style={s.link}>Dogs</a>
-            <a href="/admin/dog_owners" style={s.link}>Dog Owners</a>
-            <a href="/admin/dog_titles" style={s.link}>Dog Titles</a>
             <a href="/admin/title_types" style={s.link}>Title Type</a>
             <a href="/admin/events" style={s.link}>Events</a>
             <a href="/admin/users" style={s.link}>Users</a>

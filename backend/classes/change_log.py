@@ -48,7 +48,6 @@ class ChangeLog:
 
     @classmethod
     def from_db_row(cls, row):
-        """Create a Change instance from a database row."""
         if not row:
             return None
         return cls(
@@ -56,7 +55,7 @@ class ChangeLog:
             changed_table=row.get("ChangedTable"),
             record_pk=row.get("RecordPK"),
             operation=row.get("Operation"),
-            changed_by=row.get("ChangedBy"),
+            changed_by=row.get("ChangedByName") or row.get("ChangedBy"),
             changed_at=row.get("ChangedAt"),
             source=row.get("Source"),
             before_data=row.get("BeforeData"),
@@ -173,10 +172,21 @@ class ChangeLog:
     def list_all(cls):
         rows = fetch_all(
             """
-            SELECT ID, ChangedTable, RecordPK, Operation, ChangedBy, ChangedAt,
-                   Source, BeforeData, AfterData
-            FROM ChangeLog
-            ORDER BY ChangedAt DESC
+            SELECT
+                cl.ID,
+                cl.ChangedTable,
+                cl.RecordPK,
+                cl.Operation,
+                cl.ChangedBy,
+                CONCAT(p.FirstName, ' ', p.LastName) AS ChangedByName,
+                cl.ChangedAt,
+                cl.Source,
+                cl.BeforeData,
+                cl.AfterData
+            FROM ChangeLog cl
+            LEFT JOIN Person p
+                ON cl.ChangedBy = p.ID
+            ORDER BY cl.ChangedAt DESC
             """
         )
         return [cls.from_db_row(r) for r in rows]

@@ -17,6 +17,7 @@ def main():
         return
 
     person = Person(
+         id=None,
         person_id=PERSON_ID,
         first_name=FIRST_NAME,
         last_name=LAST_NAME,

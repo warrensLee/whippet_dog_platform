@@ -8,10 +8,11 @@ from database import fetch_all, fetch_one, execute
 from mysql.connector import Error
 
 class Person:
-    def __init__(self, person_id, first_name, last_name, email_address, address_line_one,
+    def __init__(self, id, person_id, first_name, last_name, email_address, address_line_one,
                  address_line_two, city, state_province, zip_code, country,
                  primary_phone, secondary_phone, system_role, password_hash, notes, 
                  last_edited_by=None, last_edited_at=None):
+        self.id = id
         self.person_id = person_id
         self.first_name = first_name
         self.last_name = last_name
@@ -34,6 +35,7 @@ class Person:
     def from_request_data(cls, data):
         """Create a Person instance from request JSON data."""
         return cls(
+            id=data.get("id"),
             person_id=(data.get("personId") or "").strip(),
             first_name=(data.get("firstName") or "").strip(),
             last_name=(data.get("lastName") or "").strip(),
@@ -59,6 +61,7 @@ class Person:
         if not row:
             return None
         return cls(
+            id=row.get("ID"),
             person_id=row.get("PersonID"),
             first_name=row.get("FirstName"),
             last_name=row.get("LastName"),
@@ -83,7 +86,7 @@ class Person:
         """Find a person by person_id."""
         row = fetch_one(
             """
-            SELECT PersonID, FirstName, LastName, EmailAddress, SystemRole, PasswordHash,
+            SELECT ID, PersonID, FirstName, LastName, EmailAddress, SystemRole, PasswordHash,
                     AddressLineOne, AddressLineTwo, City, StateProvince, ZipCode, Country,
                    PrimaryPhone, SecondaryPhone, Notes, LastEditedBy, LastEditedAt
             FROM Person
@@ -99,7 +102,7 @@ class Person:
         """Find a person by email."""
         row = fetch_one(
             """
-            SELECT PersonID, FirstName, LastName, EmailAddress, SystemRole, PasswordHash,
+            SELECT ID, PersonID, FirstName, LastName, EmailAddress, SystemRole, PasswordHash,
                     AddressLineOne, AddressLineTwo, City, StateProvince, ZipCode, Country,
                    PrimaryPhone, SecondaryPhone, Notes, LastEditedBy, LastEditedAt
             FROM Person
@@ -126,8 +129,6 @@ class Person:
     def validate(self):
         """Validate required fields. Returns list of errors (empty if valid)."""
         errors = []
-        if not self.person_id:
-            errors.append("PersonID is required")
         if not self.first_name:
             errors.append("First name is required")
         if not self.last_name:
@@ -239,6 +240,7 @@ class Person:
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""
         return {
+            "ID": self.id,
             "PersonID": self.person_id,
             "FirstName": self.first_name,
             "LastName": self.last_name,

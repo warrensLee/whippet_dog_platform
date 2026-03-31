@@ -198,7 +198,6 @@ class UserRole:
                 EditDogScope = %s,
                 EditPersonScope = %s,
                 EditDogOwnerScope = %s,
-                EditOfficerRoleScope = %s,
                 EditUserRoleScope = %s,
                 EditMeetScope = %s,
                 EditMeetResultsScope = %s,

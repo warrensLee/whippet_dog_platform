@@ -55,7 +55,7 @@ def register():
     if not person.system_role:
         person.system_role = "PUBLIC"
 
-    person.last_edited_by = person.person_id
+    person.last_edited_by = person.id
     person.last_edited_at = datetime.now(timezone.utc)
 
     validation_errors = person.validate()
@@ -119,7 +119,7 @@ def invite_user():
             email=email,
             token=token,
             expires_at=expires_at,
-            created_by=current_user["PersonID"]
+            created_by=current_user["ID"]
         )
         send_invite_email(email, token)
 
@@ -198,10 +198,12 @@ def me():
     dog_scope = getattr(role, "edit_dog_scope",
                         UserRole.NONE) if role else UserRole.NONE
     can_manage_dogs = dog_scope == UserRole.ALL
-    role_dict = role.to_dict()
-    del role_dict["id"]
-    del role_dict["lastEditedAt"]
-    del role_dict["lastEditedBy"]
+    role_dict = None
+    if role:
+        role_dict = role.to_dict()
+        role_dict.pop("id", None)
+        role_dict.pop("lastEditedAt", None)
+        role_dict.pop("lastEditedBy", None)
     return jsonify({"ok": True, "user": {**user, "role":role_dict}, "signedIn": True, "canManageDogs": can_manage_dogs,  }), 200
 
 @auth_bp.post("/forgot-password")
@@ -256,7 +258,7 @@ def reset_password():
     if not reset:
         return jsonify({"ok": False, "error": "Invalid or expired token"}), 400
 
-    person = Person.find_by_identifier(session("user"))
+    person = Person.find_by_identifier(reset.person_id)
     if not person:
         return jsonify({"ok": False, "error": "User not found"}), 404
 

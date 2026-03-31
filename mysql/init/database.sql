@@ -27,7 +27,7 @@ CREATE TABLE `Dog` (
     `MeetAppearences` DECIMAL(5,2),
     `HighCombinedWins` DECIMAL(5,2),
     `Notes` VARCHAR(250),
-    `LastEditedBy` VARCHAR(20),
+    `LastEditedBy` INT,
     `LastEditedAt` TIMESTAMP
 );
 
@@ -35,7 +35,7 @@ CREATE TABLE `TitleType` (
     `ID` INT PRIMARY KEY AUTO_INCREMENT,
     `Title` VARCHAR(10) NOT NULL UNIQUE,
     `TitleDescription` VARCHAR(200) NOT NULL,
-    `LastEditedBy` VARCHAR(20),
+    `LastEditedBy` INT,
     `LastEditedAt` TIMESTAMP
 );
 
@@ -52,13 +52,13 @@ CREATE TABLE `UserRole` (
     `EditDogTitlesScope` TINYINT NOT NULL DEFAULT 0,
     `EditTitleTypeScope` TINYINT NOT NULL DEFAULT 0,
     `EditDatabaseScope` TINYINT NOT NULL DEFAULT 0,
-    `LastEditedBy` VARCHAR(20),
+    `LastEditedBy` INT,
     `LastEditedAt` TIMESTAMP
 );
 
 CREATE TABLE `Person` (
     `ID` INT PRIMARY KEY AUTO_INCREMENT,
-    `PersonID` VARCHAR(20) NOT NULL UNIQUE,
+    `PersonID` VARCHAR(20) NULL,
     `FirstName` VARCHAR(50) NOT NULL,
     `LastName` VARCHAR(50) NOT NULL,
     `EmailAddress` VARCHAR(50),
@@ -71,9 +71,9 @@ CREATE TABLE `Person` (
     `PrimaryPhone` VARCHAR(10),
     `SecondaryPhone` VARCHAR(10),
     `SystemRole` VARCHAR(20) NOT NULL,
-    `PasswordHash` VARCHAR(255) NOT NULL,
+    `PasswordHash` VARCHAR(255),
     `Notes` VARCHAR(250),
-    `LastEditedBy` VARCHAR(20),
+    `LastEditedBy` INT,
     `LastEditedAt` TIMESTAMP
 );
 
@@ -85,7 +85,7 @@ CREATE TABLE `DogTitles` (
     `TitleDate` DATE,
     `NamePrefix` CHAR(1) NOT NULL,
     `NameSuffix` CHAR(1) NOT NULL,
-    `LastEditedBy` VARCHAR(20),
+    `LastEditedBy` INT,
     `LastEditedAt` TIMESTAMP,
     UNIQUE (`CWANumber`, `Title`)
 );
@@ -93,8 +93,8 @@ CREATE TABLE `DogTitles` (
 CREATE TABLE `DogOwner` (
     `ID` INT PRIMARY KEY AUTO_INCREMENT,
     `CWAID` VARCHAR(10) NOT NULL,
-    `PersonID` VARCHAR(20) NOT NULL,
-    `LastEditedBy` VARCHAR(20),
+    `PersonID` INT NOT NULL,
+    `LastEditedBy` INT,
     `LastEditedAt` TIMESTAMP,
     UNIQUE (`CWAID`, `PersonID`)
 );
@@ -104,11 +104,11 @@ CREATE TABLE `Meet` (
     `MeetNumber` VARCHAR(20) UNIQUE NOT NULL,
     `ClubAbbreviation` VARCHAR(20) NOT NULL,
     `MeetDate` DATE NOT NULL,
-    `RaceSecretary` VARCHAR(20),
-    `Judge` VARCHAR(20),
+    `RaceSecretary` INT,
+    `Judge` INT,
     `Location` VARCHAR(20) NOT NULL,
     `Yards` INT NOT NULL,
-    `LastEditedBy` VARCHAR(20),
+    `LastEditedBy` INT,
     `LastEditedAt` TIMESTAMP
 );
 
@@ -123,7 +123,7 @@ CREATE TABLE `RaceResults` (
     `Placement` INT NOT NULL,
     `MeetPoints` DECIMAL(3,2) NOT NULL,
     `Incident` VARCHAR(5),
-    `LastEditedBy` VARCHAR(20),
+    `LastEditedBy` INT,
     `LastEditedAt` TIMESTAMP,
     UNIQUE (`MeetNumber`, `CWANumber`, `Program`, `RaceNumber`)
 );
@@ -144,7 +144,7 @@ CREATE TABLE `MeetResults` (
     `DPCLeg` CHAR(1),
     `HCScore` INT,
     `HCLegEarned` CHAR(1),
-    `LastEditedBy` VARCHAR(20),
+    `LastEditedBy` INT,
     `LastEditedAt` TIMESTAMP,
     UNIQUE (`MeetNumber`, `CWANumber`)
 );
@@ -154,7 +154,7 @@ CREATE TABLE `ChangeLog` (
     `ChangedTable` VARCHAR(50) NOT NULL,
     `RecordPK` VARCHAR(50) NOT NULL,
     `Operation` VARCHAR(10) NOT NULL,
-    `ChangedBy` VARCHAR(20),
+    `ChangedBy` INT,
     `ChangedAt` TIMESTAMP NOT NULL,
     `Source` VARCHAR(32),
     `BeforeData` TEXT,
@@ -163,12 +163,12 @@ CREATE TABLE `ChangeLog` (
 
 CREATE TABLE PasswordResetToken (
     TokenID INT AUTO_INCREMENT PRIMARY KEY,
-    PersonID VARCHAR(50) NOT NULL,
+    PersonID INT NOT NULL,
     Token CHAR(64) NOT NULL,
     ExpiresAt DATETIME NOT NULL,
     Used TINYINT(1) DEFAULT 0,
     CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (PersonID) REFERENCES Person(PersonID) ON DELETE CASCADE
+    FOREIGN KEY (PersonID) REFERENCES Person(ID) ON DELETE CASCADE
 );
 
 CREATE TABLE RegistrationInvite (
@@ -177,10 +177,10 @@ CREATE TABLE RegistrationInvite (
     Token VARCHAR(255) NOT NULL UNIQUE,
     ExpiresAt DATETIME NOT NULL,
     Used TINYINT(1) NOT NULL DEFAULT 0,
-    CreatedBy VARCHAR(255) NOT NULL,
+    CreatedBy INT NOT NULL,
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UsedAt DATETIME NULL,
-    FOREIGN KEY (CreatedBy) REFERENCES Person(PersonID) ON DELETE CASCADE
+    FOREIGN KEY (CreatedBy) REFERENCES Person(ID) ON DELETE CASCADE
 );
 
 -- =========================
@@ -201,15 +201,15 @@ ALTER TABLE `DogOwner`
 
 ALTER TABLE `DogOwner`
     ADD CONSTRAINT `fk_DogOwner_Person`
-        FOREIGN KEY (`PersonID`) REFERENCES `Person` (`PersonID`);
+        FOREIGN KEY (`PersonID`) REFERENCES `Person` (`ID`);
 
 ALTER TABLE `Meet`
     ADD CONSTRAINT `fk_Meet_RaceSecretary`
-        FOREIGN KEY (`RaceSecretary`) REFERENCES `Person` (`PersonID`);
+        FOREIGN KEY (`RaceSecretary`) REFERENCES `Person` (`ID`);
 
 ALTER TABLE `Meet`
     ADD CONSTRAINT `fk_Meet_Judge`
-        FOREIGN KEY (`Judge`) REFERENCES `Person` (`PersonID`);
+        FOREIGN KEY (`Judge`) REFERENCES `Person` (`ID`);
 
 ALTER TABLE `RaceResults`
     ADD CONSTRAINT `fk_RaceResults_Meet`
@@ -233,55 +233,55 @@ ALTER TABLE `Person`
 
 ALTER TABLE `ChangeLog`
     ADD CONSTRAINT `fk_ChangeLog_ChangedBy`
-        FOREIGN KEY (`ChangedBy`) REFERENCES `Person` (`PersonID`);
+        FOREIGN KEY (`ChangedBy`) REFERENCES `Person` (`ID`);
 
 ALTER TABLE `Dog`
     ADD CONSTRAINT `fk_Dog_LastEditedBy`
-        FOREIGN KEY (`LastEditedBy`) REFERENCES `Person` (`PersonID`)
+        FOREIGN KEY (`LastEditedBy`) REFERENCES `Person` (`ID`)
         ON DELETE SET NULL ON UPDATE CASCADE;
 
 ALTER TABLE `TitleType`
     ADD CONSTRAINT `fk_TitleType_LastEditedBy`
-        FOREIGN KEY (`LastEditedBy`) REFERENCES `Person` (`PersonID`)
+        FOREIGN KEY (`LastEditedBy`) REFERENCES `Person` (`ID`)
         ON DELETE SET NULL ON UPDATE CASCADE;
 
 ALTER TABLE `UserRole`
     ADD CONSTRAINT `fk_UserRole_LastEditedBy`
-        FOREIGN KEY (`LastEditedBy`) REFERENCES `Person` (`PersonID`)
+        FOREIGN KEY (`LastEditedBy`) REFERENCES `Person` (`ID`)
         ON DELETE SET NULL ON UPDATE CASCADE;
 
 ALTER TABLE `Person`
     ADD CONSTRAINT `fk_Person_LastEditedBy`
-        FOREIGN KEY (`LastEditedBy`) REFERENCES `Person` (`PersonID`)
+        FOREIGN KEY (`LastEditedBy`) REFERENCES `Person` (`ID`)
         ON DELETE SET NULL ON UPDATE CASCADE;
 
 ALTER TABLE `DogTitles`
     ADD CONSTRAINT `fk_DogTitles_LastEditedBy`
-        FOREIGN KEY (`LastEditedBy`) REFERENCES `Person` (`PersonID`)
+        FOREIGN KEY (`LastEditedBy`) REFERENCES `Person` (`ID`)
         ON DELETE SET NULL ON UPDATE CASCADE;
 
 ALTER TABLE `DogOwner`
     ADD CONSTRAINT `fk_DogOwner_LastEditedBy`
-        FOREIGN KEY (`LastEditedBy`) REFERENCES `Person` (`PersonID`)
+        FOREIGN KEY (`LastEditedBy`) REFERENCES `Person` (`ID`)
         ON DELETE SET NULL ON UPDATE CASCADE;
 
 ALTER TABLE `Meet`
     ADD CONSTRAINT `fk_Meet_LastEditedBy`
-        FOREIGN KEY (`LastEditedBy`) REFERENCES `Person` (`PersonID`)
+        FOREIGN KEY (`LastEditedBy`) REFERENCES `Person` (`ID`)
         ON DELETE SET NULL ON UPDATE CASCADE;
 
 ALTER TABLE `RaceResults`
     ADD CONSTRAINT `fk_RaceResults_LastEditedBy`
-        FOREIGN KEY (`LastEditedBy`) REFERENCES `Person` (`PersonID`)
+        FOREIGN KEY (`LastEditedBy`) REFERENCES `Person` (`ID`)
         ON DELETE SET NULL ON UPDATE CASCADE;
 
 ALTER TABLE `MeetResults`
     ADD CONSTRAINT `fk_MeetResults_LastEditedBy`
-        FOREIGN KEY (`LastEditedBy`) REFERENCES `Person` (`PersonID`)
+        FOREIGN KEY (`LastEditedBy`) REFERENCES `Person` (`ID`)
         ON DELETE SET NULL ON UPDATE CASCADE;
 
 
-INSERT IGNORE INTO UserRole
+INSERT INTO UserRole
 (
   Title,
   EditDogScope,

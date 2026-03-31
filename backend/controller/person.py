@@ -48,13 +48,9 @@ def register_person():
     data = request.get_json(silent=True) or {}
     
     password = (data.get("password") or "").strip()
-    if not password:
-        return jsonify({"ok": False, "error": "Password is required"}), 400
-    if len(password) < 6:
-        return jsonify({"ok": False, "error": "Password must be at least 6 characters"}), 400
-
     person = Person.from_request_data(data)
-    person.set_password(password)
+    if password:
+        person.set_password(password)
 
     if not person.system_role:
         person.system_role = "PUBLIC"
@@ -67,14 +63,14 @@ def register_person():
     if validation_errors:
         return jsonify({"ok": False, "error": ", ".join(validation_errors)}), 400
 
-    if Person.exists(person.person_id):
+    if password and Person.exists(person.person_id):
         return jsonify({"ok": False, "error": "Person already exists"}), 409
 
     try:
         person.save()
         ChangeLog.log(
             changed_table="Person",
-            record_pk=person.person_id,
+            record_pk=person.id,
             operation="INSERT",
             changed_by=editor_id,
             source="api/person/add POST",
@@ -132,7 +128,7 @@ def edit_person():
 
         ChangeLog.log(
             changed_table="Person",
-            record_pk=person_id,
+            record_pk=person.id,
             operation="UPDATE",
             changed_by=current_editor_id(),
             source="api/person/edit POST",
@@ -182,7 +178,7 @@ def change_password():
 
         ChangeLog.log(
             changed_table="Person",
-            record_pk=current_id,
+            record_pk=person.id,
             operation="UPDATE",
             changed_by=current_id,
             source="api/person/change-password POST",
@@ -237,7 +233,7 @@ def change_user_role():
 
         ChangeLog.log(
             changed_table="Person",
-            record_pk=person_id,
+            record_pk=person.id,
             operation="UPDATE",
             changed_by=current_editor_id(),
             source="api/person/change-user-role POST",

@@ -33,76 +33,8 @@ import {
 } from '@mui/material';
 
 import EditIcon from '@mui/icons-material/Edit';
-
-type UserRole = {
-  id: number | string;
-  title: string;
-  editDogScope: number;
-  editPersonScope: number;
-  editDogOwnerScope: number;
-  editUserRoleScope: number;
-  editMeetScope: number;
-  editMeetResultsScope: number;
-  editRaceResultsScope: number;
-  editDogTitlesScope: number;
-  editTitleTypeScope: number;
-  editDatabaseScope: number;
-  lastEditedBy?: string | null;
-  lastEditedAt?: string | null;
-};
-
-type Person = {
-  personId: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  addressLineOne?: string | null;
-  addressLineTwo?: string | null;
-  city?: string | null;
-  stateProvince?: string | null;
-  zipCode?: string | null;
-  country?: string | null;
-  primaryPhone?: string | null;
-  secondaryPhone?: string | null;
-  systemRole: string;
-  notes?: string | null;
-  lastEditedBy?: string | null;
-  lastEditedAt?: string | null;
-};
-
-type EditForm = {
-  personId: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  addressLineOne: string;
-  addressLineTwo: string;
-  city: string;
-  stateProvince: string;
-  zipCode: string;
-  country: string;
-  primaryPhone: string;
-  secondaryPhone: string;
-  systemRole: string;
-  notes: string;
-};
-
-const emptyForm: EditForm = {
-  personId: '',
-  firstName: '',
-  lastName: '',
-  email: '',
-  addressLineOne: '',
-  addressLineTwo: '',
-  city: '',
-  stateProvince: '',
-  zipCode: '',
-  country: '',
-  primaryPhone: '',
-  secondaryPhone: '',
-  systemRole: '',
-  notes: '',
-};
+import EditUserDialog from './editUserDialog';
+import { AddForm, EditForm, Person, UserRole, emptyAddForm, emptyForm } from './types';
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<Person[]>([]);
@@ -110,23 +42,24 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [open, setOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
 
   const [search, setSearch] = useState('');
   const [form, setForm] = useState<EditForm>(emptyForm);
+  const [addForm, setAddForm] = useState<AddForm>(emptyAddForm);
 
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [addError, setAddError] = useState('');
 
   const fetchUsers = async (q = '') => {
     const res = await axios.get('/api/person/search', { params: { q } });
-    if (res.data.ok) setUsers(res.data.data);
-    else setUsers([]);
+    setUsers(res.data.ok ? res.data.data : []);
   };
 
   const fetchRoles = async () => {
     const res = await axios.get('/api/user_role/get');
-    if (res.data.ok) setRoles(res.data.data);
-    else setRoles([]);
+    setRoles(res.data.ok ? res.data.data : []);
   };
 
   const loadPage = async () => {
@@ -201,8 +134,24 @@ export default function AdminUsersPage() {
     setForm(emptyForm);
   };
 
+  const openAdd = () => {
+    setAddForm(emptyAddForm);
+    setAddError('');
+    setAddOpen(true);
+  };
+
+  const closeAdd = () => {
+    if (saving) return;
+    setAddOpen(false);
+    setAddForm(emptyAddForm);
+  };
+
   const updateForm = (key: keyof EditForm, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const updateAddForm = (key: keyof AddForm, value: string) => {
+    setAddForm((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleSave = async () => {
@@ -260,6 +209,42 @@ export default function AdminUsersPage() {
       setOpen(false);
     } catch (err: any) {
       setError(err?.response?.data?.error || 'Failed to update user');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleAddUser = async () => {
+    try {
+      setSaving(true);
+      setAddError('');
+
+      const res = await axios.post('/api/person/add', {
+        firstName: addForm.firstName,
+        lastName: addForm.lastName,
+        email: addForm.email,
+        addressLineOne: addForm.addressLineOne,
+        addressLineTwo: addForm.addressLineTwo,
+        city: addForm.city,
+        stateProvince: addForm.stateProvince,
+        zipCode: addForm.zipCode,
+        country: addForm.country,
+        primaryPhone: addForm.primaryPhone,
+        secondaryPhone: addForm.secondaryPhone,
+        systemRole: addForm.systemRole,
+        notes: addForm.notes,
+      });
+
+      if (!res.data.ok) {
+        setAddError(res.data.error || 'Failed to create user');
+        return;
+      }
+
+      await fetchUsers('');
+      setSuccess('User created successfully');
+      setAddOpen(false);
+    } catch (err: any) {
+      setAddError(err?.response?.data?.error || 'Failed to create user');
     } finally {
       setSaving(false);
     }
@@ -428,40 +413,54 @@ export default function AdminUsersPage() {
                 </TableBody>
               </Table>
             </TableContainer>
+
+            <Button
+              color="success"
+              sx={{ width: '100%' }}
+              variant="contained"
+              onClick={openAdd}
+            >
+              Add User
+            </Button>
           </Box>
 
-          <Dialog open={open} onClose={closeEdit} fullWidth maxWidth="md">
-            <DialogTitle>Edit User</DialogTitle>
+          <EditUserDialog
+            open={open}
+            saving={saving}
+            form={form}
+            roles={roles}
+            onClose={closeEdit}
+            onSave={handleSave}
+            updateForm={updateForm}
+          />
 
+          <Dialog open={addOpen} onClose={closeAdd} fullWidth maxWidth="md">
+            <DialogTitle>Add New User</DialogTitle>
             <DialogContent>
+              {addError && (
+                <Alert severity="error" sx={{ mb: 2, mt: 1 }}>
+                  {addError}
+                </Alert>
+              )}
               <Stack spacing={2} sx={{ mt: 1 }}>
                 <Typography variant="subtitle2">Basic Info</Typography>
 
                 <TextField
-                  label="Person ID"
-                  value={form.personId}
-                  disabled
-                  fullWidth
-                />
-
-                <TextField
                   label="First Name"
-                  value={form.firstName}
-                  onChange={(e) => updateForm('firstName', e.target.value)}
+                  value={addForm.firstName}
+                  onChange={(e) => updateAddForm('firstName', e.target.value)}
                   fullWidth
                 />
-
                 <TextField
                   label="Last Name"
-                  value={form.lastName}
-                  onChange={(e) => updateForm('lastName', e.target.value)}
+                  value={addForm.lastName}
+                  onChange={(e) => updateAddForm('lastName', e.target.value)}
                   fullWidth
                 />
-
                 <TextField
                   label="Email"
-                  value={form.email}
-                  onChange={(e) => updateForm('email', e.target.value)}
+                  value={addForm.email}
+                  onChange={(e) => updateAddForm('email', e.target.value)}
                   fullWidth
                 />
 
@@ -471,43 +470,38 @@ export default function AdminUsersPage() {
 
                 <TextField
                   label="Address Line 1"
-                  value={form.addressLineOne}
-                  onChange={(e) => updateForm('addressLineOne', e.target.value)}
+                  value={addForm.addressLineOne}
+                  onChange={(e) => updateAddForm('addressLineOne', e.target.value)}
                   fullWidth
                 />
-
                 <TextField
                   label="Address Line 2"
-                  value={form.addressLineTwo}
-                  onChange={(e) => updateForm('addressLineTwo', e.target.value)}
+                  value={addForm.addressLineTwo}
+                  onChange={(e) => updateAddForm('addressLineTwo', e.target.value)}
                   fullWidth
                 />
-
                 <TextField
                   label="City"
-                  value={form.city}
-                  onChange={(e) => updateForm('city', e.target.value)}
+                  value={addForm.city}
+                  onChange={(e) => updateAddForm('city', e.target.value)}
                   fullWidth
                 />
-
                 <TextField
                   label="State / Province"
-                  value={form.stateProvince}
-                  onChange={(e) => updateForm('stateProvince', e.target.value)}
+                  value={addForm.stateProvince}
+                  onChange={(e) => updateAddForm('stateProvince', e.target.value)}
                   fullWidth
                 />
-
                 <TextField
                   label="Zip Code"
-                  value={form.zipCode}
-                  onChange={(e) => updateForm('zipCode', e.target.value)}
+                  value={addForm.zipCode}
+                  onChange={(e) => updateAddForm('zipCode', e.target.value)}
                   fullWidth
                 />
-
                 <TextField
                   label="Country"
-                  value={form.country}
-                  onChange={(e) => updateForm('country', e.target.value)}
+                  value={addForm.country}
+                  onChange={(e) => updateAddForm('country', e.target.value)}
                   fullWidth
                 />
 
@@ -517,15 +511,14 @@ export default function AdminUsersPage() {
 
                 <TextField
                   label="Primary Phone"
-                  value={form.primaryPhone}
-                  onChange={(e) => updateForm('primaryPhone', e.target.value)}
+                  value={addForm.primaryPhone}
+                  onChange={(e) => updateAddForm('primaryPhone', e.target.value)}
                   fullWidth
                 />
-
                 <TextField
                   label="Secondary Phone"
-                  value={form.secondaryPhone}
-                  onChange={(e) => updateForm('secondaryPhone', e.target.value)}
+                  value={addForm.secondaryPhone}
+                  onChange={(e) => updateAddForm('secondaryPhone', e.target.value)}
                   fullWidth
                 />
 
@@ -536,9 +529,9 @@ export default function AdminUsersPage() {
                 <FormControl fullWidth>
                   <InputLabel>System Role</InputLabel>
                   <Select
-                    value={form.systemRole}
+                    value={addForm.systemRole}
                     label="System Role"
-                    onChange={(e) => updateForm('systemRole', String(e.target.value))}
+                    onChange={(e) => updateAddForm('systemRole', String(e.target.value))}
                   >
                     {roles.map((role) => (
                       <MenuItem key={role.id} value={role.title}>
@@ -550,21 +543,25 @@ export default function AdminUsersPage() {
 
                 <TextField
                   label="Notes"
-                  value={form.notes}
-                  onChange={(e) => updateForm('notes', e.target.value)}
+                  value={addForm.notes}
+                  onChange={(e) => updateAddForm('notes', e.target.value)}
                   fullWidth
                   multiline
                   rows={4}
                 />
               </Stack>
             </DialogContent>
-
             <DialogActions>
-              <Button onClick={closeEdit} disabled={saving}>
+              <Button onClick={closeAdd} disabled={saving}>
                 Cancel
               </Button>
-              <Button variant="contained" onClick={handleSave} disabled={saving}>
-                {saving ? 'Saving...' : 'Save'}
+              <Button
+                variant="contained"
+                color="success"
+                onClick={handleAddUser}
+                disabled={saving}
+              >
+                {saving ? 'Creating...' : 'Create User'}
               </Button>
             </DialogActions>
           </Dialog>

@@ -39,6 +39,14 @@ export default function UserRoles() {
   const [error, setError] = useState("");
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<UserRole>(new UserRole());
+  const handleDelete = async (role: UserRole) => {
+  try {
+    await axios.post('/api/user_role/delete', { roleId: role.id });
+    fetchRoles();
+  } catch (err) {
+    console.error(err);
+  }
+};
   const fetchRoles = async () => {
     try {
       setLoading(true);
@@ -105,7 +113,9 @@ export default function UserRoles() {
                     })}
                     <TableCell component="th" scope="row">
                       <Box display={(role.title != "ADMIN" && role.title != "PUBLIC") ? "flex" : "none"} >
-                        <IconButton color="error"><DeleteIcon /> </IconButton>
+                        <IconButton color="error" onClick={() => handleDelete(role)}>
+                          <DeleteIcon />
+                        </IconButton>
                         <IconButton onClick={() => {
                           setSelectedRole(role);
                           setEditDialogOpen(true);
