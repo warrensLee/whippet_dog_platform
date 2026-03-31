@@ -717,6 +717,18 @@ class Dog:
             self.meet_wins = float(self.meet_wins or 0) + float(stats['meet_wins'] or 0)
             self.update()
 
+    def get_owner_emails(self):
+        rows = fetch_all(
+            """
+            SELECT p.EmailAddress
+            FROM DogOwner o
+            JOIN Person p ON p.PersonID = o.PersonID
+            WHERE o.CWAID = %s
+            """,
+            (self.cwa_number,)
+        ) or []
+
+        return [r["EmailAddress"] for r in rows if r.get("EmailAddress")]
     
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""
@@ -737,7 +749,7 @@ class Dog:
             "foreignType": self.foreign_type,
             "callName": self.call_name,
             "registeredName": self.registered_name,
-            "birthdate": self.birthdate.strftime("%Y-%m-%d") if self.birthdate else None,
+            "birthdate": self.birthdate if isinstance(self.birthdate, str) else (self.birthdate.strftime("%Y-%m-%d") if self.birthdate else None),
             "pedigreeLink": self.pedigree_link,
             "status": self.status,
             "average": self.average,

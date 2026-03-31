@@ -7,6 +7,8 @@ from database import fetch_all, fetch_one, execute
 from mysql.connector import Error
 from classes.dog import Dog
 from classes.change_log import ChangeLog
+from utils.email_service import send_titles_email
+from utils.generate_pdf import generate_titles_pdf
 
 class DogTitle:
     def __init__(self, cwa_number, title, title_number, title_date, name_prefix, name_suffix,
@@ -253,6 +255,10 @@ class DogTitle:
             )
 
             new_title.save()
+
+            pdf_bytes = generate_titles_pdf(dog)
+            for email in dog.get_owner_emails():
+                send_titles_email(email, pdf_bytes, f"{dog.registered_name}_titles.pdf")
 
             ChangeLog.log(
                 changed_table="DogTitles",

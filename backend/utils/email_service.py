@@ -1,4 +1,5 @@
 import os
+import base64
 import resend
 
 def send_reset_email(to_email, token):
@@ -32,4 +33,23 @@ def send_invite_email(to_email, token):
             <p><a href="{register_url}">Complete your registration</a></p>
             <p>This link will expire soon.</p>
         """
+    })
+
+def send_titles_email(to_email, pdf_bytes, filename="titles.pdf"):
+    resend.api_key = os.getenv("RESEND_API_KEY")
+
+    resend.Emails.send({
+        "from": os.getenv("FROM_EMAIL"),
+        "to": to_email,
+        "subject": "Dog Title Report",
+        "html": """
+            <p>Your dog title report is attached.</p>
+            <p>Please see the attached PDF for full details.</p>
+        """,
+        "attachments": [
+            {
+                "filename": filename,
+                "content": base64.b64encode(pdf_bytes).decode("utf-8")
+            }
+        ]
     })
