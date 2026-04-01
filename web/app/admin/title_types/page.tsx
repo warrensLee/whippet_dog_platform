@@ -109,7 +109,7 @@ export default function TitleTypesPage() {
                   <TableRow key={titleType.id} hover>
                     <TableCell>{titleType.title}</TableCell>
                     <TableCell>{titleType.titleDescription}</TableCell>
-                    <TableCell>{titleType.lastEditedBy || "-"}</TableCell>
+                    <TableCell>{titleType.lastEditedByName || "-"}</TableCell>
                     <TableCell>{titleType.lastEditedAt || "-"}</TableCell>
                     <TableCell>
                       <Box display="flex">

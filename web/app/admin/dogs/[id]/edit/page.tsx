@@ -25,36 +25,6 @@ function normalizeText(value: unknown): string {
     return "";
 }
 
-<<<<<<< HEAD
-type RawDogGetResponse =
-    {
-        ok: boolean;
-        data?:
-        {
-            cwaNumber?: string;
-            akcNumber?: string | null;
-            ckcNumber?: string | null;
-            currentGrade?: string | null;
-            foreignNumber?: string | null;
-            foreignType?: string | null;
-            callName?: string | null;
-            registeredName?: string | null;
-            birthdate?: string | null;
-            pedigreeLink?: string | null;
-            status?: string | null;
-            publicNotes?: string | null;
-            privateNotes?: string | null;
-            meetPoints?: string | null;
-            arxPoints?: string | null;
-            narxPoints?: string | null;
-            showPoints?: string | null;
-            dpcLegs?: string | null;
-            meetWins?: string | null;
-            meetAppearences?: string | null;
-            highCombinedWins?: string | null;
-        };
-        error?: string;
-=======
 /*
     Normalizes a date-like value into YYYY-MM-DD for form usage.
 */
@@ -82,7 +52,8 @@ type RawDogGetResponse = {
         birthdate?: string | null;
         pedigreeLink?: string | null;
         status?: string | null;
-        notes?: string | null;
+        publicNotes?: string | null;
+        privateNotes?: string | null;
         meetPoints?: string | null;
         arxPoints?: string | null;
         narxPoints?: string | null;
@@ -91,7 +62,6 @@ type RawDogGetResponse = {
         meetWins?: string | null;
         meetAppearences?: string | null;
         highCombinedWins?: string | null;
->>>>>>> 15a41f5cfc6b0eaa88a745d916938bc8270863af
     };
     error?: string;
 };

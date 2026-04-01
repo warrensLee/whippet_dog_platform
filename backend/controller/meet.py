@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from classes.meet import Meet
 from classes.change_log import ChangeLog
 from classes.user_role import UserRole
-from utils.auth_helpers import current_editor_id, current_editor_person_id, current_role, require_scope
+from utils.auth_helpers import current_editor_id, current_role, require_scope
 from database import fetch_all
 
 
@@ -36,7 +36,7 @@ def register_meet():
     data = request.get_json(silent=True) or {}
     meet = Meet.from_request_data(data)
 
-    meet.last_edited_by = current_editor_person_id()
+    meet.last_edited_by = current_editor_id()
     meet.last_edited_at = datetime.now(timezone.utc)
 
     validation_errors = meet.validate()
@@ -94,7 +94,7 @@ def edit_meet():
 
     meet = Meet.from_request_data(data)
     meet.meet_number = meet_number
-    meet.last_edited_by = current_editor_person_id()
+    meet.last_edited_by = current_editor_id()
     meet.last_edited_at = datetime.now(timezone.utc)
 
     validation_errors = meet.validate()

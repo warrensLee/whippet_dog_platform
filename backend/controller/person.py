@@ -317,6 +317,7 @@ def search_people():
 
     sql = """
         SELECT
+            p.ID,
             p.PersonID,
             p.FirstName,
             p.LastName,
@@ -331,9 +332,11 @@ def search_people():
             p.PrimaryPhone,
             p.SecondaryPhone,
             p.Notes,
-            p.LastEditedBy,
+            CONCAT(e.FirstName, ' ', e.LastName) AS LastEditedBy,
             p.LastEditedAt
         FROM Person p
+        LEFT JOIN Person e
+            ON p.LastEditedBy = e.ID
         WHERE 1=1
     """
     params = []

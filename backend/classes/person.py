@@ -245,11 +245,26 @@ class Person:
         """Retrieve all persons from the database."""
         rows = fetch_all(
             """
-            SELECT PersonID, FirstName, LastName, EmailAddress, AddressLineOne,
-                   AddressLineTwo, City, StateProvince, ZipCode, Country,
-                   PrimaryPhone, SecondaryPhone, SystemRole, Notes,
-                   LastEditedBy, LastEditedAt
-            FROM Person
+            SELECT 
+                p.PersonID, 
+                p.FirstName, 
+                p.LastName, 
+                p.EmailAddress, 
+                p.AddressLineOne,
+                p.AddressLineTwo, 
+                p.City, 
+                p.StateProvince, 
+                p.ZipCode, 
+                p.Country,
+                p.PrimaryPhone, 
+                p.SecondaryPhone, 
+                p.SystemRole, 
+                p.Notes,
+                CONCAT(e.FirstName, ' ', e.LastName) AS LastEditedBy,
+                p.LastEditedAt
+            FROM Person p
+            LEFT JOIN Person e 
+                ON p.LastEditedBy = e.ID
             """
         )
         return [Person.from_db_row(row) for row in rows]

@@ -328,13 +328,6 @@ export default function AdminUsersPage() {
               >
                 Search
               </Button>
-              <Button
-                variant="outlined"
-                onClick={loadPage}
-                sx={{ minWidth: 140 }}
-              >
-                Refresh
-              </Button>
             </Box>
 
             <TableContainer component={Paper}>

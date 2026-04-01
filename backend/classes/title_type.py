@@ -3,12 +3,13 @@ from mysql.connector import Error
 
 class TitleType:
 
-    def __init__(self, id, title, title_description, last_edited_by=None, last_edited_at=None):
+    def __init__(self, id, title, title_description, last_edited_by=None, last_edited_at=None, last_edited_by_name = None):
         self.id = id
         self.title = title
         self.title_description = title_description
         self.last_edited_by = last_edited_by
         self.last_edited_at = last_edited_at
+        self.last_edited_by_name = last_edited_by_name
 
     @classmethod
     def check_eligibility(cls):
@@ -37,7 +38,8 @@ class TitleType:
             title=row.get("Title"),
             title_description=row.get("TitleDescription"),
             last_edited_by=row.get("LastEditedBy"),
-            last_edited_at=row.get("LastEditedAt")
+            last_edited_at=row.get("LastEditedAt"),
+            last_edited_by_name=row.get("LastEditedByName")
         )
 
     @classmethod
@@ -134,8 +136,16 @@ class TitleType:
     def list_all_title_types(cls):
         rows = fetch_all(
             """
-            SELECT Id, Title, TitleDescription, LastEditedBy, LastEditedAt
-            FROM TitleType
+            SELECT 
+                tt.Id, 
+                tt.Title, 
+                tt.TitleDescription, 
+                tt.LastEditedBy, 
+                tt.LastEditedAt,
+                CONCAT(p.FirstName, ' ', p.LastName) AS LastEditedByName
+            FROM TitleType tt
+            LEFT JOIN Person p 
+                ON tt.LastEditedBy = p.ID
             """
         )
         return [cls.from_db_row(row) for row in rows]
@@ -152,5 +162,6 @@ class TitleType:
             "title": self.title,
             "titleDescription": self.title_description,
             "lastEditedBy": self.last_edited_by,
+            "lastEditedByName": self.last_edited_by_name,
             "lastEditedAt": self.last_edited_at.isoformat() if self.last_edited_at else None
         }
