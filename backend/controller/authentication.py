@@ -166,6 +166,9 @@ def login():
 
     if not person.check_password(password):
         return jsonify({"ok": False, "error": "Invalid credentials"}), 401
+    
+    if person.locked:
+        return jsonify({"ok": False, "error": "Account is locked"}), 403
 
     session["user"] = person.to_session_dict()
     return jsonify({"ok": True, "user": session["user"]}), 200

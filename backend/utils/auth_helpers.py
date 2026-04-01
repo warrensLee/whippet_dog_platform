@@ -1,9 +1,18 @@
 from flask import jsonify, session
 from classes.user_role import UserRole
+from classes.person import Person
 
 def current_user():
     """Return session user dict, or empty dict if not signed in."""
-    return session.get("user") or {}
+    user = session.get("user") or {}
+    person_id = user.get("ID")  
+    person = Person.find_by_id(person_id)
+
+    if person.locked:
+        session.clear()
+        return {}
+
+    return user
 
 
 def current_editor_id():
