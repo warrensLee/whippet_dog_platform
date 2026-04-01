@@ -96,6 +96,23 @@ class Person:
             (identifier,),
         )
         return cls.from_db_row(row)
+    
+    @classmethod
+    def find_by_id(cls, identifier):
+        """Find a person by person_id."""
+        row = fetch_one(
+            """
+            SELECT ID, PersonID, FirstName, LastName, EmailAddress, SystemRole, PasswordHash,
+                    AddressLineOne, AddressLineTwo, City, StateProvince, ZipCode, Country,
+                   PrimaryPhone, SecondaryPhone, Notes, LastEditedBy, LastEditedAt
+            FROM Person
+            WHERE ID = %s
+            LIMIT 1
+            """,
+            (identifier,),
+        )
+        return cls.from_db_row(row)
+    
 
     @classmethod
     def find_by_email(cls, identifier):

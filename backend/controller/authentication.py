@@ -237,7 +237,7 @@ def forgot_password():
         token = secrets.token_urlsafe(32)
         expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
 
-        PasswordResetToken.create(person.person_id, token, expires_at)
+        PasswordResetToken.create(person.id, token, expires_at)
         send_reset_email(person.email, token)
 
     return jsonify({
@@ -258,12 +258,12 @@ def reset_password():
     if not reset:
         return jsonify({"ok": False, "error": "Invalid or expired token"}), 400
 
-    person = Person.find_by_identifier(reset.person_id)
+    person = Person.find_by_id(reset.person_id)
     if not person:
         return jsonify({"ok": False, "error": "User not found"}), 404
 
     person.set_password(new_password)
-    person.last_edited_by = person.person_id
+    person.last_edited_by = person.id
     person.last_edited_at = datetime.now(timezone.utc)
     person.update()
     reset.mark_used() 
@@ -289,7 +289,7 @@ def change_password():
         return jsonify({"ok": False, "error": "Current Password is incorrect"}),200 
 
     person.set_password(new_password)
-    person.last_edited_by = person.person_id
+    person.last_edited_by = person.id
     person.last_edited_at = datetime.now(timezone.utc)
     person.update()
 
