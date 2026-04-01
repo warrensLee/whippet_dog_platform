@@ -9,7 +9,7 @@ from classes.dog_title import DogTitle
 from classes.change_log import ChangeLog
 from classes.user_role import UserRole
 from utils.auth_helpers import current_editor_id, current_role, require_scope
-from database import fetch_one
+from database import fetch_one, fetch_all
 
 race_result_bp = Blueprint("race_result", __name__, url_prefix="/api/race_result")
 
@@ -280,3 +280,67 @@ def list_all_race_results():
         return jsonify({"ok": True, "data": [rr.to_dict() for rr in race_results]}), 200
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+
+
+def _get_race_entries(meet_number: str, program: str, race_number: str):
+    rows = fetch_all(
+        """
+        SELECT
+            rr.CWANumber AS CWANumber,
+            rr.Placement AS Placement,
+            d.CallName AS CallName,
+            d.RegisteredName AS RegisteredName
+        FROM RaceResults rr
+        LEFT JOIN Dog d ON d.CWANumber = rr.CWANumber
+        WHERE rr.MeetNumber = %s
+          AND rr.Program = %s
+          AND rr.RaceNumber = %s
+        ORDER BY
+            CASE
+                WHEN rr.Placement IS NULL THEN 9999
+                ELSE rr.Placement
+            END,
+            d.RegisteredName,
+            d.CallName
+        """,
+        (meet_number, program, race_number),
+    ) or []
+
+    return rows
+
+
+@race_result_bp.get("/by_race/<meet_number>/<program>/<race_number>")
+def get_race_entries(meet_number, program, race_number):
+    try:
+        rows = _get_race_entries(meet_number, program, race_number)
+
+        if not rows:
+            return jsonify({"ok": False, "error": "Race does not exist or has no entries"}), 404
+
+        entries = []
+        for row in rows:
+            dog_name = row.get("CallName") or row.get("RegisteredName") or row.get("CWANumber")
+
+            entries.append({
+                "cwaNumber": row.get("CWANumber"),
+                "dogName": dog_name,
+                "registeredName": row.get("RegisteredName"),
+                "callName": row.get("CallName"),
+                "placement": row.get("Placement"),
+                "points": row.get("Points"),
+            })
+
+        return jsonify({
+            "ok": True,
+            "data": {
+                "meetNumber": meet_number,
+                "program": program,
+                "raceNumber": race_number,
+                "entries": entries,
+            }
+        }), 200
+
+    except Error as e:
+        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"ok": False, "error": f"Server error: {str(e)}"}), 500

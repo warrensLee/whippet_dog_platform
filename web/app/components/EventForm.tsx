@@ -1,16 +1,16 @@
-// EventForm.tsx
+// MeetForm.tsx
 "use client";
 
 import * as React from "react";
-import type { EventFormValues } from "@/app/admin/events/types";
+import type { MeetFormValues } from "@/app/admin/events/types";
 
 type Props =
     {
-        values: EventFormValues;
-        onChange: <K extends keyof EventFormValues>
+        values: MeetFormValues;
+        onChange: <K extends keyof MeetFormValues>
             (
                 key: K,
-                value: EventFormValues[K]
+                value: MeetFormValues[K]
             ) => void;
         onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
         saving: boolean;
@@ -27,12 +27,12 @@ type Props =
 type InputFieldProps =
     {
         label: string;
-        field: keyof EventFormValues;
+        field: keyof MeetFormValues;
         value: string;
-        onChange: <K extends keyof EventFormValues>
+        onChange: <K extends keyof MeetFormValues>
             (
                 key: K,
-                value: EventFormValues[K]
+                value: MeetFormValues[K]
             ) => void;
         placeholder?: string;
         type?: string;
@@ -43,12 +43,12 @@ type InputFieldProps =
 type TextAreaFieldProps =
     {
         label: string;
-        field: keyof EventFormValues;
+        field: keyof MeetFormValues;
         value: string;
-        onChange: <K extends keyof EventFormValues>
+        onChange: <K extends keyof MeetFormValues>
             (
                 key: K,
-                value: EventFormValues[K]
+                value: MeetFormValues[K]
             ) => void;
         placeholder?: string;
         rows?: number;
@@ -58,12 +58,12 @@ type TextAreaFieldProps =
 type SelectFieldProps =
     {
         label: string;
-        field: keyof EventFormValues;
+        field: keyof MeetFormValues;
         value: string;
-        onChange: <K extends keyof EventFormValues>
+        onChange: <K extends keyof MeetFormValues>
             (
                 key: K,
-                value: EventFormValues[K]
+                value: MeetFormValues[K]
             ) => void;
         options: string[];
         placeholder?: string;
@@ -73,7 +73,7 @@ type SelectFieldProps =
 /*
     Reusable single-line input field.
 
-    Used for most normal text/date inputs in the Event form.
+    Used for most normal text/date inputs in the Meet form.
 */
 function InputField
     (
@@ -209,7 +209,7 @@ function SelectField
     );
 }
 
-export default function EventForm
+export default function MeetForm
     (
         {
             values,
@@ -237,7 +237,7 @@ export default function EventForm
         Array<
             {
                 label: string;
-                field: keyof EventFormValues;
+                field: keyof MeetFormValues;
                 placeholder?: string;
                 type?: string;
             }

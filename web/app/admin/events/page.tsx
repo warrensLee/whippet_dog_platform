@@ -67,6 +67,9 @@ export default function AdminEventsPage() {
             try {
                 const usp = new URLSearchParams();
                 usp.set("q", q);
+                usp.set("page", String(page));
+                usp.set("limit", String(limit));
+                usp.set("sort", sort);
 
                 const res = await fetch(
                     `/api/meet/get?${usp.toString()}`,

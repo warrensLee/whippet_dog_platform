@@ -6,13 +6,13 @@ from classes.dog_title import DogTitle
 from classes.dog_owner import DogOwner
 from classes.change_log import ChangeLog
 from classes.user_role import UserRole
-from utils.auth_helpers import current_editor_id, current_role, require_scope
+from utils.auth_helpers import current_editor_id, current_editor_person_id, current_role, require_scope
 from classes.title_type import TitleType 
 
 dog_bp = Blueprint("dog", __name__, url_prefix="/api/dog")
 
 def _is_owner(cwa_number):
-    person_id = current_editor_id()
+    person_id = current_editor_person_id()
     if not person_id:
         return False
     return DogOwner.exists(cwa_number, person_id)
@@ -31,7 +31,7 @@ def register_dog():
     data = request.get_json(silent=True) or {}
     dog = Dog.from_request_data(data)
 
-    dog.last_edited_by = current_editor_id()
+    dog.last_edited_by = current_editor_person_id()
     dog.last_edited_at = datetime.now(timezone.utc)
 
     validation_errors = dog.validate()
@@ -47,14 +47,14 @@ def register_dog():
             changed_table="Dog",
             record_pk=dog.cwa_number,
             operation="INSERT",
-            changed_by=current_editor_id(),
+            changed_by=current_editor_person_id(),
             source="api/dog/register POST",
             before_obj=None,
             after_obj=dog.to_dict(),
         )
 
         #update titles based on dog attributes
-        DogTitle.sync_titles_for_dog(dog, current_editor_id(), datetime.now(timezone.utc))
+        DogTitle.sync_titles_for_dog(dog, current_editor_person_id(), datetime.now(timezone.utc))
 
         return jsonify({"ok": True}), 201
 
@@ -88,7 +88,7 @@ def edit_dog():
     before_snapshot = existing.to_dict()
 
     dog.cwa_number = dog.cwa_number
-    dog.last_edited_by = current_editor_id()
+    dog.last_edited_by = current_editor_person_id()
     dog.last_edited_at = datetime.now(timezone.utc)
 
     validation_errors = dog.validate()
@@ -105,14 +105,14 @@ def edit_dog():
             changed_table="Dog",
             record_pk=dog.cwa_number,
             operation="UPDATE",
-            changed_by=current_editor_id(),
+            changed_by=current_editor_person_id(),
             source="api/dog/edit POST",
             before_obj=before_snapshot,
             after_obj=after_snapshot,
         )
 
         #update titles based on dog attributes
-        DogTitle.sync_titles_for_dog(dog, current_editor_id(), datetime.now(timezone.utc))
+        DogTitle.sync_titles_for_dog(dog, current_editor_person_id(), datetime.now(timezone.utc))
 
         return jsonify({"ok": True}), 200
 
@@ -157,7 +157,7 @@ def delete_dog():
                 changed_table="DogOwner",
                 record_pk=f"{owner.cwa_id}:{owner.person_id}",
                 operation="DELETE",
-                changed_by=current_editor_id(),
+                changed_by=current_editor_person_id(),
                 source="api/dog/delete POST",
                 before_obj={"cwaId": owner.cwa_id, "personId": owner.person_id},
                 after_obj=None,
@@ -172,7 +172,7 @@ def delete_dog():
                 changed_table="DogTitles",
                 record_pk=f"{title['CWANumber']}:{title['Title']}",
                 operation="DELETE",
-                changed_by=current_editor_id(),
+                changed_by=current_editor_person_id(),
                 source="api/dog/delete POST",
                 before_obj=title,
                 after_obj=None,
@@ -187,7 +187,7 @@ def delete_dog():
             changed_table="Dog",
             record_pk=dog.cwa_number,
             operation="DELETE",
-            changed_by=current_editor_id(),
+            changed_by=current_editor_person_id(),
             source="api/dog/delete POST",
             before_obj=before_snapshot,
             after_obj=None,
@@ -232,7 +232,7 @@ def list_all_dogs():
         # if role.view_dog_scope == UserRole.ALL:
         dogs = Dog.list_all_dogs()
         # else:
-        #     pid = current_editor_id()
+        #     pid = current_editor_person_id()()
         #     if not pid:
         #         return  jsonify({"ok": False, "error": "Not signed in"}), 401
         #     dogs = Dog.list_dogs_for_owner(pid)
@@ -387,7 +387,7 @@ def list_my_dogs():
     #     return deny
     
     try:
-        dogs = Dog.list_dogs_for_owner(current_editor_id())
+        dogs = Dog.list_dogs_for_owner(current_editor_person_id()())
         return jsonify({"ok": True, "data": [d.to_dict() for d in dogs]}), 200
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500

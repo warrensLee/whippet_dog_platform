@@ -4,8 +4,8 @@ from datetime import datetime, timezone
 from classes.meet import Meet
 from classes.change_log import ChangeLog
 from classes.user_role import UserRole
-from utils.auth_helpers import current_editor_id, current_role, require_scope
-
+from utils.auth_helpers import current_editor_id, current_editor_person_id, current_role, require_scope
+from database import fetch_all
 
 
 meet_bp = Blueprint("meet", __name__, url_prefix="/api/meet")
@@ -17,7 +17,8 @@ def _is_meet_owner(meet):
         return False
 
     judge = getattr(meet, "judge", None) or getattr(meet, "Judge", None)
-    race_secretary = (getattr(meet, "race_secretary", None) or getattr(meet, "raceSecretary", None) or getattr(meet, "RaceSecretary", None))
+    race_secretary = (getattr(meet, "race_secretary", None) or getattr(
+        meet, "raceSecretary", None) or getattr(meet, "RaceSecretary", None))
 
     return (judge) == (person_id) or (race_secretary) == (person_id)
 
@@ -35,7 +36,7 @@ def register_meet():
     data = request.get_json(silent=True) or {}
     meet = Meet.from_request_data(data)
 
-    meet.last_edited_by = current_editor_id()
+    meet.last_edited_by = current_editor_person_id()
     meet.last_edited_at = datetime.now(timezone.utc)
 
     validation_errors = meet.validate()
@@ -93,7 +94,7 @@ def edit_meet():
 
     meet = Meet.from_request_data(data)
     meet.meet_number = meet_number
-    meet.last_edited_by = current_editor_id()
+    meet.last_edited_by = current_editor_person_id()
     meet.last_edited_at = datetime.now(timezone.utc)
 
     validation_errors = meet.validate()
@@ -199,7 +200,7 @@ def list_all_meets():
     #     return deny
 
     try:
-        meets = Meet.list_all_meets()  
+        meets = Meet.list_all_meets()
         meets_data = []
 
         for m in meets:
@@ -211,3 +212,26 @@ def list_all_meets():
 
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+
+
+@meet_bp.get("/get/<meet_number>/races")
+def get_meet_races(meet_number):
+    rows = fetch_all(
+        """
+        SELECT
+            MeetNumber AS meetNumber,
+            RaceNumber AS raceNumber,
+            Program AS program,
+            COUNT(*) AS entryCount
+        FROM RaceResults
+        WHERE MeetNumber = %s
+        GROUP BY MeetNumber, Program, RaceNumber
+        ORDER BY CAST(Program AS UNSIGNED), CAST(RaceNumber AS UNSIGNED)
+        """,
+        [meet_number],
+    )
+
+    return jsonify({
+        "ok": True,
+        "data": rows
+    }), 200
