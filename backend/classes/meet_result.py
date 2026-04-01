@@ -140,7 +140,7 @@ class MeetResult:
         
         if self.last_edited_by:
             person_exists = fetch_one(
-                "SELECT PersonID FROM Person WHERE PersonID = %s LIMIT 1",
+                "SELECT PersonID FROM Person WHERE ID = %s LIMIT 1",
                 (self.last_edited_by,)
             )
             if not person_exists:

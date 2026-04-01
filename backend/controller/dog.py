@@ -201,7 +201,6 @@ def delete_dog():
 
 @dog_bp.get("/get/<cwa_number>")
 def get_dog(cwa_number):
-    # role = current_role()
     # if not role:
     #     return  jsonify({"ok": False, "error": "Not signed in"}), 401
 
@@ -216,7 +215,10 @@ def get_dog(cwa_number):
     # if role.view_dog_scope == UserRole.SELF and not _is_owner(cwa_number):
     #     return jsonify({"ok": False, "error": "Not allowed to view this dog"}), 403
 
-    return jsonify({"ok": True, "data": dog.to_dict()}), 200
+    role = current_role()
+    can_view_private = bool(role and role.edit_dog_scope == UserRole.ALL)
+
+    return jsonify({"ok": True, "data": dog.to_dict(include_private=can_view_private)}), 200
 
 @dog_bp.get("/get")
 def list_all_dogs():

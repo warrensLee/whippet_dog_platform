@@ -136,7 +136,7 @@ class DogOwner:
                 do.LastEditedBy,
                 do.LastEditedAt
             FROM DogOwner do
-            LEFT JOIN Person p ON p.PersonID = do.PersonID
+            LEFT JOIN Person p ON p.ID = do.PersonID
             ORDER BY do.CWAID, p.LastName, p.FirstName, do.PersonID
             """
         )
@@ -180,7 +180,7 @@ def list_owner_people_for_dog(cwa_id):
             do.LastEditedBy,
             do.LastEditedAt
         FROM DogOwner do
-        LEFT JOIN Person p ON p.PersonID = do.PersonID
+        LEFT JOIN Person p ON p.ID = do.PersonID
         WHERE do.CWAID = %s
         ORDER BY p.LastName, p.FirstName, do.PersonID
         """,

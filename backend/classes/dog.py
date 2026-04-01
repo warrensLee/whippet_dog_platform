@@ -295,7 +295,7 @@ class Dog:
                 ) AS titles
                 FROM Dog d
             LEFT JOIN DogOwner do ON do.CWAID = d.CWANumber
-            LEFT JOIN Person p ON p.PersonID = do.PersonID
+            LEFT JOIN Person p ON p.ID = do.PersonID
             LEFT JOIN DogTitles dt ON dt.CWANumber = d.CWANumber
             WHERE (
                 d.CWANumber LIKE %s
@@ -749,7 +749,7 @@ class Dog:
             "CurrentGrade": self.current_grade
         }
 
-    def to_dict(self):
+    def to_dict(self, include_private=True):
         """Convert to dictionary for JSON responses."""
         data = {
             "cwaNumber": self.cwa_number,
@@ -771,11 +771,14 @@ class Dog:
             "meetAppearences": self.meet_appearences,
             "highCombinedWins": self.high_combined_wins,
             "publicNotes": self.public_notes,
-            "privateNotes": self.private_notes,
             "dna": self.dna,
             "sireDna": self.sire_dna,
             "damDna": self.dam_dna,
             "lastEditedBy": self.last_edited_by,
             "lastEditedAt": self.last_edited_at.isoformat() if self.last_edited_at else None
         }
+        
+        if include_private:
+            data["privateNotes"] = self.private_notes
+        
         return data
