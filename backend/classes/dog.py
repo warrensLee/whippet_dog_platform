@@ -15,7 +15,8 @@ class Dog:
 
     def __init__(self, cwa_number, registered_number, foreign_type, call_name,
                  registered_name, birthdate, pedigree_link, status, average, current_grade, meet_points, arx_points,
-                 narx_points, show_points, dpc_legs, meet_wins, meet_appearences, high_combined_wins, public_notes, private_notes, last_edited_by=None, last_edited_at=None):
+                 narx_points, show_points, dpc_legs, meet_wins, meet_appearences, high_combined_wins, public_notes, private_notes, 
+                 dna, sire_dna, dam_dna, last_edited_by=None, last_edited_at=None):
         self.cwa_number = cwa_number
         self.registered_number = registered_number
         self.foreign_type = foreign_type
@@ -36,6 +37,9 @@ class Dog:
         self.high_combined_wins = high_combined_wins
         self.public_notes = public_notes
         self.private_notes = private_notes
+        self.dna = dna
+        self.sire_dna = sire_dna
+        self.dam_dna = dam_dna
         self.last_edited_by = last_edited_by
         self.last_edited_at = last_edited_at
 
@@ -212,6 +216,9 @@ class Dog:
             high_combined_wins=(data.get("highCombinedWins") or "").strip() or "0",
             public_notes=(data.get("publicNotes") or "").strip() or None,
             private_notes=(data.get("privateNotes") or "").strip() or None,
+            dna=(data.get("dna") or "").strip() or None,
+            sire_dna=(data.get("sireDna") or "").strip() or None,
+            dam_dna=(data.get("damDna") or "").strip() or None,
             last_edited_by=data.get("lastEditedBy"),
             last_edited_at=data.get("lastEditedAt")
         )
@@ -242,6 +249,9 @@ class Dog:
             high_combined_wins=row.get("HighCombinedWins"),
             public_notes=row.get("PublicNotes"),
             private_notes=row.get("PrivateNotes"),
+            dna=row.get("DNA"),
+            sire_dna=row.get("SireDNA"),
+            dam_dna=row.get("DamDNA"),
             last_edited_by=row.get("LastEditedBy"),
             last_edited_at=row.get("LastEditedAt")
         )
@@ -256,7 +266,7 @@ class Dog:
                     Status, Average, CurrentGrade,
                     MeetPoints, ARXPoints, NARXPoints, ShowPoints,
                     DPCLegs, MeetWins, MeetAppearences, HighCombinedWins, PublicNotes, PrivateNotes,
-                    LastEditedBy, LastEditedAt
+                    DNA, SireDNA, DamDNA, LastEditedBy, LastEditedAt
             FROM Dog
             WHERE CWANumber = %s
             LIMIT 1
@@ -512,11 +522,11 @@ class Dog:
                     Status, Average, CurrentGrade,
                     MeetPoints, ARXPoints, NARXPoints, ShowPoints,
                     DPCLegs, MeetWins, MeetAppearences, HighCombinedWins, PublicNotes, PrivateNotes,
-                    LastEditedBy, LastEditedAt
+                    DNA, SireDNA, DamDNA, LastEditedBy, LastEditedAt
                 )
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,
                         %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                        %s, %s, %s, %s)
+                        %s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
                     self.cwa_number,
@@ -539,6 +549,9 @@ class Dog:
                     self.high_combined_wins,
                     self.public_notes or None,
                     self.private_notes or None,
+                    self.dna,
+                    self.sire_dna,
+                    self.dam_dna,
                     self.last_edited_by,
                     self.last_edited_at,
                 ),
@@ -572,6 +585,9 @@ class Dog:
                     HighCombinedWins = %s,
                     PublicNotes = %s,
                     PrivateNotes = %s,
+                    DNA = %s,
+                    SireDNA = %s,
+                    DamDNA = %s,
                     LastEditedBy = %s,
                     LastEditedAt = %s
                 WHERE CWANumber = %s
@@ -596,6 +612,9 @@ class Dog:
                     self.high_combined_wins,
                     self.public_notes or None,
                     self.private_notes or None,
+                    self.dna,
+                    self.sire_dna,
+                    self.dam_dna,
                     self.last_edited_by,
                     self.last_edited_at,
                     self.cwa_number
@@ -753,6 +772,9 @@ class Dog:
             "highCombinedWins": self.high_combined_wins,
             "publicNotes": self.public_notes,
             "privateNotes": self.private_notes,
+            "dna": self.dna,
+            "sireDna": self.sire_dna,
+            "damDna": self.dam_dna,
             "lastEditedBy": self.last_edited_by,
             "lastEditedAt": self.last_edited_at.isoformat() if self.last_edited_at else None
         }

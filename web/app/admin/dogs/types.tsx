@@ -37,6 +37,9 @@ export type DogFormValues =
   status: string;
   publicNotes: string;
   privateNotes: string;
+  dna: string;
+  sireDna: string;
+  damDna: string;
 
   meetPoints: string;
   arxPoints: string;
@@ -81,6 +84,9 @@ export const emptyDogFormValues: DogFormValues =
   status: "Active",
   publicNotes: "",
   privateNotes: "",
+  dna: "",
+  sireDna: "",
+  damDna: "",
 
   meetPoints: "0",
   arxPoints: "0",

@@ -19,10 +19,8 @@ import AuthGuard from "@/lib/auth/authGuard";
 function buildCreatePayload(form: DogFormValues): DogFormValues {
     return {
         cwaNumber: form.cwaNumber.trim(),
-        akcNumber: form.akcNumber.trim(),
-        ckcNumber: form.ckcNumber.trim(),
         currentGrade: form.currentGrade.trim(),
-        foreignNumber: form.foreignNumber.trim(),
+        registeredNumber: form.registeredNumber.trim(),
         foreignType: form.foreignType.trim(),
         callName: form.callName.trim(),
         registeredName: form.registeredName.trim(),
@@ -31,6 +29,9 @@ function buildCreatePayload(form: DogFormValues): DogFormValues {
         status: form.status.trim(),
         publicNotes: form.publicNotes.trim(),
         privateNotes: form.privateNotes.trim(),
+        dna: form.dna.trim(),
+        sireDna: form.sireDna.trim(),
+        damDna: form.damDna.trim(),
         meetPoints: form.meetPoints.trim(),
         arxPoints: form.arxPoints.trim(),
         narxPoints: form.narxPoints.trim(),

@@ -52,6 +52,9 @@ type RawDogGetResponse = {
         status?: string | null;
         publicNotes?: string | null;
         privateNotes?: string | null;
+        dna?: string | null;
+        sireDna?: string | null;
+        damDna?: string | null;
         meetPoints?: string | null;
         arxPoints?: string | null;
         narxPoints?: string | null;
@@ -81,6 +84,9 @@ function buildFormFromDog(data: NonNullable<RawDogGetResponse["data"]>): DogForm
         status: normalizeText(data.status) || "Active",
         publicNotes: normalizeText(data.publicNotes),
         privateNotes: normalizeText(data.privateNotes),
+        dna: normalizeText(data.dna),
+        sireDna: normalizeText(data.sireDna),
+        damDna: normalizeText(data.damDna),
         meetPoints: normalizeText(data.meetPoints),
         arxPoints: normalizeText(data.arxPoints),
         narxPoints: normalizeText(data.narxPoints),
@@ -108,6 +114,9 @@ function buildEditPayload(form: DogFormValues): DogFormValues {
         status: form.status.trim(),
         publicNotes: form.publicNotes.trim(),
         privateNotes: form.privateNotes.trim(),
+        dna: form.dna.trim(),
+        sireDna: form.sireDna.trim(),
+        damDna: form.damDna.trim(),
         meetPoints: form.meetPoints.trim(),
         arxPoints: form.arxPoints.trim(),
         narxPoints: form.narxPoints.trim(),

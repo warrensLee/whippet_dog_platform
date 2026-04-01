@@ -286,6 +286,18 @@ export default function DogForm
                 field: "registeredNumber",
             },
             {
+                label: "DNA",
+                field: "dna",
+            },
+            {
+                label: "Sire DNA",
+                field: "sireDna",
+            },
+            {
+                label: "Dam DNA",
+                field: "damDna",
+            },
+            {
                 label: "Meet Points",
                 field: "meetPoints",
                 type: "number",
