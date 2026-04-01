@@ -42,10 +42,8 @@ type RawDogGetResponse = {
     ok: boolean;
     data?: {
         cwaNumber?: string;
-        akcNumber?: string | null;
-        ckcNumber?: string | null;
         currentGrade?: string | null;
-        foreignNumber?: string | null;
+        registeredNumber?: string | null;
         foreignType?: string | null;
         callName?: string | null;
         registeredName?: string | null;
@@ -73,10 +71,8 @@ type RawDogGetResponse = {
 function buildFormFromDog(data: NonNullable<RawDogGetResponse["data"]>): DogFormValues {
     return {
         cwaNumber: normalizeText(data.cwaNumber),
-        akcNumber: normalizeText(data.akcNumber),
-        ckcNumber: normalizeText(data.ckcNumber),
         currentGrade: normalizeText(data.currentGrade),
-        foreignNumber: normalizeText(data.foreignNumber),
+        registeredNumber: normalizeText(data.registeredNumber),
         foreignType: normalizeText(data.foreignType),
         callName: normalizeText(data.callName),
         registeredName: normalizeText(data.registeredName),
@@ -102,10 +98,8 @@ function buildFormFromDog(data: NonNullable<RawDogGetResponse["data"]>): DogForm
 function buildEditPayload(form: DogFormValues): DogFormValues {
     return {
         cwaNumber: form.cwaNumber.trim(),
-        akcNumber: form.akcNumber.trim(),
-        ckcNumber: form.ckcNumber.trim(),
         currentGrade: form.currentGrade.trim(),
-        foreignNumber: form.foreignNumber.trim(),
+        registeredNumber: form.registeredNumber.trim(),
         foreignType: form.foreignType.trim(),
         callName: form.callName.trim(),
         registeredName: form.registeredName.trim(),

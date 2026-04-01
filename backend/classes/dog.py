@@ -13,13 +13,11 @@ class Dog:
     VALID_STATUSES = {"Active", "Inactive"}
     VALID_GRADES = {"FTE", "D", "C", "B", "A"}
 
-    def __init__(self, cwa_number, akc_number, ckc_number, foreign_number, foreign_type, call_name,
+    def __init__(self, cwa_number, registered_number, foreign_type, call_name,
                  registered_name, birthdate, pedigree_link, status, average, current_grade, meet_points, arx_points,
                  narx_points, show_points, dpc_legs, meet_wins, meet_appearences, high_combined_wins, public_notes, private_notes, last_edited_by=None, last_edited_at=None):
         self.cwa_number = cwa_number
-        self.akc_number = akc_number
-        self.ckc_number = ckc_number
-        self.foreign_number = foreign_number
+        self.registered_number = registered_number
         self.foreign_type = foreign_type
         self.call_name = call_name
         self.registered_name = registered_name
@@ -141,9 +139,7 @@ class Dog:
     
     def check_dpc_title(self):
         '''Check if dog is eligible for Dual Purpose Championship (DPC) titles.'''
-        has_akc = bool((self.akc_number or "").strip())
-        has_ckc = bool((self.ckc_number or "").strip())
-        has_registry = has_akc or has_ckc
+        has_registry = bool((self.registered_number or "").strip())
 
         if self.check_trp_title() == "TRP" and (has_registry or self.dpc_legs >= 5):
             if self.check_arx_title() == "ARX":
@@ -197,9 +193,7 @@ class Dog:
         """Create a Dog instance from request JSON data."""
         return cls(
             cwa_number=(data.get("cwaNumber") or "").strip(),
-            akc_number=(data.get("akcNumber") or "").strip() or None,
-            ckc_number=(data.get("ckcNumber") or "").strip() or None,
-            foreign_number=(data.get("foreignNumber") or "").strip() or None,
+            registered_number=(data.get("registeredNumber") or "").strip() or None,
             foreign_type=(data.get("foreignType") or "").strip() or None,
             call_name=(data.get("callName") or "").strip(),
             registered_name=(data.get("registeredName") or "").strip(),
@@ -229,9 +223,7 @@ class Dog:
             return None
         return cls(
             cwa_number=row.get("CWANumber"),
-            akc_number=row.get("AKCNumber"),
-            ckc_number=row.get("CKCNumber"),
-            foreign_number=row.get("ForeignNumber"),
+            registered_number=row.get("RegisteredNumber"),
             foreign_type=row.get("ForeignType"),
             call_name=row.get("CallName"),
             registered_name=row.get("RegisteredName"),
@@ -259,7 +251,7 @@ class Dog:
         """Find a dog by cwa_number."""
         row = fetch_one(
             """
-            SELECT CWANumber, AKCNumber, CKCNumber, ForeignNumber, ForeignType,
+            SELECT CWANumber, RegisteredNumber, ForeignType,
                     CallName, RegisteredName, Birthdate, PedigreeLink,
                     Status, Average, CurrentGrade,
                     MeetPoints, ARXPoints, NARXPoints, ShowPoints,
@@ -298,7 +290,7 @@ class Dog:
             WHERE (
                 d.CWANumber LIKE %s
                 OR d.RegisteredName LIKE %s
-                OR d.AKCNumber LIKE %s
+                OR d.RegisteredNumber LIKE %s
                 OR d.CallName LIKE %s
                 OR do.PersonID LIKE %s
                 OR CONCAT(p.FirstName, ' ', p.LastName) LIKE %s
@@ -482,8 +474,7 @@ class Dog:
         str_field(errors, self.cwa_number, "CWA Number", max_length=10, required=True)
         str_field(errors, self.registered_name, "Registered Name", max_length=100, required=True)
         str_field(errors, self.call_name, "Call Name", max_length=50)
-        str_field(errors, self.akc_number, "AKC Number", max_length=10)
-        str_field(errors, self.ckc_number, "CKC Number", max_length=10)
+        str_field(errors, self.registered_number, "Registered Number", max_length=50)
         
         enum_field(errors, self.status, "Status", self.VALID_STATUSES, required=True)
         enum_field(errors, self.current_grade, "Current Grade", self.VALID_GRADES, required=True)
@@ -516,22 +507,20 @@ class Dog:
             execute(
                 """
                 INSERT INTO Dog (
-                    CWANumber, AKCNumber, CKCNumber, ForeignNumber, ForeignType,
+                    CWANumber,RegisteredNumber, ForeignType,
                     CallName, RegisteredName, Birthdate, PedigreeLink,
                     Status, Average, CurrentGrade,
                     MeetPoints, ARXPoints, NARXPoints, ShowPoints,
                     DPCLegs, MeetWins, MeetAppearences, HighCombinedWins, PublicNotes, PrivateNotes,
                     LastEditedBy, LastEditedAt
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s,
                         %s, %s, %s, %s)
                 """,
                 (
                     self.cwa_number,
-                    self.akc_number,
-                    self.ckc_number,
-                    self.foreign_number,
+                    self.registered_number,
                     self.foreign_type,
                     self.call_name,
                     self.registered_name,
@@ -564,9 +553,7 @@ class Dog:
             execute(
                 """
                 UPDATE Dog
-                SET AKCNumber = %s,
-                    CKCNumber = %s,
-                    ForeignNumber = %s,
+                SET RegisteredNumber = %s,
                     ForeignType = %s,
                     CallName = %s,
                     RegisteredName = %s,
@@ -590,9 +577,7 @@ class Dog:
                 WHERE CWANumber = %s
                 """,
                 (
-                    self.akc_number,
-                    self.ckc_number,
-                    self.foreign_number,
+                    self.registered_number,
                     self.foreign_type,
                     self.call_name,
                     self.registered_name,
@@ -749,9 +734,7 @@ class Dog:
         """Convert to dictionary for JSON responses."""
         data = {
             "cwaNumber": self.cwa_number,
-            "akcNumber": self.akc_number,
-            "ckcNumber": self.ckc_number,
-            "foreignNumber": self.foreign_number,
+            "registeredNumber": self.registered_number,
             "foreignType": self.foreign_type,
             "callName": self.call_name,
             "registeredName": self.registered_name,

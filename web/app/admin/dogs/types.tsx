@@ -27,10 +27,8 @@ export type DogSearchResult =
 export type DogFormValues = 
 {
   cwaNumber: string;
-  akcNumber: string;
-  ckcNumber: string;
   currentGrade: string;
-  foreignNumber: string;
+  registeredNumber: string;
   foreignType: string;
   callName: string;
   registeredName: string;
@@ -54,7 +52,7 @@ export type DogListItem =
 {
   id: string;
   cwaNumber: string;
-  akcNumber: string;
+  registeredNumber: string;
   registeredName: string;
   callName: string;
   birthYear: string;
@@ -73,10 +71,8 @@ export type DogSearchResponse =
 export const emptyDogFormValues: DogFormValues = 
 {
   cwaNumber: "",
-  akcNumber: "",
-  ckcNumber: "",
   currentGrade: "",
-  foreignNumber: "",
+  registeredNumber: "",
   foreignType: "",
   callName: "",
   registeredName: "",

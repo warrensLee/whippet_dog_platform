@@ -282,16 +282,8 @@ export default function DogForm
                 type: "date",
             },
             {
-                label: "AKC Number",
-                field: "akcNumber",
-            },
-            {
-                label: "CKC Number",
-                field: "ckcNumber",
-            },
-            {
-                label: "Foreign Number",
-                field: "foreignNumber",
+                label: "Registered Number",
+                field: "registeredNumber",
             },
             {
                 label: "Meet Points",

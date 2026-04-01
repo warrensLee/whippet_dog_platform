@@ -7,9 +7,7 @@ USE cwa_db;
 CREATE TABLE `Dog` (
     `ID` INT PRIMARY KEY AUTO_INCREMENT,
     `CWANumber` VARCHAR(10) NOT NULL UNIQUE,
-    `AKCNumber` VARCHAR(10),
-    `CKCNumber` VARCHAR(10),
-    `ForeignNumber` VARCHAR(50),
+    `RegisteredNumber` VARCHAR(50),
     `ForeignType` VARCHAR(50),
     `CallName` VARCHAR(50),
     `RegisteredName` VARCHAR(100) NOT NULL,
