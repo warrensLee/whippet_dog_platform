@@ -38,7 +38,7 @@ services:
     volumes:
       - ./backend:/app
       - ./mysql/migrations:/app/mysql/migrations:ro
-    command: /bin/bash -c "python -m venv venv && source venv/bin/activate && pip install -r requirements.txt &&  sleep 30 && venv/bin/python3 test/seed_user.py; gunicorn -b 0.0.0.0:8000 --reload main:app"
+    command: /bin/bash -c "python -m venv venv && source venv/bin/activate && pip install -r requirements.txt &&  sleep 30 && venv/bin/python3 test/seed_user.py; gunicorn -b 0.0.0.0:8000 --reload --timeout 500 main:app"
     depends_on: [db]
     env_file: ".env.backend"
 
