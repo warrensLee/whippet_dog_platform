@@ -15,7 +15,6 @@ from controller.stats import stats_bp
 from controller.title_type import title_type_bp
 from controller.user_role import user_role_bp
 
-
 api_bp = Blueprint("api", __name__, url_prefix="/api")
 
 @api_bp.get("/tables")

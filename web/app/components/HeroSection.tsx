@@ -28,7 +28,7 @@ type HeroSectionProps =
 export default function HeroSection({ title, subtitle, children, topContent }: HeroSectionProps) 
 {
     return (
-    <section className="relative pt-16 pb-32 bg-gradient-to-b from-[#1F4D2E] to-[#18452A] overflow-hidden">
+    <section className="relative pt-24 pb-32 bg-gradient-to-b from-[#1F4D2E] to-[#18452A] overflow-hidden">
       {/* The main container for the hero section, with a background gradient and some decorative elements */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -top-36 left-1/2 h-[520px] w-[920px] -translate-x-1/2 rounded-full bg-white/10 blur-3xl" />
@@ -41,7 +41,7 @@ export default function HeroSection({ title, subtitle, children, topContent }: H
       <div className="relative z-10 max-w-5xl mx-auto px-6">
         <div className="flex flex-col items-center text-center">
           {topContent && (
-            <div className="mb-6">
+            <div className="mb-2">
               {topContent}
             </div>
           )}
@@ -50,7 +50,7 @@ export default function HeroSection({ title, subtitle, children, topContent }: H
           </h1>
 
           {subtitle && (
-            <p className="mt-3 max-w-2xl text-white/70">
+            <p className="mt-4 text-3xl text-white/70">
               {subtitle}
             </p>
           )}

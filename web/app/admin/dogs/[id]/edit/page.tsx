@@ -1,4 +1,3 @@
-// [id]/edit/page.tsx
 "use client";
 
 import * as React from "react";
@@ -12,21 +11,21 @@ import HeroSection from "@/app/components/HeroSection";
 /*
     Safely converts incoming unknown values to strings.
 
-    This helps normalize API data before putting it into form state.
-    If the backend gives us null/undefined, we fall back to an empty string.
+    This keeps API data predictable before it enters form state.
 */
-function normalizeText(x: unknown): string {
-    if (typeof x === "string") {
-        return x;
+function normalizeText(value: unknown): string {
+    if (typeof value === "string") {
+        return value;
     }
 
-    if (typeof x === "number") {
-        return String(x);
+    if (typeof value === "number") {
+        return String(value);
     }
 
     return "";
 }
 
+<<<<<<< HEAD
 type RawDogGetResponse =
     {
         ok: boolean;
@@ -55,7 +54,47 @@ type RawDogGetResponse =
             highCombinedWins?: string | null;
         };
         error?: string;
+=======
+/*
+    Normalizes a date-like value into YYYY-MM-DD for form usage.
+*/
+function normalizeDateInput(value: unknown): string {
+    const text = normalizeText(value).trim();
+
+    if (!text) {
+        return "";
+    }
+
+    return text.slice(0, 10);
+}
+
+type RawDogGetResponse = {
+    ok: boolean;
+    data?: {
+        cwaNumber?: string;
+        akcNumber?: string | null;
+        ckcNumber?: string | null;
+        currentGrade?: string | null;
+        foreignNumber?: string | null;
+        foreignType?: string | null;
+        callName?: string | null;
+        registeredName?: string | null;
+        birthdate?: string | null;
+        pedigreeLink?: string | null;
+        status?: string | null;
+        notes?: string | null;
+        meetPoints?: string | null;
+        arxPoints?: string | null;
+        narxPoints?: string | null;
+        showPoints?: string | null;
+        dpcLegs?: string | null;
+        meetWins?: string | null;
+        meetAppearences?: string | null;
+        highCombinedWins?: string | null;
+>>>>>>> 15a41f5cfc6b0eaa88a745d916938bc8270863af
     };
+    error?: string;
+};
 
 /*
     Converts backend dog data into the exact DogFormValues shape
@@ -71,7 +110,7 @@ function buildFormFromDog(data: NonNullable<RawDogGetResponse["data"]>): DogForm
         foreignType: normalizeText(data.foreignType),
         callName: normalizeText(data.callName),
         registeredName: normalizeText(data.registeredName),
-        birthdate: normalizeText(data.birthdate),
+        birthdate: normalizeDateInput(data.birthdate),
         pedigreeLink: normalizeText(data.pedigreeLink),
         status: normalizeText(data.status) || "Active",
         publicNotes: normalizeText(data.publicNotes),
@@ -89,9 +128,6 @@ function buildFormFromDog(data: NonNullable<RawDogGetResponse["data"]>): DogForm
 
 /*
     Cleans form state before sending it to the backend.
-
-    This keeps trimming logic in one place instead of stuffing it
-    directly into the submit handler like a junk drawer.
 */
 function buildEditPayload(form: DogFormValues): DogFormValues {
     return {
@@ -103,7 +139,7 @@ function buildEditPayload(form: DogFormValues): DogFormValues {
         foreignType: form.foreignType.trim(),
         callName: form.callName.trim(),
         registeredName: form.registeredName.trim(),
-        birthdate: normalizeText(form.birthdate).slice(0, 10),
+        birthdate: normalizeDateInput(form.birthdate),
         pedigreeLink: form.pedigreeLink.trim(),
         status: form.status.trim(),
         publicNotes: form.publicNotes.trim(),
@@ -119,11 +155,17 @@ function buildEditPayload(form: DogFormValues): DogFormValues {
     };
 }
 
+function buildPublicDogHref(cwaNumber: string, fallbackId: string): string {
+    const dogId = (cwaNumber || fallbackId).trim();
+
+    return `/dog/${encodeURIComponent(dogId)}`;
+}
+
 export default function EditDogPage() {
     const params = useParams();
     const router = useRouter();
 
-    const id = String(params?.id ?? "");
+    const id = String(params?.id ?? "").trim();
 
     /*
         Auth/loading state for protecting the page.
@@ -139,143 +181,131 @@ export default function EditDogPage() {
     const [error, setError] = React.useState("");
     const [success, setSuccess] = React.useState("");
     const [form, setForm] = React.useState<DogFormValues>(emptyDogFormValues);
+    const [initialForm, setInitialForm] = React.useState<DogFormValues>(emptyDogFormValues);
 
     /*
         Checks whether the current user is signed in and allowed
         to manage dog records.
     */
-    React.useEffect(
-        () => {
-            let cancelled = false;
+    React.useEffect(() => {
+        let cancelled = false;
 
-            async function checkAccess() {
-                try {
-                    const res = await fetch(
-                        "/api/auth/me",
-                        {
-                            cache: "no-store",
-                            credentials: "include",
-                        }
-                    );
+        async function checkAccess() {
+            try {
+                const res = await fetch("/api/auth/me", {
+                    cache: "no-store",
+                    credentials: "include",
+                });
 
-                    const json = await res.json().catch(
-                        () => {
-                            return null;
-                        }
-                    );
+                const json = await res.json().catch(() => null);
 
-                    if (!res.ok || !json?.signedIn || !json?.canManageDogs) {
-                        router.replace("/login");
-                        return;
-                    }
-
-                    if (!cancelled) {
-                        setAuthorized(true);
-                    }
-                }
-                catch {
+                if (!res.ok || !json?.signedIn || !json?.canManageDogs) {
                     router.replace("/login");
+                    return;
                 }
-                finally {
-                    if (!cancelled) {
-                        setAuthLoading(false);
-                    }
+
+                if (!cancelled) {
+                    setAuthorized(true);
+                }
+            } catch {
+                router.replace("/login");
+            } finally {
+                if (!cancelled) {
+                    setAuthLoading(false);
                 }
             }
+        }
 
-            checkAccess();
+        checkAccess();
 
-            return () => {
-                cancelled = true;
-            };
-        },
-        [router]
-    );
+        return () => {
+            cancelled = true;
+        };
+    }, [router]);
 
     /*
         After authorization succeeds, load the dog record that matches
         the route id and populate the edit form.
     */
-    React.useEffect(
-        () => {
-            if (!authorized) {
-                return;
-            }
+    React.useEffect(() => {
+        if (!authorized) {
+            return;
+        }
 
-            let cancelled = false;
+        if (!id) {
+            setError("Invalid dog ID.");
+            setLoading(false);
+            return;
+        }
 
-            async function loadDog() {
-                setLoading(true);
-                setError("");
-                setSuccess("");
+        let cancelled = false;
 
-                try {
-                    const res = await fetch(
-                        `/api/dog/get/${encodeURIComponent(id)}`,
-                        {
-                            method: "GET",
-                            cache: "no-store",
-                            credentials: "include",
-                        }
+        async function loadDog() {
+            setLoading(true);
+            setError("");
+            setSuccess("");
+
+            try {
+                const res = await fetch(`/api/dog/get/${encodeURIComponent(id)}`, {
+                    method: "GET",
+                    cache: "no-store",
+                    credentials: "include",
+                });
+
+                const json = (await res.json().catch(() => null)) as RawDogGetResponse | null;
+
+                if (!res.ok || !json?.ok || !json.data) {
+                    throw new Error(json?.error || "Failed to load dog.");
+                }
+
+                if (cancelled) {
+                    return;
+                }
+
+                const nextForm = buildFormFromDog(json.data);
+
+                setForm(nextForm);
+                setInitialForm(nextForm);
+            } catch (e) {
+                if (!cancelled) {
+                    setError(
+                        e instanceof Error
+                            ? e.message
+                            : "Failed to load dog."
                     );
-
-                    const json = (await res.json().catch(
-                        () => {
-                            return null;
-                        }
-                    )) as RawDogGetResponse | null;
-
-                    if (!res.ok || !json?.ok || !json.data) {
-                        throw new Error(json?.error || "Failed to load dog.");
-                    }
-
-                    if (cancelled) {
-                        return;
-                    }
-
-                    setForm(buildFormFromDog(json.data));
                 }
-                catch (e) {
-                    if (!cancelled) {
-                        setError(
-                            e instanceof Error
-                                ? e.message
-                                : "Failed to load dog."
-                        );
-                    }
-                }
-                finally {
-                    if (!cancelled) {
-                        setLoading(false);
-                    }
+            } finally {
+                if (!cancelled) {
+                    setLoading(false);
                 }
             }
+        }
 
-            loadDog();
+        loadDog();
 
-            return () => {
-                cancelled = true;
-            };
-        },
-        [authorized, id]
-    );
+        return () => {
+            cancelled = true;
+        };
+    }, [authorized, id]);
 
     /*
         Generic form field updater passed down into DogForm.
     */
-    function updateField<K extends keyof DogFormValues>
-        (
-            key: K,
-            value: DogFormValues[K]
-        ) {
-        setForm(
-            (prev) => {
-                return {
-                    ...prev,
-                    [key]: value,
-                };
-            }
-        );
+    function updateField<K extends keyof DogFormValues>(key: K, value: DogFormValues[K]) {
+        setForm((prev) => ({
+            ...prev,
+            [key]: value,
+        }));
+
+        if (success) {
+            setSuccess("");
+        }
+    }
+
+    function handleResetForm() {
+        setForm(initialForm);
+        setError("");
+        setSuccess("");
     }
 
     /*
@@ -291,39 +321,33 @@ export default function EditDogPage() {
         try {
             const payload = buildEditPayload(form);
 
-            const res = await fetch(
-                "/api/dog/edit",
-                {
-                    method: "POST",
-                    headers:
-                    {
-                        "Content-Type": "application/json",
-                    },
-                    credentials: "include",
-                    body: JSON.stringify(payload),
-                }
-            );
+            const res = await fetch("/api/dog/edit", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify(payload),
+            });
 
-            const json = await res.json().catch(
-                () => {
-                    return null;
-                }
-            );
+            const json = await res.json().catch(() => null);
 
             if (!res.ok || !json?.ok) {
                 throw new Error(json?.error || `Save failed (${res.status})`);
             }
 
+            const cleanedForm = buildEditPayload(form);
+
+            setForm(cleanedForm);
+            setInitialForm(cleanedForm);
             setSuccess("Dog information updated successfully.");
-        }
-        catch (e) {
+        } catch (e) {
             setError(
                 e instanceof Error
                     ? e.message
                     : "Failed to save changes."
             );
-        }
-        finally {
+        } finally {
             setSaving(false);
         }
     }
@@ -347,71 +371,119 @@ export default function EditDogPage() {
         return null;
     }
 
-    return (
-        <main className="pt-24 bg-[#1F4D2E]">
-            {/* 
-                Hero section for the main search entry area.
+    const publicDogHref = buildPublicDogHref(form.cwaNumber, id);
+    const displayName = form.registeredName || form.callName || id || "Unknown Dog";
 
-                I kept this visually strong so the page feels more polished
-                and less like a plain database dump.
-            */}
+    return (
+        <main className="bg-[#1F4D2E] pt-24">
             <HeroSection
                 title="Edit Dog"
                 subtitle="Update dog information securely through the admin panel."
                 topContent={
                     <div className="mt-4 flex flex-wrap justify-center gap-3">
-                        <Link
-                            href="/admin/dogs"
+                        <button
+                            type="button"
+                            onClick={() => router.back()}
                             className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
                         >
-                            Back to Admin Dogs
-                        </Link>
+                            Back
+                        </button>
 
                         <Link
-                            href={`/search?q=${encodeURIComponent(form.cwaNumber || id)}`}
-                            className="rounded-full bg-[#2E6B3F] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#255733]"
+                            href={publicDogHref}
+                            className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
                         >
-                            View in Public Search
+                            View Dog Page
                         </Link>
                     </div>
                 }
             >
+                <div className="-mt-6 flex flex-wrap items-center justify-center gap-3 text-sm text-white/80">
+                    <span>
+                        Editing record:{" "}
+                        <span className="font-semibold text-white">{displayName}</span>
+                    </span>
 
-                <div className="-mt-6 text-white/80 text-sm">
-                    Editing record: <span className="font-semibold text-white">{form.registeredName || id}</span>
+                    {form.cwaNumber ? (
+                        <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold text-white">
+                            CWA #{form.cwaNumber}
+                        </span>
+                    ) : null}
+
+                    {form.status ? (
+                        <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold text-white">
+                            {form.status}
+                        </span>
+                    ) : null}
                 </div>
-
-
             </HeroSection>
 
-            {/* Main form section */}
-            <section className="bg-[#E7F0E9] pt-12 pb-24">
-                <div className="max-w-5xl mx-auto px-4">
-                    <div className="mb-8">
-                        <h2 className="text-2xl font-bold text-[#12301D]">
-                            Dog Information
-                        </h2>
+            <section className="bg-[#E7F0E9] pb-24 pt-12">
+                <div className="mx-auto max-w-5xl px-4">
+                    <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                            <h2 className="text-2xl font-bold text-[#12301D]">
+                                Dog Information
+                            </h2>
+                            <div className="mt-1 h-1 w-14 rounded-full bg-[#2E6B3F]/70" />
+                        </div>
 
-                        <div className="mt-1 h-1 w-14 rounded-full bg-[#2E6B3F]/70" />
+                        <div className="flex flex-wrap gap-3">
+                            <button
+                                type="button"
+                                onClick={handleResetForm}
+                                disabled={loading || saving}
+                                className="rounded-full border border-[#12301D]/15 bg-white px-5 py-2.5 text-sm font-semibold text-[#12301D] transition hover:bg-[#12301D]/5 disabled:opacity-50"
+                            >
+                                Reset Changes
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => router.back()}
+                                disabled={saving}
+                                className="rounded-full border border-[#12301D]/15 bg-white px-5 py-2.5 text-sm font-semibold text-[#12301D] transition hover:bg-[#12301D]/5 disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                        </div>
                     </div>
 
-                    <DogForm
-                        values={form}
-                        onChange={updateField}
-                        onSubmit={handleSubmit}
-                        saving={saving || loading}
-                        submitLabel="Save Changes"
-                        error={error}
-                        success={success}
-                        onCancel={
-                            () => {
-                                router.push("/admin/dogs");
-                            }
-                        }
-                        form={form}
-                        setForm={setForm}
-                        isEditMode={true}
-                    />
+                    {loading ? (
+                        <div className="rounded-2xl border border-black/10 bg-white/90 p-6 shadow-sm">
+                            <p className="text-sm text-[#12301D]/60">Loading dog record...</p>
+                        </div>
+                    ) : error && !form.cwaNumber ? (
+                        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 shadow-sm">
+                            <p className="text-sm font-medium text-red-700">{error}</p>
+
+                            <div className="mt-4">
+                                <button
+                                    type="button"
+                                    onClick={() => router.back()}
+                                    className="rounded-full border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100"
+                                >
+                                    Go Back
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <DogForm
+                            values={form}
+                            onChange={updateField}
+                            onSubmit={handleSubmit}
+                            saving={saving}
+                            submitLabel={saving ? "Saving..." : "Save Changes"}
+                            error={error}
+                            success={success}
+                            onCancel={() => {
+                                router.back();
+                            }}
+                            form={form}
+                            setForm={setForm}
+                            isEditMode={true}
+                        />
+                    )}
                 </div>
             </section>
         </main>
