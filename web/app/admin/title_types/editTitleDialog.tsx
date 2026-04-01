@@ -23,21 +23,21 @@ const EditTitleTypeDialog = ({
     titleTypeData: TitleType,
     onSave: () => void
 }) => {
-
     const [formData, setFormData] = useState<Partial<TitleType>>({});
     const [titleError, setTitleError] = useState<string | null>(null);
+    const [submitError, setSubmitError] = useState<string | null>(null);
 
-    const isEditMode = Boolean(titleTypeData && titleTypeData.id);
+    const isEditMode = !!titleTypeData?.id;
 
     useEffect(() => {
         setFormData(titleTypeData || {});
         setTitleError(null);
+        setSubmitError(null);
     }, [titleTypeData, open]);
 
     const handleChange = (field: keyof TitleType, value: string) => {
         if (field === "title") {
-            if (!value.trim()) setTitleError("A title is required");
-            else setTitleError(null);
+            setTitleError(value.trim() ? null : "A title is required");
         }
 
         setFormData((prev) => ({
@@ -51,6 +51,7 @@ const EditTitleTypeDialog = ({
             setTitleError("A title is required");
             return;
         }
+
         if (!formData.titleDescription?.trim()) {
             setSubmitError("Title description is required");
             return;
@@ -72,9 +73,9 @@ const EditTitleTypeDialog = ({
 
             onSave();
             onClose();
-
         } catch (err) {
             console.error(err);
+            setSubmitError("Failed to save title type");
         }
     };
 
@@ -86,8 +87,6 @@ const EditTitleTypeDialog = ({
 
             <DialogContent dividers>
                 <Box display="flex" flexDirection="column" gap={2}>
-
-                    {/* 🔑 Fix: only disable in edit mode */}
                     <TextField
                         disabled={isEditMode}
                         fullWidth
@@ -107,8 +106,9 @@ const EditTitleTypeDialog = ({
                         onChange={(e) =>
                             handleChange("titleDescription", e.target.value)
                         }
+                        error={submitError != null}
+                        helperText={submitError || ""}
                     />
-
                 </Box>
             </DialogContent>
 
