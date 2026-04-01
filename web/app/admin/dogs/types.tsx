@@ -37,7 +37,8 @@ export type DogFormValues =
   birthdate: string;
   pedigreeLink: string;
   status: string;
-  notes: string;
+  publicNotes: string;
+  privateNotes: string;
 
   meetPoints: string;
   arxPoints: string;
@@ -82,7 +83,8 @@ export const emptyDogFormValues: DogFormValues =
   birthdate: "",
   pedigreeLink: "",
   status: "Active",
-  notes: "",
+  publicNotes: "",
+  privateNotes: "",
 
   meetPoints: "0",
   arxPoints: "0",

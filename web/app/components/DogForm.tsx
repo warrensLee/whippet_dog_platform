@@ -412,12 +412,24 @@ export default function DogForm
                 />
             </div>
 
-            {/* Notes section */}
+            {/* Public Notes section */}
             <div className="mt-5">
                 <TextAreaField
-                    label="Notes"
-                    field="notes"
-                    value={values.notes}
+                    label="Public Notes"
+                    field="publicNotes"
+                    value={values.publicNotes}
+                    onChange={onChange}
+                    placeholder="Anything relevant to this dog..."
+                    rows={5}
+                />
+            </div>
+
+            {/* Private Notes section */}
+            <div className="mt-5">
+                <TextAreaField
+                    label="Private Notes"
+                    field="privateNotes"
+                    value={values.privateNotes}
                     onChange={onChange}
                     placeholder="Anything relevant to this dog..."
                     rows={5}

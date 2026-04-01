@@ -29,7 +29,8 @@ function buildCreatePayload(form: DogFormValues): DogFormValues {
         birthdate: form.birthdate,
         pedigreeLink: form.pedigreeLink.trim(),
         status: form.status.trim(),
-        notes: form.notes.trim(),
+        publicNotes: form.publicNotes.trim(),
+        privateNotes: form.privateNotes.trim(),
         meetPoints: form.meetPoints.trim(),
         arxPoints: form.arxPoints.trim(),
         narxPoints: form.narxPoints.trim(),
@@ -254,26 +255,6 @@ export default function AddDogPage() {
                     </div>
                 </section>
 
-                {/* Footer */}
-                <footer className="bg-[#DCE7DF] pb-2">
-                    <hr className="h-px bg-black/25 border-0 -mt-6 mb-4" />
-
-                    <p className="text-[#12301D] text-sm text-center leading-relaxed">
-                        <span className="block">
-                            Questions? Email{" "}
-                            <a
-                                href="mailto:cwawhippetracing@gmail.com"
-                                className="underline hover:text-[#2E6B3F] transition"
-                            >
-                                cwawhippetracing@gmail.com
-                            </a>
-                        </span>
-
-                        <span className="block mt-1">
-                            © 2026 Continental Whippet Alliance. All rights reserved.
-                        </span>
-                    </p>
-                </footer>
             </main>
         </AuthGuard>
     );

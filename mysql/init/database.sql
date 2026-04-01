@@ -26,7 +26,8 @@ CREATE TABLE `Dog` (
     `MeetWins` DECIMAL(5,2),
     `MeetAppearences` DECIMAL(5,2),
     `HighCombinedWins` DECIMAL(5,2),
-    `Notes` VARCHAR(250),
+    `PublicNotes` VARCHAR(250),
+    `PrivateNotes` VARCHAR(250),
     `LastEditedBy` INT,
     `LastEditedAt` TIMESTAMP
 );

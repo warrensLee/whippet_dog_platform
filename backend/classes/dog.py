@@ -15,7 +15,7 @@ class Dog:
 
     def __init__(self, cwa_number, akc_number, ckc_number, foreign_number, foreign_type, call_name,
                  registered_name, birthdate, pedigree_link, status, average, current_grade, meet_points, arx_points,
-                 narx_points, show_points, dpc_legs, meet_wins, meet_appearences, high_combined_wins, notes, last_edited_by=None, last_edited_at=None):
+                 narx_points, show_points, dpc_legs, meet_wins, meet_appearences, high_combined_wins, public_notes, private_notes, last_edited_by=None, last_edited_at=None):
         self.cwa_number = cwa_number
         self.akc_number = akc_number
         self.ckc_number = ckc_number
@@ -36,7 +36,8 @@ class Dog:
         self.meet_wins = meet_wins
         self.meet_appearences = meet_appearences
         self.high_combined_wins = high_combined_wins
-        self.notes = notes
+        self.public_notes = public_notes
+        self.private_notes = private_notes
         self.last_edited_by = last_edited_by
         self.last_edited_at = last_edited_at
 
@@ -215,7 +216,8 @@ class Dog:
             meet_wins=(data.get("meetWins") or "").strip() or "0",
             meet_appearences=(data.get("meetAppearences") or "").strip() or "0",
             high_combined_wins=(data.get("highCombinedWins") or "").strip() or "0",
-            notes=(data.get("notes") or "").strip() or None,
+            public_notes=(data.get("publicNotes") or "").strip() or None,
+            private_notes=(data.get("privateNotes") or "").strip() or None,
             last_edited_by=data.get("lastEditedBy"),
             last_edited_at=data.get("lastEditedAt")
         )
@@ -246,7 +248,8 @@ class Dog:
             meet_wins=row.get("MeetWins"),
             meet_appearences=row.get("MeetAppearences"),
             high_combined_wins=row.get("HighCombinedWins"),
-            notes=row.get("Notes"),
+            public_notes=row.get("PublicNotes"),
+            private_notes=row.get("PrivateNotes"),
             last_edited_by=row.get("LastEditedBy"),
             last_edited_at=row.get("LastEditedAt")
         )
@@ -260,7 +263,7 @@ class Dog:
                     CallName, RegisteredName, Birthdate, PedigreeLink,
                     Status, Average, CurrentGrade,
                     MeetPoints, ARXPoints, NARXPoints, ShowPoints,
-                    DPCLegs, MeetWins, MeetAppearences, HighCombinedWins, Notes,
+                    DPCLegs, MeetWins, MeetAppearences, HighCombinedWins, PublicNotes, PrivateNotes,
                     LastEditedBy, LastEditedAt
             FROM Dog
             WHERE CWANumber = %s
@@ -517,12 +520,12 @@ class Dog:
                     CallName, RegisteredName, Birthdate, PedigreeLink,
                     Status, Average, CurrentGrade,
                     MeetPoints, ARXPoints, NARXPoints, ShowPoints,
-                    DPCLegs, MeetWins, MeetAppearences, HighCombinedWins, Notes,
+                    DPCLegs, MeetWins, MeetAppearences, HighCombinedWins, PublicNotes, PrivateNotes,
                     LastEditedBy, LastEditedAt
                 )
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
                         %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                        %s, %s, %s)
+                        %s, %s, %s, %s)
                 """,
                 (
                     self.cwa_number,
@@ -545,7 +548,8 @@ class Dog:
                     self.meet_wins,
                     self.meet_appearences,
                     self.high_combined_wins,
-                    self.notes or None,
+                    self.public_notes or None,
+                    self.private_notes or None,
                     self.last_edited_by,
                     self.last_edited_at,
                 ),
@@ -579,7 +583,8 @@ class Dog:
                     MeetWins = %s,
                     MeetAppearences = %s,
                     HighCombinedWins = %s,
-                    Notes = %s,
+                    PublicNotes = %s,
+                    PrivateNotes = %s,
                     LastEditedBy = %s,
                     LastEditedAt = %s
                 WHERE CWANumber = %s
@@ -604,7 +609,8 @@ class Dog:
                     self.meet_wins,
                     self.meet_appearences,
                     self.high_combined_wins,
-                    self.notes or None,
+                    self.public_notes or None,
+                    self.private_notes or None,
                     self.last_edited_by,
                     self.last_edited_at,
                     self.cwa_number
@@ -762,7 +768,8 @@ class Dog:
             "meetWins": self.meet_wins,
             "meetAppearences": self.meet_appearences,
             "highCombinedWins": self.high_combined_wins,
-            "notes": self.notes,
+            "publicNotes": self.public_notes,
+            "privateNotes": self.private_notes,
             "lastEditedBy": self.last_edited_by,
             "lastEditedAt": self.last_edited_at.isoformat() if self.last_edited_at else None
         }
