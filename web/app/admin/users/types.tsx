@@ -16,6 +16,7 @@ export type UserRole = {
 };
 
 export type Person = {
+  id: number;
   personId: string;
   firstName: string;
   lastName: string;
@@ -30,11 +31,13 @@ export type Person = {
   secondaryPhone?: string | null;
   systemRole: string;
   notes?: string | null;
+  locked: boolean;
   lastEditedBy?: string | null;
   lastEditedAt?: string | null;
 };
 
 export type EditForm = {
+  id: number | null;
   personId: string;
   firstName: string;
   lastName: string;
@@ -49,6 +52,7 @@ export type EditForm = {
   secondaryPhone: string;
   systemRole: string;
   notes: string;
+  locked: boolean;
 };
 
 export type AddForm = {
@@ -68,6 +72,7 @@ export type AddForm = {
 };
 
 export const emptyForm: EditForm = {
+  id: null,
   personId: '',
   firstName: '',
   lastName: '',
@@ -82,6 +87,7 @@ export const emptyForm: EditForm = {
   secondaryPhone: '',
   systemRole: '',
   notes: '',
+  locked: false,
 };
 
 export const emptyAddForm: AddForm = {

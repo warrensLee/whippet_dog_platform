@@ -24,7 +24,7 @@ type Props = {
   roles: UserRole[];
   onClose: () => void;
   onSave: () => void;
-  updateForm: (key: keyof EditForm, value: string) => void;
+  updateForm: <K extends keyof EditForm>(key: K, value: EditForm[K]) => void;
 };
 
 export default function EditUserDialog({
@@ -43,7 +43,7 @@ export default function EditUserDialog({
         <Stack spacing={2} sx={{ mt: 1 }}>
           <Typography variant="subtitle2">Basic Info</Typography>
 
-          <TextField label="Person ID" value={form.personId} disabled fullWidth />
+          <TextField label="UserName" value={form.personId} disabled fullWidth />
           <TextField
             label="First Name"
             value={form.firstName}
@@ -137,6 +137,18 @@ export default function EditUserDialog({
                   {role.title}
                 </MenuItem>
               ))}
+            </Select>
+          </FormControl>
+
+          <FormControl fullWidth>
+            <InputLabel>Account Status</InputLabel>
+            <Select
+              value={form.locked ? 'locked' : 'active'}
+              label="Account Status"
+              onChange={(e) => updateForm('locked', e.target.value === 'locked')}
+            >
+              <MenuItem value="active">Active</MenuItem>
+              <MenuItem value="locked">Locked</MenuItem>
             </Select>
           </FormControl>
 

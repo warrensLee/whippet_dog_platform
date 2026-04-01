@@ -33,6 +33,7 @@ def main():
         system_role=SYSTEM_ROLE,
         password_hash=None,
         notes="Seeded initial admin account",
+        locked=False,
         last_edited_by=None,
         last_edited_at=None,
     )

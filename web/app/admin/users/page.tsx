@@ -107,7 +107,9 @@ export default function AdminUsersPage() {
   }, [users, search]);
 
   const openEdit = (user: Person) => {
+    console.log('selected user:', user);
     setForm({
+      id: user.id,
       personId: user.personId || '',
       firstName: user.firstName || '',
       lastName: user.lastName || '',
@@ -121,6 +123,7 @@ export default function AdminUsersPage() {
       primaryPhone: user.primaryPhone || '',
       secondaryPhone: user.secondaryPhone || '',
       systemRole: user.systemRole || '',
+      locked: !!user.locked,
       notes: user.notes || '',
     });
     setError('');
@@ -146,7 +149,7 @@ export default function AdminUsersPage() {
     setAddForm(emptyAddForm);
   };
 
-  const updateForm = (key: keyof EditForm, value: string) => {
+  const updateForm = <K extends keyof EditForm>(key: K, value: EditForm[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
@@ -161,6 +164,7 @@ export default function AdminUsersPage() {
       setSuccess('');
 
       const res = await axios.post('/api/person/edit', {
+        id: form.id,
         personId: form.personId,
         firstName: form.firstName,
         lastName: form.lastName,
@@ -175,6 +179,7 @@ export default function AdminUsersPage() {
         secondaryPhone: form.secondaryPhone,
         systemRole: form.systemRole,
         notes: form.notes,
+        locked: form.locked,
       });
 
       if (!res.data.ok) {
@@ -184,9 +189,10 @@ export default function AdminUsersPage() {
 
       setUsers((prev) =>
         prev.map((u) =>
-          u.personId === form.personId
+          u.id === form.id
             ? {
                 ...u,
+                personId: form.personId,
                 firstName: form.firstName,
                 lastName: form.lastName,
                 email: form.email,
@@ -200,6 +206,7 @@ export default function AdminUsersPage() {
                 secondaryPhone: form.secondaryPhone,
                 systemRole: form.systemRole,
                 notes: form.notes,
+                locked: form.locked,
               }
             : u
         )
@@ -232,6 +239,7 @@ export default function AdminUsersPage() {
         primaryPhone: addForm.primaryPhone,
         secondaryPhone: addForm.secondaryPhone,
         systemRole: addForm.systemRole,
+        locked: form.locked,
         notes: addForm.notes,
       });
 
@@ -334,7 +342,7 @@ export default function AdminUsersPage() {
               <Table size="small">
                 <TableHead>
                   <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                    <TableCell><strong>Person ID</strong></TableCell>
+                    <TableCell><strong>User Name</strong></TableCell>
                     <TableCell><strong>First Name</strong></TableCell>
                     <TableCell><strong>Last Name</strong></TableCell>
                     <TableCell><strong>Email</strong></TableCell>
@@ -347,6 +355,7 @@ export default function AdminUsersPage() {
                     <TableCell><strong>Primary Phone</strong></TableCell>
                     <TableCell><strong>Secondary Phone</strong></TableCell>
                     <TableCell><strong>System Role</strong></TableCell>
+                    <TableCell><strong>Status</strong></TableCell>
                     <TableCell><strong>Notes</strong></TableCell>
                     <TableCell><strong>Last Edited By</strong></TableCell>
                     <TableCell><strong>Last Edited At</strong></TableCell>
@@ -378,6 +387,13 @@ export default function AdminUsersPage() {
                         <TableCell>{user.secondaryPhone || '-'}</TableCell>
                         <TableCell>
                           <Chip label={user.systemRole || 'None'} size="small" />
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            label={user.locked ? 'Locked' : 'Active'}
+                            color={user.locked ? 'error' : 'success'}
+                            size="small"
+                          />
                         </TableCell>
                         <TableCell
                           sx={{

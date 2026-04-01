@@ -10,7 +10,7 @@ from mysql.connector import Error
 class Person:
     def __init__(self, id, person_id, first_name, last_name, email_address, address_line_one,
                  address_line_two, city, state_province, zip_code, country,
-                 primary_phone, secondary_phone, system_role, password_hash, notes, 
+                 primary_phone, secondary_phone, system_role, password_hash, notes, locked,
                  last_edited_by=None, last_edited_at=None):
         self.id = id
         self.person_id = person_id
@@ -28,6 +28,7 @@ class Person:
         self.system_role = system_role
         self.password_hash = password_hash
         self.notes = notes
+        self.locked = locked
         self.last_edited_by = last_edited_by
         self.last_edited_at = last_edited_at
 
@@ -51,6 +52,7 @@ class Person:
             system_role=data.get("systemRole", "Public"),
             password_hash=None,
             notes=(data.get("notes") or "").strip() or None,
+            locked=bool(data.get("locked", False)),
             last_edited_by=data.get("lastEditedBy"),
             last_edited_at=data.get("lastEditedAt")
         )
@@ -77,6 +79,7 @@ class Person:
             system_role=row.get("SystemRole"),
             password_hash=row.get("PasswordHash"),
             notes=row.get("Notes"),
+            locked=bool(row.get("Locked", 0)),
             last_edited_by=row.get("LastEditedBy"),
             last_edited_at=row.get("LastEditedAt")
         )
@@ -88,7 +91,7 @@ class Person:
             """
             SELECT ID, PersonID, FirstName, LastName, EmailAddress, SystemRole, PasswordHash,
                     AddressLineOne, AddressLineTwo, City, StateProvince, ZipCode, Country,
-                   PrimaryPhone, SecondaryPhone, Notes, LastEditedBy, LastEditedAt
+                   PrimaryPhone, SecondaryPhone, Notes, Locked, LastEditedBy, LastEditedAt
             FROM Person
             WHERE PersonID = %s
             LIMIT 1
@@ -104,7 +107,7 @@ class Person:
             """
             SELECT ID, PersonID, FirstName, LastName, EmailAddress, SystemRole, PasswordHash,
                     AddressLineOne, AddressLineTwo, City, StateProvince, ZipCode, Country,
-                   PrimaryPhone, SecondaryPhone, Notes, LastEditedBy, LastEditedAt
+                   PrimaryPhone, SecondaryPhone, Notes, Locked, LastEditedBy, LastEditedAt
             FROM Person
             WHERE ID = %s
             LIMIT 1
@@ -121,7 +124,7 @@ class Person:
             """
             SELECT ID, PersonID, FirstName, LastName, EmailAddress, SystemRole, PasswordHash,
                     AddressLineOne, AddressLineTwo, City, StateProvince, ZipCode, Country,
-                   PrimaryPhone, SecondaryPhone, Notes, LastEditedBy, LastEditedAt
+                   PrimaryPhone, SecondaryPhone, Notes, Locked, LastEditedBy, LastEditedAt
             FROM Person
             WHERE EmailAddress= %s
             LIMIT 1
@@ -150,7 +153,7 @@ class Person:
             errors.append("First name is required")
         if not self.last_name:
             errors.append("Last name is required")
-        if len(self.person_id) > 20:
+        if self.person_id is not None and len(str(self.person_id)) > 20:
             errors.append("PersonID must be 20 characters or less")
         return errors
 
@@ -165,26 +168,26 @@ class Person:
 
 
     def save(self):
-        """Save person to database. Returns True on success, raises Error on failure."""
         try:
-            execute(
+            self.id = execute(
                 """
                 INSERT INTO Person (
                     PersonID, FirstName, LastName, EmailAddress,
                     AddressLineOne, AddressLineTwo, City, StateProvince,
                     ZipCode, Country, PrimaryPhone, SecondaryPhone,
-                    SystemRole, PasswordHash, Notes,
+                    SystemRole, PasswordHash, Notes, Locked,
                     LastEditedBy, LastEditedAt
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
                     self.person_id, self.first_name, self.last_name, self.email,
                     self.address_line_one, self.address_line_two, self.city, self.state_province,
                     self.zip_code, self.country, self.primary_phone, self.secondary_phone,
-                    self.system_role, self.password_hash, self.notes,
+                    self.system_role, self.password_hash, self.notes, self.locked,
                     self.last_edited_by, self.last_edited_at
                 ),
+                return_lastrowid=True,
             )
             return True
         except Error as e:
@@ -211,16 +214,17 @@ class Person:
                     SystemRole = %s,
                     PasswordHash = %s,
                     Notes = %s,
+                    Locked = %s,
                     LastEditedBy = %s,
                     LastEditedAt = %s
-                WHERE PersonID = %s
+                WHERE ID = %s
                 """,
                 (
                     self.first_name, self.last_name, self.email,
                     self.address_line_one, self.address_line_two, self.city, self.state_province,
                     self.zip_code, self.country, self.primary_phone, self.secondary_phone,
-                    self.system_role, self.password_hash, self.notes,
-                    self.last_edited_by, self.last_edited_at, self.person_id  
+                    self.system_role, self.password_hash, self.notes, self.locked,
+                    self.last_edited_by, self.last_edited_at, self.id  
                 ),
             )
             return True
@@ -260,6 +264,7 @@ class Person:
                 p.SecondaryPhone, 
                 p.SystemRole, 
                 p.Notes,
+                p.Locked,
                 CONCAT(e.FirstName, ' ', e.LastName) AS LastEditedBy,
                 p.LastEditedAt
             FROM Person p
@@ -283,6 +288,7 @@ class Person:
     def to_dict(self):
         """Convert to dictionary for JSON responses."""
         data = {
+            "id": self.id,
             "personId": self.person_id,
             "firstName": self.first_name,
             "lastName": self.last_name,
@@ -297,6 +303,7 @@ class Person:
             "secondaryPhone": self.secondary_phone,
             "systemRole": self.system_role,
             "notes": self.notes,
+            "locked": self.locked,
             "lastEditedBy": self.last_edited_by,
             "lastEditedAt": self.last_edited_at.isoformat() if self.last_edited_at else None
         }

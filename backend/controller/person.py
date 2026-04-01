@@ -68,6 +68,9 @@ def register_person():
 
     try:
         person.save()
+        refreshed = Person.find_by_id(person.id)
+        after_snapshot = refreshed.to_dict() if refreshed else person.to_dict()
+
         ChangeLog.log(
             changed_table="Person",
             record_pk=person.id,
@@ -75,7 +78,7 @@ def register_person():
             changed_by=editor_id,
             source="api/person/add POST",
             before_obj=None,
-            after_obj=person.to_dict(),
+            after_obj=after_snapshot,
         )
         return jsonify({"ok": True, "data": {"personId": person.person_id}}), 201
     except Error as e:
@@ -93,27 +96,23 @@ def edit_person():
     if deny and current_editor_id() != data.get("personId", ""):
         return deny
 
-    person_id = (data.get("personId") or "").strip()
-    if not person_id:
-        return jsonify({"ok": False, "error": "Person ID is required"}), 400
+    record_id = data.get("id")
+    if not record_id:
+        return jsonify({"ok": False, "error": "ID is required"}), 400
 
-    if role.edit_person_scope == UserRole.SELF and not _is_owner(person_id):
-        return jsonify({"ok": False, "error": "You can only edit your own profile"}), 403
-
-    existing = Person.find_by_identifier(person_id)
+    existing = Person.find_by_id(record_id)
     if not existing:
         return jsonify({"ok": False, "error": "Person does not exist"}), 404
+    
+    if role.edit_person_scope == UserRole.SELF and current_editor_id() != existing.id:
+        return jsonify({"ok": False, "error": "You can only edit your own profile"}), 403
 
     before_snapshot = existing.to_dict()
 
     person = Person.from_request_data(data)
-    person.person_id = person_id
-
+    person.id = existing.id
+    person.person_id = existing.person_id
     person.password_hash = existing.password_hash
-    person.email = existing.email                  
-    person.notes = existing.notes 
-    person.system_role = existing.system_role
-
     person.last_edited_by = current_editor_id()
     person.last_edited_at = datetime.now(timezone.utc)
 
@@ -123,7 +122,7 @@ def edit_person():
 
     try:
         person.update()
-        refreshed = Person.find_by_identifier(person_id)
+        refreshed = Person.find_by_id(record_id)
         after_snapshot = refreshed.to_dict() if refreshed else person.to_dict()
 
         ChangeLog.log(
@@ -331,6 +330,7 @@ def search_people():
             p.Country,
             p.PrimaryPhone,
             p.SecondaryPhone,
+            p.Locked,
             p.Notes,
             CONCAT(e.FirstName, ' ', e.LastName) AS LastEditedBy,
             p.LastEditedAt
