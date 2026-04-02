@@ -4,7 +4,7 @@ from mysql.connector import Error
 class MeetResult:
     
     def __init__(self, meet_number, cwa_number, average, grade, meet_placement, meet_points, arx_earned,
-                 narx_earned, shown, show_placement, show_points, dpc_leg, hc_score, hc_leg_earned, last_edited_by=None, last_edited_at=None):
+                 narx_earned, shown, show_placement, show_points, dpc_leg, hc_score, hc_leg_earned, aom_earned, last_edited_by=None, last_edited_at=None):
         self.meet_number = meet_number
         self.cwa_number = cwa_number
         self.average = average
@@ -19,6 +19,7 @@ class MeetResult:
         self.dpc_leg = dpc_leg
         self.hc_score = hc_score
         self.hc_leg_earned = hc_leg_earned
+        self.aom_earned = aom_earned
         self.last_edited_by = last_edited_by
         self.last_edited_at = last_edited_at
 
@@ -40,6 +41,7 @@ class MeetResult:
             dpc_leg=(data.get("dpcLeg") or "").strip(),
             hc_score=(data.get("hcScore") or "").strip(),
             hc_leg_earned=(data.get("hcLegEarned") or "").strip(),
+            aom_earned=(data.get("aomEarned") or "").strip(),
             last_edited_by=data.get("lastEditedBy"),
             last_edited_at=data.get("lastEditedAt")
         )
@@ -64,6 +66,7 @@ class MeetResult:
             dpc_leg=row.get("DPCLeg"),
             hc_score=row.get("HCScore"),
             hc_leg_earned=row.get("HCLegEarned"),
+            aom_earned=row.get("AOMEarned"),
             last_edited_by=row.get("LastEditedBy"),
             last_edited_at=row.get("LastEditedAt")
         )
@@ -75,7 +78,7 @@ class MeetResult:
             """
             SELECT MeetNumber, CWANumber, Average, Grade, MeetPlacement, MeetPoints,
                     ARXEarned, NARXEarned, Shown, ShowPlacement, ShowPoints, DPCLeg,
-                    HCScore, HCLegEarned, LastEditedBy, LastEditedAt
+                    HCScore, HCLegEarned, AOMEarned, LastEditedBy, LastEditedAt
             FROM MeetResults
             WHERE MeetNumber = %s AND CWANumber = %s
             LIMIT 1

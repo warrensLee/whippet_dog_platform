@@ -48,6 +48,7 @@ class CsvImporter:
             "dpcLeg": ("dpcLeg", "DPCLeg", "DPC LEG"),
             "hcScore": ("hcScore", "HCScore", "HC SCORE"),
             "hcLegEarned": ("hcLegEarned", "HCLegEarned", "HC LEG EARNED"),
+            "aomEarned": ("aomEarned", "AOMEarned", "AOM EARNED"),
         },
         "race_results": {
             "meetNumber": ("meetNumber", "MeetNumber", "MEET NUMBER", "Meet #"),
@@ -58,6 +59,7 @@ class CsvImporter:
             "box": ("box", "Box", "BOX"),
             "placement": ("placement", "Placement", "PLACE", "Place"),
             "meetPoints": ("meetPoints", "MeetPoints", "MEET POINTS", "Points"),
+            "dpcPoints": ("dpcPoints", "DPCPoints", "DPC POINTS", "DPC"),
             "incident": ("incident", "Incident", "INCIDENT"),
         },
         "dog_owners": {
