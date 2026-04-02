@@ -1,177 +1,127 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AuthGuard from "@/lib/auth/authGuard";
+import HeroSection from "../components/HeroSection";
+import { Alert, Button, Dialog, Paper, Snackbar, Typography } from "@mui/material";
+import axios from "axios";
+import ImportCsvPage from "./ImportDialog";
 
-export default function Admin() {
-  return (
-    <AuthGuard permissions={["editAllDatabase"]}>
-      <div style={{ ...s.page, paddingTop: "60px" }}>
-        <h1 style={s.h1}>Admin Panel</h1>
 
-        <section style={s.section}>
-          <h2 style={s.h2}>Manage</h2>
-          <div style={s.links}>
-            <a href="/admin/dogs" style={s.link}>Dogs</a>
-            <a href="/admin/title_types" style={s.link}>Title Type</a>
-            <a href="/admin/events" style={s.link}>Events</a>
-            <a href="/admin/users" style={s.link}>Users</a>
-            <a href="/admin/user_roles" style={s.link}>User Roles</a>
-            <a href="/admin/history" style={s.link}>History</a>
-            <a href="/admin/import" style={s.link}>Importer</a>
-          </div>
-        </section>
-
-        <section style={s.section}>
-          <h2 style={s.h2}>Send Invite</h2>
-          <InviteForm />
-        </section>
-
-        <section style={s.section}>
-          <h2 style={s.h2}>Database</h2>
-          <DatabaseTools />
-        </section>
-      </div>
-    </AuthGuard>
-  );
+const panelStyle = {
+  m: 2,
+  p: 2,
 }
 
-function InviteForm() {
-  const [email, setEmail] = useState("");
-  const [msg, setMsg] = useState<string | null>(null);
+const buttonStyle = {
+  m: 1
+}
+export default function Admin() {
 
-  async function send() {
-    if (!email.trim()) return;
+  const [dogCount, setDogCount] = useState()
+  const [peopleCount, setPeopleCount] = useState()
+  const [meetCount, setMeetCount] = useState()
+  const [importDialogOpen, setImportDialogOpen] = useState(false)
+  const [snackbarMessage, setSnackbarMessage] = useState("")
+  const [snackbarType, setSnackBarType] = useState<"error" | "success">("error")
+  const [snackbarOpen, setSnackbarOpen] = useState(false)
+  useEffect(() => {
+    axios.get("/api/database/counts").then((response) => {
+      setDogCount(response.data.dogs);
+      setPeopleCount(response.data.people);
+      setMeetCount(response.data.meets);
+    })
+  }, [])
 
-    try {
-      const r = await fetch("/api/auth/invite", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-
-      const d = await r.json();
-      setMsg(d.ok ? `Invite sent to ${email}` : d.error || "Failed");
-      if (d.ok) setEmail("");
-    } catch {
-      setMsg("Network error");
-    }
+  function openSnackbar(message: string, failed: boolean) {
+    setSnackBarType(failed ? "error" : "success")
+    setSnackbarMessage(message)
+    setSnackbarOpen(true)
   }
 
-  return (
-    <div style={s.row}>
-      <input
-        style={s.input}
-        type="email"
-        placeholder="user@example.com"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <button style={s.btn} onClick={send}>
-        Send
-      </button>
-      {msg && <p>{msg}</p>}
-    </div>
-  );
-}
-
-function DatabaseTools() {
-  const [file, setFile] = useState<File | null>(null);
-  const [msg, setMsg] = useState<string | null>(null);
-
-  async function dump() {
+  async function dumpDB() {
     try {
       const r = await fetch("/api/database/dump");
       if (!r.ok) {
-        setMsg("Dump failed");
+        openSnackbar("Dump failed", true);
         return;
       }
       const blob = await r.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "db_dump.sql";
+      const date = new Date().toISOString()
+      a.download = "db_dump_" + date + ".sql.zst";
       a.click();
       URL.revokeObjectURL(url);
-      setMsg("Downloaded");
-    } catch {
-      setMsg("Error");
+      openSnackbar("Downloaded", false);
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        openSnackbar("Error: " + e.message, true);
+      } else {
+        openSnackbar("Error: " + String(e), true);
+      }
     }
   }
 
-  async function restore() {
-    if (!file) return;
-
-    const fd = new FormData();
-    fd.append("file", file);
+  async function restoreDB() {
 
     try {
-      const r = await fetch("/api/database/restore", {
-        method: "POST",
-        body: fd,
+      const file = (document.getElementById("restoreFileInput") as HTMLInputElement)!.files![0]
+      console.log(file)
+      const r = await axios.post("/api/database/restore", file, {
+        headers: {
+          'Content-Type': 'application/octet-stream',
+        }
       });
-      const d = await r.json();
-      setMsg(d.ok ? "Restore complete" : d.error || "Failed");
-    } catch {
-      setMsg("Error");
+      const d = await r.data
+      openSnackbar(d.ok ? "Restore complete" : d.error || "Failed", d.error);
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        openSnackbar("Error: " + e.message, true);
+      } else {
+        openSnackbar("Error: " + String(e), true);
+      }
     }
   }
-
   return (
-    <div>
-      <button style={s.btn} onClick={dump}>Download Dump</button>
+    <AuthGuard permissions={["editAllDatabase"]}>
 
-      <div style={s.row}>
-        <input type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-        <button style={s.btn} onClick={restore}>Restore</button>
-      </div>
+      <main className="pt-24 bg-[#1F4D2E]">
+        <HeroSection title="Admin Dashboard" />
+        <Snackbar anchorOrigin={{ vertical: "top", horizontal: "center" }} open={snackbarOpen} autoHideDuration={5000} onClose={() => setSnackbarOpen(false)}><Alert severity={snackbarType}>{snackbarMessage}</Alert></Snackbar>
+        <Dialog open={importDialogOpen} onClose={() => setImportDialogOpen(false)}>
+          <ImportCsvPage onSuccess={(message: string) => openSnackbar(message, false)} onFail={(message: string) => openSnackbar(message, true)} onCancel={() => setImportDialogOpen(false)} />
+        </Dialog>
+        <section
+          className="bg-[#E7F0E9] pt-12 pb-24"
+          style={{ display: "flex", flexWrap: "wrap", justifyContent: "center" }}
+        >
+          <Paper sx={panelStyle}>
+            <Typography variant="h4">{dogCount} Dogs</Typography>
+            <Button sx={buttonStyle} href="/admin/dogs" variant="contained" color="success">Manage Dogs</Button>
+            <Button href="/admin/title_types" variant="contained" color="success">Manage Titles</Button>
+          </Paper>
+          <Paper sx={panelStyle}>
+            <Typography variant="h4">{peopleCount} People</Typography>
+            <Button sx={buttonStyle} href="/admin/users" variant="contained" color="success">Manage Users</Button>
+            <Button sx={buttonStyle} href="/admin/user_roles" variant="contained" color="success">Manage User Roles</Button>
+          </Paper>
+          <Paper sx={panelStyle}>
+            <Typography variant="h4">{meetCount} Events</Typography>
+            <Button sx={buttonStyle} href="/admin/events" variant="contained" color="success">Manage Events</Button>
+          </Paper>
+          <Paper sx={panelStyle}>
+            <Typography variant="h4">Database</Typography>
+            <Button sx={buttonStyle} href="/admin/history" variant="contained" color="success">View history</Button>
+            <Button sx={buttonStyle} onClick={() => setImportDialogOpen(true)} variant="contained" color="success">Import Records</Button>
+            <Button sx={buttonStyle} variant="contained" color="success" onClick={dumpDB}>Download Dump</Button>
+            <input id="restoreFileInput" style={{ display: "none" }} type="file" accept=".sql.zst" onChange={restoreDB} />
+            <Button sx={buttonStyle} variant="contained" color="success" onClick={() => document.getElementById("restoreFileInput")!.click()}>Restore</Button>
+          </Paper>
 
-      {msg && <p>{msg}</p>}
-    </div>
+        </section>
+      </main>
+    </AuthGuard>
   );
 }
-
-const s = {
-  page: {
-    maxWidth: 600,
-    margin: "60px auto",
-    padding: "0 20px",
-    fontFamily: "sans-serif",
-  },
-  h1: {
-    fontSize: 24,
-    marginBottom: 40,
-  },
-  h2: {
-    fontSize: 16,
-    marginBottom: 12,
-    borderBottom: "1px solid #ddd",
-    paddingBottom: 6,
-  },
-  section: {
-    marginBottom: 40,
-  },
-  links: {
-    display: "flex",
-    gap: 20,
-    flexWrap: "wrap" as const,
-  },
-  link: {
-    color: "#0070f3",
-    textDecoration: "none",
-    fontSize: 15,
-  },
-  row: {
-    display: "flex",
-    gap: 10,
-    alignItems: "center",
-  },
-  input: {
-    padding: "8px 10px",
-    border: "1px solid #ccc",
-  },
-  btn: {
-    padding: "8px 16px",
-    cursor: "pointer",
-  },
-};

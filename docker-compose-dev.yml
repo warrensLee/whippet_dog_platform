@@ -30,7 +30,7 @@ services:
     env_file: ".env.frontend"
 
   backend:
-    image: python:3.12
+    image: python:3.14
     user: 1000:1000
     working_dir: /app
     ports:

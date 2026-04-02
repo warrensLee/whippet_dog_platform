@@ -308,3 +308,12 @@ class Person:
             "lastEditedAt": self.last_edited_at.isoformat() if self.last_edited_at else None
         }
         return data
+
+    @staticmethod
+    def count():
+        stats = fetch_one("""
+            SELECT 
+                COUNT(*)
+            FROM Person 
+        """)
+        return stats["COUNT(*)"]

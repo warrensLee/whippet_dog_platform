@@ -6,8 +6,6 @@ export default function AuthGuard({ permissions, redirect = true, children }: { 
 
     const authctx = useContext(authContext);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    console.log(authctx)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     const isAuthenticated = (): boolean => {
         if (authctx == undefined) return false;
         if (authctx == "NotAuthenticated") return false;
@@ -19,12 +17,11 @@ export default function AuthGuard({ permissions, redirect = true, children }: { 
         }
         return true;
     }
+
     useEffect(() => {
         if (authctx == undefined) return;
-        console.log("checking for redirection")
 
         if (!isAuthenticated() && redirect) {
-            console.log("redirecting")
             window.location.href = "/login"
             return;
         }

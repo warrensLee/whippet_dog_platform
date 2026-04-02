@@ -780,3 +780,12 @@ class Dog:
             data["privateNotes"] = self.private_notes
         
         return data
+
+    @staticmethod
+    def count():
+        stats = fetch_one("""
+            SELECT 
+                COUNT(*)
+            FROM Dog 
+        """)
+        return stats["COUNT(*)"]

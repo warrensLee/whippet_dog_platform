@@ -5,7 +5,7 @@ from controller.change_log import change_log_bp
 from controller.dog_owner import dog_owner_bp
 from controller.dog_title import dog_title_bp
 from controller.dog import dog_bp
-from controller.dump_database import database_bp
+from controller.database import database_bp
 from controller.importer import import_bp
 from controller.meet import meet_bp
 from controller.meet_result import meet_result_bp
