@@ -15,7 +15,7 @@ class Dog:
 
     def __init__(self, cwa_number, registered_number, foreign_type, call_name,
                  registered_name, birthdate, pedigree_link, status, average, current_grade, meet_points, arx_points,
-                 narx_points, show_points, dpc_legs, meet_wins, meet_appearences, high_combined_wins, public_notes, private_notes, 
+                 narx_points, show_points, dpc_legs, meet_wins, meet_appearences, high_combined_wins, aom_earned, public_notes, private_notes, 
                  dna, sire_dna, dam_dna, last_edited_by=None, last_edited_at=None):
         self.cwa_number = cwa_number
         self.registered_number = registered_number
@@ -35,6 +35,7 @@ class Dog:
         self.meet_wins = meet_wins
         self.meet_appearences = meet_appearences
         self.high_combined_wins = high_combined_wins
+        self.aom_earned = aom_earned
         self.public_notes = public_notes
         self.private_notes = private_notes
         self.dna = dna
@@ -52,6 +53,7 @@ class Dog:
         self.meet_wins = float(self.meet_wins) if self.meet_wins not in (None, "") else 0.0
         self.meet_appearences = int(float(self.meet_appearences)) if self.meet_appearences not in (None, "") else 0
         self.high_combined_wins = int(float(self.high_combined_wins)) if self.high_combined_wins not in (None, "") else 0
+        self.aom_earned = int(float(self.aom_earned)) if self.aom_earned not in (None, "") else 0
     
     def check_grade(self):
         '''Check grade of dog based on point average and status.'''
@@ -212,6 +214,7 @@ class Dog:
             meet_wins=(data.get("meetWins") or "").strip() or "0",
             meet_appearences=(data.get("meetAppearences") or "").strip() or "0",
             high_combined_wins=(data.get("highCombinedWins") or "").strip() or "0",
+            aom_earned=(data.get("aomEarned") or "").strip() or "0",
             public_notes=(data.get("publicNotes") or "").strip() or None,
             private_notes=(data.get("privateNotes") or "").strip() or None,
             dna=(data.get("dna") or "").strip() or None,
@@ -245,6 +248,7 @@ class Dog:
             meet_wins=row.get("MeetWins"),
             meet_appearences=row.get("MeetAppearences"),
             high_combined_wins=row.get("HighCombinedWins"),
+            aom_earned=row.get("AOMEarned"),
             public_notes=row.get("PublicNotes"),
             private_notes=row.get("PrivateNotes"),
             dna=row.get("DNA"),
@@ -263,7 +267,7 @@ class Dog:
                     CallName, RegisteredName, Birthdate, PedigreeLink,
                     Status, Average, CurrentGrade,
                     MeetPoints, ARXPoints, NARXPoints, ShowPoints,
-                    DPCLegs, MeetWins, MeetAppearences, HighCombinedWins, PublicNotes, PrivateNotes,
+                    DPCLegs, MeetWins, MeetAppearences, HighCombinedWins, AOMEarned, PublicNotes, PrivateNotes,
                     DNA, SireDNA, DamDNA, LastEditedBy, LastEditedAt
             FROM Dog
             WHERE CWANumber = %s
@@ -519,7 +523,7 @@ class Dog:
                     CallName, RegisteredName, Birthdate, PedigreeLink,
                     Status, Average, CurrentGrade,
                     MeetPoints, ARXPoints, NARXPoints, ShowPoints,
-                    DPCLegs, MeetWins, MeetAppearences, HighCombinedWins, PublicNotes, PrivateNotes,
+                    DPCLegs, MeetWins, MeetAppearences, HighCombinedWins, AOMEarned, PublicNotes, PrivateNotes,
                     DNA, SireDNA, DamDNA, LastEditedBy, LastEditedAt
                 )
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,
@@ -581,6 +585,7 @@ class Dog:
                     MeetWins = %s,
                     MeetAppearences = %s,
                     HighCombinedWins = %s,
+                    AOMEarned = %s,
                     PublicNotes = %s,
                     PrivateNotes = %s,
                     DNA = %s,
@@ -608,6 +613,7 @@ class Dog:
                     self.meet_wins,
                     self.meet_appearences,
                     self.high_combined_wins,
+                    self.aom_earned,
                     self.public_notes or None,
                     self.private_notes or None,
                     self.dna,
@@ -768,6 +774,7 @@ class Dog:
             "meetWins": self.meet_wins,
             "meetAppearences": self.meet_appearences,
             "highCombinedWins": self.high_combined_wins,
+            "aomEarned": self.aom_earned,
             "publicNotes": self.public_notes,
             "dna": self.dna,
             "sireDna": self.sire_dna,
