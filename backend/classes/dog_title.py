@@ -53,16 +53,16 @@ class DogTitle:
         )
 
     @classmethod
-    def find_by_identifier(cls, cwa_number, title):
+    def find_by_identifier(cls, cwa_number):
         """Find a person by cwa_number and title."""
         row = fetch_one(
             """
             SELECT CWANumber, Title, TitleNumber, TitleDate, NamePrefix, NameSuffix, LastEditedBy, LastEditedAt
             FROM DogTitles
-            WHERE CWANumber = %s AND Title = %s
+            WHERE CWANumber = %s
             LIMIT 1
             """,
-            (cwa_number, title,),
+            (cwa_number,),
         )
         return cls.from_db_row(row)
 
@@ -89,10 +89,6 @@ class DogTitle:
             errors.append("Title is required")
         if not self.title_number:
             errors.append("Title number is required")
-        if not self.name_prefix:
-            errors.append("Name prefix is required")
-        if not self.name_suffix:
-            errors.append("Name suffix is required")
         if len(self.cwa_number) > 10:
             errors.append("CWA number must be 10 characters or less")
         if len(self.title) > 10:
@@ -211,10 +207,8 @@ class DogTitle:
 
     @classmethod
     def sync_titles_for_dog(cls, dog, editor_id, edited_at):
-
         if not dog:
             return
-
         if not dog.cwa_number:
             return
 
@@ -229,13 +223,11 @@ class DogTitle:
         existing_titles = {row["Title"] for row in existing_rows}
 
         titles_to_add = qualified_titles - existing_titles
-        titles_to_remove = existing_titles - qualified_titles
 
         valid_titles_rows = fetch_all("SELECT Title FROM TitleType") or []
         valid_titles = {row["Title"] for row in valid_titles_rows}
 
         missing_titles = qualified_titles - valid_titles
-
         for title in missing_titles:
             execute(
                 "INSERT IGNORE INTO TitleType (Title) VALUES (%s)",
@@ -246,10 +238,10 @@ class DogTitle:
             new_title = cls(
                 cwa_number=dog.cwa_number,
                 title=title,
-                title_number="0", #need to come back to this 
+                title_number="0",
                 title_date=edited_at,
-                name_prefix="", #need to come back to this 
-                name_suffix="", #need to come back to this 
+                name_prefix="",
+                name_suffix="",
                 last_edited_by=editor_id,
                 last_edited_at=edited_at,
             )
@@ -270,35 +262,18 @@ class DogTitle:
                 after_obj=new_title.to_dict()
             )
 
-        for row in existing_rows:
-            title = row["Title"]
-
-            if title in titles_to_remove:
-
-                before_snapshot = cls.from_db_row(row).to_dict()
-
-                execute(
-                    "DELETE FROM DogTitles WHERE CWANumber = %s AND Title = %s",
-                    (dog.cwa_number, title),
-                )
-
-                ChangeLog.log(
-                    changed_table="DogTitles",
-                    record_pk=f"{dog.cwa_number}:{title}",
-                    operation="DELETE",
-                    changed_by=editor_id,
-                    source="sync_titles_for_dog",
-                    before_obj=before_snapshot,
-                    after_obj=None
-                )
-
     @classmethod
     def list_for_dog(cls, cwa_number):
         rows = fetch_all(
-            "SELECT * FROM DogTitles WHERE CWANumber = %s",
+            """
+            SELECT *
+            FROM DogTitles
+            WHERE CWANumber = %s
+            ORDER BY Title ASC
+            """,
             (cwa_number,),
         ) or []
-        return rows
+        return [cls.from_db_row(row) for row in rows]
 
 
 
@@ -310,7 +285,7 @@ class DogTitle:
             "TitleNumber": self.title_number,
         }
 
-    def to_dict(self, include_sensitive=False):
+    def to_dict(self):
         """Convert to dictionary for JSON responses."""
         data = {
             "cwaNumber": self.cwa_number,

@@ -7,6 +7,8 @@ import DogForm from "@/app/components/DogForm";
 import type { DogFormValues } from "@/app/admin/dogs/types";
 import { emptyDogFormValues } from "@/app/admin/dogs/types";
 import HeroSection from "@/app/components/HeroSection";
+import DogOwnersSection from "@/app/components/DogOwnersSection";
+import DogTitlesSection from "@/app/components/DogTitlesSection";
 
 /*
     Safely converts incoming unknown values to strings.
@@ -392,7 +394,7 @@ export default function EditDogPage() {
             </HeroSection>
 
             <section className="bg-[#E7F0E9] pb-24 pt-12">
-                <div className="mx-auto max-w-5xl px-4">
+                <div className="mx-auto max-w-5xl px-4 space-y-8">
                     <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                         <div>
                             <h2 className="text-2xl font-bold text-[#12301D]">
@@ -456,6 +458,13 @@ export default function EditDogPage() {
                             setForm={setForm}
                             isEditMode={true}
                         />
+                    )}
+
+                    {!loading && form.cwaNumber && (
+                        <>
+                            <DogOwnersSection cwaNumber={form.cwaNumber} />
+                            <DogTitlesSection cwaNumber={form.cwaNumber} />
+                        </>
                     )}
                 </div>
             </section>

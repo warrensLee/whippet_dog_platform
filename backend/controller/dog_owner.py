@@ -81,7 +81,7 @@ def add_owner():
     if not fetch_one("SELECT 1 FROM Dog WHERE CWANumber = %s LIMIT 1", (cwa_id,)):
         return jsonify({"ok": False, "error": "Dog does not exist"}), 404
 
-    if not fetch_one("SELECT 1 FROM Person WHERE PersonID = %s LIMIT 1", (person_id,)):
+    if not fetch_one("SELECT 1 FROM Person WHERE ID = %s LIMIT 1", (person_id,)):
         return jsonify({"ok": False, "error": "Person does not exist"}), 404
 
     if DogOwner.exists(cwa_id, person_id):
@@ -186,7 +186,7 @@ def transfer_primary_ownership():
     if not fetch_one("SELECT 1 FROM Dog WHERE CWANumber = %s LIMIT 1", (cwa_id,)):
         return jsonify({"ok": False, "error": "Dog does not exist"}), 404
 
-    if not fetch_one("SELECT 1 FROM Person WHERE PersonID = %s LIMIT 1", (new_owner_person_id,)):
+    if not fetch_one("SELECT 1 FROM Person WHERE ID = %s LIMIT 1", (new_owner_person_id,)):
         return jsonify({"ok": False, "error": "Person does not exist"}), 404
 
     try:

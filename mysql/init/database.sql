@@ -86,8 +86,8 @@ CREATE TABLE `DogTitles` (
     `Title` VARCHAR(10) NOT NULL,
     `TitleNumber` VARCHAR(10) NOT NULL,
     `TitleDate` DATE,
-    `NamePrefix` CHAR(1) NOT NULL,
-    `NameSuffix` CHAR(1) NOT NULL,
+    `NamePrefix` CHAR(1),
+    `NameSuffix` CHAR(1),
     `LastEditedBy` INT,
     `LastEditedAt` TIMESTAMP,
     UNIQUE (`CWANumber`, `Title`)

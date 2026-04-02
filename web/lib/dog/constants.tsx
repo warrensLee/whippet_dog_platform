@@ -116,5 +116,14 @@ export const TITLE_FAMILIES: TitleFamily[] = [
       { name: "HCX3", threshold: 20, color: "gold" },
       { name: "HCX4", threshold: 25, color: "green" },
     ],
+    extraCheck: (dog: DogDetail) => {
+      if (!dog.birthdate) return "Birthdate required to verify age";
+      const birth = new Date(dog.birthdate);
+      const now = new Date();
+      const ageMonths =
+        (now.getFullYear() - birth.getFullYear()) * 12 +
+        (now.getMonth() - birth.getMonth());
+      return ageMonths >= 14 ? null : "Adult dogs only (14+ months)";
+    },
   },
 ];

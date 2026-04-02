@@ -109,7 +109,7 @@ def edit_dog_title():
     if not fetch_one("SELECT 1 FROM TitleType WHERE Title = %s LIMIT 1", (title,)):
         return jsonify({"ok": False, "error": "Title type does not exist"}), 404
 
-    existing = DogTitle.find_by_identifier(cwa_number, title)
+    existing = DogTitle.find_by_identifier(cwa_number)
     if not existing:
         return jsonify({"ok": False, "error": "Dog title does not exist"}), 404
 
@@ -127,7 +127,7 @@ def edit_dog_title():
 
     try:
         dog_title.update()
-        refreshed = DogTitle.find_by_identifier(cwa_number, title)
+        refreshed = DogTitle.find_by_identifier(cwa_number)
         after_snapshot = refreshed.to_dict() if refreshed else dog_title.to_dict()
 
         ChangeLog.log(
@@ -176,7 +176,7 @@ def delete_dog_title():
             }), 403
 
     try:
-        dog_title = DogTitle.find_by_identifier(cwa_number, title)
+        dog_title = DogTitle.find_by_identifier(cwa_number)
         if not dog_title:
             return jsonify({"ok": False, "error": "Dog title does not exist"}), 404
 
@@ -199,8 +199,8 @@ def delete_dog_title():
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
 
-@dog_title_bp.get("/get/<cwa_number>/<title>")
-def get_dog_title(cwa_number, title):
+@dog_title_bp.get("/get/<cwa_number>")
+def get_dog_title(cwa_number):
     """Get a specific dog title."""
     # role = current_role()
     # if not role:
@@ -217,11 +217,9 @@ def get_dog_title(cwa_number, title):
     #             "error": "You can only view titles on dogs you own"
     #         }), 403
 
-    dog_title = DogTitle.find_by_identifier(cwa_number, title)
-    if not dog_title:
-        return jsonify({"ok": False, "error": "Dog title does not exist"}), 404
-
-    return jsonify({"ok": True, "data": dog_title.to_dict()}), 200
+    dog_titles = DogTitle.list_for_dog(cwa_number)
+    data = [t.to_dict() for t in dog_titles]
+    return jsonify({"ok": True, "data": data}), 200
 
 
 @dog_title_bp.get("/get")

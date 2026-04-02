@@ -18,6 +18,17 @@ import { TITLE_FAMILIES } from "../../../lib/dog/constants";
 import { ageLabel, calcAgeMonths, getStatusColor } from "../../../lib/dog/utils";
 import type { DogDetail, DogOwner, MeetEntry } from "../../../lib/dog/types";
 
+type DogTitle = {
+  cwaNumber: string;
+  lastEditedAt?: string | null;
+  lastEditedBy?: number | null;
+  namePrefix?: string | null;
+  nameSuffix?: string | null;
+  title: string;
+  titleDate?: string | null;
+  titleNumber?: string | number | null;
+};
+
 export default function DogPage() {
   const params = useParams();
   const cwaNumber = decodeURIComponent(String(params.id ?? ""));
@@ -26,6 +37,7 @@ export default function DogPage() {
   const [dog, setDog] = React.useState<DogDetail | null>(null);
   const [meets, setMeets] = React.useState<MeetEntry[]>([]);
   const [owners, setOwners] = React.useState<DogOwner[]>([]);
+  const [titles, setTitles] = React.useState<DogTitle[]>([]);
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
@@ -35,10 +47,11 @@ export default function DogPage() {
       try {
         setLoading(true);
 
-        const [dogRes, meetsRes, ownersRes] = await Promise.allSettled([
+        const [dogRes, meetsRes, ownersRes, titlesRes] = await Promise.allSettled([
           fetchJson<{ ok: boolean; data: DogDetail }>(`/api/dog/get/${encodedCwaNumber}`),
           fetchJson<{ ok: boolean; data: MeetEntry[] }>(`/api/dog/meets/${encodedCwaNumber}`),
           fetchJson<{ ok: boolean; data: DogOwner[] }>(`/api/dog_owner/owners/${encodedCwaNumber}`),
+          fetchJson<{ ok: boolean; data: DogTitle[] }>(`/api/dog_title/get/${encodedCwaNumber}`),
         ]);
 
         setDog(dogRes.status === "fulfilled" ? dogRes.value.data : null);
@@ -50,6 +63,15 @@ export default function DogPage() {
         setOwners(
           ownersRes.status === "fulfilled" && Array.isArray(ownersRes.value.data)
             ? ownersRes.value.data
+            : []
+        );
+        setTitles(
+          titlesRes.status === "fulfilled"
+            ? Array.isArray(titlesRes.value.data)
+              ? titlesRes.value.data
+              : titlesRes.value.data
+                ? [titlesRes.value.data]
+                : []
             : []
         );
       } finally {
@@ -165,18 +187,12 @@ export default function DogPage() {
 
           {dog && (
             <Card>
-              <h3 className="mb-3 text-sm font-semibold text-[#12301D]">
-                Notes
-              </h3>
+              <h3 className="mb-3 text-sm font-semibold text-[#12301D]">Notes</h3>
 
               {dog.publicNotes ? (
-                <p className="text-sm text-[#12301D]/70">
-                  {dog.publicNotes}
-                </p>
+                <p className="text-sm text-[#12301D]/70">{dog.publicNotes}</p>
               ) : (
-                <p className="text-sm text-[#12301D]/40 italic">
-                  No notes available
-                </p>
+                <p className="text-sm text-[#12301D]/40 italic">No notes available</p>
               )}
 
               {dog.privateNotes && (
@@ -184,9 +200,7 @@ export default function DogPage() {
                   <p className="text-[10px] uppercase tracking-wide text-[#12301D]/40">
                     Private
                   </p>
-                  <p className="text-sm text-[#12301D]/70">
-                    {dog.privateNotes}
-                  </p>
+                  <p className="text-sm text-[#12301D]/70">{dog.privateNotes}</p>
                 </div>
               )}
             </Card>
@@ -246,6 +260,43 @@ export default function DogPage() {
               </div>
             </div>
           )}
+
+          <Card title={`All Titles${titles.length ? ` (${titles.length})` : ""}`}>
+            {loading ? (
+              <p className="py-2 text-center text-sm text-[#12301D]/40">Loading…</p>
+            ) : titles.length === 0 ? (
+              <p className="py-2 text-center text-sm text-[#12301D]/40">No titles on record.</p>
+            ) : (
+              <div className="divide-y divide-black/5">
+                {titles.map((titleItem, index) => {
+                  const titleLabel = [
+                    titleItem.namePrefix,
+                    titleItem.title,
+                    titleItem.nameSuffix,
+                  ]
+                    .filter((v) => v && String(v).trim() !== "")
+                    .join(" ");
+
+                  return (
+                    <div
+                      key={`${titleItem.title}-${titleItem.titleNumber ?? "base"}-${index}`}
+                      className="py-3 first:pt-0 last:pb-0"
+                    >
+                      <p className="text-sm font-semibold text-[#12301D]">
+                        {titleLabel || titleItem.title}
+                      </p>
+
+                      {titleItem.titleDate && (
+                        <p className="mt-1 text-xs text-[#12301D]/60">
+                          Earned: {formatDate(titleItem.titleDate)}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Card>
 
           <Card title={`Meet History${meets.length ? ` (${meets.length})` : ""}`}>
             {meets.length === 0 ? (
