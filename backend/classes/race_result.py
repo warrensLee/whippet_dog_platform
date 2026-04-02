@@ -204,6 +204,33 @@ class RaceResult:
         """
         rows = fetch_all(query, (person_id,))
         return [cls.from_db_row(row) for row in rows]
+
+    def count_num_adult_whippets(self, cwa_numbers):
+        """Calculate the number of adult whippets in the race based on CWA numbers."""
+        count_adults = 0
+        for cwa in cwa_numbers:
+            dog = Dog.find_by_identifier(cwa)
+            if dog and dog.is_adult():
+                count_adults += 1
+    
+        return count_adults
+    
+    def get_dpc_point_distribution(self, count_adults):
+        """Determine point distribution based on number of adult whippets."""
+        if count_adults >= 70:
+            return [8, 6, 4, 2]
+        elif count_adults >= 60:
+            return [7, 5, 3, 1]
+        elif count_adults >= 50:
+            return [6, 4, 2, 1]
+        elif count_adults >= 40:
+            return [6, 4, 2]
+        elif count_adults >= 30:
+            return [5, 3, 1]
+        elif count_adults >= 20:
+            return [4, 2]
+        elif count_adults >= 10:
+            return [3, 1]
             
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""
