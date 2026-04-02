@@ -97,7 +97,7 @@ export default function SearchPage() {
                         total: Number(json.total ?? 0),
                         items: Array.isArray(json.items)
                             ? json.items.map(
-                                (item: any) => {
+                                (item: Record<string, unknown>) => {
                                     return {
                                         id: String(item.id ?? ""),
                                         cwaNumber: String(item.regNo ?? item.id ?? ""),

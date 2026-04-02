@@ -51,20 +51,25 @@ type RaceLineup = {
     entries: RaceLineupEntry[];
 };
 
-function normalizeEventDetail(e: any): EventDetail
-{
+function normalizeEventDetail(e: Record<string, unknown>): EventDetail {
+    // Helper to check both camelCase and PascalCase
+    const get = (key: string): string => {
+        const pascal = key.charAt(0).toUpperCase() + key.slice(1);
+        const value = e[key] ?? e[pascal];
+        return typeof value === 'string' ? value : "";
+    };
     return {
-        meetNumber: e.meetNumber ?? e.MeetNumber ?? "",
-        meetDate: e.meetDate ?? e.MeetDate ?? "",
-        clubAbbreviation: e.clubAbbreviation ?? e.ClubAbbreviation ?? "",
-        raceSecretary: e.raceSecretary ?? e.RaceSecretary ?? "",
-        judge: e.judge ?? e.Judge ?? "",
-        location: e.location ?? e.Location ?? "",
-        yards: e.yards ?? e.Yards ?? "",
-        requestFormLink: e.requestFormLink ?? e.RequestFormLink ?? "",
-        resultsLink: e.resultsLink ?? e.ResultsLink ?? "",
-        notes: e.notes ?? e.Notes ?? "",
-        status: e.status ?? e.Status ?? "",
+        meetNumber: get("meetNumber"),
+        meetDate: get("meetDate"),
+        clubAbbreviation: get("clubAbbreviation"),
+        raceSecretary: get("raceSecretary"),
+        judge: get("judge"),
+        location: get("location"),
+        yards: get("yards"),
+        requestFormLink: get("requestFormLink"),
+        resultsLink: get("resultsLink"),
+        notes: get("notes"),
+        status: get("status"),
     };
 }
 
@@ -72,8 +77,7 @@ function normalizeEventDetail(e: any): EventDetail
     Grouping by program makes the page read like a real event schedule
     instead of one flat pile of races.
 */
-function groupRacesByProgram(races: MeetRace[])
-{
+function groupRacesByProgram(races: MeetRace[]) {
     const groups = new Map<string, MeetRace[]>();
 
     for (const race of races) {
@@ -123,8 +127,7 @@ function groupRacesByProgram(races: MeetRace[])
     It is the only real complex interactive piece on this page,
     so leaving it here makes debugging easier before we extract it.
 */
-function RaceAccordionCard({ meetNumber, race }: { meetNumber: string; race: MeetRace })
-{
+function RaceAccordionCard({ meetNumber, race }: { meetNumber: string; race: MeetRace }) {
     const [open, setOpen] = React.useState(false);
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState("");
@@ -135,8 +138,7 @@ function RaceAccordionCard({ meetNumber, race }: { meetNumber: string; race: Mee
 
         let cancelled = false;
 
-        async function loadRaceLineup()
-        {
+        async function loadRaceLineup() {
             try {
                 setLoading(true);
                 setError("");
@@ -251,8 +253,7 @@ function RaceAccordionCard({ meetNumber, race }: { meetNumber: string; race: Mee
     );
 }
 
-export default function MeetPage()
-{
+export default function MeetPage() {
     const params = useParams();
     const meetNumber = decodeURIComponent(String(params.meetNumber ?? ""));
     const encodedMeetNumber = encodeURIComponent(meetNumber);
@@ -267,8 +268,7 @@ export default function MeetPage()
     React.useEffect(() => {
         let cancelled = false;
 
-        async function loadMeetPage()
-        {
+        async function loadMeetPage() {
             if (!meetNumber) {
                 setError("Missing meet number.");
                 setLoading(false);
@@ -293,7 +293,7 @@ export default function MeetPage()
                 if (cancelled) return;
 
                 if (eventRes.status === "fulfilled") {
-                    setEvent(normalizeEventDetail(eventRes.value.data));
+                    setEvent(normalizeEventDetail(eventRes.value.data as unknown as Record<string, unknown>));
                 } else {
                     setEvent(null);
                     setError(
@@ -327,24 +327,24 @@ export default function MeetPage()
         statusLabel === "Upcoming"
             ? "bg-blue-100 text-blue-700"
             : statusLabel === "Completed"
-            ? "bg-emerald-100 text-emerald-700"
-            : "bg-neutral-200 text-neutral-600";
+                ? "bg-emerald-100 text-emerald-700"
+                : "bg-neutral-200 text-neutral-600";
 
     const totalEntries = races.reduce((sum, race) => sum + (race.entryCount ?? 0), 0);
 
     const heroTitle = loading
         ? "Loading Event..."
         : event?.clubAbbreviation
-        ? event.clubAbbreviation
-        : event?.meetNumber
-        ? `Event ${event.meetNumber}`
-        : "Event";
+            ? event.clubAbbreviation
+            : event?.meetNumber
+                ? `Event ${event.meetNumber}`
+                : "Event";
 
     const heroSubtitle = loading
         ? "Loading event details and related information."
         : event?.meetDate
-        ? `${formatDate(event.meetDate)}${event.location ? ` • ${event.location}` : ""}`
-        : "View event details, programs, and race information.";
+            ? `${formatDate(event.meetDate)}${event.location ? ` • ${event.location}` : ""}`
+            : "View event details, programs, and race information.";
 
     return (
         <main className="min-h-screen bg-[#1F4D2E]">

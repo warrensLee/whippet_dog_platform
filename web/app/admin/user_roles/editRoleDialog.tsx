@@ -14,7 +14,7 @@ import {
     Box,
 } from '@mui/material';
 import UserRole, { SCOPE_FIELDS } from './types';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
 const SCOPE_OPTIONS = [
     { value: 0, label: 'None' },
@@ -64,8 +64,15 @@ const EditRoleDialog = ({ open, onClose, roleData, onSave }: { open: boolean, on
             setTitleError(null);
             onSave();
             onClose();
-        } catch (err: any) {
-            setTitleError(err.response?.data?.error || "Failed to save role");
+        } catch (err: unknown) {
+            if (err instanceof AxiosError && err.response) {
+                setTitleError(err.response?.data?.error || "Failed to save role");
+            } else if (err instanceof Error && err.message) {
+                setTitleError(err.message)
+            } else {
+                setTitleError("failed to save role")
+
+            }
         }
     };
 

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import AuthGuard from '@/lib/auth/authGuard';
 import HeroSection from '@/app/components/HeroSection';
 
@@ -67,8 +67,14 @@ export default function AdminUsersPage() {
       setLoading(true);
       setError('');
       await Promise.all([fetchUsers(''), fetchRoles()]);
-    } catch (err: any) {
-      setError(err?.response?.data?.error || 'Failed to load users');
+    } catch (err: unknown) {
+      if (err instanceof AxiosError && err.response) {
+        setError(err.response.data.error || 'Failed to load users');
+      } else if (err instanceof Error) {
+        setError(err.message || "Failed to load users!")
+      } else {
+        setError("Failed to load users!")
+      }
     } finally {
       setLoading(false);
     }
@@ -191,31 +197,37 @@ export default function AdminUsersPage() {
         prev.map((u) =>
           u.id === form.id
             ? {
-                ...u,
-                personId: form.personId,
-                firstName: form.firstName,
-                lastName: form.lastName,
-                email: form.email,
-                addressLineOne: form.addressLineOne,
-                addressLineTwo: form.addressLineTwo,
-                city: form.city,
-                stateProvince: form.stateProvince,
-                zipCode: form.zipCode,
-                country: form.country,
-                primaryPhone: form.primaryPhone,
-                secondaryPhone: form.secondaryPhone,
-                systemRole: form.systemRole,
-                notes: form.notes,
-                locked: form.locked,
-              }
+              ...u,
+              personId: form.personId,
+              firstName: form.firstName,
+              lastName: form.lastName,
+              email: form.email,
+              addressLineOne: form.addressLineOne,
+              addressLineTwo: form.addressLineTwo,
+              city: form.city,
+              stateProvince: form.stateProvince,
+              zipCode: form.zipCode,
+              country: form.country,
+              primaryPhone: form.primaryPhone,
+              secondaryPhone: form.secondaryPhone,
+              systemRole: form.systemRole,
+              notes: form.notes,
+              locked: form.locked,
+            }
             : u
         )
       );
 
       setSuccess('User updated successfully');
       setOpen(false);
-    } catch (err: any) {
-      setError(err?.response?.data?.error || 'Failed to update user');
+    } catch (err: unknown) {
+      if (err instanceof AxiosError && err.response) {
+        setError(err.response.data.error || 'Failed to update user!');
+      } else if (err instanceof Error) {
+        setError(err.message || "Failed to update user!")
+      } else {
+        setError("Failed to update user!")
+      }
     } finally {
       setSaving(false);
     }
@@ -251,8 +263,14 @@ export default function AdminUsersPage() {
       await fetchUsers('');
       setSuccess('User created successfully');
       setAddOpen(false);
-    } catch (err: any) {
-      setAddError(err?.response?.data?.error || 'Failed to create user');
+    } catch (err: unknown) {
+      if (err instanceof AxiosError && err.response) {
+        setError(err.response.data.error || 'Failed to add user!');
+      } else if (err instanceof Error) {
+        setError(err.message || "Failed to add user!")
+      } else {
+        setError("Failed to add user!")
+      }
     } finally {
       setSaving(false);
     }

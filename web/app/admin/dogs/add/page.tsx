@@ -49,8 +49,6 @@ export default function AddDogPage() {
     /*
         Auth state protects the page from unauthorized users.
     */
-    const [authLoading, setAuthLoading] = React.useState(true);
-    const [authorized, setAuthorized] = React.useState(false);
 
     /*
         Form and submission state.
@@ -59,58 +57,6 @@ export default function AddDogPage() {
     const [error, setError] = React.useState("");
     const [success, setSuccess] = React.useState("");
     const [form, setForm] = React.useState<DogFormValues>(emptyDogFormValues);
-
-    /*
-        Check whether the current user is allowed to manage dog records.
-        If not, redirect them to the admin login page.
-    */
-    React.useEffect(
-        () => {
-            let cancelled = false;
-
-            async function checkAccess() {
-                try {
-                    const res = await fetch(
-                        "/api/auth/me",
-                        {
-                            cache: "no-store",
-                            credentials: "include",
-                        }
-                    );
-
-                    const json = await res.json().catch(
-                        () => {
-                            return null;
-                        }
-                    );
-
-                    if (!res.ok || !json?.signedIn || !json?.canManageDogs) {
-                        //router.replace("/login");
-                        return;
-                    }
-
-                    if (!cancelled) {
-                        setAuthorized(true);
-                    }
-                }
-                catch {
-                    //router.replace("/login");
-                }
-                finally {
-                    if (!cancelled) {
-                        setAuthLoading(false);
-                    }
-                }
-            }
-
-            checkAccess();
-
-            return () => {
-                cancelled = true;
-            };
-        },
-        [router]
-    );
 
     /*
         Generic field updater passed down into the shared DogForm component.

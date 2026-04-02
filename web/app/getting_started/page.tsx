@@ -21,7 +21,7 @@ export default function Home() {
       "
       >
 
-       {/* Title */}
+        {/* Title */}
 
         <div className="relative z-10 flex flex-1 items-end justify-end pb-40 pr-16">
           <h1 className="
@@ -89,7 +89,7 @@ export default function Home() {
             was established in 1990. The primary mission of the CWA is to promote,
             protect and preserve purebred Whippet racing and to provide a friendly
             and enjoyable environment for sportsmanlike competition. It is the
-            objective of the CWA to play a role in the preservation of the Whippet's
+            objective of the CWA to play a role in the preservation of the Whippet&apos;s
             athletic ability, sporting instincts and functional breed characteristics;
             to foster future generations of fit, versatile individuals that are true
             to the AKC Whippet Breed Standard.

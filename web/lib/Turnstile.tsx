@@ -1,6 +1,17 @@
 import Script from "next/script";
 import { useEffect } from "react";
 
+declare global {
+    interface Turnstile {
+        reset(widgetId?: string): void;
+    }
+
+    interface Window {
+        turnstile?: Turnstile;
+        handleTurnstileSuccess?(token: string): void
+    }
+}
+
 export default function Turnstile({ onSuccess }: { onSuccess: (token: string) => void }) {
     useEffect(() => {
         window.handleTurnstileSuccess = (token: string) => {

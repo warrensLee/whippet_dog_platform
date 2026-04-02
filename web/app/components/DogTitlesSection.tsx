@@ -76,16 +76,16 @@ export default function DogTitlesSection({ cwaNumber }: { cwaNumber: string }) {
             const mapped: DogTitle[] =
                 json?.ok && Array.isArray(json.data)
                     ? json.data
-                          .map((item: any) => ({
-                              cwaNumber: String(item.cwaNumber ?? ""),
-                              title: String(item.title ?? ""),
-                              titleDate: String(item.titleDate ?? ""),
-                              titleNumber: String(item.titleNumber ?? ""),
-                              namePrefix: String(item.namePrefix ?? ""),
-                              nameSuffix: String(item.nameSuffix ?? ""),
-                          }))
-                          .filter((item: any) => item.cwaNumber === cwaNumber)
-                          .map(({ cwaNumber: _ignored, ...title }) => title)
+                        .map((item: Record<string, unknown>) => ({
+                            cwaNumber: String(item.cwaNumber ?? ""),
+                            title: String(item.title ?? ""),
+                            titleDate: String(item.titleDate ?? ""),
+                            titleNumber: String(item.titleNumber ?? ""),
+                            namePrefix: String(item.namePrefix ?? ""),
+                            nameSuffix: String(item.nameSuffix ?? ""),
+                        }))
+                        .filter((item: { cwaNumber: string; }) => item.cwaNumber === cwaNumber)
+                        .map(({ ...title }) => title)
                     : [];
 
             setTitles(mapped);
@@ -108,12 +108,12 @@ export default function DogTitlesSection({ cwaNumber }: { cwaNumber: string }) {
 
             const mapped: TitleType[] =
                 json?.ok && Array.isArray(json.data)
-                    ? json.data.map((item: any) => ({
-                          title: String(item.title ?? ""),
-                          titleDescription: String(item.titleDescription ?? ""),
-                          lastEditedBy: item.lastEditedBy ?? null,
-                          lastEditedAt: item.lastEditedAt ?? null,
-                      }))
+                    ? json.data.map((item: Record<string, unknown>) => ({
+                        title: String(item.title ?? ""),
+                        titleDescription: String(item.titleDescription ?? ""),
+                        lastEditedBy: item.lastEditedBy ?? null,
+                        lastEditedAt: item.lastEditedAt ?? null,
+                    }))
                     : [];
 
             setTitleTypes(mapped.filter((item) => item.title));

@@ -2,7 +2,6 @@ import { useEffect } from "react";
 
 import CancelIcon from '@mui/icons-material/Cancel';
 import { GridCheckCircleIcon } from "@mui/x-data-grid";
-import axios from "axios";
 import { Paper, Typography } from "@mui/material";
 class PasswordRequirement {
     description: string
@@ -16,7 +15,7 @@ class PasswordRequirement {
 
 export default function PasswordRequirements({ password, setRequirementsMet }: { password: string, setRequirementsMet: (f: boolean) => void }) {
 
-    let commonPasswords = new Set()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const requirements = [
         new PasswordRequirement("Must be at least 12 characters", (password) => password.length >= 12),
         new PasswordRequirement("Must have at least 1 uppercase character", (password) => password.toLowerCase() != password),
@@ -32,7 +31,7 @@ export default function PasswordRequirements({ password, setRequirementsMet }: {
             }
         }
         setRequirementsMet(true);
-    }, [password, setRequirementsMet])
+    }, [password, requirements, setRequirementsMet])
 
     return (
         <Paper sx={{ display: "flex", flexDirection: "column", backgroundColor: "lightgray" }}>
