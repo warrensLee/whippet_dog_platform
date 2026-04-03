@@ -59,30 +59,30 @@ export default function DogOwnersSection({ cwaNumber }: { cwaNumber: string }) {
 
             const mapped: Owner[] =
                 json?.ok && Array.isArray(json.data)
-                    ? json.data.map((owner: any) => ({
-                          personId: String(
-                              owner.personId ??
-                              owner.PersonID ??
-                              owner.id ??
-                              owner.ID ??
-                              ""
-                          ).trim(),
-                          firstName: String(
-                              owner.firstName ??
-                              owner.FirstName ??
-                              ""
-                          ),
-                          lastName: String(
-                              owner.lastName ??
-                              owner.LastName ??
-                              ""
-                          ),
-                          email: String(
-                              owner.email ??
-                              owner.EmailAddress ??
-                              ""
-                          ),
-                      }))
+                    ? json.data.map((owner: Record<string, unknown>) => ({
+                        personId: String(
+                            owner.personId ??
+                            owner.PersonID ??
+                            owner.id ??
+                            owner.ID ??
+                            ""
+                        ).trim(),
+                        firstName: String(
+                            owner.firstName ??
+                            owner.FirstName ??
+                            ""
+                        ),
+                        lastName: String(
+                            owner.lastName ??
+                            owner.LastName ??
+                            ""
+                        ),
+                        email: String(
+                            owner.email ??
+                            owner.EmailAddress ??
+                            ""
+                        ),
+                    }))
                     : [];
 
             setOwners(mapped.filter((owner) => owner.personId));
@@ -125,32 +125,32 @@ export default function DogOwnersSection({ cwaNumber }: { cwaNumber: string }) {
 
             const mapped: PersonSearchResult[] = Array.isArray(json.data)
                 ? json.data
-                      .map((person: any) => ({
-                          personId: String(
-                              person.id ??
-                              person.ID ??
-                              person.personId ??
-                              person.PersonID ??
-                              ""
-                          ).trim(),
-                          firstName: String(
-                              person.firstName ??
-                              person.FirstName ??
-                              ""
-                          ),
-                          lastName: String(
-                              person.lastName ??
-                              person.LastName ??
-                              ""
-                          ),
-                          email: String(
-                              person.email ??
-                              person.EmailAddress ??
-                              person.emailAddress ??
-                              ""
-                          ),
-                      }))
-                      .filter((person: PersonSearchResult) => person.personId)
+                    .map((person: Record<string, unknown>) => ({
+                        personId: String(
+                            person.id ??
+                            person.ID ??
+                            person.personId ??
+                            person.PersonID ??
+                            ""
+                        ).trim(),
+                        firstName: String(
+                            person.firstName ??
+                            person.FirstName ??
+                            ""
+                        ),
+                        lastName: String(
+                            person.lastName ??
+                            person.LastName ??
+                            ""
+                        ),
+                        email: String(
+                            person.email ??
+                            person.EmailAddress ??
+                            person.emailAddress ??
+                            ""
+                        ),
+                    }))
+                    .filter((person: PersonSearchResult) => person.personId)
                 : [];
 
             setPeopleOptions(mapped);

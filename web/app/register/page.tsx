@@ -42,7 +42,7 @@ export default function RegisterPage() {
         }),
       });
 
-      const data = (await res.json().catch(() => null)) as any;
+      const data = (await res.json().catch(() => null));
 
       if (res.ok && data?.ok) {
         setStatus("success");
@@ -53,9 +53,13 @@ export default function RegisterPage() {
 
       setStatus("error");
       setMessage(data?.error || "Registration failed");
-    } catch (err: any) {
+    } catch (err: unknown) {
       setStatus("error");
-      setMessage(err?.message || "Registration failed");
+      if (err instanceof Error) {
+        setMessage(err.message);
+      } else {
+        setMessage("Registration Failed")
+      }
     } finally {
       setSubmitting(false);
     }
@@ -103,7 +107,7 @@ export default function RegisterPage() {
           />
 
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 label="First Name"
                 variant="outlined"
@@ -116,7 +120,7 @@ export default function RegisterPage() {
                 required
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 label="Last Name"
                 variant="outlined"

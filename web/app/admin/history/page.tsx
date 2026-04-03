@@ -31,8 +31,8 @@ interface ChangeLog {
   recordPk: string;
   changedBy: string;
   changedAt: string;
-  beforeData: any;
-  afterData: any;
+  beforeData: unknown;
+  afterData: unknown;
 }
 
 const getOperationChip = (operation: string) => {
@@ -56,17 +56,17 @@ const formatDate = (value: string) => {
   return isNaN(d.getTime()) ? value : d.toLocaleString();
 };
 
-const parseJson = (value: any) => {
+const parseJson = (value: unknown) => {
   if (!value) return null;
   if (typeof value === "object") return value;
   try {
-    return JSON.parse(value);
+    return JSON.parse(String(value));
   } catch {
     return value;
   }
 };
 
-const JsonBlock = ({ data }: { data: any }) => {
+const JsonBlock = ({ data }: { data: unknown }) => {
   const parsed = parseJson(data);
 
   if (!parsed) {

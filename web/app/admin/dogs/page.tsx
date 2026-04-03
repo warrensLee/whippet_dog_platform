@@ -87,7 +87,7 @@ export default function AdminDogsPage() {
 
                 const mappedItems = Array.isArray(json.items)
                     ? json.items.map(
-                        (item: any) => {
+                        (item: Record<string, unknown>) => {
                             return {
                                 id: String(item.id ?? ""),
                                 cwaNumber: String(item.regNo ?? item.id ?? ""),

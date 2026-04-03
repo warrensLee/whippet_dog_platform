@@ -108,7 +108,7 @@ export default function AdminEventsPage() {
                 setLoading(false);
             }
         },
-        [q]
+        [limit, page, q, sort]
     );
 
     /*
@@ -117,6 +117,7 @@ export default function AdminEventsPage() {
     */
     React.useEffect(
         () => {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             let cancelled = false;
 
 
@@ -217,7 +218,7 @@ export default function AdminEventsPage() {
 
 
     // updated to ouptput correct data and counts based on search results, not just total in DB
-    const items = data?.data  ?? [];
+    const items = data?.data ?? [];
     const total = items.length;
     /*
         Sort the loaded Event records on the frontend based on the selected option.
@@ -365,24 +366,24 @@ export default function AdminEventsPage() {
 
         return `/admin/events?${params.toString()}`;
     }
-    
+
     function formatMeetDate(value?: string) {
-    if (!value) {
-        return "—";
+        if (!value) {
+            return "—";
+        }
+
+        const date = new Date(value);
+
+        if (Number.isNaN(date.getTime())) {
+            return value;
+        }
+
+        return date.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+        });
     }
-
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-        return value;
-    }
-
-    return date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-    });
-}
 
     return (
         <main className="pt-24 bg-[#1F4D2E]">
@@ -628,100 +629,100 @@ export default function AdminEventsPage() {
                             pagedItems.map(
                                 (e) => {
                                     return (
-                        <div
-                            key={e.meetNumber}
-                            className="rounded-2xl border border-black/10 bg-white/90 backdrop-blur p-5 shadow-sm transition hover:shadow-md hover:-translate-y-[2px] hover:border-[#2E6B3F]/35"
-                        >
-                            <div className="flex items-center justify-between">
-                            {/* LEFT SIDE */}
-                            <div className="flex items-center gap-3">
-                                <input
-                                type="checkbox"
-                                checked={selectedEvents.includes(e.meetNumber)}
-                                onChange={() => toggleEventSelection(e.meetNumber)}
-                                disabled={deleting}
-                                className="h-4 w-4 rounded border-black/20"
-                                />
+                                        <div
+                                            key={e.meetNumber}
+                                            className="rounded-2xl border border-black/10 bg-white/90 backdrop-blur p-5 shadow-sm transition hover:shadow-md hover:-translate-y-[2px] hover:border-[#2E6B3F]/35"
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                {/* LEFT SIDE */}
+                                                <div className="flex items-center gap-3">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedEvents.includes(e.meetNumber)}
+                                                        onChange={() => toggleEventSelection(e.meetNumber)}
+                                                        disabled={deleting}
+                                                        className="h-4 w-4 rounded border-black/20"
+                                                    />
 
-                                <div className="text-2xl font-bold text-[#12301D]">
-                                {e.meetNumber}
-                                </div>
-                            </div>
+                                                    <div className="text-2xl font-bold text-[#12301D]">
+                                                        {e.meetNumber}
+                                                    </div>
+                                                </div>
 
-                            {/* RIGHT SIDE */}
-                            <div className="inline-flex rounded-full bg-[#2E6B3F]/10 px-3 py-1 text-xs font-semibold text-[#2E6B3F]">
-                                {e.clubAbbreviation || "No Club"}
-                            </div>
-                            </div>
+                                                {/* RIGHT SIDE */}
+                                                <div className="inline-flex rounded-full bg-[#2E6B3F]/10 px-3 py-1 text-xs font-semibold text-[#2E6B3F]">
+                                                    {e.clubAbbreviation || "No Club"}
+                                                </div>
+                                            </div>
 
-                            {/* Main details */}
-                            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-[#12301D]/75">
-                                <div className="rounded-xl bg-[#E7F0E9] px-3 py-2">
-                                    <span className="block text-xs font-semibold uppercase tracking-wide text-[#12301D]/55">
-                                        Date
-                                    </span>
-                                    <span>{formatMeetDate(e.meetDate)}</span>
-                                </div>
+                                            {/* Main details */}
+                                            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-[#12301D]/75">
+                                                <div className="rounded-xl bg-[#E7F0E9] px-3 py-2">
+                                                    <span className="block text-xs font-semibold uppercase tracking-wide text-[#12301D]/55">
+                                                        Date
+                                                    </span>
+                                                    <span>{formatMeetDate(e.meetDate)}</span>
+                                                </div>
 
-                                <div className="rounded-xl bg-[#E7F0E9] px-3 py-2">
-                                    <span className="block text-xs font-semibold uppercase tracking-wide text-[#12301D]/55">
-                                        Location
-                                    </span>
-                                    <span>{e.location || "—"}</span>
-                                </div>
+                                                <div className="rounded-xl bg-[#E7F0E9] px-3 py-2">
+                                                    <span className="block text-xs font-semibold uppercase tracking-wide text-[#12301D]/55">
+                                                        Location
+                                                    </span>
+                                                    <span>{e.location || "—"}</span>
+                                                </div>
 
-                                <div className="rounded-xl bg-[#E7F0E9] px-3 py-2">
-                                    <span className="block text-xs font-semibold uppercase tracking-wide text-[#12301D]/55">
-                                        Race Secretary
-                                    </span>
-                                    <span>{e.raceSecretary || "—"}</span>
-                                </div>
+                                                <div className="rounded-xl bg-[#E7F0E9] px-3 py-2">
+                                                    <span className="block text-xs font-semibold uppercase tracking-wide text-[#12301D]/55">
+                                                        Race Secretary
+                                                    </span>
+                                                    <span>{e.raceSecretary || "—"}</span>
+                                                </div>
 
-                                <div className="rounded-xl bg-[#E7F0E9] px-3 py-2">
-                                    <span className="block text-xs font-semibold uppercase tracking-wide text-[#12301D]/55">
-                                        Judge
-                                    </span>
-                                    <span>{e.judge || "—"}</span>
-                                </div>
-                            </div>
+                                                <div className="rounded-xl bg-[#E7F0E9] px-3 py-2">
+                                                    <span className="block text-xs font-semibold uppercase tracking-wide text-[#12301D]/55">
+                                                        Judge
+                                                    </span>
+                                                    <span>{e.judge || "—"}</span>
+                                                </div>
+                                            </div>
 
-                            {/* Secondary detail */}
-                            <div className="mt-3 text-sm text-[#12301D]/70">
-                                <span className="font-semibold text-[#12301D]">Yards:</span> {e.yards || "—"}
-                            </div>
+                                            {/* Secondary detail */}
+                                            <div className="mt-3 text-sm text-[#12301D]/70">
+                                                <span className="font-semibold text-[#12301D]">Yards:</span> {e.yards || "—"}
+                                            </div>
 
-                            <div className="mt-4 h-px w-full bg-gradient-to-r from-[#2E6B3F]/35 via-black/5 to-transparent" />
+                                            <div className="mt-4 h-px w-full bg-gradient-to-r from-[#2E6B3F]/35 via-black/5 to-transparent" />
 
-                            {/* Actions */}
-                            <div className="mt-4 flex items-center justify-between gap-3">
-                                <div className="flex flex-wrap gap-3">
-                                    <Link
-                                        href={`/admin/events/${e.meetNumber}/edit`}
-                                        className="rounded-full bg-[#2E6B3F] px-4 py-2 text-sm font-semibold text-white hover:bg-[#255733] transition"
-                                    >
-                                        Edit
-                                    </Link>
+                                            {/* Actions */}
+                                            <div className="mt-4 flex items-center justify-between gap-3">
+                                                <div className="flex flex-wrap gap-3">
+                                                    <Link
+                                                        href={`/admin/events/${e.meetNumber}/edit`}
+                                                        className="rounded-full bg-[#2E6B3F] px-4 py-2 text-sm font-semibold text-white hover:bg-[#255733] transition"
+                                                    >
+                                                        Edit
+                                                    </Link>
 
-                                    <Link
-                                        href={`/search?q=${encodeURIComponent(e.meetNumber)}`}
-                                        className="rounded-full border border-[#12301D]/15 bg-white px-4 py-2 text-sm font-semibold text-[#12301D] hover:bg-[#12301D]/5 transition"
-                                    >
-                                        View in Search
-                                    </Link>
-                                </div>
+                                                    <Link
+                                                        href={`/search?q=${encodeURIComponent(e.meetNumber)}`}
+                                                        className="rounded-full border border-[#12301D]/15 bg-white px-4 py-2 text-sm font-semibold text-[#12301D] hover:bg-[#12301D]/5 transition"
+                                                    >
+                                                        View in Search
+                                                    </Link>
+                                                </div>
 
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        handleDeleteEvent(e.meetNumber);
-                                    }}
-                                    disabled={deleting}
-                                    className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 transition disabled:opacity-50"
-                                >
-                                    Remove
-                                </button>
-                            </div>
-                        </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        handleDeleteEvent(e.meetNumber);
+                                                    }}
+                                                    disabled={deleting}
+                                                    className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 transition disabled:opacity-50"
+                                                >
+                                                    Remove
+                                                </button>
+                                            </div>
+                                        </div>
                                     );
                                 }
                             )

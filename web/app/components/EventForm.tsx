@@ -251,7 +251,7 @@ export default function MeetForm
 
             {
                 label: "Location",
-                field: "location",                   
+                field: "location",
             },
 
             {
@@ -264,12 +264,12 @@ export default function MeetForm
                 label: "Race Secretary",
                 field: "raceSecretary",
             },
-            
+
             {
                 label: "Judge",
                 field: "judge",
             },
-                        {
+            {
                 label: "Yards",
                 field: "yards",
                 type: "number",

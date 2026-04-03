@@ -1,7 +1,7 @@
 "use client"
 import AuthGuard from "@/lib/auth/authGuard";
 import PasswordRequirements from "@/lib/passwordRequirements/passwordRequirements";
-import { Box, Paper, Typography, TextField, Button } from "@mui/material";
+import { Typography, TextField, Button } from "@mui/material";
 import { useState } from "react";
 import HeroSection from "../components/HeroSection";
 import axios from "axios";

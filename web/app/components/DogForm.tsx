@@ -224,8 +224,6 @@ export default function DogForm
             error,
             success,
             onCancel,
-            form,
-            setForm,
             isEditMode = false,
         }: Props
     ) {
