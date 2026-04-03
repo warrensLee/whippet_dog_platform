@@ -159,6 +159,37 @@ class Dog:
         if self.high_combined_wins >= 25:
             titles.append("HCX4")
         return titles
+
+    def total_placement_points(self, placements):
+        '''Calculate total points based on placements'''
+        meet_points_earned = 0
+        for placement in placements:
+            if placement == "1":
+                meet_points_earned += 5
+            elif placement == "2":
+                meet_points_earned += 3
+            elif placement == "3":
+                meet_points_earned += 2
+            elif placement == "4":
+                meet_points_earned += 1
+            elif placement == "AOM":
+                meet_points_earned += 0.5
+        self.meet_points = meet_points_earned
+        self.update()
+
+    def add_placement_points(self, placement):
+        '''Add points for a single placement'''
+        if placement == "1":
+            self.meet_points += 5
+        elif placement == "2":
+            self.meet_points += 3
+        elif placement == "3":
+            self.meet_points += 2
+        elif placement == "4":
+            self.meet_points += 1
+        elif placement == "AOM":
+            self.meet_points += 0.5
+        self.update()
     
     def is_puppy(self):
         '''Check if dog is a puppy (under PUPPY_AGE_MONTHS).'''
