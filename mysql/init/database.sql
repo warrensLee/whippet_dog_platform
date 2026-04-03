@@ -24,6 +24,7 @@ CREATE TABLE `Dog` (
     `MeetWins` DECIMAL(5,2),
     `MeetAppearences` DECIMAL(5,2),
     `HighCombinedWins` DECIMAL(5,2),
+    `AOMEarned` DECIMAL(5,2),
     `PublicNotes` VARCHAR(250),
     `PrivateNotes` VARCHAR(250),
     `DNA` VARCHAR(50),
@@ -125,6 +126,7 @@ CREATE TABLE `RaceResults` (
     `Box` INT NOT NULL,
     `Placement` INT NOT NULL,
     `MeetPoints` DECIMAL(3,2) NOT NULL,
+    `DPCPoints` DECIMAL(3,2) NOT NULL,
     `Incident` VARCHAR(5),
     `LastEditedBy` INT,
     `LastEditedAt` TIMESTAMP,
@@ -147,6 +149,7 @@ CREATE TABLE `MeetResults` (
     `DPCLeg` CHAR(1),
     `HCScore` INT,
     `HCLegEarned` CHAR(1),
+    `AOMEarned` DECIMAL(5,2) NOT NULL,
     `LastEditedBy` INT,
     `LastEditedAt` TIMESTAMP,
     UNIQUE (`MeetNumber`, `CWANumber`)
