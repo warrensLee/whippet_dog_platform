@@ -6,7 +6,6 @@ import axios from "axios"
 export default function AuthProvider({ children }: { children: ReactNode }) {
 
     const [authValue, setAuthValue] = useState<User | undefined | "NotAuthenticated">();
-    console.log("rendering authguard")
     function checkUserAuth() {
         axios.get("/api/auth/me").then((response) => {
             if (!response.data.ok || !response.data.user || response.data.user == null) {

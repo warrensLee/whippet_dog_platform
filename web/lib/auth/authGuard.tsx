@@ -2,7 +2,6 @@
 import { ReactNode, useContext, useEffect } from "react"
 import authContext, { PermissionMappings } from "./auth"
 export default function AuthGuard({ permissions, redirect = true, children }: { permissions?: Array<keyof typeof PermissionMappings> | undefined, redirect?: boolean, children?: ReactNode }) {
-    console.log("Rendering AuthGuard")
 
     const authctx = useContext(authContext);
     // eslint-disable-next-line react-hooks/exhaustive-deps

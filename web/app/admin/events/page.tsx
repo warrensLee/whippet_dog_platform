@@ -27,9 +27,11 @@ function clampInteger
     return Math.max(min, Math.min(max, Math.floor(num)));
 }
 
+export default function Page() {
+    return (<React.Suspense fallback={<p>loading</p>}><AdminEventsPage /></React.Suspense>)
+}
 
-
-export default function AdminEventsPage() {
+function AdminEventsPage() {
     const router = useRouter();
     const sp = useSearchParams();
 

@@ -186,7 +186,7 @@ export default function DogPage() {
           </div>
 
           {dog && (
-            <Card>
+            <Card title="">
               <h3 className="mb-3 text-sm font-semibold text-[#12301D]">Notes</h3>
 
               {dog.publicNotes ? (

@@ -21,7 +21,11 @@ function clampInteger(num: number, min: number, max: number) {
     return Math.max(min, Math.min(max, Math.floor(num)));
 }
 
-export default function SearchPage() {
+
+export default function Page() {
+    return (<React.Suspense><SearchPage /></React.Suspense>)
+}
+function SearchPage() {
     const sp = useSearchParams();
 
     /*
@@ -162,10 +166,10 @@ export default function SearchPage() {
                 return (b.cwaNumber || "").localeCompare(a.cwaNumber || "", undefined, { numeric: true });
 
             case "akcAsc":
-                return (a.akcNumber || "").localeCompare(b.akcNumber || "", undefined, { numeric: true });
+                return (a.registeredNumber || "").localeCompare(b.registeredNumber || "", undefined, { numeric: true });
 
             case "akcDesc":
-                return (b.akcNumber || "").localeCompare(a.akcNumber || "", undefined, { numeric: true });
+                return (b.registeredNumber || "").localeCompare(a.registeredNumber || "", undefined, { numeric: true });
 
             case "yearAsc":
                 return Number(a.birthYear || 0) - Number(b.birthYear || 0);
