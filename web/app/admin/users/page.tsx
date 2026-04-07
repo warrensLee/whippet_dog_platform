@@ -233,7 +233,7 @@ const closeDummy = () =>
         secondaryPhone: form.secondaryPhone,
         systemRole: form.systemRole,
         notes: form.notes,
-        locked: false,
+        locked: form.locked,
       });
 
       if (!res.data.ok) {
@@ -299,7 +299,7 @@ const closeDummy = () =>
         primaryPhone: addForm.primaryPhone,
         secondaryPhone: addForm.secondaryPhone,
         systemRole: addForm.systemRole,
-        locked: form.locked,
+        locked: false,
         notes: addForm.notes,
       });
 
@@ -478,7 +478,7 @@ const closeDummy = () =>
                     </TableRow>
                   ) : (
                     filteredUsers.map((user) => (
-                      <TableRow key={user.personId} hover>
+                      <TableRow key={user.id} hover>
                         <TableCell>{user.personId || '-'}</TableCell>
                         <TableCell>{user.firstName || '-'}</TableCell>
                         <TableCell>{user.lastName || '-'}</TableCell>
