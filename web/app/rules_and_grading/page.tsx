@@ -56,7 +56,7 @@ export default function Home() {
       <section
         className="
         relative min-h-screen
-        bg-[url('/rules.jpg')]
+        bg-[url(/rules.jpg)]
         bg-cover
         bg-[center_45%]
         bg-no-repeat
@@ -121,123 +121,123 @@ export default function Home() {
 
       {/*Post Image, scrolling to view about information and below footer*/}
 
-{/* Post Image, scrolling to view about information and below footer */}
+      {/* Post Image, scrolling to view about information and below footer */}
 
-<section className="bg-neutral-200 py-20">
-  <div className="max-w-6xl mx-auto px-4 space-y-16">
-    {/* Page intro */}
-    <div className="text-center max-w-3xl mx-auto">
-      <h2 className="text-4xl font-semibold text-black">Rules</h2>
-      <p className="mt-4 text-lg text-black/80 leading-relaxed">
-        Here you can find all official governing documents for CWA events and administration. View online or download PDFs.
-        Any questions? Contact us below or on the contact page!
-      </p>
-    </div>
-
-    {/* Document cards */}
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {RULE_DOCS.map((doc) => (
-        <div
-          key={doc.title}
-          className="bg-white rounded-2xl shadow-sm border border-black/10 p-6"
-        >
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h3 className="text-xl font-semibold text-black">{doc.title}</h3>
-              <p className="text-sm text-black/60 mt-1">{doc.effective}</p>
-            </div>
-            <span className="text-2xl">📄</span>
+      <section className="bg-neutral-200 py-20">
+        <div className="max-w-6xl mx-auto px-4 space-y-16">
+          {/* Page intro */}
+          <div className="text-center max-w-3xl mx-auto">
+            <h2 className="text-4xl font-semibold text-black">Rules</h2>
+            <p className="mt-4 text-lg text-black/80 leading-relaxed">
+              Here you can find all official governing documents for CWA events and administration. View online or download PDFs.
+              Any questions? Contact us below or on the contact page!
+            </p>
           </div>
 
-          <p className="mt-4 text-black/80 leading-relaxed">{doc.description}</p>
+          {/* Document cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {RULE_DOCS.map((doc) => (
+              <div
+                key={doc.title}
+                className="bg-white rounded-2xl shadow-sm border border-black/10 p-6"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h3 className="text-xl font-semibold text-black">{doc.title}</h3>
+                    <p className="text-sm text-black/60 mt-1">{doc.effective}</p>
+                  </div>
+                  <span className="text-2xl">📄</span>
+                </div>
 
-          <div className="mt-6 flex gap-3">
-            <a
-              href={doc.href}
-              target="_blank"
-              rel="noreferrer"
-              className="px-4 py-2 rounded-xl bg-black text-white text-sm font-semibold hover:bg-black/85 transition"
-            >
-              View
-            </a>
-            <a
-              href={doc.href}
-              download
-              className="px-4 py-2 rounded-xl border border-black/20 text-sm font-semibold text-black hover:bg-black/5 transition"
-            >
-              Download
-            </a>
+                <p className="mt-4 text-black/80 leading-relaxed">{doc.description}</p>
+
+                <div className="mt-6 flex gap-3">
+                  <a
+                    href={doc.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-4 py-2 rounded-xl bg-black text-white text-sm font-semibold hover:bg-black/85 transition"
+                  >
+                    View
+                  </a>
+                  <a
+                    href={doc.href}
+                    download
+                    className="px-4 py-2 rounded-xl border border-black/20 text-sm font-semibold text-black hover:bg-black/5 transition"
+                  >
+                    Download
+                  </a>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
-      ))}
-    </div>
 
-    {/* Grading (add later) */}
-    <div className="max-w-3xl mx-auto text-center">
-      <h2 className="text-4xl font-semibold text-black">Grading</h2>
-      <p className="mt-4 text-lg text-black/80 leading-relaxed">
-        The embedded version of the grading guide on this page is sorted by call name and is intended for quick reference only.
-        If you need to download, print, or sort the grading guide, please use the view-only spreadsheet versions listed below instead.
-        You will not be able to make any changes to the guides, but they offer more user-friendly versions for working with and manipulating the data. 
-        Also, with the exception of titles that fall into our definition of “competitive bench championships,” other organizations’ titles will not be recorded.
-        PR, PRX, NARX, and SRA titles are updated at the end of year.
-      </p>
-    </div>
+          {/* Grading (add later) */}
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-4xl font-semibold text-black">Grading</h2>
+            <p className="mt-4 text-lg text-black/80 leading-relaxed">
+              The embedded version of the grading guide on this page is sorted by call name and is intended for quick reference only.
+              If you need to download, print, or sort the grading guide, please use the view-only spreadsheet versions listed below instead.
+              You will not be able to make any changes to the guides, but they offer more user-friendly versions for working with and manipulating the data.
+              Also, with the exception of titles that fall into our definition of “competitive bench championships,” other organizations’ titles will not be recorded.
+              PR, PRX, NARX, and SRA titles are updated at the end of year.
+            </p>
+          </div>
 
-{/* Grading document cards */}
-<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-  {GRADING_DOCS.map((doc) => (
-    <div
-      key={doc.title}
-      className="bg-white rounded-2xl shadow-sm border border-black/10 p-6"
-    >
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h3 className="text-xl font-semibold text-black">
-            {doc.title}
-          </h3>
-          <p className="text-sm text-black/60 mt-1">
-            {doc.effective}
-          </p>
-        </div>
+          {/* Grading document cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {GRADING_DOCS.map((doc) => (
+              <div
+                key={doc.title}
+                className="bg-white rounded-2xl shadow-sm border border-black/10 p-6"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h3 className="text-xl font-semibold text-black">
+                      {doc.title}
+                    </h3>
+                    <p className="text-sm text-black/60 mt-1">
+                      {doc.effective}
+                    </p>
+                  </div>
 
-        <span className="text-2xl">📊</span>
-      </div>
+                  <span className="text-2xl">📊</span>
+                </div>
 
-      <p className="mt-4 text-black/80 leading-relaxed">
-        {doc.description}
-      </p>
+                <p className="mt-4 text-black/80 leading-relaxed">
+                  {doc.description}
+                </p>
 
-      <div className="mt-6 flex items-center gap-4">
-        <a
-          href={doc.href}
-          target="_blank"
-          rel="noreferrer"
-          className="px-4 py-2 rounded-xl bg-black text-white text-sm font-semibold hover:bg-black/85 transition"
-        >
-          Open sheet
-        </a>
+                <div className="mt-6 flex items-center gap-4">
+                  <a
+                    href={doc.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-4 py-2 rounded-xl bg-black text-white text-sm font-semibold hover:bg-black/85 transition"
+                  >
+                    Open sheet
+                  </a>
 
-        <span className="text-sm text-black/50">
-          View only
-        </span>
-      </div>
-    </div>
-  ))}
-</div>
+                  <span className="text-sm text-black/50">
+                    View only
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
 
 
-    {/* Grading (add later) */}
-    <div className="max-w-3xl mx-auto text-center">
-      <h2 className="text-4xl font-semibold text-black">More information</h2>
-      <p className="mt-4 text-lg text-black/80 leading-relaxed">
-        Here information regarding race secretaries (before, during, and after the meet). Any other information you would like here would be great!
-      </p>
-    </div>
+          {/* Grading (add later) */}
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-4xl font-semibold text-black">More information</h2>
+            <p className="mt-4 text-lg text-black/80 leading-relaxed">
+              Here information regarding race secretaries (before, during, and after the meet). Any other information you would like here would be great!
+            </p>
+          </div>
 
 
-    {/* Embedded viewer (start with the main doc) */}
-    {/* <div className="bg-white rounded-2xl shadow-sm border border-black/10 overflow-hidden">
+          {/* Embedded viewer (start with the main doc) */}
+          {/* <div className="bg-white rounded-2xl shadow-sm border border-black/10 overflow-hidden">
       <div className="flex items-center justify-between px-6 py-4 border-b border-black/10">
         <div>
           <h3 className="text-lg font-semibold text-black">2026 Rules for Events</h3>
@@ -260,8 +260,8 @@ export default function Home() {
         title="2026 Rules for Events PDF"
       />
     </div> */}
-  </div>
-</section>
+        </div>
+      </section>
     </main>
   )
 }

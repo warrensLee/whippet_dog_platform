@@ -14,22 +14,30 @@ from controller.person import person_bp
 from controller.stats import stats_bp
 from controller.title_type import title_type_bp
 from controller.user_role import user_role_bp
+from database import get_conn
 
 api_bp = Blueprint("api", __name__, url_prefix="/api")
 
-@api_bp.get("/tables")
-def tables():
-    """Get all database tables"""
-    rows = fetch_all("SHOW TABLES")
-    return jsonify(rows)
-
-
 main_bp = Blueprint("main", __name__)
 
-@main_bp.get("/health")
+
+@api_bp.get("/turnstile")
+def turnstile():
+    return os.environ["CF_TURNSTILE_SITEKEY"], 200
+
+@api_bp.get("/health")
 def health():
     """Health check endpoint"""
-    return "OK", 200
+    try:
+        conn = get_conn()
+        cur = conn.cursor(dictionary=True)
+        cur.execute("SELECT 1;")
+        cur.fetchall()
+        cur.close()
+        return "OK", 200
+    except Exception as e:
+        return "ERROR", 500
+
 
 
 def register_routes(app):

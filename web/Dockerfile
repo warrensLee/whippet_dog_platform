@@ -1,14 +1,15 @@
 FROM node:20-alpine AS build
-
+RUN mkdir /app
 WORKDIR /app
+COPY package.json package-lock.json /app/
+RUN npm ci 
 COPY . .
-RUN npm install
 RUN npm run build
 
-FROM node:20-alpine
+FROM nginx:1.29
+RUN mkdir /app 
 WORKDIR /app
-COPY --from=build .next/standalone ./
-COPY --from=build .next/static ./.next/static
-COPY --from=build public ./public
-ENV NODE_ENV=production
-CMD ["node", "server.js"]
+COPY --from=0 /app/out .
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 CMD curl -f http://localhost/health || exit 1
+COPY nginx/production.conf /etc/nginx/nginx.conf
+

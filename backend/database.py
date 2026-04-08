@@ -3,8 +3,7 @@ import time
 import mysql.connector 
 from mysql.connector import Error
 
-def get_conn():
-    return mysql.connector.connect(
+connection = mysql.connector.connect(
         host=os.getenv("DB_HOST", "db"),
         user=os.getenv("DB_USER", "root"),
         password=os.getenv("DB_PASSWORD", "dogs"),
@@ -14,6 +13,8 @@ def get_conn():
         use_pure=True,
     )
 
+def get_conn():
+    return connection
 
 def fetch_all(sql: str, params=()):
     start = time.time()
@@ -27,11 +28,7 @@ def fetch_all(sql: str, params=()):
             print(f"[SLOW QUERY] {elapsed:.2f}s - {sql[:100]}")
         return result
     finally:
-        try:
-            cur.close()
-        finally:
-            conn.close()
-
+        cur.close()
 
 def fetch_one(sql: str, params=()):
     start = time.time()
@@ -45,10 +42,7 @@ def fetch_one(sql: str, params=()):
             print(f"[SLOW QUERY] {elapsed:.2f}s - {sql[:100]}")
         return result
     finally:
-        try:
-            cur.close()
-        finally:
-            conn.close()
+        cur.close()
 
 
 def execute(sql: str, params=(), *, return_lastrowid: bool = False):
@@ -66,10 +60,7 @@ def execute(sql: str, params=(), *, return_lastrowid: bool = False):
 
         return cur.rowcount
     finally:
-        try:
-            cur.close()
-        finally:
-            conn.close()
+        cur.close()
 
 
 def execute_many(sql: str, param_list):
@@ -79,7 +70,4 @@ def execute_many(sql: str, param_list):
         cur.executemany(sql, param_list)
         return cur.rowcount
     finally:
-        try:
-            cur.close()
-        finally:
-            conn.close()
+        cur.close()

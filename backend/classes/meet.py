@@ -234,7 +234,7 @@ class Meet:
         stats = fetch_one("""
             SELECT 
                 COUNT(*)
-            FROM Person 
+            FROM Meet 
         """)
         return stats["COUNT(*)"]
 

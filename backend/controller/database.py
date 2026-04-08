@@ -75,10 +75,7 @@ def restore_from_file(path):
         raise
 
     finally:
-        try:
-            cur.close()
-        finally:
-            conn.close()
+        cur.close()
 
 
 def generate_sql():
@@ -165,10 +162,7 @@ def restore_from_commands(statements):
         raise
 
     finally:
-        try:
-            cur.close()
-        finally:
-            conn.close()
+        cur.close()
 
 @database_bp.post("/restore")
 def restore_database():

@@ -38,7 +38,7 @@ export default function Home() {
       <section
         className="
         relative min-h-screen
-        bg-[url('/odi_full_race_requalify.jpg')]
+        bg-[url(/odi_full_race_requalify.jpg)]
         bg-cover
         bg-[center_40%]
         bg-no-repeat

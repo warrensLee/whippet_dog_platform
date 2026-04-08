@@ -93,7 +93,7 @@ export default function AddEventPage() {
 
             setSuccess("Event created successfully.");
 
-            router.push(`/admin/events/${encodeURIComponent(payload.meetNumber)}/edit`);
+            router.push(`/admin/events/edit?meetNumber=${encodeURIComponent(payload.meetNumber)}`);
         }
         catch (e) {
             setError(
