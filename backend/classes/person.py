@@ -231,20 +231,33 @@ class Person:
         except Error as e:
             raise e
     
-    def delete(self, person_id):
+    def delete(self):
         """Delete person from database. Returns True on success, raises Error on failure."""
         try:
             execute(
                 """
                 DELETE FROM Person
-                WHERE PersonID = %s
+                WHERE ID = %s
                 """,
-                (person_id,),
+                (self.id,),
             )
             return True
         except Error as e:
             raise e
 
+    @classmethod
+    def count_by_system_role(cls, role: str) -> int:
+        """Count persons with a given system role."""
+        row = fetch_one(
+            """
+            SELECT COUNT(*) AS cnt
+            FROM Person
+            WHERE SystemRole = %s
+            """,
+            (role,),
+        )
+        return row["cnt"] if row else 0
+    
     def list_all_persons():
         """Retrieve all persons from the database."""
         rows = fetch_all(

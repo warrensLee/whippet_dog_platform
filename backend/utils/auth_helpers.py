@@ -8,7 +8,7 @@ def current_user():
     person_id = user.get("ID")  
     person = Person.find_by_id(person_id)
 
-    if person.locked:
+    if not person or person.locked:
         session.clear()
         return {}
 

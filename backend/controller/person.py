@@ -107,6 +107,17 @@ def edit_person():
     if role.edit_person_scope == UserRole.SELF and current_editor_id() != existing.id:
         return jsonify({"ok": False, "error": "You can only edit your own profile"}), 403
 
+    # Prevent locking yourself out
+    if "locked" in data and data["locked"] and current_editor_id() == existing.id:
+        return jsonify({"ok": False, "error": "You cannot lock your own account"}), 403
+
+    # Prevent locking the last admin
+    if "locked" in data and data["locked"] and existing.system_role == "ADMIN":
+        if data.get("systemRole", existing.system_role) == "ADMIN":
+            admin_count = Person.count_by_system_role("ADMIN")
+            if admin_count <= 1:
+                return jsonify({"ok": False, "error": "Cannot lock the last admin account"}), 403
+
     before_snapshot = existing.to_dict()
 
     person = Person.from_request_data(data)
@@ -133,6 +144,59 @@ def edit_person():
             source="api/person/edit POST",
             before_obj=before_snapshot,
             after_obj=after_snapshot,
+        )
+        return jsonify({"ok": True}), 200
+    except Error as e:
+        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+
+@person_bp.post("/delete")
+def delete_person():
+    role = current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+    deny = require_scope(role.edit_person_scope, "delete people")
+    if deny:
+        return deny
+
+    if role.edit_person_scope != UserRole.ALL:
+        return jsonify({"ok": False, "error": "Not authorized to delete people"}), 403
+
+    data = request.get_json(silent=True) or {}
+    record_id = data.get("id")
+    confirm_id = data.get("confirmId")
+
+    if not record_id:
+        return jsonify({"ok": False, "error": "ID is required"}), 400
+
+    if confirm_id is None:
+        return jsonify({"ok": False, "error": "confirmId is required"}), 400
+
+    existing = Person.find_by_id(record_id)
+    if not existing:
+        return jsonify({"ok": False, "error": "Person does not exist"}), 404
+
+    if current_editor_id() == existing.id:
+        return jsonify({"ok": False, "error": "You cannot delete your own account"}), 403
+
+    if existing.system_role == "ADMIN":
+        admin_count = Person.count_by_system_role("ADMIN")
+        if admin_count <= 1:
+            return jsonify({"ok": False, "error": "Cannot delete the last admin account"}), 403
+
+    before_snapshot = existing.to_dict()
+    editor_id = current_editor_id()
+
+    try:
+        existing.delete()
+        ChangeLog.log(
+            changed_table="Person",
+            record_pk=existing.id,
+            operation="DELETE",
+            changed_by=editor_id,
+            source="api/person/delete POST",
+            before_obj=before_snapshot,
+            after_obj=None,
         )
         return jsonify({"ok": True}), 200
     except Error as e:
