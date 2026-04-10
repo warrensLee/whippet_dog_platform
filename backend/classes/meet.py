@@ -10,7 +10,7 @@ from mysql.connector import Error
 class Meet:
 
     def __init__(self, meet_number, club_abbreviation, meet_date, race_secretary, judge,
-                 location, yards, last_edited_by, last_edited_at):
+                 location, yards, public_notes, private_notes, last_edited_by, last_edited_at):
         self.meet_number = meet_number
         self.club_abbreviation = club_abbreviation
         self.meet_date = meet_date
@@ -18,6 +18,8 @@ class Meet:
         self.judge = judge
         self.location = location
         self.yards = yards
+        self.public_notes = public_notes
+        self.private_notes = private_notes
         self.last_edited_by = last_edited_by
         self.last_edited_at = last_edited_at
 
@@ -32,6 +34,8 @@ class Meet:
             judge=(data.get("judge") or "").strip(),
             location=(data.get("location") or "").strip(),
             yards=(data.get("yards") or "").strip(),
+            public_notes=(data.get("publicNotes") or "").strip() or None,
+            private_notes=(data.get("privateNotes") or "").strip() or None,
             last_edited_by=data.get("lastEditedBy"),
             last_edited_at=data.get("lastEditedAt")
         )
@@ -49,6 +53,8 @@ class Meet:
             judge=row.get("Judge"),
             location=row.get("Location"),
             yards=row.get("Yards"),
+            public_notes=row.get("PublicNotes"),
+            private_notes=row.get("PrivateNotes"),
             last_edited_by=row.get("LastEditedBy"),
             last_edited_at=row.get("LastEditedAt")
         )
@@ -59,7 +65,7 @@ class Meet:
         row = fetch_one(
             """
             SELECT MeetNumber, ClubAbbreviation, MeetDate, RaceSecretary, Judge,
-                   Location, Yards, LastEditedBy, LastEditedAt
+                   Location, Yards, PublicNotes, PrivateNotes, LastEditedBy, LastEditedAt
             FROM Meet
             WHERE MeetNumber = %s
             LIMIT 1
@@ -101,22 +107,10 @@ class Meet:
             errors.append("Club abbreviation must be 10 characters or less")
         if len(self.location) > 20:
             errors.append("Location must be 20 characters or less")
-
-        if self.meet_number and len((self.meet_number)) > 20:
-            errors.append("Meet number must be 20 characters or less")
-            
-        if self.club_abbreviation and len((self.club_abbreviation)) > 10:
-            errors.append("Club abbreviation must be 10 characters or less")
-
-        if self.location and len((self.location)) > 20:
-            errors.append("Location must be 20 characters or less")
-                
         if self.judge and not fetch_one("SELECT PersonID FROM Person WHERE ID = %s", (self.judge,)):
             errors.append(f"Judge '{self.judge}' does not exist")
-
         if self.race_secretary and not fetch_one("SELECT PersonID FROM Person WHERE ID = %s", (self.race_secretary,)):
             errors.append(f"Race secretary '{self.race_secretary}' does not exist")
-
         if self.last_edited_by and not fetch_one("SELECT PersonID FROM Person WHERE ID = %s", (self.last_edited_by,)):
             errors.append("LastEditedBy must reference an existing Person")
         return errors
@@ -128,9 +122,9 @@ class Meet:
                 """
                 INSERT INTO Meet (
                     MeetNumber, ClubAbbreviation, MeetDate, RaceSecretary, Judge,
-                    Location, Yards, LastEditedBy, LastEditedAt
+                    Location, Yards, PublicNotes, PrivateNotes, LastEditedBy, LastEditedAt
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
                     self.meet_number,
@@ -140,6 +134,8 @@ class Meet:
                     self.judge,
                     self.location,
                     self.yards,
+                    self.public_notes or None,
+                    self.private_notes or None,
                     self.last_edited_by,
                     self.last_edited_at
                 ),
@@ -160,6 +156,8 @@ class Meet:
                     Judge = %s,
                     Location = %s,
                     Yards = %s,
+                    PublicNotes = %s,
+                    PrivateNotes = %s,
                     LastEditedBy = %s,
                     LastEditedAt = %s
                 WHERE MeetNumber = %s
@@ -171,6 +169,8 @@ class Meet:
                     self.judge,
                     self.location,
                     self.yards,
+                    self.public_notes or None,
+                    self.private_notes or None,
                     self.last_edited_by,
                     self.last_edited_at,
                     self.meet_number
@@ -180,7 +180,7 @@ class Meet:
         except Error as e:
             raise e
     
-    def delete(self, meet_number):
+    def delete(self):
         """Delete meet from database. Returns True on success, raises Error on failure."""
         try:
             execute(
@@ -188,7 +188,7 @@ class Meet:
                 DELETE FROM Meet
                 WHERE MeetNumber = %s
                 """,
-                (meet_number,),
+                (self.meet_number,),
             )
             return True
         except Error as e:
@@ -199,7 +199,7 @@ class Meet:
         rows = fetch_all(
             """
             SELECT MeetNumber, ClubAbbreviation, MeetDate, RaceSecretary, Judge,
-                   Location, Yards, LastEditedBy, LastEditedAt
+                   Location, Yards, PublicNotes, PrivateNotes, LastEditedBy, LastEditedAt
             FROM Meet
             """
         )
@@ -214,7 +214,7 @@ class Meet:
             "location": self.location,
         }
 
-    def to_dict(self):
+    def to_dict(self, include_private=True):
         """Convert to dictionary for JSON responses."""
         data = {
             "meetNumber": self.meet_number,
@@ -224,9 +224,14 @@ class Meet:
             "judge": self.judge,
             "location": self.location,
             "yards": self.yards,
+            "publicNotes": self.public_notes,
             "lastEditedBy": self.last_edited_by,
             "lastEditedAt": self.last_edited_at.isoformat() if self.last_edited_at else None
         }
+
+        if include_private:
+            data["privateNotes"] = self.private_notes
+
         return data
         
     @staticmethod
@@ -237,5 +242,3 @@ class Meet:
             FROM Meet 
         """)
         return stats["COUNT(*)"]
-
-    

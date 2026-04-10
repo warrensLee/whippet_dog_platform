@@ -151,7 +151,7 @@ def delete_meet():
 
         before_snapshot = meet.to_dict()
 
-        meet.delete(meet_number)
+        meet.delete()
 
         ChangeLog.log(
             changed_table="Meet",
@@ -171,42 +171,27 @@ def delete_meet():
 
 @meet_bp.get("/get/<meet_number>")
 def get_meet(meet_number):
-    # role = current_role()
-    # if not role:
-    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    # deny = require_scope(role.view_meet_scope, "view meets")
-    # if deny:
-    #     return deny
+    role = current_role()
+    include_private = role is not None and role.edit_meet_scope == UserRole.ALL
 
     meet = Meet.find_by_identifier(meet_number)
     if not meet:
         return jsonify({"ok": False, "error": "Meet does not exist"}), 404
 
-    # if role.view_meet_scope == UserRole.SELF and not _is_meet_owner(meet):
-    #     return jsonify({"ok": False, "error": "Not allowed to view this meet"}), 403
-
-    return jsonify({"ok": True, "data": meet.to_dict()}), 200
+    return jsonify({"ok": True, "data": meet.to_dict(include_private=include_private)}), 200
 
 
 @meet_bp.get("/get")
 def list_all_meets():
-    # role = current_role()
-    # if not role:
-    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    # deny = require_scope(role.view_meet_scope, "view meets")
-    # if deny:
-    #     return deny
+    role = current_role()
+    include_private = role is not None and role.edit_meet_scope == UserRole.ALL
 
     try:
         meets = Meet.list_all_meets()
         meets_data = []
 
         for m in meets:
-            # if role.view_meet_scope == UserRole.SELF and not _is_meet_owner(m):
-            #     continue
-            meets_data.append(m.to_dict())
+            meets_data.append(m.to_dict(include_private=include_private))
 
         return jsonify({"ok": True, "data": meets_data}), 200
 

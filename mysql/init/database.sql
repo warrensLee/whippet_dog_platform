@@ -112,6 +112,8 @@ CREATE TABLE `Meet` (
     `Judge` INT,
     `Location` VARCHAR(20) NOT NULL,
     `Yards` INT NOT NULL,
+    `PublicNotes` VARCHAR(250),
+    `PrivateNotes` VARCHAR(250),
     `LastEditedBy` INT,
     `LastEditedAt` TIMESTAMP
 );
