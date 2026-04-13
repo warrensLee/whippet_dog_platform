@@ -1,6 +1,7 @@
 "use client"
 import { ReactNode, useContext, useEffect } from "react"
 import authContext, { PermissionMappings } from "./auth"
+import Loading from "../loading";
 export default function AuthGuard({ permissions, redirect = true, children }: { permissions?: Array<keyof typeof PermissionMappings> | undefined, redirect?: boolean, children?: ReactNode }) {
 
     const authctx = useContext(authContext);
@@ -28,7 +29,7 @@ export default function AuthGuard({ permissions, redirect = true, children }: { 
 
     if (authctx == undefined && redirect) {
         return (
-            "loading..."
+            <Loading />
         )
     }
     if (authctx == undefined || !isAuthenticated()) {

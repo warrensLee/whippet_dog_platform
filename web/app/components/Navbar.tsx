@@ -2,11 +2,10 @@
 
 import React, { useContext, useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 import Image from 'next/image'
 import authContext from '@/lib/auth/auth'
 import SearchBar from './SearchBar'
-import { Drawer, Menu, MenuItem } from '@mui/material'
+import { Menu, MenuItem } from '@mui/material'
 import MenuIcon from '@mui/icons-material/Menu';
 import axios from 'axios'
 
@@ -14,48 +13,46 @@ function UserMenu() {
     const user = useContext(authContext)
     const [open, setOpen] = useState(false);
     const [menuAnchor, setMenuAnchor] = useState<undefined | HTMLElement>(undefined)
-    if(user == undefined || user == "NotAuthenticated") {
-            return (<button onClick={() => window.location.href = "/login"} className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] hover:shadow-md transition">
-                Login
-            </button>) 
+    if (user == undefined || user == "NotAuthenticated") {
+        return (<button onClick={() => window.location.href = "/login"} className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] hover:shadow-md transition">
+            Login
+        </button>)
     }
 
     return (<div>
-        <button onClick={(event: React.MouseEvent<HTMLButtonElement>) => {setMenuAnchor(event.currentTarget); setOpen(true)}} className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] hover:shadow-md transition">
-               {user.PersonID} <MenuIcon/>
-            </button>
-            <Menu open={open} onClose={() => setOpen(false)} anchorEl={menuAnchor}         MenuListProps={{
-          style: { width: "auto" },
+        <button onClick={(event: React.MouseEvent<HTMLButtonElement>) => { setMenuAnchor(event.currentTarget); setOpen(true) }} className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] hover:shadow-md transition">
+            {user.PersonID} <MenuIcon />
+        </button>
+        <Menu open={open} onClose={() => setOpen(false)} anchorEl={menuAnchor} MenuListProps={{
+            style: { width: "auto" },
         }}>
-                <MenuItem onClick={() => axios.post("/api/auth/logout").then(() => window.location.href = "/")}>Logout</MenuItem>
-                <MenuItem onClick={() => window.location.href = "/edit/profile"}>Edit Profile</MenuItem>
-                <MenuItem onClick={() => window.location.href = "/change-password"}>Change Password</MenuItem>
-                <MenuItem>View My Dogs</MenuItem>
-            </Menu>
-            </div>
-            ) 
+            <MenuItem onClick={() => axios.post("/api/auth/logout").then(() => window.location.href = "/")}>Logout</MenuItem>
+            <MenuItem onClick={() => window.location.href = "/edit/profile"}>Edit Profile</MenuItem>
+            <MenuItem onClick={() => window.location.href = "/change-password"}>Change Password</MenuItem>
+            <MenuItem>View My Dogs</MenuItem>
+        </Menu>
+    </div>
+    )
 }
 
 
-const Navbar = () => 
-    {
-    const user = useContext(authContext)
-    const pathname = usePathname()
+const Navbar = () => {
     return (
         <nav className="fixed top-0 w-full flex items-center justify-around py-1 px-12 border-b border-gray-500 bg-black/30 backdrop-blur-md z-50">
-            <div style={{display:"flex", justifyContent:"space-between", width: "100%", verticalAlign:"center", alignItems:"center"}}>
-
-                <Image
-                    src="/CWAlogo-lg.gif"
-                    alt="Home"
-                    width={100}
-                    height={100}
-                    className="object-contain"
-                />
-                <div style={{width:"50%", maxWidth:"750px"}}>
-                    <SearchBar action="/search" query="" sort=""/>
+            <div style={{ display: "flex", justifyContent: "space-between", width: "100%", verticalAlign: "center", alignItems: "center" }}>
+                <Link href="/" className='hover:scale-110'>
+                    <Image
+                        src="/CWAlogo-lg.gif"
+                        alt="Home"
+                        width={100}
+                        height={100}
+                        className="object-contain"
+                    />
+                </Link>
+                <div style={{ width: "50%", maxWidth: "750px" }}>
+                    <SearchBar action="/search" query="" sort="" />
                 </div>
-           <UserMenu/>
+                <UserMenu />
             </div>
         </nav>
 
