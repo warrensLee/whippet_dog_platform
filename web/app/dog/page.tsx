@@ -2,21 +2,24 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import HeroSection from "../../components/HeroSection";
-import FieldRow from "../../components/FieldRow";
-import StatPill from "../../components/StatPill";
-import Card from "../../components/Card";
-import PointBar from "../../components/PointBar";
-import MeetCard from "../../components/MeetCard";
-import TitleFamilyCard from "../../components/TitleFamilyCard";
+import { unauthorized, useSearchParams } from "next/navigation";
+import HeroSection from "../components/HeroSection";
+import FieldRow from "../components/FieldRow";
+import StatPill from "../components/StatPill";
+import Card from "../components/Card";
+import PointBar from "../components/PointBar";
+import MeetCard from "../components/MeetCard";
+import TitleFamilyCard from "../components/TitleFamilyCard";
+import authContext from "@/lib/auth/auth";
+import { fetchJson } from "../../lib/ui/fetchJson";
+import { formatDate } from "../../lib/ui/formatDate";
 
-import { fetchJson } from "../../../lib/ui/fetchJson";
-import { formatDate } from "../../../lib/ui/formatDate";
-
-import { TITLE_FAMILIES } from "../../../lib/dog/constants";
-import { ageLabel, calcAgeMonths, getStatusColor } from "../../../lib/dog/utils";
-import type { DogDetail, DogOwner, MeetEntry } from "../../../lib/dog/types";
+import { TITLE_FAMILIES } from "../../lib/dog/constants";
+import { ageLabel, calcAgeMonths, getStatusColor } from "../../lib/dog/utils";
+import type { DogDetail, DogOwner, MeetEntry } from "../../lib/dog/types";
+import { Button } from "@mui/material";
+import RichTextEditor from "@/lib/richtext/RichTextEditor";
+import RichTextViewer from "@/lib/richtext/RichTextViewer";
 
 type DogTitle = {
   cwaNumber: string;
@@ -29,9 +32,12 @@ type DogTitle = {
   titleNumber?: string | number | null;
 };
 
-export default function DogPage() {
-  const params = useParams();
-  const cwaNumber = decodeURIComponent(String(params.id ?? ""));
+export default function Page() {
+  return (<React.Suspense><DogPage /></React.Suspense>)
+}
+function DogPage() {
+  const params = useSearchParams();
+  const cwaNumber = decodeURIComponent(String(params.get("id") ?? ""));
   const encodedCwaNumber = encodeURIComponent(cwaNumber);
 
   const [dog, setDog] = React.useState<DogDetail | null>(null);
@@ -39,6 +45,10 @@ export default function DogPage() {
   const [owners, setOwners] = React.useState<DogOwner[]>([]);
   const [titles, setTitles] = React.useState<DogTitle[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [publicNotes, setPublicNotes] = React.useState("")
+  const [editingPublicNotes, setEditingPublicNotes] = React.useState(false)
+  const user = React.useContext(authContext)
+
 
   React.useEffect(() => {
     if (!cwaNumber) return;
@@ -53,6 +63,7 @@ export default function DogPage() {
           fetchJson<{ ok: boolean; data: DogOwner[] }>(`/api/dog_owner/owners/${encodedCwaNumber}`),
           fetchJson<{ ok: boolean; data: DogTitle[] }>(`/api/dog_title/get/${encodedCwaNumber}`),
         ]);
+        setPublicNotes(dogRes.status === "fulfilled" ? dogRes.value.data.publicNotes || "" : "")
 
         setDog(dogRes.status === "fulfilled" ? dogRes.value.data : null);
         setMeets(
@@ -82,6 +93,18 @@ export default function DogPage() {
     load();
   }, [cwaNumber, encodedCwaNumber]);
 
+  function savePublicNotes() {
+    fetch("/api/dog/public_notes", {
+      method: "POST", body: JSON.stringify({
+        dog: dog?.cwaNumber,
+        public_notes: publicNotes,
+      }),
+      headers: {
+        "content-type": "application/json"
+      }
+    })
+    setEditingPublicNotes(false)
+  }
   const ageMonths = calcAgeMonths(dog?.birthdate);
   const maxPoints = Math.max(
     dog?.meetPoints ?? 0,
@@ -93,7 +116,7 @@ export default function DogPage() {
 
   const statusLabel = dog?.status?.trim() || "Status unknown";
   const statusColor = getStatusColor(dog?.status);
-
+  console.log(publicNotes)
   return (
     <main className="min-h-screen bg-[#1F4D2E]">
       <HeroSection
@@ -186,13 +209,16 @@ export default function DogPage() {
           </div>
 
           {dog && (
-            <Card>
+            <Card title="">
               <h3 className="mb-3 text-sm font-semibold text-[#12301D]">Notes</h3>
 
-              {dog.publicNotes ? (
-                <p className="text-sm text-[#12301D]/70">{dog.publicNotes}</p>
-              ) : (
-                <p className="text-sm text-[#12301D]/40 italic">No notes available</p>
+              {publicNotes && !editingPublicNotes && (
+                <RichTextViewer text={publicNotes} />
+              )}
+              {editingPublicNotes && <div><RichTextEditor value={publicNotes} onChange={(v: string) => setPublicNotes(v)} style={{}} /><Button variant="contained" color="success" onClick={savePublicNotes}>Save</Button></div>}
+
+              {!editingPublicNotes && user != "NotAuthenticated" && user != undefined && owners.filter((o) => o.PersonID == user.ID).length != 0 && (
+                <Button variant="contained" color="success" onClick={() => setEditingPublicNotes(true)}>Edit Public Notes</Button>
               )}
 
               {dog.privateNotes && (

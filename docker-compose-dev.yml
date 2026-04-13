@@ -27,7 +27,6 @@ services:
       - next_cache:/home/node/.cache
       - next_node_modules:/app/node_modules
       - next_next:/app/.next
-    env_file: ".env.frontend"
 
   backend:
     image: python:3.14
@@ -38,15 +37,14 @@ services:
     volumes:
       - ./backend:/app
       - ./mysql/migrations:/app/mysql/migrations:ro
-    command: /bin/bash -c "python -m venv venv && source venv/bin/activate && pip install -r requirements.txt &&  sleep 30 && venv/bin/python3 test/seed_user.py; gunicorn -b 0.0.0.0:8000 --reload --timeout 500 main:app"
+    command: /bin/bash -c "python -m venv venv && source venv/bin/activate && pip install -r requirements.txt &&  sleep 30 && gunicorn -b 0.0.0.0:8000 --reload --timeout 500 main:app"
     depends_on: [db]
     env_file: ".env.backend"
 
   backup:
     image: mysql:8.0.44
     container_name: cwa-backup
-    depends_on:
-      - db
+    depends_on: [db]
     volumes:
       - ./backups:/backups
       - ./backup.sh:/backup.sh
@@ -63,7 +61,7 @@ services:
     ports:
       - 127.0.0.1:80:80
     volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./web/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       - frontend
       - backend

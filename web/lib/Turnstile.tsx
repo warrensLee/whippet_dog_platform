@@ -31,7 +31,7 @@ export default function Turnstile({ onSuccess }: { onSuccess: (token: string) =>
                 async
                 defer
             ></Script>
-            <div className="cf-turnstile" data-sitekey={process.env.NEXT_PUBLIC_CF_TURNSTILE_KEY} data-theme="light"
+            <div className="cf-turnstile" data-sitekey={"1x00000000000000000000AA"} data-theme="light"
                 data-size="normal"
                 data-callback="handleTurnstileSuccess"></div>
         </div>

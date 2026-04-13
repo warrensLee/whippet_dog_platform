@@ -1,6 +1,7 @@
 from flask import Flask
 from config import get_config
 from router import register_routes
+from utils.seed_user import seed_user
 
 def create_app(config_name='development'):
     """Application factory pattern"""
@@ -9,6 +10,7 @@ def create_app(config_name='development'):
     register_routes(app)
     return app
 
+seed_user()
 app = create_app()
 
 if __name__ == "__main__":

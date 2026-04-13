@@ -1,0 +1,51 @@
+## If you change anything in the frontend, backend, or the database initialization script.
+## You must run "docker compose build" for these containers to pick up your changes
+## You must also comment out the cloudflared container if you are not using CF tunnel
+services:
+  db:
+    image: whippetdb:latest
+    build:
+      context: ./mysql
+    restart: unless-stopped
+    environment:
+      user: 1000:1000
+    env_file: ".env.database"
+    ports:
+      - 127.0.0.1:3306:3306
+    volumes:
+      - data:/var/lib/mysql
+
+  frontend:
+    image: whippetfrontend:latest
+    build:
+      context: ./web
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - 127.0.0.1:80:80
+    restart: unless-stopped
+
+  backend:
+    image: whippetbackend:latest
+    build:
+      context: ./backend
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - 127.0.0.1:8000:80
+    env_file: ".env.backend"
+    restart: unless-stopped
+
+  ## If running locally you must comment this out
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    env_file:
+      - .env.cloudflared
+    command: tunnel run
+
+volumes:
+  data:

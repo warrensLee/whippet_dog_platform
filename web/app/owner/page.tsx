@@ -1,8 +1,8 @@
 'use client'
 import HeroSection from "@/app/components/HeroSection";
 import { Box, Button, Chip, Paper, Typography } from "@mui/material";
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useParams, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 import axios from "axios";
 class ownedDog {
     name: string
@@ -41,22 +41,24 @@ function DogCard({ dog }: { dog: ownedDog }) {
     )
 }
 
+export default function Page() {
+    return (<Suspense><Owner /></Suspense>)
+}
 
-
-export default function Owner() {
-    const params = useParams();
+function Owner() {
+    const params = useSearchParams();
     const [ownerName, setOwnerName] = useState<string>("");
     const [dogs, setDogs] = useState<Array<ownedDog>>([]);
 
     useEffect(() => {
         async function getData() {
-            const nameResponse = await axios.get("/api/person/name/" + params.id);
+            const nameResponse = await axios.get("/api/person/name/" + params.get("id"));
             if (!nameResponse.data.ok) {
                 setOwnerName(nameResponse.data.data.error);
                 return;
             }
             setOwnerName(nameResponse.data.data.firstName + " " + nameResponse.data.data.lastName)
-            const ownedDogsResponse = await axios.get("/api/dog_owner/get?personID=" + params.id);
+            const ownedDogsResponse = await axios.get("/api/dog_owner/get?personID=" + params.get("id"));
             if (!ownedDogsResponse.data.ok) {
                 setOwnerName("Failed to get Dogs");
                 return;

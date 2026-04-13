@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import type { MeetEntry } from "../dog/[id]/types";
+import type { MeetEntry } from "../../lib/dog/types";
 
 export default function MeetCard({
   meet,
@@ -14,10 +14,10 @@ export default function MeetCard({
 
   const meetDate = meet.MeetDate
     ? new Date(meet.MeetDate).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      })
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    })
     : "Unknown Date";
 
   const meetResult = meet.meetResults?.[0];

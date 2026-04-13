@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import DogForm from "@/app/components/DogForm";
 import type { DogFormValues } from "@/app/admin/dogs/types";
 import { emptyDogFormValues } from "@/app/admin/dogs/types";
@@ -133,14 +133,18 @@ function buildEditPayload(form: DogFormValues): DogFormValues {
 function buildPublicDogHref(cwaNumber: string, fallbackId: string): string {
     const dogId = (cwaNumber || fallbackId).trim();
 
-    return `/dog/${encodeURIComponent(dogId)}`;
+    return `/dog?id=${encodeURIComponent(dogId)}`;
 }
 
-export default function EditDogPage() {
-    const params = useParams();
+export default function Page() {
+    return (<React.Suspense><EditDogPage /></React.Suspense>)
+}
+
+function EditDogPage() {
+    const params = useSearchParams();
     const router = useRouter();
 
-    const id = String(params?.id ?? "").trim();
+    const id = String(params.get("id") ?? "").trim();
 
     /*
         Auth/loading state for protecting the page.

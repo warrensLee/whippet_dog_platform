@@ -27,9 +27,11 @@ function clampInteger
     return Math.max(min, Math.min(max, Math.floor(num)));
 }
 
+export default function Page() {
+    return (<React.Suspense fallback={<p>loading</p>}><AdminEventsPage /></React.Suspense>)
+}
 
-
-export default function AdminEventsPage() {
+function AdminEventsPage() {
     const router = useRouter();
     const sp = useSearchParams();
 
@@ -697,7 +699,7 @@ export default function AdminEventsPage() {
                                             <div className="mt-4 flex items-center justify-between gap-3">
                                                 <div className="flex flex-wrap gap-3">
                                                     <Link
-                                                        href={`/admin/events/${e.meetNumber}/edit`}
+                                                        href={`/admin/events/edit?meetNumber=${e.meetNumber}`}
                                                         className="rounded-full bg-[#2E6B3F] px-4 py-2 text-sm font-semibold text-white hover:bg-[#255733] transition"
                                                     >
                                                         Edit

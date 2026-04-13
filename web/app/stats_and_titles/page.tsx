@@ -12,7 +12,7 @@ export default function Home() {
       <section
         className="
         relative min-h-screen
-        bg-[url('/stats.jpg')]
+        bg-[url(/stats.jpg)]
         bg-cover
         bg-[center_40%]
         bg-no-repeat

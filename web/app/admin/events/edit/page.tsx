@@ -4,7 +4,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import EventForm from "@/app/components/EventForm";
 import type { EventFormValues } from "@/app/admin/events/types";
 import { emptyEventFormValues } from "@/app/admin/events/types";
@@ -100,11 +100,14 @@ function buildEditPayload(form: EventFormValues): EventFormValues {
     };
 }
 
-export default function EditEventPage() {
-    const params = useParams();
+export default function Page() {
+    return (<React.Suspense><EditEventPage /></React.Suspense>)
+}
+function EditEventPage() {
+    const params = useSearchParams();
     const router = useRouter();
 
-    const meetNumber = String(params?.meetNumber ?? "");
+    const meetNumber = String(params.get("meetNumber") ?? "");
 
     /*
         Auth/loading state for protecting the page.

@@ -1,12 +1,15 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, Suspense, useState } from "react";
 import { Box, Paper, TextField, Button, Typography, Grid } from "@mui/material";
 import { useSearchParams } from "next/navigation";
 import PasswordRequirements from "@/lib/passwordRequirements/passwordRequirements";
 
+export default function Page() {
+  return (<Suspense><RegisterPage /></Suspense>)
+}
 
-export default function RegisterPage() {
+function RegisterPage() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token") || "";
   const [personId, setPersonId] = useState("");

@@ -18,6 +18,8 @@ import {
   FormControl,
   IconButton,
   InputLabel,
+  ListItemIcon,
+  Menu,
   MenuItem,
   Paper,
   Select,
@@ -33,7 +35,14 @@ import {
 } from '@mui/material';
 
 import EditIcon from '@mui/icons-material/Edit';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import MailOutlineIcon from '@mui/icons-material/MailOutline';
+import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import EditUserDialog from './editUserDialog';
+import DummyUserDialog from './dummyUserDialog';
+import InviteUserDialog from './inviteUserDialog';
+
 import { AddForm, EditForm, Person, UserRole, emptyAddForm, emptyForm } from './types';
 
 export default function AdminUsersPage() {
@@ -43,6 +52,10 @@ export default function AdminUsersPage() {
   const [saving, setSaving] = useState(false);
   const [open, setOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
+
+  const [addMenuAnchor, setAddMenuAnchor] = useState<null | HTMLElement>(null);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [dummyOpen, setDummyOpen] = useState(false);
 
   const [search, setSearch] = useState('');
   const [form, setForm] = useState<EditForm>(emptyForm);
@@ -61,6 +74,40 @@ export default function AdminUsersPage() {
     const res = await axios.get('/api/user_role/get');
     setRoles(res.data.ok ? res.data.data : []);
   };
+
+const openAddMenu = (event: React.MouseEvent<HTMLElement>) => 
+{
+  setAddMenuAnchor(event.currentTarget);
+};
+
+const closeAddMenu = () => 
+{
+  setAddMenuAnchor(null);
+};
+
+const openInvite = () => 
+{
+  closeAddMenu();
+  setInviteOpen(true);
+};
+
+const closeInvite = () => 
+{
+  if (saving) return;
+  setInviteOpen(false);
+};
+
+const openDummy = () => 
+{
+  closeAddMenu();
+  setDummyOpen(true);
+};
+
+const closeDummy = () => 
+{
+  if (saving) return;
+  setDummyOpen(false);
+};
 
   const loadPage = async () => {
     try {
@@ -144,6 +191,7 @@ export default function AdminUsersPage() {
   };
 
   const openAdd = () => {
+    closeAddMenu();
     setAddForm(emptyAddForm);
     setAddError('');
     setAddOpen(true);
@@ -251,7 +299,7 @@ export default function AdminUsersPage() {
         primaryPhone: addForm.primaryPhone,
         secondaryPhone: addForm.secondaryPhone,
         systemRole: addForm.systemRole,
-        locked: form.locked,
+        locked: false,
         notes: addForm.notes,
       });
 
@@ -320,6 +368,48 @@ export default function AdminUsersPage() {
           }}
         >
           <Box sx={{ width: '95%', maxWidth: '1600px' }}>
+            <Box sx={{ mb: 2 }}>
+              <Button
+                fullWidth
+                color="success"
+                variant="contained"
+                onClick={openAddMenu}
+                endIcon={<ArrowDropDownIcon />}
+                sx={{ py: 1.5, fontWeight: 600 }}
+              >
+                Add User
+              </Button>
+
+              <Menu
+                anchorEl={addMenuAnchor}
+                open={Boolean(addMenuAnchor)}
+                onClose={closeAddMenu}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                sx={{ mt: 1, }}
+              >
+                <MenuItem onClick={openAdd}>
+                  <ListItemIcon>
+                    <PersonAddIcon fontSize="small" />
+                  </ListItemIcon>
+                  Add User
+                </MenuItem>
+
+                <MenuItem onClick={openDummy}>
+                  <ListItemIcon>
+                    <BadgeOutlinedIcon fontSize="small" />
+                  </ListItemIcon>
+                  Create Dummy Account
+                </MenuItem>
+
+                <MenuItem onClick={openInvite}>
+                  <ListItemIcon>
+                    <MailOutlineIcon fontSize="small" />
+                  </ListItemIcon>
+                  Invite User
+                </MenuItem>
+              </Menu>
+            </Box>
             {error && (
               <Alert severity="error" sx={{ mb: 2 }}>
                 {error}
@@ -365,13 +455,11 @@ export default function AdminUsersPage() {
                     <TableCell><strong>Last Name</strong></TableCell>
                     <TableCell><strong>Email</strong></TableCell>
                     <TableCell><strong>Address 1</strong></TableCell>
-                    <TableCell><strong>Address 2</strong></TableCell>
                     <TableCell><strong>City</strong></TableCell>
                     <TableCell><strong>State</strong></TableCell>
                     <TableCell><strong>Zip</strong></TableCell>
                     <TableCell><strong>Country</strong></TableCell>
                     <TableCell><strong>Primary Phone</strong></TableCell>
-                    <TableCell><strong>Secondary Phone</strong></TableCell>
                     <TableCell><strong>System Role</strong></TableCell>
                     <TableCell><strong>Status</strong></TableCell>
                     <TableCell><strong>Notes</strong></TableCell>
@@ -390,19 +478,17 @@ export default function AdminUsersPage() {
                     </TableRow>
                   ) : (
                     filteredUsers.map((user) => (
-                      <TableRow key={user.personId} hover>
+                      <TableRow key={user.id} hover>
                         <TableCell>{user.personId || '-'}</TableCell>
                         <TableCell>{user.firstName || '-'}</TableCell>
                         <TableCell>{user.lastName || '-'}</TableCell>
                         <TableCell>{user.email || '-'}</TableCell>
                         <TableCell>{user.addressLineOne || '-'}</TableCell>
-                        <TableCell>{user.addressLineTwo || '-'}</TableCell>
                         <TableCell>{user.city || '-'}</TableCell>
                         <TableCell>{user.stateProvince || '-'}</TableCell>
                         <TableCell>{user.zipCode || '-'}</TableCell>
                         <TableCell>{user.country || '-'}</TableCell>
                         <TableCell>{user.primaryPhone || '-'}</TableCell>
-                        <TableCell>{user.secondaryPhone || '-'}</TableCell>
                         <TableCell>
                           <Chip label={user.systemRole || 'None'} size="small" />
                         </TableCell>
@@ -441,14 +527,6 @@ export default function AdminUsersPage() {
               </Table>
             </TableContainer>
 
-            <Button
-              color="success"
-              sx={{ width: '100%' }}
-              variant="contained"
-              onClick={openAdd}
-            >
-              Add User
-            </Button>
           </Box>
 
           <EditUserDialog
@@ -592,6 +670,29 @@ export default function AdminUsersPage() {
               </Button>
             </DialogActions>
           </Dialog>
+                    
+          <InviteUserDialog
+            open={inviteOpen}
+            saving={saving}
+            onClose={closeInvite}
+            onSave={() => {
+              setSuccess('Invite sent successfully');
+              setInviteOpen(false);
+            }}
+          />
+
+          <DummyUserDialog
+            open={dummyOpen}
+            saving={saving}
+            roles={roles}
+            onClose={closeDummy}
+            onSave={async () => {
+              await fetchUsers('');
+              setSuccess('Dummy account created successfully');
+              setDummyOpen(false);
+            }}
+          />
+
         </section>
       </main>
     </AuthGuard>

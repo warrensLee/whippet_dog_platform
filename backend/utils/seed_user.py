@@ -10,7 +10,7 @@ EMAIL = os.getenv("SEED_ADMIN_EMAIL", "admin@example.com")
 PASSWORD = os.getenv("SEED_ADMIN_PASSWORD", "ChangeMe123!")
 SYSTEM_ROLE = os.getenv("SEED_ADMIN_ROLE", "ADMIN")
 
-def main():
+def seed_user():
     existing = Person.find_by_identifier(PERSON_ID) or Person.find_by_email(EMAIL)
     if existing:
         print(f"Admin already exists: {existing.person_id} ({existing.email})")

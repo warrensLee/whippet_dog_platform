@@ -62,6 +62,32 @@ def register_dog():
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
 
+@dog_bp.post("/public_notes") 
+def public_notes():
+    role = current_role()
+    if not role:
+        return  jsonify({"ok": False, "error": "Not signed in"}), 401
+
+    deny = require_scope(role.edit_dog_scope, "edit dogs")
+    if deny:
+        return deny
+
+    data = request.get_json(silent=True) or {}
+    if "dog" not in data or "public_notes" not in data:
+        return jsonify({"ok": False, "error": "Invalid Request"}), 400
+
+    dog = Dog.find_by_identifier(data["dog"])
+
+    if not dog:
+        return jsonify({"ok": False, "error": "invalid dog ID"}), 400
+
+    if role.edit_dog_scope == UserRole.SELF and not _is_owner(dog.cwa_number):
+        return jsonify({"ok": False, "error": "Not allowed to edit this dog"}), 403
+
+    dog.public_notes = data["public_notes"]
+    dog.update()
+    return jsonify({"ok": True}), 200
+
 @dog_bp.post("/edit")
 def edit_dog():
     role = current_role()

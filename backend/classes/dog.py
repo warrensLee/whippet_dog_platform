@@ -567,7 +567,7 @@ class Dog:
                 )
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,
                         %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                        %s, %s, %s, %s, %s, %s, %s)
+                        %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
                     self.cwa_number,
@@ -588,6 +588,7 @@ class Dog:
                     self.meet_wins,
                     self.meet_appearences,
                     self.high_combined_wins,
+                    self.aom_earned or 0,
                     self.public_notes or None,
                     self.private_notes or None,
                     self.dna,

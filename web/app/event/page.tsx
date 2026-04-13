@@ -2,13 +2,13 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import HeroSection from "../../components/HeroSection";
-import InfoCard from "../../components/InfoCard";
-import FieldRow from "../../components/FieldRow";
-import StatPill from "../../components/StatPill";
-import { fetchJson } from "../../../lib/ui/fetchJson";
-import { formatDate } from "../../../lib/ui/formatDate";
+import { useSearchParams } from "next/navigation";
+import HeroSection from "../components/HeroSection";
+import InfoCard from "../components/InfoCard";
+import FieldRow from "../components/FieldRow";
+import StatPill from "../components/StatPill";
+import { fetchJson } from "../../lib/ui/fetchJson";
+import { formatDate } from "../../lib/ui/formatDate";
 
 /*
     This page is focused on one event/meet record.
@@ -253,9 +253,12 @@ function RaceAccordionCard({ meetNumber, race }: { meetNumber: string; race: Mee
     );
 }
 
-export default function MeetPage() {
-    const params = useParams();
-    const meetNumber = decodeURIComponent(String(params.meetNumber ?? ""));
+export default function Page() {
+    return (<React.Suspense><MeetPage /></React.Suspense>)
+}
+function MeetPage() {
+    const params = useSearchParams();
+    const meetNumber = decodeURIComponent(String(params.get("meetNumber")) ?? "");
     const encodedMeetNumber = encodeURIComponent(meetNumber);
 
     const [event, setEvent] = React.useState<EventDetail | null>(null);

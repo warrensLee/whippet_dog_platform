@@ -21,7 +21,11 @@ function clampInteger(num: number, min: number, max: number) {
     return Math.max(min, Math.min(max, Math.floor(num)));
 }
 
-export default function SearchPage() {
+
+export default function Page() {
+    return (<React.Suspense><SearchPage /></React.Suspense>)
+}
+function SearchPage() {
     const sp = useSearchParams();
 
     /*
@@ -162,10 +166,10 @@ export default function SearchPage() {
                 return (b.cwaNumber || "").localeCompare(a.cwaNumber || "", undefined, { numeric: true });
 
             case "akcAsc":
-                return (a.akcNumber || "").localeCompare(b.akcNumber || "", undefined, { numeric: true });
+                return (a.registeredNumber || "").localeCompare(b.registeredNumber || "", undefined, { numeric: true });
 
             case "akcDesc":
-                return (b.akcNumber || "").localeCompare(a.akcNumber || "", undefined, { numeric: true });
+                return (b.registeredNumber || "").localeCompare(a.registeredNumber || "", undefined, { numeric: true });
 
             case "yearAsc":
                 return Number(a.birthYear || 0) - Number(b.birthYear || 0);
@@ -429,7 +433,7 @@ export default function SearchPage() {
                                             <div className="flex items-start justify-between gap-3">
                                                 <div>
                                                     <Link
-                                                        href={`/dog/${d.id}`}
+                                                        href={`/dog?id=${d.id}`}
                                                         className="text-xl font-semibold text-[#12301D] hover:text-[#2E6B3F] underline-offset-4 hover:underline transition"
                                                     >
                                                         {d.registeredName || "Unnamed Dog"}
@@ -491,7 +495,7 @@ export default function SearchPage() {
                                             */}
                                             <div className="mt-4 flex flex-wrap gap-3">
                                                 <Link
-                                                    href={`/dog/${d.id}`}
+                                                    href={`/dog?id=${d.id}`}
                                                     className="rounded-full bg-[#2E6B3F] px-4 py-2 text-sm font-semibold text-white hover:bg-[#255733] transition"
                                                 >
                                                     View Dog
