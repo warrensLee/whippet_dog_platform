@@ -159,6 +159,14 @@ class Dog:
         if self.high_combined_wins >= 25:
             titles.append("HCX4")
         return titles
+    
+    def is_dpc(self):
+        '''Check if dog is a Dual Purpose Champion (DPC).'''
+        return "DPC" in self.check_dpc_titles() or "DPCX" in self.check_dpc_titles()
+    
+    def is_akc_or_ckc(self):
+        '''Check if dog is registered with AKC or CKC.'''
+        return bool((self.registered_number or "").strip())
 
     def total_placement_points(self, placements):
         '''Calculate total points based on placements'''

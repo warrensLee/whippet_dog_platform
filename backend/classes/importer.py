@@ -49,6 +49,7 @@ class CsvImporter:
             "hcScore": ("hcScore", "HCScore", "HC SCORE"),
             "hcLegEarned": ("hcLegEarned", "HCLegEarned", "HC LEG EARNED"),
             "aomEarned": ("aomEarned", "AOMEarned", "AOM EARNED"),
+            "dpcPoints": ("dpcPoints", "DPCPoints", "DPC POINTS"),
         },
         "race_results": {
             "meetNumber": ("meetNumber", "MeetNumber", "MEET NUMBER", "Meet #"),

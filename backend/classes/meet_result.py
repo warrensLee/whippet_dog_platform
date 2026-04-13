@@ -4,7 +4,7 @@ from mysql.connector import Error
 class MeetResult:
     
     def __init__(self, meet_number, cwa_number, average, grade, meet_placement, meet_points, arx_earned,
-                 narx_earned, shown, show_placement, show_points, dpc_leg, hc_score, hc_leg_earned, aom_earned, last_edited_by=None, last_edited_at=None):
+                 narx_earned, shown, show_placement, show_points, dpc_leg, hc_score, hc_leg_earned, aom_earned, dpc_points, last_edited_by=None, last_edited_at=None):
         self.meet_number = meet_number
         self.cwa_number = cwa_number
         self.average = average
@@ -20,6 +20,7 @@ class MeetResult:
         self.hc_score = hc_score
         self.hc_leg_earned = hc_leg_earned
         self.aom_earned = aom_earned
+        self.dpc_points = dpc_points
         self.last_edited_by = last_edited_by
         self.last_edited_at = last_edited_at
 
@@ -42,6 +43,7 @@ class MeetResult:
             hc_score=(data.get("hcScore") or "").strip(),
             hc_leg_earned=(data.get("hcLegEarned") or "").strip(),
             aom_earned=(data.get("aomEarned") or "").strip(),
+            dpc_points=(data.get("dpcPoints") or "").strip(),
             last_edited_by=data.get("lastEditedBy"),
             last_edited_at=data.get("lastEditedAt")
         )
@@ -67,6 +69,7 @@ class MeetResult:
             hc_score=row.get("HCScore"),
             hc_leg_earned=row.get("HCLegEarned"),
             aom_earned=row.get("AOMEarned"),
+            dpc_points=row.get("DPCPoints"),
             last_edited_by=row.get("LastEditedBy"),
             last_edited_at=row.get("LastEditedAt")
         )
@@ -78,7 +81,7 @@ class MeetResult:
             """
             SELECT MeetNumber, CWANumber, Average, Grade, MeetPlacement, MeetPoints,
                     ARXEarned, NARXEarned, Shown, ShowPlacement, ShowPoints, DPCLeg,
-                    HCScore, HCLegEarned, AOMEarned, LastEditedBy, LastEditedAt
+                    HCScore, HCLegEarned, AOMEarned, DPCPoints, LastEditedBy, LastEditedAt
             FROM MeetResults
             WHERE MeetNumber = %s AND CWANumber = %s
             LIMIT 1
@@ -158,9 +161,9 @@ class MeetResult:
                 INSERT INTO MeetResults (
                     MeetNumber, CWANumber, Average, Grade, MeetPlacement, MeetPoints,
                     ARXEarned, NARXEarned, Shown, ShowPlacement, ShowPoints, DPCLeg,
-                    HCScore, HCLegEarned, LastEditedBy, LastEditedAt
+                    HCScore, HCLegEarned, AOMEarned, DPCPoints, LastEditedBy, LastEditedAt
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
                     self.meet_number,
@@ -177,6 +180,8 @@ class MeetResult:
                     self.dpc_leg,
                     self.hc_score,
                     self.hc_leg_earned,
+                    self.aom_earned,
+                    self.dpc_points,
                     self.last_edited_by,
                     self.last_edited_at,
                 ),
@@ -203,6 +208,8 @@ class MeetResult:
                     DPCLeg = %s,
                     HCScore = %s,
                     HCLegEarned = %s,
+                    AOMEarned = %s,
+                    DPCPoints = %s,
                     LastEditedBy = %s,
                     LastEditedAt = %s
                 WHERE MeetNumber = %s AND CWANumber = %s
@@ -220,6 +227,8 @@ class MeetResult:
                     self.dpc_leg,
                     self.hc_score,
                     self.hc_leg_earned,
+                    self.aom_earned,
+                    self.dpc_points,
                     self.last_edited_by,
                     self.last_edited_at,
                     self.meet_number,
@@ -250,7 +259,7 @@ class MeetResult:
             """
             SELECT MeetNumber, CWANumber, Average, Grade, MeetPlacement, MeetPoints,
                     ARXEarned, NARXEarned, Shown, ShowPlacement, ShowPoints, DPCLeg,
-                    HCScore, HCLegEarned, LastEditedBy, LastEditedAt
+                    HCScore, HCLegEarned, AOMEarned, DPCPoints, LastEditedBy, LastEditedAt
             FROM MeetResults
             """
         )
@@ -293,6 +302,8 @@ class MeetResult:
             "dpcLeg": self.dpc_leg,
             "hcScore": self.hc_score,
             "hcLegEarned": self.hc_leg_earned,
+            "aomEarned": self.aom_earned,
+            "dpcPoints": self.dpc_points,
             "lastEditedBy": self.last_edited_by,
             "lastEditedAt": self.last_edited_at.isoformat() if self.last_edited_at else None
         }

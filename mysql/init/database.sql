@@ -126,6 +126,7 @@ CREATE TABLE `RaceResults` (
     `Box` INT NOT NULL,
     `Placement` INT NOT NULL,
     `MeetPoints` DECIMAL(3,2) NOT NULL,
+    `AOMEarned` DECIMAL(3,2) NOT NULL,
     `DPCPoints` DECIMAL(3,2) NOT NULL,
     `Incident` VARCHAR(5),
     `LastEditedBy` INT,
@@ -150,6 +151,7 @@ CREATE TABLE `MeetResults` (
     `HCScore` INT,
     `HCLegEarned` CHAR(1),
     `AOMEarned` DECIMAL(5,2) NOT NULL,
+    `DPCPoints` DECIMAL(5,2) NOT NULL,
     `LastEditedBy` INT,
     `LastEditedAt` TIMESTAMP,
     UNIQUE (`MeetNumber`, `CWANumber`)

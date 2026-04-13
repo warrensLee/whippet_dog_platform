@@ -27,7 +27,8 @@ def _meet_stats(cwa_number: str) -> dict:
             COALESCE(SUM(ShowPoints),0) AS show_points,
             COALESCE(SUM(DPCLeg),0)     AS dpc_legs,
             COALESCE(SUM(CASE WHEN MeetPlacement=1 THEN 1 ELSE 0 END),0) AS meet_wins,
-            COALESCE(COUNT(*),0)        AS meet_appearences
+            COALESCE(COUNT(*),0)        AS meet_appearences,
+            COALESCE(SUM(DPCPoints),0)  AS dpc_points
         FROM MeetResults
         WHERE CWANumber=%s
         """,
@@ -42,6 +43,7 @@ def _meet_stats(cwa_number: str) -> dict:
         "dpc_legs": float(row.get("dpc_legs") or 0),
         "meet_wins": float(row.get("meet_wins") or 0),
         "meet_appearences": float(row.get("meet_appearences") or 0),
+        "dpc_points": float(row.get("dpc_points") or 0)
     }
 
 
@@ -54,6 +56,7 @@ def _apply_meet_stats_delta(dog: Dog, old: dict, new: dict, editor_id: str, now:
     dog.dpc_legs = int(dog.dpc_legs or 0) - int(old["dpc_legs"]) + int(new["dpc_legs"])
     dog.meet_wins = int(dog.meet_wins or 0) - int(old["meet_wins"]) + int(new["meet_wins"])
     dog.meet_appearences = int(dog.meet_appearences or 0) - int(old["meet_appearences"]) + int(new["meet_appearences"])
+    dog.dpc_points = int(dog.dpc_points or 0) - int(old["dpc_points"]) + int(new["dpc_points"])
 
     if hasattr(dog, "compute_last_three_meet_average"):
         dog.average = dog.compute_last_three_meet_average()
@@ -344,3 +347,69 @@ def get_race_entries(meet_number, program, race_number):
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
     except Exception as e:
         return jsonify({"ok": False, "error": f"Server error: {str(e)}"}), 500
+
+@race_result_bp.get("/points_distribution/<meet_number>/<program>/<race_number>/<cwa_number>")
+def get_placement_and_dpc_points(meet_number, program, race_number, cwa_number):
+    try:
+        rows = _get_race_entries(meet_number, program, race_number)
+
+        if not rows:
+            return jsonify({"ok": False, "error": "Race does not exist or has no entries"}), 404
+
+        entries = []
+        for row in rows:
+
+            entries.append({
+                "cwaNumber": row.get("CWANumber"),
+                "placement": row.get("Placement"),
+            })
+        
+        count_adults = RaceResult.count_num_adult_whippets([entry["cwaNumber"] for entry in entries])
+        dpc_points_distribution = RaceResult.get_dpc_point_distribution(count_adults)
+
+        dog = Dog.find_by_identifier(cwa_number) if cwa_number else None
+        race_result = RaceResult.find_by_identifier(meet_number, program, race_number, cwa_number) if cwa_number else None
+
+        results = []
+        for entry in entries:
+            placement = entry.get("placement")
+
+            placement_points = 0
+            dpc_points = 0
+            if dog and placement:
+                placement_points = RaceResult.get_placement_points(placement)
+                if len(dpc_points_distribution) > 0 and not dog.is_dpc() and not dog.is_akc_or_ckc():
+                    dpc_points = dpc_points_distribution.pop()
+            
+            if placement == "AOM":
+                race_result.aom_earned += 1
+            race_result.meet_points = placement_points
+            race_result.dpc_points = dpc_points
+            race_result.update()
+
+            results.append({
+                "cwaNumber": entry.get("cwaNumber"),
+                "dogName": entry.get("dogName"),
+                "registeredName": entry.get("registeredName"),
+                "callName": entry.get("callName"),
+                "placement": placement,
+                "placementPoints": placement_points,
+                "dpcPoints": dpc_points,
+            })
+
+            if placement > 4 and len(dpc_points_distribution) == 0:
+                break
+                    
+        return jsonify({
+            "ok": True,
+            "data": {
+                "results": results
+            }
+        }), 200
+
+    except Error as e:
+        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"ok": False, "error": f"Server error: {str(e)}"}), 500
+    
+    

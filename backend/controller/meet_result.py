@@ -27,7 +27,8 @@ def _meet_stats(cwa_number: str) -> dict:
             COALESCE(SUM(ShowPoints),0) AS show_points,
             COALESCE(SUM(DPCLeg),0)     AS dpc_legs,
             COALESCE(SUM(CASE WHEN MeetPlacement=1 THEN 1 ELSE 0 END),0) AS meet_wins,
-            COALESCE(COUNT(*),0)        AS meet_appearences
+            COALESCE(COUNT(*),0)        AS meet_appearences,
+            COALESCE(SUM(DPCPoints),0)  AS dpc_points
         FROM MeetResults
         WHERE CWANumber=%s
         """,
@@ -42,6 +43,7 @@ def _meet_stats(cwa_number: str) -> dict:
         "dpc_legs": float(row.get("dpc_legs") or 0),
         "meet_wins": float(row.get("meet_wins") or 0),
         "meet_appearences": float(row.get("meet_appearences") or 0),
+        "dpc_points": float(row.get("dpc_points") or 0),
     }
 
 
@@ -53,6 +55,7 @@ def _apply_meet_stats_delta(dog: Dog, old: dict, new: dict, editor_id: str, now:
     dog.dpc_legs = int(dog.dpc_legs or 0) - int(old["dpc_legs"]) + int(new["dpc_legs"])
     dog.meet_wins = int(dog.meet_wins or 0) - int(old["meet_wins"]) + int(new["meet_wins"])
     dog.meet_appearences = int(dog.meet_appearences or 0) - int(old["meet_appearences"]) + int(new["meet_appearences"])
+    dog.dpc_points = int(dog.dpc_points or 0) - int(old["dpc_points"]) + int(new["dpc_points"])
     if hasattr(dog, "compute_last_three_meet_average"):
         dog.average = dog.compute_last_three_meet_average()
     dog.update()

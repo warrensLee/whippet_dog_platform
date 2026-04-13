@@ -6,11 +6,12 @@ TODO:
 
 from database import fetch_all, fetch_one, execute
 from mysql.connector import Error
+from classes.dog import Dog
 
 class RaceResult:
 
     def __init__(self, meet_number, cwa_number, program, race_number, entry_type, box,
-                 placement, meet_points, dpc_points, incident, last_edited_by, last_edited_at):
+                 placement, meet_points, aom_earned, dpc_points, incident, last_edited_by, last_edited_at):
         self.meet_number = meet_number
         self.cwa_number = cwa_number
         self.program = program
@@ -19,6 +20,7 @@ class RaceResult:
         self.box = box
         self.placement = placement
         self.meet_points = meet_points
+        self.aom_earned = aom_earned
         self.dpc_points = dpc_points
         self.incident = incident
         self.last_edited_by = last_edited_by
@@ -36,6 +38,7 @@ class RaceResult:
             box=(data.get("box") or "").strip(),
             placement=(data.get("placement") or "").strip(),
             meet_points=(data.get("meetPoints") or "").strip(),
+            aom_earned=(data.get("aomEarned") or "").strip(),
             dpc_points=(data.get("dpcPoints") or "").strip(),
             incident=(data.get("incident") or "").strip(),
             last_edited_by=data.get("lastEditedBy"),
@@ -56,6 +59,7 @@ class RaceResult:
             box=row.get("Box"),
             placement=row.get("Placement"),
             meet_points=row.get("MeetPoints"),
+            aom_earned=row.get("AOMEarned"),
             dpc_points=row.get("DPCPoints"),
             incident=row.get("Incident"),
             last_edited_by=row.get("LastEditedBy"),
@@ -68,7 +72,7 @@ class RaceResult:
         row = fetch_one(
             """
             SELECT MeetNumber, CWANumber, Program, RaceNumber, EntryType, Box,
-                   Placement, MeetPoints, DPCPoints, Incident,
+                   Placement, MeetPoints, AOMEarned, DPCPoints, Incident,
                    LastEditedBy, LastEditedAt
             FROM RaceResults
             WHERE MeetNumber = %s AND CWANumber = %s AND Program = %s AND RaceNumber = %s
@@ -122,7 +126,7 @@ class RaceResult:
                 """
                 INSERT INTO RaceResults (
                     MeetNumber, CWANumber, Program, RaceNumber, EntryType, Box,
-                    Placement, MeetPoints, DPCPoints, Incident,
+                    Placement, MeetPoints, AOMEarned, DPCPoints, Incident,
                     LastEditedBy, LastEditedAt
                 )
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -136,6 +140,7 @@ class RaceResult:
                     self.box,
                     self.placement,
                     self.meet_points,
+                    self.aom_earned,
                     self.dpc_points,
                     self.incident,
                     self.last_edited_by,
@@ -156,6 +161,7 @@ class RaceResult:
                     Box = %s,
                     Placement = %s,
                     MeetPoints = %s,
+                    AOMEarned = %s,
                     DPCPoints = %s,
                     Incident = %s,
                     LastEditedBy = %s,
@@ -163,7 +169,7 @@ class RaceResult:
                 WHERE MeetNumber = %s AND CWANumber = %s AND Program = %s AND RaceNumber = %s
                 """,
                 (
-                    self.entry_type, self.box, self.placement, self.meet_points, self.dpc_points,
+                    self.entry_type, self.box, self.placement, self.meet_points, self.aom_earned, self.dpc_points,
                     self.incident, self.last_edited_by, self.last_edited_at,
                     self.meet_number, self.cwa_number, self.program , self.race_number
                 ),      
@@ -191,7 +197,7 @@ class RaceResult:
         rows = fetch_all(
             """
             SELECT MeetNumber, CWANumber, Program, RaceNumber, EntryType, Box,
-                   Placement, MeetPoints, DPCPoints, Incident,
+                   Placement, MeetPoints, AOMEarned, DPCPoints, Incident,
                    LastEditedBy, LastEditedAt
             FROM RaceResults
             """
@@ -236,7 +242,21 @@ class RaceResult:
             return [4, 2]
         elif count_adults >= 10:
             return [3, 1]
-            
+        
+    def get_placement_points(self, placement):
+        '''Add points for a single placement'''
+        if placement == "1":
+            return 5
+        elif placement == "2":
+            return 3
+        elif placement == "3":
+            return 2
+        elif placement == "4":
+            return 1
+        elif placement == "AOM":
+            return 0.5
+        return 0
+
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""
         return {
