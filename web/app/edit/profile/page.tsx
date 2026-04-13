@@ -6,7 +6,7 @@ import { getNames } from 'country-list';
 import parsePhoneNumber from 'libphonenumber-js'
 import axios from 'axios';
 import { Person } from './types';
-import HeroSection from '@/app/components/HeroSection';
+import HeroSection from '@/app/components/ui/HeroSection';
 import AuthGuard from '@/lib/auth/authGuard';
 
 export default function ProfileForm() {

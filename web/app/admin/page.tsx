@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import AuthGuard from "@/lib/auth/authGuard";
-import HeroSection from "../components/HeroSection";
+import HeroSection from "../components/ui/HeroSection";
 import { Alert, Button, Dialog, Paper, Snackbar, Typography } from "@mui/material";
 import axios from "axios";
 import ImportCsvPage from "./ImportDialog";

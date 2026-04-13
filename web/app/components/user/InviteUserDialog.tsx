@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import axios, { AxiosError } from 'axios';
-import {
+import 
+{
   Alert,
   Button,
   Dialog,
@@ -14,42 +15,44 @@ import {
   Typography,
 } from '@mui/material';
 
-type Props = {
+type Props = 
+{
   open: boolean;
   saving: boolean;
   onClose: () => void;
   onSave: () => void;
 };
 
-export default function InviteUserDialog({
-  open,
-  saving,
-  onClose,
-  onSave,
-}: Props) {
+export default function InviteUserDialog({open, saving, onClose, onSave,}: Props) 
+{
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
 
-  const resetForm = () => {
+  const resetForm = () => 
+  {
     setEmail('');
     setError('');
   };
 
-  const handleClose = () => {
+  const handleClose = () => 
+  {
     if (saving) return;
     resetForm();
     onClose();
   };
 
-  const handleInvite = async () => {
-    try {
+  const handleInvite = async () => 
+  {
+    try 
+  {
       setError('');
 
       const res = await axios.post('/api/auth/invite', {
         email: email.trim(),
       });
 
-      if (!res.data.ok) {
+      if (!res.data.ok) 
+      {
         setError(res.data.error || 'Failed to send invite');
         return;
       }
@@ -57,12 +60,19 @@ export default function InviteUserDialog({
       resetForm();
       onSave();
       onClose();
-    } catch (err: unknown) {
-      if (err instanceof AxiosError && err.response) {
+    } 
+    catch (err: unknown) 
+    {
+      if (err instanceof AxiosError && err.response) 
+      {
         setError(err.response.data?.error || 'Failed to send invite');
-      } else if (err instanceof Error) {
+      } 
+      else if (err instanceof Error) 
+      {
         setError(err.message || 'Failed to send invite');
-      } else {
+      } 
+      else 
+      {
         setError('Failed to send invite');
       }
     }

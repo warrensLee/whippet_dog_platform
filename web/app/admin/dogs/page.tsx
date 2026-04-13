@@ -4,8 +4,8 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { DogSearchResponse } from "@/app/admin/dogs/types";
-import HeroSection from "@/app/components/HeroSection";
-import SearchBar from "@/app/components/SearchBar";
+import HeroSection from "@/app/components/ui/HeroSection";
+import SearchBar from "@/app/components/ui/SearchBar";
 
 /*
     Clamps a number to a safe integer range.
@@ -127,17 +127,11 @@ function AdminDogsPage() {
         [q]
     );
 
-    /*
-        Check whether the current user is authorized to manage dogs.
-        If not, redirect to the admin login page.
-    */
     React.useEffect(
         () => {
-            let cancelled = false;
 
 
             return () => {
-                cancelled = true;
             };
         },
         [router]
@@ -343,36 +337,32 @@ function AdminDogsPage() {
         try {
             setDeleting(true);
 
-            for (const cwaNumber of selectedDogs) {
-                const res = await fetch(
-                    "/api/dog/delete",
-                    {
-                        method: "POST",
-                        headers:
+            await Promise.all(
+                selectedDogs.map(async (cwaNumber) => {
+                    const res = await fetch(
+                        "/api/dog/delete",
                         {
-                            "Content-Type": "application/json",
-                        },
-                        credentials: "include",
-                        body: JSON.stringify(
-                            {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            credentials: "include",
+                            body: JSON.stringify({
                                 cwaNumber,
                                 confirm: true,
                             }),
-                    }
-                );
-
-                const json = await res.json().catch(
-                    () => {
-                        return null;
-                    }
-                );
-
-                if (!res.ok || !json?.ok) {
-                    throw new Error(
-                        json?.error || `Failed to delete dog #${cwaNumber}.`
+                        }
                     );
-                }
-            }
+
+                    const json = await res.json().catch(() => null);
+
+                    if (!res.ok || !json?.ok) {
+                        throw new Error(
+                            json?.error || `Failed to delete dog #${cwaNumber}.`
+                        );
+                    }
+                })
+            );
 
             setSelectedDogs([]);
             await loadDogs();
@@ -618,7 +608,7 @@ function AdminDogsPage() {
                                 <button
                                     type="button"
                                     onClick={handleDeleteSelectedDogs}
-                                    disabled={selectedDogs.length === 0 || deleting}
+                                    disabled={Boolean(pagedItems.length === 0 || deleting)}
                                     className="rounded-full border border-red-200 bg-red-50 px-5 py-2.5 text-sm font-semibold text-red-700 hover:bg-red-100 transition disabled:opacity-50"
                                 >
                                     {deleting
@@ -677,15 +667,9 @@ function AdminDogsPage() {
                                                         className="mt-1 h-4 w-4 rounded border-black/20"
                                                     />
 
-                                                    <div>
-                                                        <div className="text-xl font-semibold text-[#12301D]">
-                                                            {d.registeredName || d.cwaNumber}
-                                                        </div>
-
-                                                        <div className="mt-1 text-sm text-[#12301D]/65">
-                                                            Record #{d.cwaNumber}
-                                                        </div>
-                                                    </div>
+                                                <div className="text-xl font-semibold text-[#12301D]">
+                                                    {d.registeredName || d.cwaNumber}
+                                                </div>
                                                 </div>
 
                                                 <div className="shrink-0 rounded-full px-3 py-1 text-xs font-semibold bg-[#2E6B3F]/10 text-[#2E6B3F]">
@@ -693,30 +677,30 @@ function AdminDogsPage() {
                                                 </div>
                                             </div>
 
-                                            <div className="mt-4 grid grid-cols-2 gap-y-2 text-sm text-[#12301D]/70">
+                                            <div className="mt-4 grid grid-cols-2 gap-y-2 text-sm text-[#12301D]/80">
                                                 <div>
-                                                    <span className="font-medium text-[#12301D]/80">
+                                                    <span className="font-medium text-[#000000]">
                                                         CWA
                                                     </span>
                                                     : {d.cwaNumber || "—"}
                                                 </div>
 
                                                 <div>
-                                                    <span className="font-medium text-[#12301D]/80">
+                                                    <span className="font-medium text-[#000000]">
                                                         Year
                                                     </span>
                                                     : {d.birthYear || "—"}
                                                 </div>
 
                                                 <div>
-                                                    <span className="font-medium text-[#12301D]/80">
+                                                    <span className="font-medium text-[#000000]">
                                                         Owner
                                                     </span>
                                                     : {d.ownerName || "—"}
                                                 </div>
 
                                                 <div>
-                                                    <span className="font-medium text-[#12301D]/80">
+                                                    <span className="font-medium text-[#000000]">
                                                         Title
                                                     </span>
                                                     : {d.title || "—"}

@@ -22,7 +22,7 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import AuthGuard from "@/lib/auth/authGuard";
-import HeroSection from "@/app/components/HeroSection";
+import HeroSection from "@/app/components/ui/HeroSection";
 
 interface ChangeLog {
   id: number;

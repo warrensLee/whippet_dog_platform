@@ -163,7 +163,7 @@ class MeetResult:
                     ARXEarned, NARXEarned, Shown, ShowPlacement, ShowPoints, DPCLeg,
                     HCScore, HCLegEarned, AOMEarned, DPCPoints, LastEditedBy, LastEditedAt
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
                     self.meet_number,

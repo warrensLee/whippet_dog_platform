@@ -18,7 +18,7 @@ import {
   Box,
   Button,
 } from '@mui/material';
-import HeroSection from '@/app/components/HeroSection';
+import HeroSection from '@/app/components/ui/HeroSection';
 import axios from 'axios';
 import AuthGuard from '@/lib/auth/authGuard';
 

@@ -18,6 +18,8 @@ export type EventSearchResult =
     judge: string;
     location: string;
     yards: string;
+    publicNotes?: string;
+    privateNotes?: string;
 };
 
 export type EventFormValues = 
@@ -29,6 +31,8 @@ export type EventFormValues =
     judge: string;
     location: string;
     yards: string;
+    publicNotes: string;
+    privateNotes: string;
 };
 
 export type EventListItem = 
@@ -40,6 +44,8 @@ export type EventListItem =
     judge?: string;
     location: string;
     yards: string;
+    publicNotes?: string;
+    privateNotes?: string;
 };
 
 export type EventSearchResponse = 
@@ -57,4 +63,6 @@ export const emptyEventFormValues: EventFormValues =
     judge: "",
     location: "",
     yards: "",
+    publicNotes: "",
+    privateNotes: "",
 };

@@ -5,8 +5,8 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { EventSearchResponse } from "@/app/admin/events/types";
-import HeroSection from "@/app/components/HeroSection";
-import SearchBar from "@/app/components/SearchBar";
+import HeroSection from "@/app/components/ui/HeroSection";
+import SearchBar from "@/app/components/ui/SearchBar";
 
 /*
     Clamps a number to a safe integer range.
@@ -117,18 +117,31 @@ function AdminEventsPage() {
         Check whether the current user is authorized to manage Events.
         If not, redirect to the admin login page.
     */
-    React.useEffect(
-        () => {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            let cancelled = false;
 
+    React.useEffect(() => {
 
-            return () => {
-                cancelled = true;
-            };
-        },
-        [router]
-    );
+        async function checkAccess() {
+            try {
+                const res = await fetch("/api/auth/me", {
+                    credentials: "include",
+                });
+
+                const json = await res.json().catch(() => null);
+
+                if (!res.ok || !json?.signedIn) {
+                    router.replace("/login");
+                    return;
+                }
+            } catch {
+                router.replace("/login");
+            }
+        }
+
+        checkAccess();
+
+        return () => {
+        };
+    }, [router]);
 
     /*
         Load Event search results once authorization is confirmed.
@@ -310,36 +323,16 @@ function AdminEventsPage() {
         try {
             setDeleting(true);
 
-            for (const meetNumber of selectedEvents) {
-                const res = await fetch(
-                    "/api/meet/delete",
-                    {
+            await Promise.all(
+                selectedEvents.map((meetNumber) =>
+                    fetch("/api/meet/delete", {
                         method: "POST",
-                        headers:
-                        {
-                            "Content-Type": "application/json",
-                        },
+                        headers: { "Content-Type": "application/json" },
                         credentials: "include",
-                        body: JSON.stringify(
-                            {
-                                meetNumber,
-                                confirm: true,
-                            }),
-                    }
-                );
-
-                const json = await res.json().catch(
-                    () => {
-                        return null;
-                    }
-                );
-
-                if (!res.ok || !json?.ok) {
-                    throw new Error(
-                        json?.error || `Failed to delete Event #${meetNumber}.`
-                    );
-                }
-            }
+                        body: JSON.stringify({ meetNumber, confirm: true }),
+                    })
+                )
+            );
 
             setSelectedEvents([]);
             await loadEvents();

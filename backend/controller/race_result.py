@@ -291,6 +291,9 @@ def _get_race_entries(meet_number: str, program: str, race_number: str):
         SELECT
             rr.CWANumber AS CWANumber,
             rr.Placement AS Placement,
+            rr.MeetPoints AS MeetPoints,
+            rr.AOMEarned AS AOMEarned,
+            rr.DPCPoints AS DPCPoints,
             d.CallName AS CallName,
             d.RegisteredName AS RegisteredName
         FROM RaceResults rr
@@ -330,7 +333,9 @@ def get_race_entries(meet_number, program, race_number):
                 "registeredName": row.get("RegisteredName"),
                 "callName": row.get("CallName"),
                 "placement": row.get("Placement"),
-                "points": row.get("Points"),
+                "meetPoints": row.get("MeetPoints"),
+                "aomEarned": row.get("AOMEarned"),
+                "dpcPoints": row.get("DPCPoints"),
             })
 
         return jsonify({

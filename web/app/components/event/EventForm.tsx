@@ -4,8 +4,7 @@
 import * as React from "react";
 import type { EventFormValues } from "@/app/admin/events/types";
 
-type Props = 
-{
+type Props = {
     values: EventFormValues;
     onChange: <K extends keyof EventFormValues>(
         key: K,
@@ -18,10 +17,10 @@ type Props =
     success: string;
     onCancel: () => void;
     isEditMode?: boolean;
+    canEditPrivateNotes?: boolean;
 };
 
-type InputFieldProps = 
-{
+type InputFieldProps = {
     label: string;
     field: keyof EventFormValues;
     value: string;
@@ -35,6 +34,19 @@ type InputFieldProps =
     className?: string;
 };
 
+type TextAreaFieldProps = {
+    label: string;
+    field: keyof EventFormValues;
+    value: string;
+    onChange: <K extends keyof EventFormValues>(
+        key: K,
+        value: EventFormValues[K]
+    ) => void;
+    placeholder?: string;
+    rows?: number;
+    className?: string;
+};
+
 function InputField({
     label,
     field,
@@ -44,8 +56,7 @@ function InputField({
     type = "text",
     readOnly = false,
     className = "",
-}: InputFieldProps) 
-{
+}: InputFieldProps) {
     return (
         <div className={className}>
             <label className="mb-2 block text-sm font-medium text-[#12301D]">
@@ -68,6 +79,32 @@ function InputField({
     );
 }
 
+function TextAreaField({
+    label,
+    field,
+    value,
+    onChange,
+    placeholder,
+    rows = 5,
+    className = "",
+}: TextAreaFieldProps) {
+    return (
+        <div className={className}>
+            <label className="mb-2 block text-sm font-medium text-[#12301D]">
+                {label}
+            </label>
+
+            <textarea
+                value={value}
+                onChange={(e) => onChange(field, e.target.value)}
+                placeholder={placeholder}
+                rows={rows}
+                className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
+            />
+        </div>
+    );
+}
+
 export default function EventForm({
     values,
     onChange,
@@ -78,8 +115,8 @@ export default function EventForm({
     success,
     onCancel,
     isEditMode = false,
-}: Props) 
-{
+    canEditPrivateNotes = false,
+}: Props) {
     const standardFields: Array<{
         label: string;
         field: keyof EventFormValues;
@@ -141,6 +178,26 @@ export default function EventForm({
                         type={fieldConfig.type}
                     />
                 ))}
+            </div>
+
+            <div className="mt-6 space-y-5">
+                <TextAreaField
+                    label="Notes"
+                    field="publicNotes"
+                    value={values.publicNotes}
+                    onChange={onChange}
+                    placeholder="Enter notes for this meet."
+                />
+
+                {canEditPrivateNotes && (
+                    <TextAreaField
+                        label="Private Notes"
+                        field="privateNotes"
+                        value={values.privateNotes}
+                        onChange={onChange}
+                        placeholder="Admin-only notes."
+                    />
+                )}
             </div>
 
             {(error || success) && (

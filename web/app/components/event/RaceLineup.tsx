@@ -1,14 +1,17 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { fetchJson } from "@/lib/ui/fetchJson";
 
 type RaceLineupEntry = {
-    cwaNumber: string;
-    dogName: string;
-    registeredName: string | null;
-    placement: number | null;
-    points: number | null;
+  cwaNumber: string;
+  dogName: string;
+  registeredName: string | null;
+  placement: number | null;
+  meetPoints: number | null;
+  aomEarned: number | null;
+  dpcPoints: number | null;
 };
 
 type RaceLineup = {
@@ -115,49 +118,65 @@ export default function RaceLineup({
                         <div className="space-y-1.5">
                             {detail.entries.map((entry) => {
                                 const isCurrentDog = currentCwaNumber != null && entry.cwaNumber === currentCwaNumber;
-
                                 return (
                                     <div
-                                        key={`${detail.program}-${detail.raceNumber}-${entry.cwaNumber}`}
-                                        className={`flex items-start justify-between gap-3 rounded-lg px-3 py-2 text-xs ${
-                                            isCurrentDog
-                                                ? "bg-[#2E6B3F]/10 ring-1 ring-[#2E6B3F]/20"
-                                                : "bg-black/5"
-                                        }`}
+                                    key={`${detail.program}-${detail.raceNumber}-${entry.cwaNumber}`}
+                                    className={`rounded-lg px-3 py-3 text-xs ${
+                                        isCurrentDog
+                                        ? "bg-[#2E6B3F]/10 ring-1 ring-[#2E6B3F]/20"
+                                        : "bg-black/5"
+                                    }`}
                                     >
+                                    <div className="flex items-start justify-between gap-3">
                                         <div className="min-w-0">
-                                            <div className="flex items-center gap-2">
-                                                <span className="font-bold text-[#2E6B3F]">
-                                                    #{entry.placement ?? "—"}
-                                                </span>
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <span className="text-sm font-bold text-[#2E6B3F]">
+                                            #{entry.placement ?? "—"}
+                                            </span>
 
-                                                <span className="font-semibold text-[#12301D]">
-                                                    {entry.dogName}
-                                                </span>
+                                            <Link
+                                            href={`/dog?id=${encodeURIComponent(entry.cwaNumber)}`}
+                                            className="text-sm font-semibold text-[#12301D] hover:text-[#2E6B3F] hover:underline"
+                                            >
+                                            {entry.dogName}
+                                            </Link>
 
-                                                {isCurrentDog && (
-                                                    <span className="rounded-full bg-[#2E6B3F]/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#2E6B3F]">
-                                                        This Dog
-                                                    </span>
-                                                )}
-                                            </div>
-
-                                            {entry.registeredName ? (
-                                                <p className="truncate text-[11px] text-[#12301D]/55">
-                                                    {entry.registeredName}
-                                                </p>
-                                            ) : null}
-
-                                            <p className="text-[11px] text-[#12301D]/45">
-                                                {entry.cwaNumber}
-                                            </p>
+                                            {isCurrentDog && (
+                                            <span className="rounded-full bg-[#2E6B3F]/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#2E6B3F]">
+                                                This Dog
+                                            </span>
+                                            )}
                                         </div>
 
-                                        {entry.points != null ? (
-                                            <span className="whitespace-nowrap font-semibold text-[#2E6B3F]">
-                                                {entry.points} pt
-                                            </span>
+                                        {entry.registeredName ? (
+                                            <p className="mt-0.5 truncate text-[11px] text-[#12301D]/55">
+                                            {entry.registeredName}
+                                            </p>
                                         ) : null}
+
+                                        <Link
+                                            href={`/dog?id=${encodeURIComponent(entry.cwaNumber)}`}
+                                            className="mt-0.5 inline-block text-[11px] text-[#12301D]/45 hover:text-[#2E6B3F] hover:underline"
+                                        >
+                                            {entry.cwaNumber}
+                                        </Link>
+                                        </div>
+
+                                        <div className="shrink-0 text-right">
+                                        <span className="inline-flex rounded-full bg-[#2E6B3F] px-2.5 py-1 text-[11px] font-semibold text-white">
+                                            {entry.meetPoints ?? 0} pts
+                                        </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-3 flex flex-wrap gap-2 border-t border-black/5 pt-2">
+                                        <span className="rounded-full bg-white/70 px-2 py-0.5 text-[10px] font-medium text-[#12301D]/75">
+                                        AOM: {entry.aomEarned ?? 0}
+                                        </span>
+                                        <span className="rounded-full bg-white/70 px-2 py-0.5 text-[10px] font-medium text-[#12301D]/75">
+                                        DPC: {entry.dpcPoints ?? 0}
+                                        </span>
+                                    </div>
                                     </div>
                                 );
                             })}

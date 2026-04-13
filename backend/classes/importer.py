@@ -60,6 +60,7 @@ class CsvImporter:
             "box": ("box", "Box", "BOX"),
             "placement": ("placement", "Placement", "PLACE", "Place"),
             "meetPoints": ("meetPoints", "MeetPoints", "MEET POINTS", "Points"),
+            "aomEarned": ("aomEarned", "AOMEarned", "AOM EARNED"),
             "dpcPoints": ("dpcPoints", "DPCPoints", "DPC POINTS", "DPC"),
             "incident": ("incident", "Incident", "INCIDENT"),
         },

@@ -3,7 +3,7 @@ import AuthGuard from "@/lib/auth/authGuard";
 import PasswordRequirements from "@/lib/passwordRequirements/passwordRequirements";
 import { Typography, TextField, Button } from "@mui/material";
 import { useState } from "react";
-import HeroSection from "../components/HeroSection";
+import HeroSection from "../components/ui/HeroSection";
 import axios from "axios";
 
 export default function ChangePassword() {

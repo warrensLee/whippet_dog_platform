@@ -4,8 +4,8 @@ import * as React from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import type { DogSearchResponse } from "@/app/admin/dogs/types";
-import HeroSection from "@/app/components/HeroSection";
-import SearchBar from "@/app/components/SearchBar";
+import HeroSection from "@/app/components/ui/HeroSection";
+import SearchBar from "@/app/components/ui/SearchBar";
 
 /*
     Keeps page and limit values from becoming invalid or weird.
@@ -438,10 +438,6 @@ function SearchPage() {
                                                     >
                                                         {d.registeredName || "Unnamed Dog"}
                                                     </Link>
-
-                                                    <div className="mt-1 text-sm text-[#12301D]/65">
-                                                        Record #{d.cwaNumber || "—"}
-                                                    </div>
                                                 </div>
 
                                                 {/* 
@@ -449,7 +445,7 @@ function SearchPage() {
                                                     adding too much clutter to the card.
                                                 */}
                                                 <div className="shrink-0 rounded-full px-3 py-1 text-xs font-semibold bg-[#2E6B3F]/10 text-[#2E6B3F]">
-                                                    {d.status || "Dog"}
+                                                    {d.status || "—"}
                                                 </div>
                                             </div>
 
@@ -457,30 +453,30 @@ function SearchPage() {
                                                 Key fields are shown in a small grid so the card
                                                 stays readable while still showing useful info.
                                             */}
-                                            <div className="mt-4 grid grid-cols-2 gap-y-2 text-sm text-[#12301D]/70">
+                                            <div className="mt-4 grid grid-cols-2 gap-y-2 text-sm text-[#12301D]/80">
                                                 <div>
-                                                    <span className="font-medium text-[#12301D]/80">
+                                                    <span className="font-medium text-[#000000]">
                                                         CWA
                                                     </span>
                                                     : {d.cwaNumber || "—"}
                                                 </div>
 
                                                 <div>
-                                                    <span className="font-medium text-[#12301D]/80">
+                                                    <span className="font-medium text-[#000000]">
                                                         Year
                                                     </span>
                                                     : {d.birthYear || "—"}
                                                 </div>
 
                                                 <div>
-                                                    <span className="font-medium text-[#12301D]/80">
+                                                    <span className="font-medium text-[#000000]">
                                                         Owner
                                                     </span>
                                                     : {d.ownerName || "—"}
                                                 </div>
 
                                                 <div>
-                                                    <span className="font-medium text-[#12301D]/80">
+                                                    <span className="font-medium text-[#000000]">
                                                         Title
                                                     </span>
                                                     : {d.title || "—"}

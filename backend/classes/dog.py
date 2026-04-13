@@ -325,7 +325,7 @@ class Dog:
             SELECT
                 d.*,
                 GROUP_CONCAT(
-                    DISTINCT CONCAT(p.PersonID, ':', CONCAT_WS(' ', p.FirstName, p.LastName))
+                    DISTINCT CONCAT_WS(' ', p.FirstName, p.LastName)
                     ORDER BY p.LastName, p.FirstName
                     SEPARATOR ', '
                 ) AS ownerName,

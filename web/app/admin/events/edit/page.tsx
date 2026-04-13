@@ -1,14 +1,14 @@
-// admin/events/[meetNumber]/edit/page.tsx
+// admin/events/edit?meetNumber=
 
 "use client";
 
 import * as React from "react";
 import Link from "next/link";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
-import EventForm from "@/app/components/EventForm";
+import { useRouter, useSearchParams } from "next/navigation";
+import EventForm from "@/app/components/event/EventForm";
 import type { EventFormValues } from "@/app/admin/events/types";
 import { emptyEventFormValues } from "@/app/admin/events/types";
-import HeroSection from "@/app/components/HeroSection";
+import HeroSection from "@/app/components/ui/HeroSection";
 
 /*
     Safely converts incoming unknown values to strings.
@@ -62,6 +62,8 @@ type RawEventGetResponse =
             judge?: string | null;
             location?: string | null;
             yards?: string | null;
+            publicNotes?: string | null;
+            privateNotes?: string | null;
         };
         error?: string;
     };
@@ -79,6 +81,8 @@ function buildFormFromEvent(data: NonNullable<RawEventGetResponse["data"]>): Eve
         judge: normalizeText(data.judge),
         location: normalizeText(data.location),
         yards: normalizeText(data.yards),
+        publicNotes: normalizeText(data.publicNotes),
+        privateNotes: normalizeText(data.privateNotes),
     };
 }
 
@@ -97,6 +101,8 @@ function buildEditPayload(form: EventFormValues): EventFormValues {
         judge: form.judge.trim(),
         location: form.location.trim(),
         yards: form.yards.trim(),
+        publicNotes: form.publicNotes.trim(),
+        privateNotes: form.privateNotes.trim(),
     };
 }
 
@@ -107,13 +113,14 @@ function EditEventPage() {
     const params = useSearchParams();
     const router = useRouter();
 
-    const meetNumber = String(params.get("meetNumber") ?? "");
-
+    const meetNumber = String(params.get("meetNumber") ?? "").trim();
     /*
         Auth/loading state for protecting the page.
     */
     const [authLoading, setAuthLoading] = React.useState(true);
     const [authorized, setAuthorized] = React.useState(false);
+    const [isAdmin, setIsAdmin] = React.useState(false);
+
 
     /*
         Page/form state.
@@ -123,58 +130,51 @@ function EditEventPage() {
     const [error, setError] = React.useState("");
     const [success, setSuccess] = React.useState("");
     const [form, setForm] = React.useState<EventFormValues>(emptyEventFormValues);
+    const [initialForm, setInitialForm] = React.useState<EventFormValues>(emptyEventFormValues);
+
 
     /*
         Checks whether the current user is signed in and allowed
         to manage Event records.
     */
-    React.useEffect(
-        () => {
-            let cancelled = false;
 
-            async function checkAccess() {
-                try {
-                    const res = await fetch(
-                        "/api/auth/me",
-                        {
-                            cache: "no-store",
-                            credentials: "include",
-                        }
-                    );
+    React.useEffect(() => {
+        let cancelled = false;
 
-                    const json = await res.json().catch(
-                        () => {
-                            return null;
-                        }
-                    );
-                    // once canManageEvents is a role it will be added here
-                    if (!res.ok || !json?.signedIn) {
-                        router.replace("/login");
-                        return;
-                    }
+        async function checkAccess() {
+            try {
+                const res = await fetch("/api/auth/me", {
+                    credentials: "include",
+                });
 
-                    if (!cancelled) {
-                        setAuthorized(true);
-                    }
-                }
-                catch {
+                const json = await res.json().catch(() => null);
+
+                if (!res.ok || !json?.signedIn) {
                     router.replace("/login");
+                    return;
                 }
-                finally {
-                    if (!cancelled) {
-                        setAuthLoading(false);
-                    }
+
+                const role = (json?.user?.SystemRole || "").toUpperCase();
+
+                if (!cancelled) {
+                    setAuthorized(true);
+                    setIsAdmin(role === "ADMIN");
+                }
+            } catch {
+                router.replace("/login");
+            } finally {
+                if (!cancelled) {
+                    setAuthLoading(false);
                 }
             }
+        }
 
-            checkAccess();
+        checkAccess();
 
-            return () => {
-                cancelled = true;
-            };
-        },
-        [router]
-    );
+        return () => {
+            cancelled = true;
+        };
+    }, [router]);
 
     /*
         After authorization succeeds, load the Event record that matches
@@ -217,7 +217,9 @@ function EditEventPage() {
                         return;
                     }
 
-                    setForm(buildFormFromEvent(json.data));
+                    const nextForm = buildFormFromEvent(json.data);
+                    setForm(nextForm);
+                    setInitialForm(nextForm);
                 }
                 catch (e) {
                     if (!cancelled) {
@@ -262,6 +264,12 @@ function EditEventPage() {
         );
     }
 
+    function handleResetForm() {
+        setForm(initialForm);
+        setError("");
+        setSuccess("");
+    }
+
     /*
         Handles form submission and sends the cleaned payload
         to the edit API route.
@@ -298,6 +306,22 @@ function EditEventPage() {
                 throw new Error(json?.error || `Save failed (${res.status})`);
             }
 
+            const cleanedForm =
+            {
+                ...form,
+                meetNumber: form.meetNumber.trim(),
+                clubAbbreviation: form.clubAbbreviation.trim(),
+                meetDate: form.meetDate,
+                raceSecretary: form.raceSecretary.trim(),
+                judge: form.judge.trim(),
+                location: form.location.trim(),
+                yards: form.yards.trim(),
+                publicNotes: form.publicNotes.trim(),
+                privateNotes: form.privateNotes.trim(),
+            };
+
+            setForm(cleanedForm);
+            setInitialForm(cleanedForm);
             setSuccess("Event information updated successfully.");
         }
         catch (e) {
@@ -352,10 +376,10 @@ function EditEventPage() {
                         </Link>
 
                         <Link
-                            href={`/search?q=${encodeURIComponent(form.meetNumber || meetNumber)}`}
-                            className="rounded-full bg-[#2E6B3F] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#255733]"
+                            href={`/event?meetNumber=${encodeURIComponent(form.meetNumber || meetNumber)}`}
+                            className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
                         >
-                            View in Public Search
+                            View Event Page
                         </Link>
                     </div>
                 }
@@ -371,12 +395,32 @@ function EditEventPage() {
             {/* Main form section */}
             <section className="bg-[#E7F0E9] pt-12 pb-24">
                 <div className="max-w-5xl mx-auto px-4">
-                    <div className="mb-8">
-                        <h2 className="text-2xl font-bold text-[#12301D]">
-                            Event Information
-                        </h2>
+                    <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                            <h2 className="text-2xl font-bold text-[#12301D]">
+                                Event Information
+                            </h2>
+                            <div className="mt-1 h-1 w-14 rounded-full bg-[#2E6B3F]/70" />
+                        </div>
+                        <div className="flex flex-wrap gap-3">
+                            <button
+                                type="button"
+                                onClick={handleResetForm}
+                                disabled={loading || saving}
+                                className="rounded-full border border-[#12301D]/15 bg-white px-5 py-2.5 text-sm font-semibold text-[#12301D] transition hover:bg-[#12301D]/5 disabled:opacity-50"
+                            >
+                                Reset Changes
+                            </button>
 
-                        <div className="mt-1 h-1 w-14 rounded-full bg-[#2E6B3F]/70" />
+                            <button
+                                type="button"
+                                onClick={() => router.push("/admin/events")}
+                                disabled={saving}
+                                className="rounded-full border border-[#12301D]/15 bg-white px-5 py-2.5 text-sm font-semibold text-[#12301D] transition hover:bg-[#12301D]/5 disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                        </div>
                     </div>
 
                     <EventForm
@@ -393,6 +437,7 @@ function EditEventPage() {
                             }
                         }
                         isEditMode={true}
+                        canEditPrivateNotes={isAdmin}
                     />
                 </div>
             </section>

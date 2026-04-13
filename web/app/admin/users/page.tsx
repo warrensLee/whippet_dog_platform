@@ -3,9 +3,17 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import axios, { AxiosError } from 'axios';
 import AuthGuard from '@/lib/auth/authGuard';
-import HeroSection from '@/app/components/HeroSection';
+import HeroSection from '@/app/components/ui/HeroSection';
 
-import {
+import 
+{
+  deleteUserRequest,
+  saveUserEditRequest,
+  toggleUserLockRequest,
+} from '@/lib/user/adminUserActions';
+
+import 
+{
   Alert,
   Box,
   Button,
@@ -31,6 +39,7 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material';
 
@@ -39,15 +48,22 @@ import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import MailOutlineIcon from '@mui/icons-material/MailOutline';
 import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
-import EditUserDialog from './editUserDialog';
-import DummyUserDialog from './dummyUserDialog';
-import InviteUserDialog from './inviteUserDialog';
+import EditUserDialog from '../../components/user/EditUserDialog';
+import DummyUserDialog from '../../components/user/DummyUserDialog';
+import InviteUserDialog from '../../components/user/InviteUserDialog';
+import DeleteUserDialog from '../../components/user/DeleteUserDialog';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 import { AddForm, EditForm, Person, UserRole, emptyAddForm, emptyForm } from './types';
 
-export default function AdminUsersPage() {
+export default function AdminUsersPage() 
+{
   const [users, setUsers] = useState<Person[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string>('');
+  const [currentUserPersonId, setCurrentUserPersonId] = useState<string>('');
   const [roles, setRoles] = useState<UserRole[]>([]);
+  const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [open, setOpen] = useState(false);
@@ -65,102 +81,196 @@ export default function AdminUsersPage() {
   const [success, setSuccess] = useState('');
   const [addError, setAddError] = useState('');
 
-  const fetchUsers = async (q = '') => {
-    const res = await axios.get('/api/person/search', { params: { q } });
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<Person | null>(null);
+
+  const fetchUsers = async () => 
+  {
+    const res = await axios.get('/api/person/search');
     setUsers(res.data.ok ? res.data.data : []);
   };
 
-  const fetchRoles = async () => {
+  const fetchRoles = async () => 
+  {
     const res = await axios.get('/api/user_role/get');
     setRoles(res.data.ok ? res.data.data : []);
   };
 
-const openAddMenu = (event: React.MouseEvent<HTMLElement>) => 
-{
-  setAddMenuAnchor(event.currentTarget);
-};
+  const openAddMenu = (event: React.MouseEvent<HTMLElement>) => 
+  {
+    setAddMenuAnchor(event.currentTarget);
+  };
 
-const closeAddMenu = () => 
-{
-  setAddMenuAnchor(null);
-};
+  const closeAddMenu = () => 
+  {
+    setAddMenuAnchor(null);
+  };
 
-const openInvite = () => 
-{
-  closeAddMenu();
-  setInviteOpen(true);
-};
+  const openInvite = () => 
+  {
+    closeAddMenu();
+    setInviteOpen(true);
+  };
 
-const closeInvite = () => 
-{
-  if (saving) return;
-  setInviteOpen(false);
-};
+  const closeInvite = () => 
+  {
+    if (saving)
+      return;
+    setInviteOpen(false);
+  };
 
-const openDummy = () => 
-{
-  closeAddMenu();
-  setDummyOpen(true);
-};
+  const openDummy = () => 
+  {
+    closeAddMenu();
+    setDummyOpen(true);
+  };
 
-const closeDummy = () => 
-{
-  if (saving) return;
-  setDummyOpen(false);
-};
+  const closeDummy = () => 
+  {
+    if (saving) return;
+    setDummyOpen(false);
+  };
 
-  const loadPage = async () => {
-    try {
+  const isCurrentUser = (user: Person) =>
+  {
+    const sameId =
+      user.id != null &&
+      currentUserId !== '' &&
+      String(user.id) === String(currentUserId);
+
+    const samePersonId =
+      user.personId != null &&
+      currentUserPersonId !== '' &&
+      String(user.personId) === String(currentUserPersonId);
+
+    return sameId || samePersonId;
+  };
+
+  const getLockDisabledReason = (user: Person) => 
+  {
+    if (saving) 
+      return 'Please wait while another action finishes.';
+
+    if (isCurrentUser(user))
+      return 'You cannot lock your own account.';
+
+    if (!user.locked && (user.systemRole || '').toUpperCase() === 'ADMIN' && adminUsers.length <= 1)
+      return 'You cannot lock the last admin account.';
+
+    return '';
+  };
+
+  const getDeleteDisabledReason = (user: Person) => 
+  {
+    if (saving) 
+      return 'Please wait while another action finishes.';
+
+    if (isCurrentUser(user))
+      return 'You cannot delete your own account.';
+
+    if ((user.systemRole || '').toUpperCase() === 'ADMIN' && adminUsers.length <= 1)
+      return 'You cannot delete the last admin account.';
+
+    return '';
+  };
+
+  const loadPage = async () => 
+  {
+    try 
+    {
       setLoading(true);
       setError('');
-      await Promise.all([fetchUsers(''), fetchRoles()]);
-    } catch (err: unknown) {
-      if (err instanceof AxiosError && err.response) {
+      await Promise.all([fetchUsers(), fetchRoles()]);
+    }
+    catch (err: unknown) 
+    {
+      if (err instanceof AxiosError && err.response) 
+      {
         setError(err.response.data.error || 'Failed to load users');
-      } else if (err instanceof Error) {
+      }
+      else if (err instanceof Error) 
+      {
         setError(err.message || "Failed to load users!")
-      } else {
+      }
+      else 
+      {
         setError("Failed to load users!")
       }
-    } finally {
+    }
+    finally 
+    {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
+  useEffect(() => 
+  {
     loadPage();
+
+    const fetchCurrentUser = async () => 
+    {
+      try 
+      {
+        const res = await axios.get('/api/person/mine');
+
+        if (res.data?.ok) 
+        {
+          setCurrentUserId(String(res.data.data?.id ?? ''));
+          setCurrentUserPersonId(String(res.data.data?.personId ?? ''));
+        }
+      } 
+      catch (err) 
+      {
+        console.error('Failed to fetch current user', err);
+      }
+    };
+
+    fetchCurrentUser();
   }, []);
 
-  const filteredUsers = useMemo(() => {
+  const filteredUsers = useMemo(() => 
+  {
     const q = search.trim().toLowerCase();
-    if (!q) return users;
 
-    return users.filter((u) =>
-      [
-        u.personId,
-        u.firstName,
-        u.lastName,
-        u.email,
-        u.addressLineOne,
-        u.addressLineTwo,
-        u.city,
-        u.stateProvince,
-        u.zipCode,
-        u.country,
-        u.primaryPhone,
-        u.secondaryPhone,
-        u.systemRole,
-        u.notes,
-        u.lastEditedBy,
-        u.lastEditedAt,
-      ]
-        .filter(Boolean)
-        .some((v) => String(v).toLowerCase().includes(q))
-    );
-  }, [users, search]);
+    return users.filter((u) => 
+    {
+      const matchesSearch =
+        !q ||
+        [
+          u.personId,
+          u.firstName,
+          u.lastName,
+          u.email,
+          u.addressLineOne,
+          u.addressLineTwo,
+          u.city,
+          u.stateProvince,
+          u.zipCode,
+          u.country,
+          u.primaryPhone,
+          u.secondaryPhone,
+          u.systemRole,
+          u.notes,
+          u.lastEditedBy,
+          u.lastEditedAt,
+        ]
+          .filter(Boolean)
+          .some((v) => String(v).toLowerCase().includes(q));
 
-  const openEdit = (user: Person) => {
-    console.log('selected user:', user);
+      const matchesRole =
+        roleFilter === 'all' || (u.systemRole || '') === roleFilter;
+
+      const matchesStatus =
+        statusFilter === 'all' ||
+        (statusFilter === 'locked' && u.locked) ||
+        (statusFilter === 'active' && !u.locked);
+
+      return matchesSearch && matchesRole && matchesStatus;
+    });
+  }, [users, search, roleFilter, statusFilter]);
+
+  const openEdit = (user: Person) => 
+  {
     setForm({
       id: user.id,
       personId: user.personId || '',
@@ -184,142 +294,255 @@ const closeDummy = () =>
     setOpen(true);
   };
 
-  const closeEdit = () => {
+  const adminUsers = useMemo(
+    () => users.filter((u) => (u.systemRole || '').toUpperCase() === 'ADMIN'),
+    [users]
+  );
+
+  const closeEdit = () => 
+  {
     if (saving) return;
     setOpen(false);
     setForm(emptyForm);
   };
 
-  const openAdd = () => {
+  const openAdd = () => 
+  {
     closeAddMenu();
     setAddForm(emptyAddForm);
     setAddError('');
     setAddOpen(true);
   };
 
-  const closeAdd = () => {
+  const closeAdd = () => 
+  {
     if (saving) return;
     setAddOpen(false);
     setAddForm(emptyAddForm);
   };
 
-  const updateForm = <K extends keyof EditForm>(key: K, value: EditForm[K]) => {
+  const openDelete = (user: Person) => 
+  {
+    const reason = getDeleteDisabledReason(user);
+
+    if (reason)
+    {
+      setError(reason);
+      return;
+    }
+
+    setUserToDelete(user);
+    setError('');
+    setSuccess('');
+    setDeleteOpen(true);
+  };
+
+  const closeDelete = () => 
+  {
+    if (saving) return;
+    setDeleteOpen(false);
+    setUserToDelete(null);
+  };
+
+  const updateForm = <K extends keyof EditForm>(key: K, value: EditForm[K]) => 
+  {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  const updateAddForm = (key: keyof AddForm, value: string) => {
+  const updateAddForm = (key: keyof AddForm, value: string) => 
+  {
     setAddForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleSave = async () => {
-    try {
+  const handleSave = async () => 
+  {
+    try 
+    {
       setSaving(true);
       setError('');
       setSuccess('');
 
-      const res = await axios.post('/api/person/edit', {
-        id: form.id,
-        personId: form.personId,
-        firstName: form.firstName,
-        lastName: form.lastName,
-        email: form.email,
-        addressLineOne: form.addressLineOne,
-        addressLineTwo: form.addressLineTwo,
-        city: form.city,
-        stateProvince: form.stateProvince,
-        zipCode: form.zipCode,
-        country: form.country,
-        primaryPhone: form.primaryPhone,
-        secondaryPhone: form.secondaryPhone,
-        systemRole: form.systemRole,
-        notes: form.notes,
-        locked: form.locked,
-      });
+      const res = await saveUserEditRequest(form);
 
-      if (!res.data.ok) {
+      if (!res.data.ok) 
+      {
         setError(res.data.error || 'Failed to update user');
         return;
       }
 
-      setUsers((prev) =>
-        prev.map((u) =>
-          u.id === form.id
-            ? {
-              ...u,
-              personId: form.personId,
-              firstName: form.firstName,
-              lastName: form.lastName,
-              email: form.email,
-              addressLineOne: form.addressLineOne,
-              addressLineTwo: form.addressLineTwo,
-              city: form.city,
-              stateProvince: form.stateProvince,
-              zipCode: form.zipCode,
-              country: form.country,
-              primaryPhone: form.primaryPhone,
-              secondaryPhone: form.secondaryPhone,
-              systemRole: form.systemRole,
-              notes: form.notes,
-              locked: form.locked,
-            }
-            : u
-        )
-      );
+      await fetchUsers();
 
       setSuccess('User updated successfully');
       setOpen(false);
-    } catch (err: unknown) {
-      if (err instanceof AxiosError && err.response) {
+    }
+    catch (err: unknown) 
+    {
+      if (err instanceof AxiosError && err.response) 
+      {
         setError(err.response.data.error || 'Failed to update user!');
-      } else if (err instanceof Error) {
+      }
+      else if (err instanceof Error)              
+      {
         setError(err.message || "Failed to update user!")
-      } else {
+      }
+      else 
+      {
         setError("Failed to update user!")
       }
-    } finally {
+    }
+    finally 
+    {
       setSaving(false);
     }
   };
 
-  const handleAddUser = async () => {
-    try {
+  const handleDeleteUser = async () => 
+  {
+    if (!userToDelete)
+      return;
+
+    try 
+    {
+      setSaving(true);
+      setError('');
+      setSuccess('');
+
+      const res = await deleteUserRequest(userToDelete);
+
+      if (!res.data.ok) 
+      {
+        setError(res.data.error || 'Failed to delete user');
+        return;
+      }
+
+      await fetchUsers();
+      setSuccess('User deleted successfully');
+      closeDelete();
+    }
+    catch (err: unknown) 
+    {
+      if (err instanceof AxiosError && err.response) 
+      {
+        setError(err.response.data.error || 'Failed to delete user');
+      }
+      else if (err instanceof Error) {
+        setError(err.message || 'Failed to delete user');
+      }
+      else 
+      {
+        setError('Failed to delete user');
+      }
+    }
+    finally 
+    {
+      setSaving(false);
+    }
+  };
+
+  const handleToggleLock = async (user: Person) => 
+  {
+    const reason = getLockDisabledReason(user);
+
+    if (reason)
+    {
+      setError(reason);
+      return;
+    }
+
+    const nextLocked = !user.locked;
+    const actionLabel = nextLocked ? "lock" : "unlock";
+
+    const confirmed = window.confirm(
+      `Are you sure you want to ${actionLabel} ${user.personId || user.email || "this user"}?`
+    );
+
+    if (!confirmed)
+      return;
+
+    try 
+    {
+      setSaving(true);
+      setError('');
+      setSuccess('');
+
+      const res = await toggleUserLockRequest(user, nextLocked);
+
+      if (!res.data.ok) 
+      {
+        setError(res.data.error || `Failed to ${actionLabel} user`);
+        return;
+      }
+
+      await fetchUsers();
+      setSuccess(`User ${nextLocked ? "locked" : "unlocked"} successfully`);
+    }
+    catch (err: unknown) 
+    {
+      if (err instanceof AxiosError && err.response) 
+        setError(err.response.data.error || `Failed to ${actionLabel} user`);
+      else if (err instanceof Error) 
+        setError(err.message || `Failed to ${actionLabel} user`);
+      else 
+        setError(`Failed to ${actionLabel} user`);
+    }
+    finally 
+    {
+      setSaving(false);
+    }
+  };
+
+  const handleAddUser = async () => 
+  {
+    try 
+    {
       setSaving(true);
       setAddError('');
 
-      const res = await axios.post('/api/person/add', {
-        firstName: addForm.firstName,
-        lastName: addForm.lastName,
-        email: addForm.email,
-        addressLineOne: addForm.addressLineOne,
-        addressLineTwo: addForm.addressLineTwo,
-        city: addForm.city,
-        stateProvince: addForm.stateProvince,
-        zipCode: addForm.zipCode,
-        country: addForm.country,
-        primaryPhone: addForm.primaryPhone,
-        secondaryPhone: addForm.secondaryPhone,
-        systemRole: addForm.systemRole,
-        locked: false,
-        notes: addForm.notes,
-      });
+      const res = await axios.post('/api/person/add',
+        {
+          firstName: addForm.firstName,
+          lastName: addForm.lastName,
+          email: addForm.email,
+          addressLineOne: addForm.addressLineOne,
+          addressLineTwo: addForm.addressLineTwo,
+          city: addForm.city,
+          stateProvince: addForm.stateProvince,
+          zipCode: addForm.zipCode,
+          country: addForm.country,
+          primaryPhone: addForm.primaryPhone,
+          secondaryPhone: addForm.secondaryPhone,
+          systemRole: addForm.systemRole,
+          locked: false,
+          notes: addForm.notes,
+        });
 
-      if (!res.data.ok) {
+      if (!res.data.ok) 
+      {
         setAddError(res.data.error || 'Failed to create user');
         return;
       }
 
-      await fetchUsers('');
+      await fetchUsers();
       setSuccess('User created successfully');
       setAddOpen(false);
-    } catch (err: unknown) {
-      if (err instanceof AxiosError && err.response) {
+    } 
+    catch (err: unknown) 
+    {
+      if (err instanceof AxiosError && err.response) 
+      {
         setError(err.response.data.error || 'Failed to add user!');
-      } else if (err instanceof Error) {
+      }
+      else if (err instanceof Error) 
+      {
         setError(err.message || "Failed to add user!")
-      } else {
+      }
+      else 
+      {
         setError("Failed to add user!")
       }
-    } finally {
+    }
+    finally 
+    {
       setSaving(false);
     }
   };
@@ -428,6 +651,7 @@ const closeDummy = () =>
                 gap: 2,
                 mb: 3,
                 flexDirection: { xs: 'column', md: 'row' },
+                alignItems: { md: 'center' },
               }}
             >
               <TextField
@@ -437,12 +661,47 @@ const closeDummy = () =>
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search any field"
               />
+
+              <FormControl sx={{ minWidth: 180 }}>
+                <InputLabel>Role</InputLabel>
+                <Select
+                  value={roleFilter}
+                  label="Role"
+                  onChange={(e) => setRoleFilter(String(e.target.value))}
+                >
+                  <MenuItem value="all">All Roles</MenuItem>
+                  {roles.map((role) => (
+                    <MenuItem key={role.id} value={role.title}>
+                      {role.title}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <FormControl sx={{ minWidth: 180 }}>
+                <InputLabel>Status</InputLabel>
+                <Select
+                  value={statusFilter}
+                  label="Status"
+                  onChange={(e) => setStatusFilter(String(e.target.value))}
+                >
+                  <MenuItem value="all">Any</MenuItem>
+                  <MenuItem value="active">Active</MenuItem>
+                  <MenuItem value="locked">Locked</MenuItem>
+                </Select>
+              </FormControl>
+
               <Button
-                variant="contained"
-                onClick={() => fetchUsers(search)}
+                variant="outlined"
+                onClick={() => 
+                {
+                  setSearch('');
+                  setRoleFilter('all');
+                  setStatusFilter('all');
+                }}
                 sx={{ minWidth: 140 }}
               >
-                Search
+                Clear Filters
               </Button>
             </Box>
 
@@ -454,11 +713,6 @@ const closeDummy = () =>
                     <TableCell><strong>First Name</strong></TableCell>
                     <TableCell><strong>Last Name</strong></TableCell>
                     <TableCell><strong>Email</strong></TableCell>
-                    <TableCell><strong>Address 1</strong></TableCell>
-                    <TableCell><strong>City</strong></TableCell>
-                    <TableCell><strong>State</strong></TableCell>
-                    <TableCell><strong>Zip</strong></TableCell>
-                    <TableCell><strong>Country</strong></TableCell>
                     <TableCell><strong>Primary Phone</strong></TableCell>
                     <TableCell><strong>System Role</strong></TableCell>
                     <TableCell><strong>Status</strong></TableCell>
@@ -471,23 +725,22 @@ const closeDummy = () =>
 
                 <TableBody>
                   {filteredUsers.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={17} align="center">
-                        No users found
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredUsers.map((user) => (
+                  <TableRow>
+                    <TableCell colSpan={17} align="center">
+                      No users found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredUsers.map((user) => {
+                    const lockDisabledReason = getLockDisabledReason(user);
+                    const deleteDisabledReason = getDeleteDisabledReason(user);
+
+                    return (
                       <TableRow key={user.id} hover>
                         <TableCell>{user.personId || '-'}</TableCell>
                         <TableCell>{user.firstName || '-'}</TableCell>
                         <TableCell>{user.lastName || '-'}</TableCell>
                         <TableCell>{user.email || '-'}</TableCell>
-                        <TableCell>{user.addressLineOne || '-'}</TableCell>
-                        <TableCell>{user.city || '-'}</TableCell>
-                        <TableCell>{user.stateProvince || '-'}</TableCell>
-                        <TableCell>{user.zipCode || '-'}</TableCell>
-                        <TableCell>{user.country || '-'}</TableCell>
                         <TableCell>{user.primaryPhone || '-'}</TableCell>
                         <TableCell>
                           <Chip label={user.systemRole || 'None'} size="small" />
@@ -513,16 +766,45 @@ const closeDummy = () =>
                         <TableCell>{user.lastEditedBy || '-'}</TableCell>
                         <TableCell>{user.lastEditedAt || '-'}</TableCell>
                         <TableCell>
-                          <IconButton
-                            onClick={() => openEdit(user)}
-                            color="primary"
-                          >
-                            <EditIcon />
-                          </IconButton>
+                          <Stack direction="row" spacing={1}>
+                            <IconButton
+                              onClick={() => openEdit(user)}
+                              color="primary"
+                              disabled={saving}
+                            >
+                              <EditIcon />
+                            </IconButton>
+
+                            <Tooltip title={deleteDisabledReason}>
+                              <span>
+                                <IconButton
+                                  onClick={() => openDelete(user)}
+                                  color="error"
+                                  disabled={!!deleteDisabledReason}
+                                >
+                                  <DeleteIcon />
+                                </IconButton>
+                              </span>
+                            </Tooltip>
+
+                            <Tooltip title={lockDisabledReason}>
+                              <span>
+                                <Button
+                                  variant="contained"
+                                  color={user.locked ? "success" : "warning"}
+                                  disabled={!!lockDisabledReason}
+                                  onClick={() => handleToggleLock(user)}
+                                >
+                                  {user.locked ? "Unlock" : "Lock"}
+                                </Button>
+                              </span>
+                            </Tooltip>
+                          </Stack>
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
+                    );
+                  })
+                )}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -670,7 +952,7 @@ const closeDummy = () =>
               </Button>
             </DialogActions>
           </Dialog>
-                    
+
           <InviteUserDialog
             open={inviteOpen}
             saving={saving}
@@ -687,10 +969,18 @@ const closeDummy = () =>
             roles={roles}
             onClose={closeDummy}
             onSave={async () => {
-              await fetchUsers('');
+              await fetchUsers();
               setSuccess('Dummy account created successfully');
               setDummyOpen(false);
             }}
+          />
+
+          <DeleteUserDialog
+            open={deleteOpen}
+            saving={saving}
+            userToDelete={userToDelete}
+            onClose={closeDelete}
+            onDelete={handleDeleteUser}
           />
 
         </section>

@@ -1,7 +1,7 @@
 'use client'
-import HeroSection from "@/app/components/HeroSection";
+import HeroSection from "@/app/components/ui/HeroSection";
 import { Box, Button, Chip, Paper, Typography } from "@mui/material";
-import { useParams, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import axios from "axios";
 class ownedDog {

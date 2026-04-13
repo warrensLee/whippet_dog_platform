@@ -37,9 +37,9 @@ class RaceResult:
             entry_type=(data.get("entryType") or "").strip(),
             box=(data.get("box") or "").strip(),
             placement=(data.get("placement") or "").strip(),
-            meet_points=(data.get("meetPoints") or "").strip(),
-            aom_earned=(data.get("aomEarned") or "").strip(),
-            dpc_points=(data.get("dpcPoints") or "").strip(),
+            aom_earned=(data.get("aomEarned") or "").strip() or "0.00",
+            dpc_points=(data.get("dpcPoints") or "").strip() or "0.00",
+            meet_points=(data.get("meetPoints") or "").strip() or "0.00",
             incident=(data.get("incident") or "").strip(),
             last_edited_by=data.get("lastEditedBy"),
             last_edited_at=data.get("lastEditedAt")
@@ -129,7 +129,7 @@ class RaceResult:
                     Placement, MeetPoints, AOMEarned, DPCPoints, Incident,
                     LastEditedBy, LastEditedAt
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
                     self.meet_number,

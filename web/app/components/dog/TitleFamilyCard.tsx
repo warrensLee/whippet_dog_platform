@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import type { DogDetail, TitleFamily } from "../../lib/dog/types";
-import { TIER_STYLES } from "../../lib/dog/constants";
+import type { DogDetail, TitleFamily } from "../../../lib/dog/types";
+import { TIER_STYLES } from "../../../lib/dog/constants";
 
 export default function TitleFamilyCard({
   family,

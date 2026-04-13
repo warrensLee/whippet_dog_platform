@@ -10,7 +10,20 @@ export default function RichTextViewer({ text }: { text: string }) {
     const renderElementCallback = useCallback((props: RenderElementProps) => renderElement(props), []);
     const renderLeafCallback = useCallback((props: RenderLeafProps) => renderLeaf(props), []);
 
-    return (<div><Slate editor={editor} initialValue={JSON.parse(text)} >
+    return (<div><Slate editor={editor} initialValue={
+    (() => {
+      try {
+        return JSON.parse(text);
+      } catch {
+        return [
+          {
+            type: "paragraph",
+            children: [{ text: text || "" }],
+          },
+        ];
+      }
+    })()
+  } >
         <Editable readOnly renderElement={renderElementCallback} renderLeaf={renderLeafCallback} />
     </Slate></div>)
 }

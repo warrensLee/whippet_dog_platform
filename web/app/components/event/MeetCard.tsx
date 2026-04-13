@@ -1,14 +1,13 @@
 "use client";
 
 import * as React from "react";
-import type { MeetEntry } from "../../lib/dog/types";
+import Link from "next/link";
+import type { MeetEntry } from "../../../lib/dog/types";
 
 export default function MeetCard({
   meet,
-  currentCwaNumber,
 }: {
   meet: MeetEntry;
-  currentCwaNumber: string;
 }) {
   const [open, setOpen] = React.useState(false);
 
@@ -24,8 +23,8 @@ export default function MeetCard({
   const placement = meetResult?.MeetPlacement;
   const points = meetResult?.MeetPoints;
 
-  const totalRaces = meet.raceResults?.length ?? 0;
-  const totalMeetResults = meet.meetResults?.length ?? 0;
+  // const totalRaces = meet.raceResults?.length ?? 0;
+  // const totalMeetResults = meet.meetResults?.length ?? 0;
 
   return (
     <div className="overflow-hidden rounded-2xl border border-black/10 bg-white/70 shadow-sm transition-shadow hover:shadow-md">
@@ -38,9 +37,12 @@ export default function MeetCard({
         <div className="flex items-center gap-3 min-w-0">
           {/* Meet number badge */}
           <div className="shrink-0 rounded-lg bg-[#2E6B3F]/10 px-2.5 py-1.5">
-            <span className="text-xs font-bold text-[#2E6B3F] whitespace-nowrap">
+            <Link
+              href={`/event?meetNumber=${encodeURIComponent(meet.MeetNumber)}`}
+              className="font-semibold text-[#12301D] hover:text-[#2E6B3F] hover:underline"
+            >
               #{meet.MeetNumber}
-            </span>
+            </Link>
           </div>
 
           <div className="min-w-0">

@@ -19,7 +19,7 @@ import {
   Box,
   Button,
 } from '@mui/material';
-import HeroSection from '@/app/components/HeroSection';
+import HeroSection from '@/app/components/ui/HeroSection';
 import axios from 'axios';
 import AuthGuard from '@/lib/auth/authGuard';
 
@@ -40,13 +40,13 @@ export default function UserRoles() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<UserRole>(new UserRole());
   const handleDelete = async (role: UserRole) => {
-  try {
-    await axios.post('/api/user_role/delete', { roleId: role.id });
-    fetchRoles();
-  } catch (err) {
-    console.error(err);
-  }
-};
+    try {
+      await axios.post('/api/user_role/delete', { roleId: role.id });
+      fetchRoles();
+    } catch (err) {
+      console.error(err);
+    }
+  };
   const fetchRoles = async () => {
     try {
       setLoading(true);

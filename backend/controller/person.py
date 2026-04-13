@@ -16,7 +16,13 @@ def _is_owner(person_id):
         return False
     return current_id == person_id
 
+def _is_self(person):
+    """Check if the current user is this exact Person record."""
+    current_id = current_editor_id()
+    if not current_id or not person:
+        return False
 
+    return str(current_id) == str(person.id) or str(current_id) == str(person.person_id)
 def _has_role(person_id, role_name):
     """Check if person has an active officer role."""
     sql = """
@@ -93,8 +99,14 @@ def edit_person():
 
     data = request.get_json(silent=True) or {}
     deny = require_scope(role.edit_person_scope, "edit people")
-    if deny and current_editor_id() != data.get("personId", ""):
-        return deny
+
+    if deny:
+        target = Person.find_by_id(data.get("id"))
+        if not target or not _is_self(target):
+            return deny
+        
+    # if deny and current_editor_id() != data.get("personId", ""):
+    #     return deny
 
     record_id = data.get("id")
     if not record_id:
@@ -104,12 +116,19 @@ def edit_person():
     if not existing:
         return jsonify({"ok": False, "error": "Person does not exist"}), 404
     
-    if role.edit_person_scope == UserRole.SELF and current_editor_id() != existing.id:
+    if role.edit_person_scope == UserRole.SELF and not _is_self(existing):
         return jsonify({"ok": False, "error": "You can only edit your own profile"}), 403
 
     # Prevent locking yourself out
-    if "locked" in data and data["locked"] and current_editor_id() == existing.id:
+    if "locked" in data and data["locked"] and _is_self(existing):
         return jsonify({"ok": False, "error": "You cannot lock your own account"}), 403
+    
+    # if role.edit_person_scope == UserRole.SELF and current_editor_id() != existing.id:
+    #     return jsonify({"ok": False, "error": "You can only edit your own profile"}), 403
+
+    # # Prevent locking yourself out
+    # if "locked" in data and data["locked"] and current_editor_id() == existing.id:
+    #     return jsonify({"ok": False, "error": "You cannot lock your own account"}), 403
 
     # Prevent locking the last admin
     if "locked" in data and data["locked"] and existing.system_role == "ADMIN":
@@ -176,8 +195,11 @@ def delete_person():
     if not existing:
         return jsonify({"ok": False, "error": "Person does not exist"}), 404
 
-    if current_editor_id() == existing.id:
+    if _is_self(existing):
         return jsonify({"ok": False, "error": "You cannot delete your own account"}), 403
+
+    # if current_editor_id() == existing.id:
+    #     return jsonify({"ok": False, "error": "You cannot delete your own account"}), 403
 
     if existing.system_role == "ADMIN":
         admin_count = Person.count_by_system_role("ADMIN")
@@ -222,9 +244,10 @@ def change_password():
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
     try:
-        person = Person.find_by_identifier(current_id)
+        person = Person.find_by_id(current_id)
+
         if not person:
-            return jsonify({"ok": False, "error": "User not found"}), 404
+            person = Person.find_by_identifier(current_id)
 
         if not person.check_password(current_password):
             return jsonify({"ok": False, "error": "Current password is incorrect"}), 400
@@ -273,8 +296,13 @@ def change_user_role():
     if not new_role:
         return jsonify({"ok": False, "error": "System role is required"}), 400
     
-    if role.edit_person_scope == UserRole.SELF and person_id != current_editor_id():
-        return jsonify({"ok": False, "error": "Not authorized to change other users"}), 403
+    if role.edit_person_scope == UserRole.SELF:
+        target = Person.find_by_identifier(person_id)
+        if not target or not _is_self(target):
+            return jsonify({"ok": False, "error": "Not authorized to change other users"}), 403
+
+    # if role.edit_person_scope == UserRole.SELF and person_id != current_editor_id():
+    #     return jsonify({"ok": False, "error": "Not authorized to change other users"}), 403
 
     try:
         person = Person.find_by_identifier(person_id)
@@ -434,29 +462,47 @@ def search_people():
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
-
 @person_bp.get("/mine")
 def get_my_person():
-    # role = current_role()
-    # if not role:
-    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    # deny = require_scope(role.view_person_scope, "view your profile")
-    # if deny:
-    #     return deny
-
-    pid = current_editor_id()
-    if not pid:
+    current_id = current_editor_id()
+    if not current_id:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
     try:
-        person = Person.find_by_identifier(pid)
+        person = Person.find_by_id(current_id)
+
+        if not person:
+            person = Person.find_by_identifier(current_id)
+
         if not person:
             return jsonify({"ok": False, "error": "Person does not exist"}), 404
 
         return jsonify({"ok": True, "data": person.to_dict()}), 200
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+    
+# @person_bp.get("/mine")
+# def get_my_person():
+#     # role = current_role()
+#     # if not role:
+#     #     return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+#     # deny = require_scope(role.view_person_scope, "view your profile")
+#     # if deny:
+#     #     return deny
+
+#     pid = current_editor_id()
+#     if not pid:
+#         return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+#     try:
+#         person = Person.find_by_identifier(pid)
+#         if not person:
+#             return jsonify({"ok": False, "error": "Person does not exist"}), 404
+
+#         return jsonify({"ok": True, "data": person.to_dict()}), 200
+#     except Error as e:
+#         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
 
 
 @person_bp.get("/is-board-member/<person_id>")

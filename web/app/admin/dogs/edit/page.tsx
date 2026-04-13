@@ -3,12 +3,12 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import DogForm from "@/app/components/DogForm";
+import DogForm from "@/app/components/dog/DogForm";
 import type { DogFormValues } from "@/app/admin/dogs/types";
 import { emptyDogFormValues } from "@/app/admin/dogs/types";
-import HeroSection from "@/app/components/HeroSection";
-import DogOwnersSection from "@/app/components/DogOwnersSection";
-import DogTitlesSection from "@/app/components/DogTitlesSection";
+import HeroSection from "@/app/components/ui/HeroSection";
+import DogOwnersSection from "@/app/components/dog/DogOwnersSection";
+import DogTitlesSection from "@/app/components/dog/DogTitlesSection";
 
 /*
     Safely converts incoming unknown values to strings.
@@ -360,13 +360,13 @@ function EditDogPage() {
                 subtitle="Update dog information securely through the admin panel."
                 topContent={
                     <div className="mt-4 flex flex-wrap justify-center gap-3">
-                        <button
-                            type="button"
-                            onClick={() => router.back()}
+                        <Link
+                            href="/admin/dogs"
                             className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
                         >
-                            Back
-                        </button>
+                            Back to Admin Dogs
+                        </Link>
+
 
                         <Link
                             href={publicDogHref}

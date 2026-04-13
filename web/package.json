@@ -29,6 +29,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "resend": "^6.9.1",
+    "slate": "^0.124.1",
     "slate-react": "^0.124.0"
   },
   "devDependencies": {

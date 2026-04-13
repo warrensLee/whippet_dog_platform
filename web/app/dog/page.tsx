@@ -2,15 +2,16 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { unauthorized, useSearchParams } from "next/navigation";
-import HeroSection from "../components/HeroSection";
-import FieldRow from "../components/FieldRow";
-import StatPill from "../components/StatPill";
-import Card from "../components/Card";
-import PointBar from "../components/PointBar";
-import MeetCard from "../components/MeetCard";
-import TitleFamilyCard from "../components/TitleFamilyCard";
+import { useSearchParams } from "next/navigation";
+import HeroSection from "../components/ui/HeroSection";
+import FieldRow from "../components/ui/FieldRow";
+import StatPill from "../components/ui/StatPill";
+import Card from "../components/ui/Card";
+import PointBar from "../components/ui/PointBar";
+import MeetCard from "../components/event/MeetCard";
+import TitleFamilyCard from "../components/dog/TitleFamilyCard";
 import authContext from "@/lib/auth/auth";
+
 import { fetchJson } from "../../lib/ui/fetchJson";
 import { formatDate } from "../../lib/ui/formatDate";
 
@@ -117,6 +118,10 @@ function DogPage() {
   const statusLabel = dog?.status?.trim() || "Status unknown";
   const statusColor = getStatusColor(dog?.status);
   console.log(publicNotes)
+  const isAdmin =
+    user !== "NotAuthenticated" &&
+    user !== undefined &&
+    user.SystemRole === "ADMIN";
   return (
     <main className="min-h-screen bg-[#1F4D2E]">
       <HeroSection
@@ -134,6 +139,15 @@ function DogPage() {
             >
               Back to Search
             </Link>
+
+            {isAdmin && dog && (
+              <Link
+                href={`/admin/dogs/edit?id=${encodeURIComponent(dog.cwaNumber)}`}
+                className="rounded-full border border-white/20 bg-[#2E6B3F] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#245532]"
+              >
+                Edit Dog
+              </Link>
+            )}
           </div>
         }
       />
@@ -209,8 +223,8 @@ function DogPage() {
           </div>
 
           {dog && (
-            <Card title="">
-              <h3 className="mb-3 text-sm font-semibold text-[#12301D]">Notes</h3>
+              <Card title="">
+                  <p className="mb-2 text-sm font-semibold text-[#12301D]">Public Notes</p>
 
               {publicNotes && !editingPublicNotes && (
                 <RichTextViewer text={publicNotes} />
@@ -221,15 +235,13 @@ function DogPage() {
                 <Button variant="contained" color="success" onClick={() => setEditingPublicNotes(true)}>Edit Public Notes</Button>
               )}
 
-              {dog.privateNotes && (
-                <div className="mt-4 border-t pt-3">
-                  <p className="text-[10px] uppercase tracking-wide text-[#12301D]/40">
-                    Private
-                  </p>
-                  <p className="text-sm text-[#12301D]/70">{dog.privateNotes}</p>
-                </div>
-              )}
-            </Card>
+                  {dog.privateNotes && (
+                      <div className="mt-4 border-t pt-3">
+                          <p className="mb-2 text-sm font-semibold text-[#12301D]">Private Notes</p>
+                          <p className="text-sm text-[#12301D]/70">{dog.privateNotes}</p>
+                      </div>
+                  )}
+              </Card>
           )}
 
           <Card title={`Owner${owners.length !== 1 ? "s" : ""}${owners.length ? ` (${owners.length})` : ""}`}>
@@ -333,7 +345,6 @@ function DogPage() {
                   <MeetCard
                     key={`${meet.MeetNumber}-${index}`}
                     meet={meet}
-                    currentCwaNumber={dog.cwaNumber}
                   />
                 ))}
               </div>

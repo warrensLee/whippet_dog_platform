@@ -3,10 +3,10 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import DogForm from "@/app/components/DogForm";
+import DogForm from "@/app/components/dog/DogForm";
 import type { DogFormValues } from "@/app/admin/dogs/types";
 import { emptyDogFormValues } from "@/app/admin/dogs/types";
-import HeroSection from "@/app/components/HeroSection";
+import HeroSection from "@/app/components/ui/HeroSection";
 import AuthGuard from "@/lib/auth/authGuard";
 
 /*
@@ -76,6 +76,12 @@ export default function AddDogPage() {
         );
     }
 
+    function handleResetForm() {
+        setForm(emptyDogFormValues);
+        setError("");
+        setSuccess("");
+    }
+
     /*
         Handles form submission and sends a create request to the backend.
         On success, the user is redirected to the edit page for the new dog.
@@ -114,7 +120,7 @@ export default function AddDogPage() {
 
             setSuccess("Dog created successfully.");
 
-            router.push(`/admin/dogs/${encodeURIComponent(payload.cwaNumber)}/edit`);
+            router.push(`/admin/dogs/edit/?id=${encodeURIComponent(payload.cwaNumber)}`);
         }
         catch (e) {
             setError(
@@ -174,12 +180,33 @@ export default function AddDogPage() {
                 {/* Main form section */}
                 <section className="bg-[#E7F0E9] pt-12 pb-24">
                     <div className="max-w-5xl mx-auto px-4">
-                        <div className="mb-8">
-                            <h2 className="text-2xl font-bold text-[#12301D]">
-                                New Dog Information
-                            </h2>
+                        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                            <div>
+                                <h2 className="text-2xl font-bold text-[#12301D]">
+                                    New Dog Information
+                                </h2>
+                                <div className="mt-1 h-1 w-14 rounded-full bg-[#2E6B3F]/70" />
+                            </div>
 
-                            <div className="mt-1 h-1 w-14 rounded-full bg-[#2E6B3F]/70" />
+                            <div className="flex flex-wrap gap-3">
+                                <button
+                                    type="button"
+                                    onClick={handleResetForm}
+                                    disabled={saving}
+                                    className="rounded-full border border-[#12301D]/15 bg-white px-5 py-2.5 text-sm font-semibold text-[#12301D] transition hover:bg-[#12301D]/5 disabled:opacity-50"
+                                >
+                                    Reset Changes
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => router.push("/admin/dogs")}
+                                    disabled={saving}
+                                    className="rounded-full border border-[#12301D]/15 bg-white px-5 py-2.5 text-sm font-semibold text-[#12301D] transition hover:bg-[#12301D]/5 disabled:opacity-50"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
                         </div>
 
                         <DogForm

@@ -3,12 +3,14 @@
 import * as React from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import HeroSection from "../components/HeroSection";
-import InfoCard from "../components/InfoCard";
-import FieldRow from "../components/FieldRow";
-import StatPill from "../components/StatPill";
+import HeroSection from "../components/ui/HeroSection";
+import Card from "../components/ui/Card";
+import FieldRow from "../components/ui/FieldRow";
+import StatPill from "../components/ui/StatPill";
 import { fetchJson } from "../../lib/ui/fetchJson";
 import { formatDate } from "../../lib/ui/formatDate";
+import RaceLineup from "../components/event/RaceLineup";
+import authContext from "@/lib/auth/auth";
 
 /*
     This page is focused on one event/meet record.
@@ -25,8 +27,9 @@ interface EventDetail {
     yards?: string | number;
     requestFormLink?: string;
     resultsLink?: string;
-    notes?: string;
+    publicNotes?: string;
     status?: string;
+    privateNotes?: string;
 }
 
 interface MeetRace {
@@ -35,21 +38,6 @@ interface MeetRace {
     program?: string;
     entryCount?: number;
 }
-
-type RaceLineupEntry = {
-    cwaNumber: string;
-    dogName: string;
-    registeredName: string | null;
-    placement: number | null;
-    points: number | null;
-};
-
-type RaceLineup = {
-    meetNumber: string;
-    program: string;
-    raceNumber: string;
-    entries: RaceLineupEntry[];
-};
 
 function normalizeEventDetail(e: Record<string, unknown>): EventDetail {
     // Helper to check both camelCase and PascalCase
@@ -68,8 +56,9 @@ function normalizeEventDetail(e: Record<string, unknown>): EventDetail {
         yards: get("yards"),
         requestFormLink: get("requestFormLink"),
         resultsLink: get("resultsLink"),
-        notes: get("notes"),
+        publicNotes: get("publicNotes"),
         status: get("status"),
+        privateNotes: get("privateNotes"),
     };
 }
 
@@ -122,137 +111,6 @@ function groupRacesByProgram(races: MeetRace[]) {
         });
 }
 
-/*
-    Keeping this local for now is fine.
-    It is the only real complex interactive piece on this page,
-    so leaving it here makes debugging easier before we extract it.
-*/
-function RaceAccordionCard({ meetNumber, race }: { meetNumber: string; race: MeetRace }) {
-    const [open, setOpen] = React.useState(false);
-    const [loading, setLoading] = React.useState(false);
-    const [error, setError] = React.useState("");
-    const [detail, setDetail] = React.useState<RaceLineup | null>(null);
-
-    React.useEffect(() => {
-        if (!open || detail) return;
-
-        let cancelled = false;
-
-        async function loadRaceLineup() {
-            try {
-                setLoading(true);
-                setError("");
-
-                const raceNumber = encodeURIComponent(String(race.raceNumber));
-                const program = encodeURIComponent(String(race.program ?? ""));
-
-                const res = await fetchJson<{ ok: boolean; data: RaceLineup }>(
-                    `/api/race_result/by_race/${encodeURIComponent(meetNumber)}/${program}/${raceNumber}`,
-                    { credentials: "include" }
-                );
-
-                if (!cancelled) {
-                    setDetail(res.data);
-                }
-            } catch (err) {
-                if (!cancelled) {
-                    setError(err instanceof Error ? err.message : "Failed to load race lineup.");
-                }
-            } finally {
-                if (!cancelled) {
-                    setLoading(false);
-                }
-            }
-        }
-
-        loadRaceLineup();
-
-        return () => {
-            cancelled = true;
-        };
-    }, [open, detail, meetNumber, race.program, race.raceNumber]);
-
-    return (
-        <div className="overflow-hidden rounded-xl border border-black/8 bg-white/70">
-            <button
-                type="button"
-                onClick={() => setOpen((prev) => !prev)}
-                className="flex w-full items-center justify-between px-4 py-3 text-left transition-colors hover:bg-white/90"
-            >
-                <div>
-                    <p className="text-sm font-semibold text-[#12301D]">
-                        Race #{race.raceNumber}
-                    </p>
-                    <p className="mt-1 text-xs text-[#12301D]/55">
-                        {race.entryCount ?? 0} entries
-                    </p>
-                </div>
-
-                <svg
-                    className={`h-4 w-4 text-[#12301D]/40 transition-transform ${open ? "rotate-180" : ""}`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-            </button>
-
-            {open && (
-                <div className="border-t border-black/8 px-4 py-3">
-                    {loading ? (
-                        <p className="text-xs text-[#12301D]/50">Loading lineup...</p>
-                    ) : error ? (
-                        <p className="text-xs font-medium text-red-600">{error}</p>
-                    ) : detail && detail.entries.length > 0 ? (
-                        <div className="space-y-1.5">
-                            {detail.entries.map((entry) => (
-                                <div
-                                    key={`${detail.program}-${detail.raceNumber}-${entry.cwaNumber}`}
-                                    className="flex items-start justify-between gap-3 rounded-lg bg-black/5 px-3 py-2 text-xs"
-                                >
-                                    <div className="min-w-0">
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-bold text-[#2E6B3F]">
-                                                #{entry.placement ?? "—"}
-                                            </span>
-
-                                            <span className="font-semibold text-[#12301D]">
-                                                {entry.dogName}
-                                            </span>
-                                        </div>
-
-                                        {entry.registeredName ? (
-                                            <p className="truncate text-[11px] text-[#12301D]/55">
-                                                {entry.registeredName}
-                                            </p>
-                                        ) : null}
-
-                                        <p className="text-[11px] text-[#12301D]/45">
-                                            {entry.cwaNumber}
-                                        </p>
-                                    </div>
-
-                                    {entry.points != null ? (
-                                        <span className="whitespace-nowrap font-semibold text-[#2E6B3F]">
-                                            {entry.points} pt
-                                        </span>
-                                    ) : null}
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <p className="text-xs text-[#12301D]/50">
-                            No lineup data available for this race yet.
-                        </p>
-                    )}
-                </div>
-            )}
-        </div>
-    );
-}
-
 export default function Page() {
     return (<React.Suspense><MeetPage /></React.Suspense>)
 }
@@ -267,6 +125,12 @@ function MeetPage() {
     const [error, setError] = React.useState("");
 
     const programGroups = React.useMemo(() => groupRacesByProgram(races), [races]);
+    const user = React.useContext(authContext);
+
+    const isAdmin =
+        user !== "NotAuthenticated" &&
+        user !== undefined &&
+        user.SystemRole === "ADMIN";
 
     React.useEffect(() => {
         let cancelled = false;
@@ -362,6 +226,15 @@ function MeetPage() {
                         >
                             Back to Search
                         </Link>
+
+                        {isAdmin && event && (
+                            <Link
+                                href={`/admin/events/edit?meetNumber=${encodeURIComponent(event.meetNumber)}`}
+                                className="rounded-full border border-white/20 bg-[#2E6B3F] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#245532]"
+                            >
+                                Edit Event
+                            </Link>
+                        )}
                     </div>
                 }
             />
@@ -375,7 +248,7 @@ function MeetPage() {
                         <StatPill label="Yards" value={event?.yards || "—"} />
                     </div>
 
-                    <InfoCard title="Details">
+                    <Card title="Details">
                         {loading ? (
                             <p className="text-sm text-[#12301D]/40">Loading…</p>
                         ) : event ? (
@@ -415,12 +288,6 @@ function MeetPage() {
                                     </div>
                                 ) : null}
 
-                                {event.notes ? (
-                                    <p className="mt-3 text-xs italic text-[#12301D]/40">
-                                        {event.notes}
-                                    </p>
-                                ) : null}
-
                                 <div className="mt-4 flex flex-wrap gap-3">
                                     <span className={`rounded-full px-4 py-1 text-xs font-semibold ${statusColor}`}>
                                         {statusLabel}
@@ -430,9 +297,28 @@ function MeetPage() {
                         ) : (
                             <p className="text-sm text-[#12301D]/40">No event found.</p>
                         )}
-                    </InfoCard>
+                    </Card>
 
-                    <InfoCard title="Programs & Races">
+                    {event && (
+                        <Card title="">
+                            <p className="mb-2 text-sm font-semibold text-[#12301D]">Public Notes</p>
+
+                            {event.publicNotes ? (
+                                <p className="text-sm text-[#12301D]/70">{event.publicNotes}</p>
+                            ) : (
+                                <p className="text-sm italic text-[#12301D]/40">No notes available</p>
+                            )}
+
+                            {event.privateNotes && (
+                                <div className="mt-4 border-t pt-3">
+                                    <p className="mb-2 text-sm font-semibold text-[#12301D]">Private Notes</p>
+                                    <p className="text-sm text-[#12301D]/70">{event.privateNotes}</p>
+                                </div>
+                            )}
+                        </Card>
+                    )}
+
+                    <Card title="Programs & Races">
                         {loading ? (
                             <p className="text-sm text-[#12301D]/40">Loading…</p>
                         ) : programGroups.length > 0 ? (
@@ -461,7 +347,7 @@ function MeetPage() {
 
                                         <div className="space-y-2">
                                             {group.races.map((race, index) => (
-                                                <RaceAccordionCard
+                                                <RaceLineup
                                                     key={`${group.program}-${race.raceNumber}-${index}`}
                                                     meetNumber={meetNumber}
                                                     race={race}
@@ -476,12 +362,12 @@ function MeetPage() {
                                 No programs or races have been added to this meet yet.
                             </p>
                         )}
-                    </InfoCard>
+                    </Card>
 
                     {error ? (
-                        <InfoCard title="Notice">
+                        <Card title="Notice">
                             <p className="text-sm text-red-600">{error}</p>
-                        </InfoCard>
+                        </Card>
                     ) : null}
                 </div>
             </section>

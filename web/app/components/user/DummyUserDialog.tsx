@@ -1,7 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo, useState } from 'react';
+import axios, { AxiosError } from 'axios';
 import {
+  Alert,
   Button,
   Dialog,
   DialogActions,
@@ -15,47 +17,115 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { EditForm, UserRole } from './types';
+import { AddForm, UserRole, emptyAddForm } from '../../admin/users/types';
 
-type Props = {
-  open: boolean;
-  saving: boolean;
-  form: EditForm;
-  roles: UserRole[];
-  onClose: () => void;
-  onSave: () => void;
-  updateForm: <K extends keyof EditForm>(key: K, value: EditForm[K]) => void;
-};
+type Props =
+  {
+    open: boolean;
+    saving: boolean;
+    roles: UserRole[];
+    onClose: () => void;
+    onSave: () => void;
+  };
 
-export default function EditUserDialog({
-  open,
-  saving,
-  form,
-  roles,
-  onClose,
-  onSave,
-  updateForm,
-}: Props) {
+export default function DummyUserDialog({ open, saving, roles, onClose, onSave, }: Props) {
+  const [form, setForm] = useState<AddForm>(emptyAddForm);
+  const [error, setError] = useState('');
+
+  const updateForm = (key: keyof AddForm, value: string) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const resetForm = () => {
+    setForm(emptyAddForm);
+    setError('');
+  };
+
+  const handleClose = () => {
+    if (saving) return;
+    resetForm();
+    onClose();
+  };
+
+  const mergedNotes = useMemo(() => {
+    const trimmed = form.notes.trim();
+    return trimmed ? `DUMMY ACCOUNT\n${trimmed}` : 'DUMMY ACCOUNT';
+  }, [form.notes]);
+
+  const handleCreateDummy = async () => {
+    try {
+      setError('');
+
+      const res = await axios.post('/api/person/add',
+        {
+          firstName: form.firstName,
+          lastName: form.lastName,
+          email: form.email,
+          addressLineOne: form.addressLineOne,
+          addressLineTwo: form.addressLineTwo,
+          city: form.city,
+          stateProvince: form.stateProvince,
+          zipCode: form.zipCode,
+          country: form.country,
+          primaryPhone: form.primaryPhone,
+          secondaryPhone: form.secondaryPhone,
+          systemRole: form.systemRole || 'PUBLIC',
+          notes: mergedNotes,
+          locked: false,
+        });
+
+      if (!res.data.ok) {
+        setError(res.data.error || 'Failed to create dummy account');
+        return;
+      }
+
+      resetForm();
+      onSave();
+      onClose();
+    }
+    catch
+    (err: unknown) {
+      if (err instanceof AxiosError && err.response) {
+        setError(err.response.data?.error || 'Failed to create dummy account');
+      }
+      else if (err instanceof Error) {
+        setError(err.message || 'Failed to create dummy account');
+      }
+      else {
+        setError('Failed to create dummy account');
+      }
+    }
+  };
+
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
-      <DialogTitle>Edit User</DialogTitle>
+    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
+      <DialogTitle>Create Dummy Account</DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
+          {error && <Alert severity="error">{error}</Alert>}
+
+          <Alert severity="info">
+            This creates a manual placeholder person record. No invite email or password is created.
+          </Alert>
+
           <Typography variant="subtitle2">Basic Info</Typography>
 
-          <TextField label="UserName" value={form.personId} disabled fullWidth />
           <TextField
             label="First Name"
             value={form.firstName}
             onChange={(e) => updateForm('firstName', e.target.value)}
             fullWidth
+            required
           />
+
           <TextField
             label="Last Name"
             value={form.lastName}
             onChange={(e) => updateForm('lastName', e.target.value)}
             fullWidth
+            required
           />
+
           <TextField
             label="Email"
             value={form.email}
@@ -73,30 +143,35 @@ export default function EditUserDialog({
             onChange={(e) => updateForm('addressLineOne', e.target.value)}
             fullWidth
           />
+
           <TextField
             label="Address Line 2"
             value={form.addressLineTwo}
             onChange={(e) => updateForm('addressLineTwo', e.target.value)}
             fullWidth
           />
+
           <TextField
             label="City"
             value={form.city}
             onChange={(e) => updateForm('city', e.target.value)}
             fullWidth
           />
+
           <TextField
             label="State / Province"
             value={form.stateProvince}
             onChange={(e) => updateForm('stateProvince', e.target.value)}
             fullWidth
           />
+
           <TextField
             label="Zip Code"
             value={form.zipCode}
             onChange={(e) => updateForm('zipCode', e.target.value)}
             fullWidth
           />
+
           <TextField
             label="Country"
             value={form.country}
@@ -114,6 +189,7 @@ export default function EditUserDialog({
             onChange={(e) => updateForm('primaryPhone', e.target.value)}
             fullWidth
           />
+
           <TextField
             label="Secondary Phone"
             value={form.secondaryPhone}
@@ -140,18 +216,6 @@ export default function EditUserDialog({
             </Select>
           </FormControl>
 
-          <FormControl fullWidth>
-            <InputLabel>Account Status</InputLabel>
-            <Select
-              value={form.locked ? 'locked' : 'active'}
-              label="Account Status"
-              onChange={(e) => updateForm('locked', e.target.value === 'locked')}
-            >
-              <MenuItem value="active">Active</MenuItem>
-              <MenuItem value="locked">Locked</MenuItem>
-            </Select>
-          </FormControl>
-
           <TextField
             label="Notes"
             value={form.notes}
@@ -159,15 +223,22 @@ export default function EditUserDialog({
             fullWidth
             multiline
             rows={4}
+            helperText='“DUMMY ACCOUNT” will be added automatically.'
           />
         </Stack>
       </DialogContent>
+
       <DialogActions>
-        <Button onClick={onClose} disabled={saving}>
+        <Button onClick={handleClose} disabled={saving}>
           Cancel
         </Button>
-        <Button variant="contained" onClick={onSave} disabled={saving}>
-          {saving ? 'Saving...' : 'Save'}
+        <Button
+          variant="contained"
+          color="success"
+          onClick={handleCreateDummy}
+          disabled={saving}
+        >
+          {saving ? 'Creating...' : 'Create Dummy Account'}
         </Button>
       </DialogActions>
     </Dialog>

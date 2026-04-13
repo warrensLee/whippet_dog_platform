@@ -36,6 +36,9 @@ def register_meet():
     data = request.get_json(silent=True) or {}
     meet = Meet.from_request_data(data)
 
+    if role.edit_meet_scope != UserRole.ALL:
+        meet.private_notes = None
+
     meet.last_edited_by = current_editor_id()
     meet.last_edited_at = datetime.now(timezone.utc)
 
@@ -94,6 +97,10 @@ def edit_meet():
 
     meet = Meet.from_request_data(data)
     meet.meet_number = meet_number
+
+    if role.edit_meet_scope != UserRole.ALL:
+        meet.private_notes = existing.private_notes
+        
     meet.last_edited_by = current_editor_id()
     meet.last_edited_at = datetime.now(timezone.utc)
 
