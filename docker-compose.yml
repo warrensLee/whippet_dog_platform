@@ -38,14 +38,14 @@ services:
     env_file: ".env.backend"
     restart: unless-stopped
 
-  ## If running locally you must comment this out
-  # cloudflared:
-  #   image: cloudflare/cloudflared:latest
-  #   container_name: cloudflared
-  #   restart: unless-stopped
-  #   env_file:
-  #     - .env.cloudflared
-  #   command: tunnel run
+  # If running locally you must comment this out
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    env_file:
+      - .env.cloudflared
+    command: tunnel run
 
 volumes:
   data:
