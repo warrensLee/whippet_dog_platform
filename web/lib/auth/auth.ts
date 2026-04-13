@@ -52,6 +52,7 @@ export class User {
     PersonID: string;
     SystemRole: string;
     role: Role;
+    ID: number;
     constructor(
         userObj: Partial<User>
     ) {
@@ -61,6 +62,7 @@ export class User {
         this.PersonID = userObj.PersonID!;
         this.SystemRole = userObj.SystemRole || "";
         this.role = userObj.role!;
+        this.ID = userObj.ID!;
     }
     hasPermission(perm: keyof typeof PermissionMappings): boolean {
         const p = PermissionMappings[perm]

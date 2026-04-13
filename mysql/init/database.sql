@@ -25,8 +25,8 @@ CREATE TABLE `Dog` (
     `MeetAppearences` DECIMAL(5,2),
     `HighCombinedWins` DECIMAL(5,2),
     `AOMEarned` DECIMAL(5,2),
-    `PublicNotes` VARCHAR(250),
-    `PrivateNotes` VARCHAR(250),
+    `PublicNotes` TEXT,
+    `PrivateNotes` TEXT,
     `DNA` VARCHAR(50),
     `SireDNA` VARCHAR(50),
     `DamDNA` VARCHAR(50),
@@ -75,7 +75,7 @@ CREATE TABLE `Person` (
     `SecondaryPhone` VARCHAR(10),
     `SystemRole` VARCHAR(20) NOT NULL,
     `PasswordHash` VARCHAR(255),
-    `Notes` VARCHAR(250),
+    `Notes` TEXT,
     `Locked` TINYINT(1) NOT NULL DEFAULT 0,
     `LastEditedBy` INT,
     `LastEditedAt` TIMESTAMP
@@ -112,8 +112,8 @@ CREATE TABLE `Meet` (
     `Judge` INT,
     `Location` VARCHAR(20) NOT NULL,
     `Yards` INT NOT NULL,
-    `PublicNotes` VARCHAR(250),
-    `PrivateNotes` VARCHAR(250),
+    `PublicNotes` TEXT,
+    `PrivateNotes` TEXT,
     `LastEditedBy` INT,
     `LastEditedAt` TIMESTAMP
 );

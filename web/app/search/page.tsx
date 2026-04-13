@@ -495,7 +495,7 @@ function SearchPage() {
                                             */}
                                             <div className="mt-4 flex flex-wrap gap-3">
                                                 <Link
-                                                    href={`/dog/${d.id}`}
+                                                    href={`/dog?id=${d.id}`}
                                                     className="rounded-full bg-[#2E6B3F] px-4 py-2 text-sm font-semibold text-white hover:bg-[#255733] transition"
                                                 >
                                                     View Dog

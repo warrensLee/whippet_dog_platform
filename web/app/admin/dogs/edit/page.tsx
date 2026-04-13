@@ -133,7 +133,7 @@ function buildEditPayload(form: DogFormValues): DogFormValues {
 function buildPublicDogHref(cwaNumber: string, fallbackId: string): string {
     const dogId = (cwaNumber || fallbackId).trim();
 
-    return `/dog/${encodeURIComponent(dogId)}`;
+    return `/dog?id=${encodeURIComponent(dogId)}`;
 }
 
 export default function Page() {

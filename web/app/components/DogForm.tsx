@@ -3,6 +3,7 @@
 
 import * as React from "react";
 import type { DogFormValues } from "@/app/admin/dogs/types";
+import RichTextEditor from "@/lib/richtext/RichTextEditor";
 
 type Props =
     {
@@ -416,14 +417,10 @@ export default function DogForm
 
             {/* Public Notes section */}
             <div className="mt-5">
-                <TextAreaField
-                    label="Public Notes"
-                    field="publicNotes"
-                    value={values.publicNotes}
-                    onChange={onChange}
-                    placeholder="Anything relevant to this dog..."
-                    rows={5}
-                />
+                <label className="mb-2 block text-sm font-medium text-[#12301D]">
+                    Public Notes
+                </label>
+                <RichTextEditor value={values.publicNotes} onChange={(value: string) => onChange("publicNotes", value)} style={{}} />
             </div>
 
             {/* Private Notes section */}
