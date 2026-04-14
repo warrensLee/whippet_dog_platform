@@ -131,7 +131,7 @@ export default function RaceLineup({
                                         <div className="min-w-0">
                                         <div className="flex flex-wrap items-center gap-2">
                                             <span className="text-sm font-bold text-[#2E6B3F]">
-                                            #{entry.placement ?? "—"}
+                                            #{entry.placement ?? "—"} place
                                             </span>
 
                                             <Link
@@ -161,21 +161,6 @@ export default function RaceLineup({
                                             {entry.cwaNumber}
                                         </Link>
                                         </div>
-
-                                        <div className="shrink-0 text-right">
-                                        <span className="inline-flex rounded-full bg-[#2E6B3F] px-2.5 py-1 text-[11px] font-semibold text-white">
-                                            {entry.meetPoints ?? 0} pts
-                                        </span>
-                                        </div>
-                                    </div>
-
-                                    <div className="mt-3 flex flex-wrap gap-2 border-t border-black/5 pt-2">
-                                        <span className="rounded-full bg-white/70 px-2 py-0.5 text-[10px] font-medium text-[#12301D]/75">
-                                        AOM: {entry.aomEarned ?? 0}
-                                        </span>
-                                        <span className="rounded-full bg-white/70 px-2 py-0.5 text-[10px] font-medium text-[#12301D]/75">
-                                        DPC: {entry.dpcPoints ?? 0}
-                                        </span>
                                     </div>
                                     </div>
                                 );

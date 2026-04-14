@@ -118,10 +118,12 @@ function DogPage() {
   const statusLabel = dog?.status?.trim() || "Status unknown";
   const statusColor = getStatusColor(dog?.status);
   console.log(publicNotes)
+
   const isAdmin =
     user !== "NotAuthenticated" &&
     user !== undefined &&
     user.SystemRole === "ADMIN";
+    
   return (
     <main className="min-h-screen bg-[#1F4D2E]">
       <HeroSection
@@ -158,7 +160,8 @@ function DogPage() {
             <StatPill label="Completed Meets" value={dog?.meetAppearences ?? "—"} />
             <StatPill label="Meet Points" value={dog?.meetPoints ?? "—"} accent />
             <StatPill label="Meet Wins" value={dog?.meetWins ?? "—"} />
-            <StatPill label="High Combo W" value={dog?.highCombinedWins ?? "—"} />
+            <StatPill label="YTD Placement Points" value={dog?.meetWins ?? "—"} />
+            <StatPill label="High Combo Wins" value={dog?.highCombinedWins ?? "—"} />
           </div>
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
@@ -173,7 +176,7 @@ function DogPage() {
                   <FieldRow label="Status" value={dog.status} />
                   <FieldRow label="Current Grade" value={dog.currentGrade} />
                   <FieldRow label="Registered #" value={dog.registeredNumber} />
-                  <FieldRow label="Foreign Type" value={dog.foreignType} />
+                  <FieldRow label="Registry Type" value={dog.foreignType} />
                   <FieldRow label="DNA" value={dog.dna} />
                   <FieldRow label="Sire DNA" value={dog.sireDna} />
                   <FieldRow label="Dam DNA" value={dog.damDna} />
@@ -203,8 +206,9 @@ function DogPage() {
                 <>
                   <PointBar label="Meet Pts" value={dog.meetPoints ?? 0} max={maxPoints} />
                   <PointBar label="ARX Pts" value={dog.arxPoints ?? 0} max={maxPoints} />
-                  <PointBar label="NARX Pts" value={dog.narxPoints ?? 0} max={maxPoints} />
+                  <PointBar label="NARX Pts" value={dog.narxPoints ?? 0} max={maxPoints} /> 
                   <PointBar label="Show Pts" value={dog.showPoints ?? 0} max={maxPoints} />
+                  {/* Swap show points with DPC Points and Match Points */}
 
                   <div className="mt-4 flex flex-wrap gap-3">
                     <span className={`rounded-full px-4 py-1 text-xs font-semibold ${statusColor}`}>

@@ -337,7 +337,7 @@ export default function DogForm
                 type: "number",
             },
             {
-                label: "Foreign Type",
+                label: "Registry Type",
                 field: "foreignType",
             },
         ];
