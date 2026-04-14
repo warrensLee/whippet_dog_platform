@@ -272,15 +272,6 @@ function DogPage() {
                         <p className="truncate text-sm font-semibold text-[#12301D]">
                           {fullName}
                         </p>
-
-                        {owner.EmailAddress && (
-                          <a
-                            href={`mailto:${owner.EmailAddress}`}
-                            className="block truncate text-xs text-[#2E6B3F] hover:underline"
-                          >
-                            {owner.EmailAddress}
-                          </a>
-                        )}
                       </div>
                     </div>
                   );

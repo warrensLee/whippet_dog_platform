@@ -1,119 +1,522 @@
-// import Image from "next/image";
+"use client";
 
-// This page.tsx file will serve as the homepage for the Continental Whippet Alliance
+import * as React from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import type { DogSearchResponse } from "@/app/admin/dogs/types";
+import HeroSection from "@/app/components/ui/HeroSection";
+import SearchBar from "@/app/components/ui/SearchBar";
 
-export default function Home() {
-  return (
+/*
+    Keeps page and limit values from becoming invalid or weird.
 
-    <main>
+    Since these come from the URL, I do not want bad input like NaN,
+    decimals, or negative values breaking pagination logic.
+*/
+function clampInteger(num: number, min: number, max: number) {
+    if (!Number.isFinite(num)) {
+        return min;
+    }
 
-      {/* Overlay */}
-
-      <section
-        className="
-        relative min-h-screen
-        bg-[url(/homepage_background.jpg)]
-        bg-cover
-        bg-[center_45%]
-        bg-no-repeat
-        flex flex-col
-      "
-      >
-
-        <div className="absolute inset-0 bg-black/15" />
-
-
-        {/* Title */}
-
-        <div className="relative z-10 flex flex-1 items-end justify-end pb-40 pr-16">
-          <h1 className="
-            text-white text-7xl font-bold
-            transition-transform duration-300
-            hover:scale-115
-            origin-bottom-right
-          ">
-            <span className="block">
-              Showing what we race.
-            </span>
-            <span className="block pl-14">
-              Racing what we show.
-            </span>
-          </h1>
-        </div>
+    return Math.max(min, Math.min(max, Math.floor(num)));
+}
 
 
+export default function Page() {
+    return (<React.Suspense><SearchPage /></React.Suspense>)
+}
+function SearchPage() {
+    const sp = useSearchParams();
 
-        {/* Curve */}
-        <svg
-          viewBox="0 0 1440 100"
-          preserveAspectRatio="none"
-          className="absolute left-0 bottom-0 w-full h-32"
-        >
+    /*
+        Pull search and paging values from the URL so the page can
+        support refreshes, back/forward navigation, and shareable links.
+    */
+    const q = (sp.get("q") ?? "").trim();
+    const page = clampInteger(Number(sp.get("page") ?? "1"), 1, 1_000_000);
+    const limit = clampInteger(Number(sp.get("limit") ?? "20"), 1, 50);
+    const sort = (sp.get("sort") ?? "nameAsc").trim();
 
-          {/* Fill under the curve */}
-          <path
-            d="
-              M 0 0
-              L 144 19
-              L 288 36
-              L 432 51
-              L 576 64
-              L 720 75
-              L 864 84
-              L 1008 91
-              L 1152 96
-              L 1296 99
-              L 1440 100
-              L 1440 100
-              L 0 100
-              Z
-            "
-            fill="#E5E5E5"
+    /*
+        Main state for search results and request status.
+        This keeps the page responsive while data is loading or if an error happens.
+    */
+    const [data, setData] = React.useState<DogSearchResponse | null>(null);
+    const [loading, setLoading] = React.useState(false);
+    const [error, setError] = React.useState("");
 
-          />
-        </svg>
+    /*
+        Fetch dog search results whenever the query changes.
 
+        I used a cancel flag here so old requests do not try to update state
+        after the component changes or unmounts. That helps avoid weird UI bugs.
+    */
+    React.useEffect(
+        () => {
+            let cancelled = false;
 
-      </section>
+            (async () => {
+                setLoading(true);
+                setError("");
 
+                try {
+                    /*
+                        Build query params here instead of writing the string manually.
+                        It keeps the request cleaner and easier to extend later.
+                    */
+                    const usp = new URLSearchParams();
+                    usp.set("q", q);
 
-      {/*Post Image, scrolling to view about information and below footer*/}
+                    const res = await fetch(
+                        `/api/dog/search?${usp.toString()}`,
+                        {
+                            cache: "no-store",
+                            credentials: "include",
+                        }
+                    );
 
-      <section className="bg-neutral-200 py-24">
-        <div className="max-w-6xl mx-auto px-4 space-y-16">
+                    const json = await res.json().catch(
+                        () => {
+                            return null;
+                        }
+                    );
 
-          {/* About */}
-          <div className="text-center max-w-4xl mx-auto">
-            <h2 className="text-3xl font-semibold mb-6 text-black">
-              The Continental Whippet Alliance
-            </h2>
-            <p className="text-lg leading-relaxed text-black">
-              The Continental Whippet Alliance (CWA) was established in 1990. The primary
-              mission of the CWA is to promote, protect and preserve purebred Whippet
-              racing and to provide a friendly
-              and enjoyable environment for sportsmanlike competition. It is the
-              objective of the CWA to play a role in the preservation of the Whippet&apos;s
-              athletic ability, sporting instincts and functional breed characteristics;
-              to foster future generations of fit, versatile individuals that are true
-              to the AKC Whippet Breed Standard.
-            </p>
-          </div>
+                    /*
+                        If the backend fails or returns an invalid shape,
+                        stop early and show a real error message.
+                    */
+                    if (!res.ok || !json?.ok) {
+                        throw new Error(json?.error || `Request failed (${res.status})`);
+                    }
 
-          {/* What you can do */}
-          <div className="text-center max-w-4xl mx-auto text-black">
-            <h2 className="text-3xl font-semibold mb-6">
-              What You Can Do
-            </h2>
-            <p className="text-lg leading-relaxed">
-              Learn how to get started in Whippet racing, explore upcoming events,
-              review rules and titles, and stay up to date with official news and
-              announcements from the CWA.
-            </p>
-          </div>
+                    /*
+                        Map backend data into the frontend shape used by the page.
 
-        </div>
-      </section>
+                        I do this in one place so the UI stays simpler and does not
+                        need to care about backend naming differences like registeredNo vs id.
+                    */
+                    const mapped: DogSearchResponse =
+                    {
+                        ok: true,
+                        total: Number(json.total ?? 0),
+                        items: Array.isArray(json.items)
+                            ? json.items.map(
+                                (item: Record<string, unknown>) => {
+                                    return {
+                                        id: String(item.id ?? ""),
+                                        cwaNumber: String(item.regNo ?? item.id ?? ""),
+                                        akcNumber: String(item.akcNo ?? ""),
+                                        registeredName: String(item.name ?? ""),
+                                        callName: "",
+                                        birthYear: item.year ? String(item.year) : "",
+                                        status: String(item.active ?? ""),
+                                        ownerName: String(item.ownerName ?? ""),
+                                        title: String(item.title ?? ""),
+                                    };
+                                }
+                            )
+                            : [],
+                    };
 
-    </main>
-  )
+                    if (!cancelled) {
+                        setData(mapped);
+                    }
+                }
+                catch (e) {
+                    if (!cancelled) {
+                        setError(
+                            e instanceof Error
+                                ? e.message
+                                : "Search failed."
+                        );
+                    }
+                }
+                finally {
+                    if (!cancelled) {
+                        setLoading(false);
+                    }
+                }
+            })();
+
+            return () => {
+                cancelled = true;
+            };
+        },
+        [q]
+    );
+
+    /*
+        Fallback values so the page can safely render before data loads.
+    */
+    const total = data?.total ?? 0;
+    const items = data?.items ?? [];
+
+    /*
+        Safely sort the items based on the selected sort option.
+    */
+    const sortedItems = [...items].sort((a, b) => {
+        switch (sort) {
+            case "nameDesc":
+                return (b.registeredName || "").localeCompare(a.registeredName || "");
+
+            case "cwaAsc":
+                return (a.cwaNumber || "").localeCompare(b.cwaNumber || "", undefined, { numeric: true });
+
+            case "cwaDesc":
+                return (b.cwaNumber || "").localeCompare(a.cwaNumber || "", undefined, { numeric: true });
+
+            case "akcAsc":
+                return (a.registeredNumber || "").localeCompare(b.registeredNumber || "", undefined, { numeric: true });
+
+            case "akcDesc":
+                return (b.registeredNumber || "").localeCompare(a.registeredNumber || "", undefined, { numeric: true });
+
+            case "yearAsc":
+                return Number(a.birthYear || 0) - Number(b.birthYear || 0);
+
+            case "yearDesc":
+                return Number(b.birthYear || 0) - Number(a.birthYear || 0);
+
+            case "nameAsc":
+            default:
+                return (a.registeredName || "").localeCompare(b.registeredName || "");
+        }
+    });
+    /*
+        Pagination is done on the frontend here after results load.
+
+        This works fine for the current project size and keeps the page logic easy to follow.
+        If the dataset gets much larger later, this could be moved to backend pagination.
+    */
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+    const safePage = Math.min(page, totalPages);
+    const start = (safePage - 1) * limit;
+    const pagedItems = sortedItems.slice(start, start + limit);
+
+    const prevPage = Math.max(1, safePage - 1);
+    const nextPage = Math.min(totalPages, safePage + 1);
+
+    /*
+        Quick page-level counts used for the summary cards.
+
+        These are based only on what is visible on the current page,
+        which makes the stats match what the user is actually looking at.
+    */
+    const activeCount = pagedItems.filter(
+        (d) => {
+            return String(d.status).toUpperCase() === "ACTIVE";
+        }
+    ).length;
+
+    const inactiveCount = pagedItems.length - activeCount;
+
+    /*
+        Keeps pagination links consistent while preserving the current query
+        and any other URL params already in place.
+    */
+    function makeLink(p: number) {
+        const params = new URLSearchParams(sp.toString());
+
+        // Update only the page, limit, and sort params while keeping others intact
+        params.set("page", String(p));
+        params.set("limit", String(limit));
+        params.set("sort", sort);
+
+        // The base path is /search since this is the search page
+        return `/search?${params.toString()}`;
+    }
+
+    return (
+        <main className="pt-24 bg-[#1F4D2E]">
+            {/* 
+                Hero section for the main search entry area.
+
+                I kept this visually strong so the page feels more polished
+                and less like a plain database dump.
+            */}
+            <HeroSection
+                title="Search Dogs"
+                subtitle="Search by CWA number, registered name, owner, or title."
+            >
+                {/* 
+                    Now for searching we will use the SearchBar component.
+
+                    This keeps the search input consistent across the site and allows us to 
+                    reuse styling and logic without repeating code.
+                */}
+                <div className="rounded-3xl border border-white/15 bg-white/10 p-4 md:p-5 backdrop-blur">
+                    <SearchBar
+                        action="/search"
+                        query={q}
+                        sort={sort}
+                        placeholder="Search by CWA number, AKC number, registered name, owner, or title."
+                    />
+                    {/* 
+                        Small status line gives feedback without taking up too much space.
+                    */}
+                    <div className="mt-4 text-sm text-white/75">
+                        {
+                            loading
+                                ? "Searching..."
+                                : error
+                                    ? `Error: ${error}`
+                                    : `${total} result(s) found`
+                        }
+                    </div>
+                </div>
+            </HeroSection>
+
+            {/* 
+                Main results section.
+
+                Uses a lighter background so the content area feels separated
+                from the hero and easier to read.
+            */}
+            <section className="bg-[#E7F0E9] pt-12 pb-24">
+                <div className="max-w-6xl mx-auto px-4">
+                    {/* 
+                        Summary cards give quick context before the user scans results.
+                        This helps the page feel more informative and less flat.
+                    */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+                        <div className="rounded-2xl border border-black/10 bg-white/90 p-5 shadow-sm">
+                            <div className="text-sm font-medium text-[#12301D]/70">
+                                Total Results
+                            </div>
+
+                            <div className="mt-2 text-3xl font-bold text-[#12301D]">
+                                {total}
+                            </div>
+
+                            <div className="mt-2 text-sm text-[#12301D]/60">
+                                Matches for the current query
+                            </div>
+                        </div>
+
+                        <div className="rounded-2xl border border-black/10 bg-white/90 p-5 shadow-sm">
+                            <div className="text-sm font-medium text-[#12301D]/70">
+                                Active on This Page
+                            </div>
+
+                            <div className="mt-2 text-3xl font-bold text-[#12301D]">
+                                {activeCount}
+                            </div>
+
+                            <div className="mt-2 text-sm text-[#12301D]/60">
+                                Visible active records
+                            </div>
+                        </div>
+
+                        <div className="rounded-2xl border border-black/10 bg-white/90 p-5 shadow-sm">
+                            <div className="text-sm font-medium text-[#12301D]/70">
+                                Other Status
+                            </div>
+
+                            <div className="mt-2 text-3xl font-bold text-[#12301D]">
+                                {inactiveCount}
+                            </div>
+
+                            <div className="mt-2 text-sm text-[#12301D]/60">
+                                Remaining visible records
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 
+                        Results header and pagination controls stay together
+                        so users can tell where they are in the result set.
+                    */}
+                    <div className="mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                        <div>
+                            <h2 className="text-2xl font-bold text-[#12301D]">
+                                Results
+                            </h2>
+
+                            <div className="mt-1 h-1 w-14 rounded-full bg-[#2E6B3F]/70" />
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                            <div className="text-[#12301D]/70 text-sm">
+                                {
+                                    loading
+                                        ? "Loading..."
+                                        : `Showing ${pagedItems.length} of ${total}`
+                                }
+                            </div>
+                            {/* 
+                                Sort options are placed next to the search box so they are easy to find
+                                but do not distract from the main search input.
+                            */}
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                                <form method="GET" action="/search" className="flex items-center gap-2">
+                                    <input type="hidden" name="q" value={q} />
+                                    <input type="hidden" name="page" value="1" />
+                                    <input type="hidden" name="limit" value={String(limit)} />
+
+                                    <select
+                                        name="sort"
+                                        defaultValue={sort}
+                                        className="rounded-full border border-black/10 bg-white px-4 py-2 text-sm text-[#12301D] shadow-sm outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
+                                    >
+                                        <option value="nameAsc">Name A–Z</option>
+                                        <option value="nameDesc">Name Z–A</option>
+                                        <option value="cwaAsc">CWA Ascending</option>
+                                        <option value="cwaDesc">CWA Descending</option>
+                                        <option value="akcAsc">AKC Ascending</option>
+                                        <option value="akcDesc">AKC Descending</option>
+                                        <option value="yearAsc">Year Ascending</option>
+                                        <option value="yearDesc">Year Descending</option>
+                                    </select>
+
+                                    <button
+                                        type="submit"
+                                        className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#12301D] shadow-sm hover:bg-[#12301D]/5 transition"
+                                    >
+                                        Sort
+                                    </button>
+                                </form>
+                            </div>
+
+                            {/* 
+                                Pagination uses links instead of buttons so the URL stays updated.
+                                That makes the page easier to share and revisit.
+                            */}
+                            <div className="flex items-center gap-2 rounded-full border border-black/10 bg-white/80 backdrop-blur px-3 py-1 shadow-sm">
+                                <Link
+                                    href={makeLink(prevPage)}
+                                    className={
+                                        [
+                                            "rounded-full px-3 py-1 text-sm font-medium text-[#12301D] transition",
+                                            safePage <= 1
+                                                ? "opacity-40 pointer-events-none"
+                                                : "hover:bg-[#2E6B3F]/10",
+                                        ].join(" ")
+                                    }
+                                >
+                                    Prev
+                                </Link>
+
+                                <div className="px-2 text-sm text-[#12301D]/70">
+                                    Page <span className="text-[#12301D] font-semibold">{safePage}</span> / {totalPages}
+                                </div>
+
+                                <Link
+                                    href={makeLink(nextPage)}
+                                    className={
+                                        [
+                                            "rounded-full px-3 py-1 text-sm font-medium text-[#12301D] transition",
+                                            safePage >= totalPages
+                                                ? "opacity-40 pointer-events-none"
+                                                : "hover:bg-[#2E6B3F]/10",
+                                        ].join(" ")
+                                    }
+                                >
+                                    Next
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 
+                        Card layout keeps the search results easier to scan than a plain table,
+                        especially for a public-facing page.
+                    */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        {
+                            pagedItems.map(
+                                (d) => {
+                                    return (
+                                        <div
+                                            key={d.id}
+                                            className="rounded-2xl border border-black/10 bg-white/90 backdrop-blur p-5 shadow-sm transition hover:shadow-md hover:-translate-y-[2px] hover:border-[#2E6B3F]/35"
+                                        >
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div>
+                                                    <Link
+                                                        href={`/dog?id=${d.id}`}
+                                                        className="text-xl font-semibold text-[#12301D] hover:text-[#2E6B3F] underline-offset-4 hover:underline transition"
+                                                    >
+                                                        {d.registeredName || "Unnamed Dog"}
+                                                    </Link>
+                                                </div>
+
+                                                {/* 
+                                                    Status pill gives quick visual context without
+                                                    adding too much clutter to the card.
+                                                */}
+                                                <div className="shrink-0 rounded-full px-3 py-1 text-xs font-semibold bg-[#2E6B3F]/10 text-[#2E6B3F]">
+                                                    {d.status || "—"}
+                                                </div>
+                                            </div>
+
+                                            {/* 
+                                                Key fields are shown in a small grid so the card
+                                                stays readable while still showing useful info.
+                                            */}
+                                            <div className="mt-4 grid grid-cols-2 gap-y-2 text-sm text-[#12301D]/80">
+                                                <div>
+                                                    <span className="font-medium text-[#000000]">
+                                                        CWA
+                                                    </span>
+                                                    : {d.cwaNumber || "—"}
+                                                </div>
+
+                                                <div>
+                                                    <span className="font-medium text-[#000000]">
+                                                        Year
+                                                    </span>
+                                                    : {d.birthYear || "—"}
+                                                </div>
+
+                                                <div>
+                                                    <span className="font-medium text-[#000000]">
+                                                        Owner
+                                                    </span>
+                                                    : {d.ownerName || "—"}
+                                                </div>
+
+                                                <div>
+                                                    <span className="font-medium text-[#000000]">
+                                                        Title
+                                                    </span>
+                                                    : {d.title || "—"}
+                                                </div>
+                                            </div>
+
+                                            <div className="mt-4 h-px w-full bg-gradient-to-r from-[#2E6B3F]/35 via-black/5 to-transparent" />
+
+                                            {/* 
+                                                Action buttons are kept simple here:
+                                                one to open the dog profile and one to re-run a tighter search.
+                                            */}
+                                            <div className="mt-4 flex flex-wrap gap-3">
+                                                <Link
+                                                    href={`/dog?id=${d.id}`}
+                                                    className="rounded-full bg-[#2E6B3F] px-4 py-2 text-sm font-semibold text-white hover:bg-[#255733] transition"
+                                                >
+                                                    View Dog
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    );
+                                }
+                            )
+                        }
+                    </div>
+
+                    {/* 
+                        Empty state gives a clear answer instead of making the page
+                        look broken when no results are found.
+                    */}
+                    {
+                        !loading && !error && pagedItems.length === 0 && (
+                            <div className="mt-6 rounded-2xl border border-black/10 bg-white/80 px-4 py-6 text-sm text-[#12301D]/70 shadow-sm">
+                                No matches found. Try a different dog name, owner, title, or CWA number.
+                            </div>
+                        )
+                    }
+                </div>
+            </section>
+        </main>
+    );
 }
