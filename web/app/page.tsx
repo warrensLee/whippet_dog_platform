@@ -105,7 +105,7 @@ function SearchPage() {
                                     return {
                                         id: String(item.id ?? ""),
                                         cwaNumber: String(item.regNo ?? item.id ?? ""),
-                                        akcNumber: String(item.akcNo ?? ""),
+                                        registeredNumber: String(item.registered ?? ""),
                                         registeredName: String(item.name ?? ""),
                                         callName: "",
                                         birthYear: item.year ? String(item.year) : "",
@@ -165,10 +165,10 @@ function SearchPage() {
             case "cwaDesc":
                 return (b.cwaNumber || "").localeCompare(a.cwaNumber || "", undefined, { numeric: true });
 
-            case "akcAsc":
+            case "registeredNumberAsc":
                 return (a.registeredNumber || "").localeCompare(b.registeredNumber || "", undefined, { numeric: true });
 
-            case "akcDesc":
+            case "registeredNumberDesc":
                 return (b.registeredNumber || "").localeCompare(a.registeredNumber || "", undefined, { numeric: true });
 
             case "yearAsc":
@@ -222,8 +222,8 @@ function SearchPage() {
         params.set("limit", String(limit));
         params.set("sort", sort);
 
-        // The base path is /search since this is the search page
-        return `/search?${params.toString()}`;
+        // The base path is  since this is the search page
+        return `/?${params.toString()}`;
     }
 
     return (
@@ -246,7 +246,7 @@ function SearchPage() {
                 */}
                 <div className="rounded-3xl border border-white/15 bg-white/10 p-4 md:p-5 backdrop-blur">
                     <SearchBar
-                        action="/search"
+                        action="/"
                         query={q}
                         sort={sort}
                         placeholder="Search by CWA number, AKC number, registered name, owner, or title."
@@ -348,7 +348,7 @@ function SearchPage() {
                                 but do not distract from the main search input.
                             */}
                             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                                <form method="GET" action="/search" className="flex items-center gap-2">
+                                <form method="GET" action="/" className="flex items-center gap-2">
                                     <input type="hidden" name="q" value={q} />
                                     <input type="hidden" name="page" value="1" />
                                     <input type="hidden" name="limit" value={String(limit)} />
@@ -360,12 +360,12 @@ function SearchPage() {
                                     >
                                         <option value="nameAsc">Name A–Z</option>
                                         <option value="nameDesc">Name Z–A</option>
-                                        <option value="cwaAsc">CWA Ascending</option>
-                                        <option value="cwaDesc">CWA Descending</option>
-                                        <option value="akcAsc">AKC Ascending</option>
-                                        <option value="akcDesc">AKC Descending</option>
-                                        <option value="yearAsc">Year Ascending</option>
-                                        <option value="yearDesc">Year Descending</option>
+                                        <option value="cwaAsc">CWA # Ascending</option>
+                                        <option value="cwaDesc">CWA # Descending</option>
+                                        <option value="registeredNumberAsc">Registered # Ascending</option>
+                                        <option value="registeredNumberDesc">Registered # Descending</option>
+                                        <option value="yearAsc">Birth Year Ascending</option>
+                                        <option value="yearDesc">Birth Year Descending</option>
                                     </select>
 
                                     <button

@@ -7,6 +7,7 @@ import authContext from '@/lib/auth/auth'
 import SearchBar from '../ui/SearchBar'
 import { Menu, MenuItem } from '@mui/material'
 import MenuIcon from '@mui/icons-material/Menu';
+import { usePathname, useSearchParams } from 'next/navigation'
 import axios from 'axios'
 
 function UserMenu() {
@@ -35,6 +36,9 @@ function UserMenu() {
     )
 }
 
+function getSearchType(pathname: string): "dogs" | "events" {
+    return pathname.startsWith("/search/event") ? "events" : "dogs";
+}
 
 const Navbar = () => {
     const user = useContext(authContext)
@@ -43,6 +47,18 @@ const Navbar = () => {
         user !== undefined &&
         user !== "NotAuthenticated" &&
         user.SystemRole === "ADMIN";
+
+    const pathname = usePathname();
+
+    const [searchMenuAnchor, setSearchMenuAnchor] = useState<HTMLElement | null>(null);
+    const [searchType, setSearchType] = useState<"dogs" | "events">( getSearchType(pathname) );
+    const searchParams = useSearchParams();
+    const currentQuery = searchParams.get("q") ?? "";
+    const currentSort = searchParams.get("sort") ?? "";
+    React.useEffect(() => {
+        setSearchMenuAnchor(null);
+    }, [pathname]);
+
     return (
         <nav className="fixed top-0 w-full flex items-center justify-around py-1 px-12 border-b border-gray-500 bg-black/30 backdrop-blur-md z-50">
             <div style={{ display: "flex", justifyContent: "space-between", width: "100%", verticalAlign: "center", alignItems: "center" }}>
@@ -55,16 +71,40 @@ const Navbar = () => {
                         className="object-contain"
                     />
                 </Link>
-                <div style={{ width: "50%", maxWidth: "750px" }}>
-                    <SearchBar action="/search" query="" sort="" />
+                <div style={{ width: "50%", maxWidth: "750px", display: "flex", alignItems: "center", gap: "12px", }}>               
+                    <button
+                        onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+                            setSearchMenuAnchor(event.currentTarget);
+                        }}
+                        className="rounded-full bg-white/10 border border-white/20 px-4 py-3 text-white font-semibold shadow-sm hover:bg-white/15 transition flex items-center gap-2 whitespace-nowrap"
+                    >
+                        {searchType === "dogs" ? "Dogs" : "Events"} <MenuIcon />
+                    </button>
+
+                    <Menu open={Boolean(searchMenuAnchor)} onClose={() => setSearchMenuAnchor(null)} anchorEl={searchMenuAnchor} >
+                        <MenuItem onClick={() => {
+                            setSearchMenuAnchor(null);
+                            setSearchType("dogs");
+                        }}>
+                            Dogs
+                        </MenuItem>
+
+                        <MenuItem onClick={() => {
+                            setSearchMenuAnchor(null);
+                            setSearchType("events");
+                        }}>
+                            Events
+                        </MenuItem>
+                    </Menu>
+                    {/* update this if event search route changes */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                        <SearchBar action={searchType === "dogs" ? "/" : "/search/event"} query={currentQuery} sort={currentSort} />
+                    </div>
                 </div>
-                {/* If admin, show a button that directs a user to the dashboard */}
+                {/* if admin, show a button that directs a user to the dashboard */}
                 <div className="flex items-center gap-3">
                     {isAdmin && (
-                        <Link
-                            href="/admin"
-                            className="rounded-full border border-white/20 bg-white/10 px-6 py-3 font-semibold text-white shadow-sm transition hover:bg-white/15 hover:shadow-md"
-                        >
+                        <Link href="/admin" className="rounded-full border border-white/20 bg-white/10 px-6 py-3 font-semibold text-white shadow-sm transition hover:bg-white/15 hover:shadow-md" >
                             Dashboard
                         </Link>
                     )}
@@ -72,10 +112,6 @@ const Navbar = () => {
                 </div>
             </div>
         </nav>
-
-
-
-
     )
 }
 

@@ -16,8 +16,14 @@ type SearchBarProps =
 
 export default function SearchBar({ action, query, sort, placeholder }: SearchBarProps)
 {
+    const [value, setValue] = React.useState(query);
+
+    React.useEffect(() => {
+        setValue(query);
+    }, [query]);
+
     return (
-        <form method="GET" action={action} className = "flex flex-col md:flex-row gap-3">
+        <form method="GET" action={action} className = "flex flex-row items-center gap-3 w-full">
             {/* 
                 For simplicity, this search bar is implemented as a form 
                 that submits a GET request to the specified action URL.
@@ -27,14 +33,15 @@ export default function SearchBar({ action, query, sort, placeholder }: SearchBa
             */}    
             <input
                 name="q"
-                defaultValue={query}
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
                 placeholder={placeholder}
                 className="w-full rounded-full border border-white/25 bg-white/95 px-6 py-3 text-[#12301D] text-base outline-none shadow-sm focus:ring-4 focus:ring-[#2E6B3F]/35 focus:border-[#2E6B3F]/60"
             />
             {/* Invisible input to include the current sort option in the form submission.*/}
             <input type="hidden" name="sort" value={sort} />
 
-            <button className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] hover:shadow-md transition">
+            <button type="submit" className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] hover:shadow-md transition">
                 Search
             </button>
         </form>
