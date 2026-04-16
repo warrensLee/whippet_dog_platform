@@ -12,15 +12,16 @@ export function renderElement(props: RenderElementProps) {
         return <p {...props.attributes} className={"text-2xl " + justify}>{props.children}</p>
     } else if (props.element.type == "heading-two") {
         return <p {...props.attributes} className={"text-xl " + justify}>{props.children}</p>
-    } else if (props.element.type == "heading-threes") {
+    } else if (props.element.type == "heading-three") {
         return <p {...props.attributes} className={"text-l " + justify}>{props.children}</p>
     } else if (props.element.type == "list-item") {
-        return <li {...props.attributes} className={justify}><p className="m-0 inline">{props.children}</p></li >
+        return <li {...props.attributes} className={justify}>{props.children}</li >
     }
     return <p {...props.attributes} className={justify}>{props.children}</p>;
 }
 
 export function renderLeaf({ attributes, children, leaf }: RenderLeafProps) {
+    const style: React.CSSProperties = {}
     if (leaf.bold) {
         children = <strong>{children}</strong>
     }
@@ -33,5 +34,11 @@ export function renderLeaf({ attributes, children, leaf }: RenderLeafProps) {
     if (leaf.strikethrough) {
         children = <s>{children}</s>
     }
-    return <span {...attributes}>{children}</span>
+    if (leaf.foregroundColor) {
+        style.color = leaf.foregroundColor
+    }
+    if (leaf.backgroundColor) {
+        style.backgroundColor = leaf.backgroundColor
+    }
+    return <span {...attributes} style={style}>{children}</span>
 }

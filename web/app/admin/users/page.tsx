@@ -5,15 +5,13 @@ import axios, { AxiosError } from 'axios';
 import AuthGuard from '@/lib/auth/authGuard';
 import HeroSection from '@/app/components/ui/HeroSection';
 
-import 
-{
+import {
   deleteUserRequest,
   saveUserEditRequest,
   toggleUserLockRequest,
 } from '@/lib/user/adminUserActions';
 
-import 
-{
+import {
   Alert,
   Box,
   Button,
@@ -56,8 +54,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 import { AddForm, EditForm, Person, UserRole, emptyAddForm, emptyForm } from './types';
 
-export default function AdminUsersPage() 
-{
+export default function AdminUsersPage() {
   const [users, setUsers] = useState<Person[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string>('');
   const [currentUserPersonId, setCurrentUserPersonId] = useState<string>('');
@@ -84,55 +81,46 @@ export default function AdminUsersPage()
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<Person | null>(null);
 
-  const fetchUsers = async () => 
-  {
+  const fetchUsers = async () => {
     const res = await axios.get('/api/person/search');
     setUsers(res.data.ok ? res.data.data : []);
   };
 
-  const fetchRoles = async () => 
-  {
+  const fetchRoles = async () => {
     const res = await axios.get('/api/user_role/get');
     setRoles(res.data.ok ? res.data.data : []);
   };
 
-  const openAddMenu = (event: React.MouseEvent<HTMLElement>) => 
-  {
+  const openAddMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAddMenuAnchor(event.currentTarget);
   };
 
-  const closeAddMenu = () => 
-  {
+  const closeAddMenu = () => {
     setAddMenuAnchor(null);
   };
 
-  const openInvite = () => 
-  {
+  const openInvite = () => {
     closeAddMenu();
     setInviteOpen(true);
   };
 
-  const closeInvite = () => 
-  {
+  const closeInvite = () => {
     if (saving)
       return;
     setInviteOpen(false);
   };
 
-  const openDummy = () => 
-  {
+  const openDummy = () => {
     closeAddMenu();
     setDummyOpen(true);
   };
 
-  const closeDummy = () => 
-  {
+  const closeDummy = () => {
     if (saving) return;
     setDummyOpen(false);
   };
 
-  const isCurrentUser = (user: Person) =>
-  {
+  const isCurrentUser = (user: Person) => {
     const sameId =
       user.id != null &&
       currentUserId !== '' &&
@@ -146,9 +134,8 @@ export default function AdminUsersPage()
     return sameId || samePersonId;
   };
 
-  const getLockDisabledReason = (user: Person) => 
-  {
-    if (saving) 
+  const getLockDisabledReason = (user: Person) => {
+    if (saving)
       return 'Please wait while another action finishes.';
 
     if (isCurrentUser(user))
@@ -160,9 +147,8 @@ export default function AdminUsersPage()
     return '';
   };
 
-  const getDeleteDisabledReason = (user: Person) => 
-  {
-    if (saving) 
+  const getDeleteDisabledReason = (user: Person) => {
+    if (saving)
       return 'Please wait while another action finishes.';
 
     if (isCurrentUser(user))
@@ -174,53 +160,41 @@ export default function AdminUsersPage()
     return '';
   };
 
-  const loadPage = async () => 
-  {
-    try 
-    {
+  const loadPage = async () => {
+    try {
       setLoading(true);
       setError('');
       await Promise.all([fetchUsers(), fetchRoles()]);
     }
-    catch (err: unknown) 
-    {
-      if (err instanceof AxiosError && err.response) 
-      {
+    catch (err: unknown) {
+      if (err instanceof AxiosError && err.response) {
         setError(err.response.data.error || 'Failed to load users');
       }
-      else if (err instanceof Error) 
-      {
+      else if (err instanceof Error) {
         setError(err.message || "Failed to load users!")
       }
-      else 
-      {
+      else {
         setError("Failed to load users!")
       }
     }
-    finally 
-    {
+    finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => 
-  {
+  useEffect(() => {
     loadPage();
 
-    const fetchCurrentUser = async () => 
-    {
-      try 
-      {
+    const fetchCurrentUser = async () => {
+      try {
         const res = await axios.get('/api/person/mine');
 
-        if (res.data?.ok) 
-        {
+        if (res.data?.ok) {
           setCurrentUserId(String(res.data.data?.id ?? ''));
           setCurrentUserPersonId(String(res.data.data?.personId ?? ''));
         }
-      } 
-      catch (err) 
-      {
+      }
+      catch (err) {
         console.error('Failed to fetch current user', err);
       }
     };
@@ -228,12 +202,10 @@ export default function AdminUsersPage()
     fetchCurrentUser();
   }, []);
 
-  const filteredUsers = useMemo(() => 
-  {
+  const filteredUsers = useMemo(() => {
     const q = search.trim().toLowerCase();
 
-    return users.filter((u) => 
-    {
+    return users.filter((u) => {
       const matchesSearch =
         !q ||
         [
@@ -269,8 +241,7 @@ export default function AdminUsersPage()
     });
   }, [users, search, roleFilter, statusFilter]);
 
-  const openEdit = (user: Person) => 
-  {
+  const openEdit = (user: Person) => {
     setForm({
       id: user.id,
       personId: user.personId || '',
@@ -288,6 +259,7 @@ export default function AdminUsersPage()
       systemRole: user.systemRole || '',
       locked: !!user.locked,
       notes: user.notes || '',
+      publicNotes: user.publicNotes || ''
     });
     setError('');
     setSuccess('');
@@ -299,34 +271,29 @@ export default function AdminUsersPage()
     [users]
   );
 
-  const closeEdit = () => 
-  {
+  const closeEdit = () => {
     if (saving) return;
     setOpen(false);
     setForm(emptyForm);
   };
 
-  const openAdd = () => 
-  {
+  const openAdd = () => {
     closeAddMenu();
     setAddForm(emptyAddForm);
     setAddError('');
     setAddOpen(true);
   };
 
-  const closeAdd = () => 
-  {
+  const closeAdd = () => {
     if (saving) return;
     setAddOpen(false);
     setAddForm(emptyAddForm);
   };
 
-  const openDelete = (user: Person) => 
-  {
+  const openDelete = (user: Person) => {
     const reason = getDeleteDisabledReason(user);
 
-    if (reason)
-    {
+    if (reason) {
       setError(reason);
       return;
     }
@@ -337,35 +304,29 @@ export default function AdminUsersPage()
     setDeleteOpen(true);
   };
 
-  const closeDelete = () => 
-  {
+  const closeDelete = () => {
     if (saving) return;
     setDeleteOpen(false);
     setUserToDelete(null);
   };
 
-  const updateForm = <K extends keyof EditForm>(key: K, value: EditForm[K]) => 
-  {
+  const updateForm = <K extends keyof EditForm>(key: K, value: EditForm[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  const updateAddForm = (key: keyof AddForm, value: string) => 
-  {
+  const updateAddForm = (key: keyof AddForm, value: string) => {
     setAddForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleSave = async () => 
-  {
-    try 
-    {
+  const handleSave = async () => {
+    try {
       setSaving(true);
       setError('');
       setSuccess('');
 
       const res = await saveUserEditRequest(form);
 
-      if (!res.data.ok) 
-      {
+      if (!res.data.ok) {
         setError(res.data.error || 'Failed to update user');
         return;
       }
@@ -375,42 +336,34 @@ export default function AdminUsersPage()
       setSuccess('User updated successfully');
       setOpen(false);
     }
-    catch (err: unknown) 
-    {
-      if (err instanceof AxiosError && err.response) 
-      {
+    catch (err: unknown) {
+      if (err instanceof AxiosError && err.response) {
         setError(err.response.data.error || 'Failed to update user!');
       }
-      else if (err instanceof Error)              
-      {
+      else if (err instanceof Error) {
         setError(err.message || "Failed to update user!")
       }
-      else 
-      {
+      else {
         setError("Failed to update user!")
       }
     }
-    finally 
-    {
+    finally {
       setSaving(false);
     }
   };
 
-  const handleDeleteUser = async () => 
-  {
+  const handleDeleteUser = async () => {
     if (!userToDelete)
       return;
 
-    try 
-    {
+    try {
       setSaving(true);
       setError('');
       setSuccess('');
 
       const res = await deleteUserRequest(userToDelete);
 
-      if (!res.data.ok) 
-      {
+      if (!res.data.ok) {
         setError(res.data.error || 'Failed to delete user');
         return;
       }
@@ -419,32 +372,26 @@ export default function AdminUsersPage()
       setSuccess('User deleted successfully');
       closeDelete();
     }
-    catch (err: unknown) 
-    {
-      if (err instanceof AxiosError && err.response) 
-      {
+    catch (err: unknown) {
+      if (err instanceof AxiosError && err.response) {
         setError(err.response.data.error || 'Failed to delete user');
       }
       else if (err instanceof Error) {
         setError(err.message || 'Failed to delete user');
       }
-      else 
-      {
+      else {
         setError('Failed to delete user');
       }
     }
-    finally 
-    {
+    finally {
       setSaving(false);
     }
   };
 
-  const handleToggleLock = async (user: Person) => 
-  {
+  const handleToggleLock = async (user: Person) => {
     const reason = getLockDisabledReason(user);
 
-    if (reason)
-    {
+    if (reason) {
       setError(reason);
       return;
     }
@@ -459,16 +406,14 @@ export default function AdminUsersPage()
     if (!confirmed)
       return;
 
-    try 
-    {
+    try {
       setSaving(true);
       setError('');
       setSuccess('');
 
       const res = await toggleUserLockRequest(user, nextLocked);
 
-      if (!res.data.ok) 
-      {
+      if (!res.data.ok) {
         setError(res.data.error || `Failed to ${actionLabel} user`);
         return;
       }
@@ -476,25 +421,21 @@ export default function AdminUsersPage()
       await fetchUsers();
       setSuccess(`User ${nextLocked ? "locked" : "unlocked"} successfully`);
     }
-    catch (err: unknown) 
-    {
-      if (err instanceof AxiosError && err.response) 
+    catch (err: unknown) {
+      if (err instanceof AxiosError && err.response)
         setError(err.response.data.error || `Failed to ${actionLabel} user`);
-      else if (err instanceof Error) 
+      else if (err instanceof Error)
         setError(err.message || `Failed to ${actionLabel} user`);
-      else 
+      else
         setError(`Failed to ${actionLabel} user`);
     }
-    finally 
-    {
+    finally {
       setSaving(false);
     }
   };
 
-  const handleAddUser = async () => 
-  {
-    try 
-    {
+  const handleAddUser = async () => {
+    try {
       setSaving(true);
       setAddError('');
 
@@ -514,10 +455,10 @@ export default function AdminUsersPage()
           systemRole: addForm.systemRole,
           locked: false,
           notes: addForm.notes,
+          publicNotes: addForm.publicNotes
         });
 
-      if (!res.data.ok) 
-      {
+      if (!res.data.ok) {
         setAddError(res.data.error || 'Failed to create user');
         return;
       }
@@ -525,24 +466,19 @@ export default function AdminUsersPage()
       await fetchUsers();
       setSuccess('User created successfully');
       setAddOpen(false);
-    } 
-    catch (err: unknown) 
-    {
-      if (err instanceof AxiosError && err.response) 
-      {
+    }
+    catch (err: unknown) {
+      if (err instanceof AxiosError && err.response) {
         setError(err.response.data.error || 'Failed to add user!');
       }
-      else if (err instanceof Error) 
-      {
+      else if (err instanceof Error) {
         setError(err.message || "Failed to add user!")
       }
-      else 
-      {
+      else {
         setError("Failed to add user!")
       }
     }
-    finally 
-    {
+    finally {
       setSaving(false);
     }
   };
@@ -693,8 +629,7 @@ export default function AdminUsersPage()
 
               <Button
                 variant="outlined"
-                onClick={() => 
-                {
+                onClick={() => {
                   setSearch('');
                   setRoleFilter('all');
                   setStatusFilter('all');
@@ -725,86 +660,86 @@ export default function AdminUsersPage()
 
                 <TableBody>
                   {filteredUsers.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={17} align="center">
-                      No users found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredUsers.map((user) => {
-                    const lockDisabledReason = getLockDisabledReason(user);
-                    const deleteDisabledReason = getDeleteDisabledReason(user);
+                    <TableRow>
+                      <TableCell colSpan={17} align="center">
+                        No users found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredUsers.map((user) => {
+                      const lockDisabledReason = getLockDisabledReason(user);
+                      const deleteDisabledReason = getDeleteDisabledReason(user);
 
-                    return (
-                      <TableRow key={user.id} hover>
-                        <TableCell>{user.personId || '-'}</TableCell>
-                        <TableCell>{user.firstName || '-'}</TableCell>
-                        <TableCell>{user.lastName || '-'}</TableCell>
-                        <TableCell>{user.email || '-'}</TableCell>
-                        <TableCell>{user.primaryPhone || '-'}</TableCell>
-                        <TableCell>
-                          <Chip label={user.systemRole || 'None'} size="small" />
-                        </TableCell>
-                        <TableCell>
-                          <Chip
-                            label={user.locked ? 'Locked' : 'Active'}
-                            color={user.locked ? 'error' : 'success'}
-                            size="small"
-                          />
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            maxWidth: 220,
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                          }}
-                          title={user.notes || ''}
-                        >
-                          {user.notes || '-'}
-                        </TableCell>
-                        <TableCell>{user.lastEditedBy || '-'}</TableCell>
-                        <TableCell>{user.lastEditedAt || '-'}</TableCell>
-                        <TableCell>
-                          <Stack direction="row" spacing={1}>
-                            <IconButton
-                              onClick={() => openEdit(user)}
-                              color="primary"
-                              disabled={saving}
-                            >
-                              <EditIcon />
-                            </IconButton>
+                      return (
+                        <TableRow key={user.id} hover>
+                          <TableCell>{user.personId || '-'}</TableCell>
+                          <TableCell>{user.firstName || '-'}</TableCell>
+                          <TableCell>{user.lastName || '-'}</TableCell>
+                          <TableCell>{user.email || '-'}</TableCell>
+                          <TableCell>{user.primaryPhone || '-'}</TableCell>
+                          <TableCell>
+                            <Chip label={user.systemRole || 'None'} size="small" />
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              label={user.locked ? 'Locked' : 'Active'}
+                              color={user.locked ? 'error' : 'success'}
+                              size="small"
+                            />
+                          </TableCell>
+                          <TableCell
+                            sx={{
+                              maxWidth: 220,
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }}
+                            title={user.notes || ''}
+                          >
+                            {user.notes || '-'}
+                          </TableCell>
+                          <TableCell>{user.lastEditedBy || '-'}</TableCell>
+                          <TableCell>{user.lastEditedAt || '-'}</TableCell>
+                          <TableCell>
+                            <Stack direction="row" spacing={1}>
+                              <IconButton
+                                onClick={() => openEdit(user)}
+                                color="primary"
+                                disabled={saving}
+                              >
+                                <EditIcon />
+                              </IconButton>
 
-                            <Tooltip title={deleteDisabledReason}>
-                              <span>
-                                <IconButton
-                                  onClick={() => openDelete(user)}
-                                  color="error"
-                                  disabled={!!deleteDisabledReason}
-                                >
-                                  <DeleteIcon />
-                                </IconButton>
-                              </span>
-                            </Tooltip>
+                              <Tooltip title={deleteDisabledReason}>
+                                <span>
+                                  <IconButton
+                                    onClick={() => openDelete(user)}
+                                    color="error"
+                                    disabled={!!deleteDisabledReason}
+                                  >
+                                    <DeleteIcon />
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
 
-                            <Tooltip title={lockDisabledReason}>
-                              <span>
-                                <Button
-                                  variant="contained"
-                                  color={user.locked ? "success" : "warning"}
-                                  disabled={!!lockDisabledReason}
-                                  onClick={() => handleToggleLock(user)}
-                                >
-                                  {user.locked ? "Unlock" : "Lock"}
-                                </Button>
-                              </span>
-                            </Tooltip>
-                          </Stack>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                )}
+                              <Tooltip title={lockDisabledReason}>
+                                <span>
+                                  <Button
+                                    variant="contained"
+                                    color={user.locked ? "success" : "warning"}
+                                    disabled={!!lockDisabledReason}
+                                    onClick={() => handleToggleLock(user)}
+                                  >
+                                    {user.locked ? "Unlock" : "Lock"}
+                                  </Button>
+                                </span>
+                              </Tooltip>
+                            </Stack>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
                 </TableBody>
               </Table>
             </TableContainer>

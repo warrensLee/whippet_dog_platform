@@ -16,6 +16,7 @@ import {
   Typography,
 } from '@mui/material';
 import { EditForm, UserRole } from '../../admin/users/types';
+import RichTextEditor from '@/lib/richtext/RichTextEditor';
 
 type Props = {
   open: boolean;
@@ -160,6 +161,8 @@ export default function EditUserDialog({
             multiline
             rows={4}
           />
+          <Typography>Public Notes</Typography>
+          <RichTextEditor style={{}} value={form.publicNotes} onChange={(e) => updateForm("publicNotes", e)} />
         </Stack>
       </DialogContent>
       <DialogActions>

@@ -5,6 +5,9 @@ export type CustomText = {
     italic?: boolean
     underline?: boolean
     strikethrough?: boolean
+    foregroundColor?: string
+    backgroundColor?: string
+    text: string
 }
 
 export type ListItemElement = { type: 'list-item'; children: Descendant[], align?: string }
@@ -35,7 +38,7 @@ export type HeadingTwoElement = {
 }
 
 export type HeadingThreeElement = {
-    type: 'heading-threes'
+    type: 'heading-three'
     align?: string
     children: Descendant[]
 }

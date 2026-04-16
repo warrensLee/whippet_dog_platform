@@ -76,6 +76,7 @@ CREATE TABLE `Person` (
     `SystemRole` VARCHAR(20) NOT NULL,
     `PasswordHash` VARCHAR(255),
     `Notes` TEXT,
+    `PublicNotes` TEXT,
     `Locked` TINYINT(1) NOT NULL DEFAULT 0,
     `LastEditedBy` INT,
     `LastEditedAt` TIMESTAMP

@@ -1,9 +1,9 @@
 "use client"
-import React, { useMemo, useCallback, ReactNode, useEffect } from "react";
+import React, { useMemo, useCallback, ReactNode } from "react";
 import { createEditor, Editor, Node, Transforms, Element as SlateElement } from "slate";
 import { Slate, Editable, withReact, RenderElementProps, RenderLeafProps, useSlate } from "slate-react";
 import { CustomElement, CustomElementType, CustomText } from "./types";
-import { FormatAlignCenter, FormatAlignLeft, FormatAlignRight, FormatBold, FormatItalic, FormatListBulleted, FormatListNumbered, FormatStrikethrough, FormatUnderlined, Title } from "@mui/icons-material";
+import { FormatAlignCenter, FormatAlignLeft, FormatAlignRight, FormatBold, FormatColorFill, FormatColorText, FormatItalic, FormatListBulleted, FormatListNumbered, FormatStrikethrough, FormatUnderlined, Title } from "@mui/icons-material";
 import { Tooltip } from "@mui/material";
 import { renderElement, renderLeaf } from "./rendering";
 
@@ -16,7 +16,6 @@ type Props = {
 const LIST_TYPES = ['numbered-list', 'bulleted-list'] as const
 const TEXT_ALIGN_TYPES = ['left', 'center', 'right', 'justify'] as const
 
-const DEFAULT_TEXT = JSON.parse('[{ "type": "paragraph", "children": [{ "text": "" }] }]')
 type AlignType = (typeof TEXT_ALIGN_TYPES)[number]
 type ListType = (typeof LIST_TYPES)[number]
 
@@ -24,15 +23,21 @@ export default function RichTextEditor({ value, onChange, style = {} }: Props) {
     const editor = useMemo(() => withReact(createEditor()), []);
     const renderElementCallback = useCallback((props: RenderElementProps) => renderElement(props), []);
     const renderLeafCallback = useCallback((props: RenderLeafProps) => renderLeaf(props), []);
-    let parsedValue = DEFAULT_TEXT
-    try {
-        parsedValue = JSON.parse(value)
-    } catch { } //this catch is ignored because if the value is not parsed we default to DEFAULT_TEXT
+    const initialValue = useMemo(() => {
+        if (!value) return [{ "type": "paragraph", "children": [{ "text": "" }] }];
+
+        try {
+            const parsed = JSON.parse(value);
+            return Array.isArray(parsed) ? parsed : [{ "type": "paragraph", "children": [{ "text": "" }] }];
+        } catch {
+            return [{ "type": "paragraph", "children": [{ "text": "" }] }];
+        }
+    }, []);
 
     return (
         <div className="bg-white rounded-2xl border border-black/10" style={{ ...style, minHeight: "200px", display: "flex", flexDirection: "column" }}>
-            <Slate key={value} editor={editor} initialValue={parsedValue} onChange={(e) => onChange(JSON.stringify(e))}>
-                <div className="bg-gray-200 rounded-t-2xl">
+            <Slate key={"slate"} editor={editor} initialValue={initialValue} onChange={(e) => onChange(JSON.stringify(e))}>
+                <div className="bg-gray-200 rounded-t-2xl flex">
                     <Tooltip title="Bold">
                         <span><ElementSelector mark="bold"><FormatBold /></ElementSelector></span>
                     </Tooltip>
@@ -72,11 +77,14 @@ export default function RichTextEditor({ value, onChange, style = {} }: Props) {
                     <Tooltip title="Align Right">
                         <span><BlockButton format="right" blockType="align"><FormatAlignRight /></BlockButton></span>
                     </Tooltip>
+
+                    <span><ColorPicker type="foreground" /></span>
+                    <span><ColorPicker type="background" /></span>
                 </div>
                 <Editable style={{ flexGrow: "1" }} className="rounded-b-2xl"
                     renderElement={renderElementCallback}
                     renderLeaf={renderLeafCallback}
-                    placeholder="Enter some text..."
+                //placeholder="Enter some text..."
                 />
             </Slate>
         </div>
@@ -85,7 +93,7 @@ export default function RichTextEditor({ value, onChange, style = {} }: Props) {
 
 const SELECTOR_CLASSNAME = " hover:bg-gray-700 m-2 p-2"
 
-function ElementSelector({ children, mark }: { children: ReactNode, mark: keyof CustomText }) {
+function ElementSelector({ children, mark }: { children: ReactNode, mark: keyof Omit<CustomText, "text"> }) {
     const editor = useSlate();
 
     const isActive = () => {
@@ -100,7 +108,7 @@ function ElementSelector({ children, mark }: { children: ReactNode, mark: keyof 
     };
 
     return (
-        <button
+        <button type="button"
             className={(isActive() ? "bg-gray-500" : "bg-gray-100") + " " + SELECTOR_CLASSNAME}
             onMouseDown={(e) => {
                 e.preventDefault();
@@ -175,10 +183,10 @@ function BlockButton({ format, blockType = 'type', children }: { format: CustomE
     }
 
     return (
-        <button
+        <button type="button"
             className={(isBlockActive() ? "bg-gray-500" : "bg-gray-100") + " " + SELECTOR_CLASSNAME}
 
-            onMouseDown={(event) => {
+            onClick={(event) => {
                 event.preventDefault()
                 toggleBlock()
             }
@@ -187,4 +195,66 @@ function BlockButton({ format, blockType = 'type', children }: { format: CustomE
             {children}
         </button>
     )
+}
+
+function ColorPicker({ type }: { type: "foreground" | "background" }) {
+    const editor = useSlate();
+    const [isOpen, setIsOpen] = React.useState(false);
+
+    const colors = [
+        "#FF0000", "#FF7F00", "#FFFF00", "#00FF00", "#0000FF", "#4B0082", "#9400D3",
+        "#000000", "#FFFFFF"
+    ];
+
+    const getColor = () => {
+        const mark = type === "foreground" ? "foregroundColor" : "backgroundColor";
+        const marks = editor.getMarks();
+        return marks?.[mark] as string || (type === "foreground" ? "#FFFFFF" : "#000000");
+    };
+
+    const handleColorChange = (color: string) => {
+        const mark = type === "foreground" ? "foregroundColor" : "backgroundColor";
+        editor.addMark(mark, color);
+        setIsOpen(false);
+    };
+
+    const currentColor = getColor();
+
+    return (
+        <div>
+            <button type="button"
+                className={"bg-gray-100 hover:bg-gray-700 flex" + SELECTOR_CLASSNAME}
+                onClick={(e) => {
+                    e.preventDefault();
+                    setIsOpen(!isOpen);
+                }}
+            >
+                <div
+                    className={`w-6 h-6 rounded border`} style={{ backgroundColor: currentColor }}>
+                </div>
+                {type === "foreground" ? <FormatColorText /> : <FormatColorFill />}
+            </button>
+
+            {
+                isOpen && (
+                    <div className="absolute bg-white border border-gray-300 rounded shadow-lg p-2 z-50 ml-2 mr-2">
+                        <div className="grid grid-rows-3">
+                            {colors.map((color) => (
+                                <button type="button"
+                                    key={color}
+                                    onClick={(event) => {
+                                        event.preventDefault()
+                                        handleColorChange(color)
+                                    }}
+                                    className={`w-6 h-6 rounded border ${currentColor === color ? 'border-2 border-blue-500' : 'border-gray-300'}`}
+                                    style={{ backgroundColor: color }}
+                                    title={color}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                )
+            }
+        </div >
+    );
 }

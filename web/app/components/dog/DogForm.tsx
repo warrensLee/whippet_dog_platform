@@ -425,14 +425,10 @@ export default function DogForm
 
             {/* Private Notes section */}
             <div className="mt-5">
-                <TextAreaField
-                    label="Private Notes"
-                    field="privateNotes"
-                    value={values.privateNotes}
-                    onChange={onChange}
-                    placeholder="Anything relevant to this dog..."
-                    rows={5}
-                />
+                <label className="mb-2 block text-sm font-medium text-[#12301D]">
+                    Private Notes
+                </label>
+                <RichTextEditor value={values.publicNotes} onChange={(value: string) => onChange("privateNotes", value)} style={{}} />
             </div>
 
             {/* Show either error or success message if present */}

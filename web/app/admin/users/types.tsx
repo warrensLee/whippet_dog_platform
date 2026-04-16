@@ -34,6 +34,7 @@ export type Person = {
   locked: boolean;
   lastEditedBy?: string | null;
   lastEditedAt?: string | null;
+  publicNotes?: string | null
 };
 
 export type EditForm = {
@@ -52,6 +53,7 @@ export type EditForm = {
   secondaryPhone: string;
   systemRole: string;
   notes: string;
+  publicNotes: string
   locked: boolean;
 };
 
@@ -69,6 +71,7 @@ export type AddForm = {
   secondaryPhone: string;
   systemRole: string;
   notes: string;
+  publicNotes: string
 };
 
 export const emptyForm: EditForm = {
@@ -87,6 +90,7 @@ export const emptyForm: EditForm = {
   secondaryPhone: '',
   systemRole: '',
   notes: '',
+  publicNotes: '',
   locked: false,
 };
 
@@ -104,4 +108,5 @@ export const emptyAddForm: AddForm = {
   secondaryPhone: '',
   systemRole: '',
   notes: '',
+  publicNotes: ''
 };

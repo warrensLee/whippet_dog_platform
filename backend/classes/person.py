@@ -10,7 +10,7 @@ from mysql.connector import Error
 class Person:
     def __init__(self, id, person_id, first_name, last_name, email_address, address_line_one,
                  address_line_two, city, state_province, zip_code, country,
-                 primary_phone, secondary_phone, system_role, password_hash, notes, locked,
+                 primary_phone, secondary_phone, system_role, password_hash, notes, public_notes, locked,
                  last_edited_by=None, last_edited_at=None):
         self.id = id
         self.person_id = person_id
@@ -23,6 +23,7 @@ class Person:
         self.state_province = state_province
         self.zip_code = zip_code
         self.country = country
+        self.public_notes = public_notes
         self.primary_phone = primary_phone
         self.secondary_phone = secondary_phone
         self.system_role = system_role
@@ -52,6 +53,7 @@ class Person:
             system_role=data.get("systemRole", "Public"),
             password_hash=None,
             notes=(data.get("notes") or "").strip() or None,
+            public_notes=(data.get("publicNotes") or "").strip() or None,
             locked=bool(data.get("locked", False)),
             last_edited_by=data.get("lastEditedBy"),
             last_edited_at=data.get("lastEditedAt")
@@ -79,6 +81,7 @@ class Person:
             system_role=row.get("SystemRole"),
             password_hash=row.get("PasswordHash"),
             notes=row.get("Notes"),
+            public_notes=row.get("PublicNotes"),
             locked=bool(row.get("Locked", 0)),
             last_edited_by=row.get("LastEditedBy"),
             last_edited_at=row.get("LastEditedAt")
@@ -91,7 +94,7 @@ class Person:
             """
             SELECT ID, PersonID, FirstName, LastName, EmailAddress, SystemRole, PasswordHash,
                     AddressLineOne, AddressLineTwo, City, StateProvince, ZipCode, Country,
-                   PrimaryPhone, SecondaryPhone, Notes, Locked, LastEditedBy, LastEditedAt
+                   PrimaryPhone, SecondaryPhone, Notes, PublicNotes, Locked, LastEditedBy, LastEditedAt
             FROM Person
             WHERE PersonID = %s
             LIMIT 1
@@ -107,7 +110,7 @@ class Person:
             """
             SELECT ID, PersonID, FirstName, LastName, EmailAddress, SystemRole, PasswordHash,
                     AddressLineOne, AddressLineTwo, City, StateProvince, ZipCode, Country,
-                   PrimaryPhone, SecondaryPhone, Notes, Locked, LastEditedBy, LastEditedAt
+                   PrimaryPhone, SecondaryPhone, Notes, PublicNotes, Locked, LastEditedBy, LastEditedAt
             FROM Person
             WHERE ID = %s
             LIMIT 1
@@ -124,7 +127,7 @@ class Person:
             """
             SELECT ID, PersonID, FirstName, LastName, EmailAddress, SystemRole, PasswordHash,
                     AddressLineOne, AddressLineTwo, City, StateProvince, ZipCode, Country,
-                   PrimaryPhone, SecondaryPhone, Notes, Locked, LastEditedBy, LastEditedAt
+                   PrimaryPhone, SecondaryPhone, Notes, PublicNotes, Locked, LastEditedBy, LastEditedAt
             FROM Person
             WHERE EmailAddress= %s
             LIMIT 1
@@ -175,16 +178,16 @@ class Person:
                     PersonID, FirstName, LastName, EmailAddress,
                     AddressLineOne, AddressLineTwo, City, StateProvince,
                     ZipCode, Country, PrimaryPhone, SecondaryPhone,
-                    SystemRole, PasswordHash, Notes, Locked,
+                    SystemRole, PasswordHash, Notes, PublicNotes Locked,
                     LastEditedBy, LastEditedAt
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
                     self.person_id, self.first_name, self.last_name, self.email,
                     self.address_line_one, self.address_line_two, self.city, self.state_province,
                     self.zip_code, self.country, self.primary_phone, self.secondary_phone,
-                    self.system_role, self.password_hash, self.notes, self.locked,
+                    self.system_role, self.password_hash, self.notes, self.public_notes, self.locked,
                     self.last_edited_by, self.last_edited_at
                 ),
                 return_lastrowid=True,
@@ -214,6 +217,7 @@ class Person:
                     SystemRole = %s,
                     PasswordHash = %s,
                     Notes = %s,
+                    PublicNotes = %s,
                     Locked = %s,
                     LastEditedBy = %s,
                     LastEditedAt = %s
@@ -223,7 +227,7 @@ class Person:
                     self.first_name, self.last_name, self.email,
                     self.address_line_one, self.address_line_two, self.city, self.state_province,
                     self.zip_code, self.country, self.primary_phone, self.secondary_phone,
-                    self.system_role, self.password_hash, self.notes, self.locked,
+                    self.system_role, self.password_hash, self.notes, self.public_notes, self.locked,
                     self.last_edited_by, self.last_edited_at, self.id  
                 ),
             )
@@ -277,6 +281,7 @@ class Person:
                 p.SecondaryPhone, 
                 p.SystemRole, 
                 p.Notes,
+                p.PublicNotes
                 p.Locked,
                 CONCAT(e.FirstName, ' ', e.LastName) AS LastEditedBy,
                 p.LastEditedAt
@@ -316,6 +321,7 @@ class Person:
             "secondaryPhone": self.secondary_phone,
             "systemRole": self.system_role,
             "notes": self.notes,
+            "publicNotes": self.public_notes,
             "locked": self.locked,
             "lastEditedBy": self.last_edited_by,
             "lastEditedAt": self.last_edited_at.isoformat() if self.last_edited_at else None

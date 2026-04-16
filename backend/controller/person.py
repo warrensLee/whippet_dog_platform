@@ -424,6 +424,7 @@ def search_people():
             p.SecondaryPhone,
             p.Locked,
             p.Notes,
+            p.PublicNotes,
             CONCAT(e.FirstName, ' ', e.LastName) AS LastEditedBy,
             p.LastEditedAt
         FROM Person p
@@ -563,3 +564,19 @@ def is_judge(person_id: str):
         return jsonify({"ok": True, "data": {"isJudge": is_jdg}}), 200
     except Error as e:
         return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+
+
+@person_bp.post("/update-profile")
+def update_profile():
+    try:
+        current_id = current_editor_id()
+        if not current_id:
+            return jsonify({"ok": False, "error": "Not signed in"}), 401   
+        person = Person.find_by_id(current_id)
+        person.public_notes = request.data.decode("utf-8")
+        person.save()
+        return jsonify({"ok": True})
+    except Error as e:
+        print(e)
+        return jsonify({"ok": False, "error" : "internal server error"})
+

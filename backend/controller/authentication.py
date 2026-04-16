@@ -221,7 +221,7 @@ def forgot_password():
         }), 400
 
     if not validate_turnstile(token):
-        jsonify({
+        return jsonify({
             "ok": False,
             "message": "Invalid/Expired Security Token. Please Try Again"
         }), 400
