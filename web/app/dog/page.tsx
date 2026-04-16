@@ -123,7 +123,7 @@ function DogPage() {
     user !== "NotAuthenticated" &&
     user !== undefined &&
     user.SystemRole === "ADMIN";
-    
+
   return (
     <main className="min-h-screen bg-[#1F4D2E]">
       <HeroSection
@@ -206,7 +206,7 @@ function DogPage() {
                 <>
                   <PointBar label="Meet Pts" value={dog.meetPoints ?? 0} max={maxPoints} />
                   <PointBar label="ARX Pts" value={dog.arxPoints ?? 0} max={maxPoints} />
-                  <PointBar label="NARX Pts" value={dog.narxPoints ?? 0} max={maxPoints} /> 
+                  <PointBar label="NARX Pts" value={dog.narxPoints ?? 0} max={maxPoints} />
                   <PointBar label="Show Pts" value={dog.showPoints ?? 0} max={maxPoints} />
                   {/* Swap show points with DPC Points and Match Points */}
 
@@ -227,8 +227,8 @@ function DogPage() {
           </div>
 
           {dog && (
-              <Card title="">
-                  <p className="mb-2 text-sm font-semibold text-[#12301D]">Public Notes</p>
+            <Card title="">
+              <p className="mb-2 text-sm font-semibold text-[#12301D]">Public Notes</p>
 
               {publicNotes && !editingPublicNotes && (
                 <RichTextViewer text={publicNotes} />
@@ -238,14 +238,7 @@ function DogPage() {
               {!editingPublicNotes && user != "NotAuthenticated" && user != undefined && owners.filter((o) => o.PersonID == user.ID).length != 0 && (
                 <Button variant="contained" color="success" onClick={() => setEditingPublicNotes(true)}>Edit Public Notes</Button>
               )}
-
-                  {dog.privateNotes && (
-                      <div className="mt-4 border-t pt-3">
-                          <p className="mb-2 text-sm font-semibold text-[#12301D]">Private Notes</p>
-                          <p className="text-sm text-[#12301D]/70">{dog.privateNotes}</p>
-                      </div>
-                  )}
-              </Card>
+            </Card>
           )}
 
           <Card title={`Owner${owners.length !== 1 ? "s" : ""}${owners.length ? ` (${owners.length})` : ""}`}>
