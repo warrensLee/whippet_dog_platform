@@ -776,7 +776,7 @@ class Dog:
             """
             SELECT p.EmailAddress
             FROM DogOwner o
-            JOIN Person p ON p.PersonID = o.PersonID
+            JOIN Person p ON p.ID = o.PersonID
             WHERE o.CWAID = %s
             """,
             (self.cwa_number,)

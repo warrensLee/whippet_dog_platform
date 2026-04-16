@@ -3,6 +3,9 @@ from mysql.connector import Error
 from datetime import datetime, timezone
 from classes.dog_title import DogTitle
 from classes.dog_owner import DogOwner
+from classes.dog import Dog
+from utils.email_service import send_titles_email
+from utils.generate_pdf import generate_title_pdf
 from classes.change_log import ChangeLog
 from classes.user_role import UserRole
 from database import fetch_one
@@ -59,6 +62,11 @@ def add_dog_title():
 
     try:
         dog_title.save()
+        dog = Dog.find_by_identifier(dog_title.cwa_number)
+        if dog:
+            pdf_bytes = generate_title_pdf(dog, dog_title.title)
+            for email in dog.get_owner_emails():
+                send_titles_email(email, pdf_bytes, f"{dog.registered_name}_titles.pdf")
 
         ChangeLog.log(
             changed_table="DogTitle",

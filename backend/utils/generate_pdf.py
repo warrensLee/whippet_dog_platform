@@ -5,17 +5,16 @@ from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, HRFlowable,
-    Table, TableStyle, KeepTogether
+    Table, TableStyle
 )
-from reportlab.lib.enums import TA_CENTER, TA_LEFT
+from reportlab.lib.enums import TA_CENTER
 
 
-# ── Brand palette ──────────────────────────────────────────────────────────────
-NAVY    = colors.HexColor("#1B2A4A")
-GOLD    = colors.HexColor("#C9A84C")
-CREAM   = colors.HexColor("#FAF7F2")
-SILVER  = colors.HexColor("#8A9BB0")
-LIGHT   = colors.HexColor("#EEF1F6")
+NAVY = colors.HexColor("#1B2A4A")
+GOLD = colors.HexColor("#C9A84C")
+CREAM = colors.HexColor("#FAF7F2")
+SILVER = colors.HexColor("#8A9BB0")
+LIGHT = colors.HexColor("#EEF1F6")
 
 
 def _styles():
@@ -61,24 +60,22 @@ def _styles():
             spaceBefore=4,
             spaceAfter=8,
             leading=11,
-            letterSpacing=1.5,       # pseudo tracking via wordSpace workaround
         ),
         "title_item": ParagraphStyle(
             "title_item",
-            fontName="Times-Roman",
-            fontSize=12,
+            fontName="Times-Bold",
+            fontSize=16,
             textColor=NAVY,
-            leftIndent=12,
-            spaceAfter=5,
-            leading=16,
+            alignment=TA_CENTER,
+            leading=20,
+            spaceAfter=0,
         ),
-        "no_titles": ParagraphStyle(
-            "no_titles",
+        "no_title": ParagraphStyle(
+            "no_title",
             fontName="Times-Italic",
             fontSize=11,
             textColor=SILVER,
-            leftIndent=12,
-            spaceAfter=0,
+            alignment=TA_CENTER,
         ),
         "footer": ParagraphStyle(
             "footer",
@@ -98,7 +95,7 @@ def _thin_rule(width=6.5 * inch):
     return HRFlowable(width=width, thickness=0.5, color=LIGHT, spaceAfter=0, spaceBefore=0)
 
 
-def generate_titles_pdf(dog):
+def generate_title_pdf(dog, title):
     buffer = BytesIO()
     doc = SimpleDocTemplate(
         buffer,
@@ -107,75 +104,66 @@ def generate_titles_pdf(dog):
         rightMargin=inch,
         topMargin=0.85 * inch,
         bottomMargin=0.85 * inch,
-        title="Dog Title Report",
+        title="Dog Title Certificate",
     )
+
     s = _styles()
-    titles = dog.compute_titles()
+    title = (title or "").strip()
     story = []
 
-    # ── Header block ────────────────────────────────────────────────────────────
     story.append(_gold_rule())
     story.append(Spacer(1, 10))
-    story.append(Paragraph("Dog Title Report", s["report_title"]))
-    story.append(Paragraph("Official Record of Earned Titles &amp; Achievements", s["report_subtitle"]))
+    story.append(Paragraph("Dog Title Certificate", s["report_title"]))
+    story.append(Paragraph("Official Record of Earned Title", s["report_subtitle"]))
     story.append(Spacer(1, 10))
     story.append(_gold_rule())
-
     story.append(Spacer(1, 22))
 
-    # ── Dog info card ───────────────────────────────────────────────────────────
-    info_data = [
+    info_data = [[
         [
-            [Paragraph("REGISTERED NAME", s["label"]),
-             Paragraph(dog.registered_name, s["value"])],
-            [Paragraph("CWA NUMBER", s["label"]),
-             Paragraph(str(dog.cwa_number), s["value"])],
-        ]
-    ]
+            Paragraph("REGISTERED NAME", s["label"]),
+            Paragraph(dog.registered_name or "", s["value"]),
+        ],
+        [
+            Paragraph("CWA NUMBER", s["label"]),
+            Paragraph(str(dog.cwa_number or ""), s["value"]),
+        ],
+    ]]
     info_table = Table(info_data, colWidths=[3.9 * inch, 2.6 * inch])
     info_table.setStyle(TableStyle([
-        ("BACKGROUND",   (0, 0), (-1, -1), CREAM),
-        ("ROWPADDING",   (0, 0), (-1, -1), 14),
-        ("LINEABOVE",    (0, 0), (-1, 0),  1.5, GOLD),
-        ("LINEBELOW",    (0, -1), (-1, -1), 0.5, LIGHT),
-        ("LINEBEFORE",   (1, 0), (1, -1),  0.5, LIGHT),
-        ("VALIGN",       (0, 0), (-1, -1), "TOP"),
+        ("BACKGROUND", (0, 0), (-1, -1), CREAM),
+        ("ROWPADDING", (0, 0), (-1, -1), 14),
+        ("LINEABOVE", (0, 0), (-1, 0), 1.5, GOLD),
+        ("LINEBELOW", (0, -1), (-1, -1), 0.5, LIGHT),
+        ("LINEBEFORE", (1, 0), (1, -1), 0.5, LIGHT),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
     ]))
     story.append(info_table)
 
     story.append(Spacer(1, 28))
-
-    # ── Titles section ──────────────────────────────────────────────────────────
-    story.append(Paragraph("● EARNED TITLES", s["section_heading"]))
+    story.append(Paragraph("● NEWLY EARNED TITLE", s["section_heading"]))
     story.append(_thin_rule())
-    story.append(Spacer(1, 10))
+    story.append(Spacer(1, 18))
 
-    if titles:
-        title_rows = []
-        for i, title in enumerate(titles):
-            bg = CREAM if i % 2 == 0 else colors.white
-            title_rows.append(
-                [Paragraph(f"  {title}", s["title_item"])]
-            )
-
-        titles_table = Table(title_rows, colWidths=[6.5 * inch])
-        row_styles = [
-            ("VALIGN",      (0, 0), (-1, -1), "MIDDLE"),
-            ("LINEBELOW",   (0, 0), (-1, -2), 0.5, LIGHT),
-            ("LEFTPADDING", (0, 0), (-1, -1), 8),
-            ("TOPPADDING",  (0, 0), (-1, -1), 6),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-        ]
-        for i in range(len(title_rows)):
-            bg = CREAM if i % 2 == 0 else colors.white
-            row_styles.append(("BACKGROUND", (0, i), (-1, i), bg))
-
-        titles_table.setStyle(TableStyle(row_styles))
-        story.append(KeepTogether([titles_table]))
+    if title:
+        title_table = Table(
+            [[Paragraph(title, s["title_item"])]],
+            colWidths=[6.5 * inch]
+        )
+        title_table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, -1), CREAM),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 14),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 14),
+            ("TOPPADDING", (0, 0), (-1, -1), 16),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 16),
+            ("BOX", (0, 0), (-1, -1), 0.75, LIGHT),
+        ]))
+        story.append(title_table)
     else:
-        story.append(Paragraph("No titles earned.", s["no_titles"]))
+        story.append(Paragraph("No title provided.", s["no_title"]))
 
-    # ── Footer ──────────────────────────────────────────────────────────────────
     story.append(Spacer(1, 36))
     story.append(_gold_rule(thickness=0.75))
     story.append(Spacer(1, 6))

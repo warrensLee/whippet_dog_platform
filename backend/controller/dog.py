@@ -188,7 +188,7 @@ def delete_dog():
                 operation="DELETE",
                 changed_by=current_editor_id(),
                 source="api/dog/delete POST",
-                before_obj=race,
+                before_obj=race.to_dict(),
                 after_obj=None,
             )
 
@@ -201,7 +201,7 @@ def delete_dog():
                 operation="DELETE",
                 changed_by=current_editor_id(),
                 source="api/dog/delete POST",
-                before_obj=meet,
+                before_obj=meet.to_dict(),
                 after_obj=None,
             )
 
@@ -230,7 +230,7 @@ def delete_dog():
                 operation="DELETE",
                 changed_by=current_editor_id(),
                 source="api/dog/delete POST",
-                before_obj=title,
+                before_obj=title.to_dict(),
                 after_obj=None,
             )
 
