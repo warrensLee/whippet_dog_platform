@@ -51,6 +51,8 @@ function DogPage() {
   const user = React.useContext(authContext)
 
 
+  const canEditDog = (user != undefined && user != "NotAuthenticated" && (user.hasPermission("editAllDogs") && (user.hasPermission("editOwnDogs") || owners.filter((o) => o.PersonID == user.ID).length != 0)))
+
   React.useEffect(() => {
     if (!cwaNumber) return;
 
@@ -142,7 +144,7 @@ function DogPage() {
               Back to Search
             </Link>
 
-            {isAdmin && dog && (
+            {canEditDog && dog && (
               <Link
                 href={`/admin/dogs/edit?id=${encodeURIComponent(dog.cwaNumber)}`}
                 className="rounded-full border border-white/20 bg-[#2E6B3F] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#245532]"
