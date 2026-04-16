@@ -215,6 +215,25 @@ class RaceResult:
         """
         rows = fetch_all(query, (person_id,))
         return [cls.from_db_row(row) for row in rows]
+    
+    @classmethod
+    def list_race_results_for_dog(cls, cwa_number):
+        query = """
+            SELECT *
+            FROM RaceResults
+            WHERE CWANumber = %s
+        """
+        rows = fetch_all(query, (cwa_number,))
+        return [cls.from_db_row(row) for row in rows]
+
+
+    @classmethod
+    def delete_all_for_dog(cls, cwa_number):
+        query = """
+            DELETE FROM RaceResults
+            WHERE CWANumber = %s
+        """
+        execute(query, (cwa_number,))
 
     def count_num_adult_whippets(self, cwa_numbers):
         """Calculate the number of adult whippets in the race based on CWA numbers."""

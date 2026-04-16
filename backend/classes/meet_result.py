@@ -277,6 +277,25 @@ class MeetResult:
 
         self.meet_points = float(self.meet_points or 0) + float(row.get("total_points") or 0)
         self.update()
+
+    @classmethod
+    def list_meets_with_results_for_dog(cls, cwa_number):
+        query = """
+            SELECT *
+            FROM MeetResults
+            WHERE CWANumber = %s
+        """
+        rows = fetch_all(query, (cwa_number,))
+        return [cls.from_db_row(row) for row in rows]
+
+
+    @classmethod
+    def delete_all_for_dog(cls, cwa_number):
+        query = """
+            DELETE FROM MeetResults
+            WHERE CWANumber = %s
+        """
+        execute(query, (cwa_number,))
         
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""

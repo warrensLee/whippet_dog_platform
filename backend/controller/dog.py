@@ -4,6 +4,8 @@ from datetime import datetime, timezone
 from classes.dog import Dog
 from classes.dog_title import DogTitle
 from classes.dog_owner import DogOwner
+from classes.race_result import RaceResult
+from classes.meet_result import MeetResult
 from classes.change_log import ChangeLog
 from classes.user_role import UserRole
 from utils.auth_helpers import current_editor_id, current_role, require_scope
@@ -176,6 +178,34 @@ def delete_dog():
 
         owners = DogOwner.list_for_dog(dog.cwa_number)
         titles = DogTitle.list_for_dog(dog.cwa_number)
+        meet_results = MeetResult.list_meets_with_results_for_dog(dog.cwa_number)
+        race_results = RaceResult.list_race_results_for_dog(dog.cwa_number)
+
+        for race in race_results:
+            ChangeLog.log(
+                changed_table="RaceResults",
+                record_pk=f"{race.race_number}:{race.cwa_number}",
+                operation="DELETE",
+                changed_by=current_editor_id(),
+                source="api/dog/delete POST",
+                before_obj=race,
+                after_obj=None,
+            )
+
+        RaceResult.delete_all_for_dog(dog.cwa_number)
+
+        for meet in meet_results:
+            ChangeLog.log(
+                changed_table="MeetResults",
+                record_pk=f"{meet.meet_number}:{meet.cwa_number}",
+                operation="DELETE",
+                changed_by=current_editor_id(),
+                source="api/dog/delete POST",
+                before_obj=meet,
+                after_obj=None,
+            )
+
+        MeetResult.delete_all_for_dog(dog.cwa_number)
 
         # Delete owners
         for owner in owners:
@@ -196,7 +226,7 @@ def delete_dog():
         for title in titles:
             ChangeLog.log(
                 changed_table="DogTitles",
-                record_pk=f"{title['CWANumber']}:{title['Title']}",
+                record_pk=f"{title.cwa_number}:{title.title}",                
                 operation="DELETE",
                 changed_by=current_editor_id(),
                 source="api/dog/delete POST",
