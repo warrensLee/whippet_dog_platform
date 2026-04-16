@@ -227,3 +227,30 @@ def get_meet_races(meet_number):
         "ok": True,
         "data": rows
     }), 200
+
+
+@meet_bp.get("/search")
+def search_meets():
+    q = (request.args.get("q") or "").strip()
+
+    try:
+        rows = Meet.search(query=q)
+
+        items = []
+        for r in rows:
+            d = dict(r)
+            items.append({
+                "id": d.get("MeetNumber"),
+                "meetNumber": d.get("MeetNumber"),
+                "clubAbbreviation": d.get("ClubAbbreviation"),
+                "meetDate": d.get("MeetDate"),
+                "raceSecretary": d.get("RaceSecretary"),
+                "judge": d.get("Judge"),
+                "location": d.get("Location"),
+                "yards": d.get("Yards"),
+                "publicNotes": d.get("PublicNotes"),
+            })
+        return jsonify({"ok": True, "total": len(items), "items": items}), 200
+
+    except Error as e:
+        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500

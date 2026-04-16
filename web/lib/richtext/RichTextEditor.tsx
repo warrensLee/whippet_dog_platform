@@ -32,6 +32,7 @@ export default function RichTextEditor({ value, onChange, style = {} }: Props) {
         } catch {
             return [{ "type": "paragraph", "children": [{ "text": "" }] }];
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (

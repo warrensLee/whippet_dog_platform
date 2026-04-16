@@ -242,3 +242,30 @@ class Meet:
             FROM Meet 
         """)
         return stats["COUNT(*)"]
+
+    @staticmethod
+    def search(query):
+        q = (query or "").strip()
+        like = f"%{q}%"
+
+        sql = """
+            SELECT 
+                MeetNumber, ClubAbbreviation, MeetDate, RaceSecretary, Judge,
+                Location, Yards, PublicNotes, PrivateNotes, LastEditedBy, LastEditedAt
+            FROM Meet
+            WHERE 
+                MeetNumber LIKE %s
+                OR ClubAbbreviation LIKE %s
+                OR MeetDate LIKE %s
+                OR RaceSecretary LIKE %s
+                OR Judge LIKE %s
+                OR Location LIKE %s
+                OR Yards LIKE %s
+                OR PublicNotes LIKE %s
+                OR PrivateNotes LIKE %s
+            ORDER BY MeetDate DESC, MeetNumber ASC
+        """
+        params = [like, like, like, like, like, like, like, like, like]
+
+        rows = fetch_all(sql, params)
+        return rows
