@@ -281,7 +281,7 @@ class Person:
                 p.SecondaryPhone, 
                 p.SystemRole, 
                 p.Notes,
-                p.PublicNotes
+                p.PublicNotes,
                 p.Locked,
                 CONCAT(e.FirstName, ' ', e.LastName) AS LastEditedBy,
                 p.LastEditedAt
