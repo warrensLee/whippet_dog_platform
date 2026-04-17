@@ -43,8 +43,8 @@ export default function ChangePassword() {
                     <div style={{ width: "50%", alignSelf: "center" }}>
                         <TextField label="Current Password" type="password" fullWidth margin="normal" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
                         <TextField label="New Password" type="password" fullWidth margin="normal" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
-                        <PasswordRequirements password={newPassword} setRequirementsMet={(req) => setPasswordRequirementsMet(req)} />
-                        <TextField label="Confirm New Password" type="password" fullWidth margin="normal" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} error={confirmPassword != newPassword} helperText={(confirmPassword == newPassword) ? "" : "Passwords do not match"} />
+                        <PasswordRequirements confirmPassword={confirmPassword} password={newPassword} setRequirementsMet={(req) => setPasswordRequirementsMet(req)} />
+                        <TextField label="Confirm New Password" type="password" fullWidth margin="normal" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
                         {message && <Typography fontSize={13} color={messageColor}>{message}</Typography>}
                         <Button variant="contained" fullWidth sx={{ mt: 2 }} disabled={submitting || !newPassword || !passwordRequirementsMet} onClick={handleSubmit}>
                             {submitting ? "Resetting…" : "Reset Password"}

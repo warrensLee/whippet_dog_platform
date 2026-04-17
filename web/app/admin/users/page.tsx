@@ -17,10 +17,6 @@ import {
   Button,
   Chip,
   CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   FormControl,
   IconButton,
   InputLabel,
@@ -38,7 +34,6 @@ import {
   TableRow,
   TextField,
   Tooltip,
-  Typography,
 } from '@mui/material';
 
 import EditIcon from '@mui/icons-material/Edit';
@@ -53,6 +48,7 @@ import DeleteUserDialog from '../../components/user/DeleteUserDialog';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 import { AddForm, EditForm, Person, UserRole, emptyAddForm, emptyForm } from './types';
+import AddUserDialog from './AddUserDialog';
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<Person[]>([]);
@@ -455,6 +451,8 @@ export default function AdminUsersPage() {
           systemRole: addForm.systemRole,
           locked: false,
           notes: addForm.notes,
+          personId: addForm.username,
+          password: addForm.password,
           publicNotes: addForm.publicNotes
         });
 
@@ -756,137 +754,18 @@ export default function AdminUsersPage() {
             updateForm={updateForm}
           />
 
-          <Dialog open={addOpen} onClose={closeAdd} fullWidth maxWidth="md">
-            <DialogTitle>Add New User</DialogTitle>
-            <DialogContent>
-              {addError && (
-                <Alert severity="error" sx={{ mb: 2, mt: 1 }}>
-                  {addError}
-                </Alert>
-              )}
-              <Stack spacing={2} sx={{ mt: 1 }}>
-                <Typography variant="subtitle2">Basic Info</Typography>
-
-                <TextField
-                  label="First Name"
-                  value={addForm.firstName}
-                  onChange={(e) => updateAddForm('firstName', e.target.value)}
-                  fullWidth
-                />
-                <TextField
-                  label="Last Name"
-                  value={addForm.lastName}
-                  onChange={(e) => updateAddForm('lastName', e.target.value)}
-                  fullWidth
-                />
-                <TextField
-                  label="Email"
-                  value={addForm.email}
-                  onChange={(e) => updateAddForm('email', e.target.value)}
-                  fullWidth
-                />
-
-                <Typography variant="subtitle2" sx={{ pt: 1 }}>
-                  Address
-                </Typography>
-
-                <TextField
-                  label="Address Line 1"
-                  value={addForm.addressLineOne}
-                  onChange={(e) => updateAddForm('addressLineOne', e.target.value)}
-                  fullWidth
-                />
-                <TextField
-                  label="Address Line 2"
-                  value={addForm.addressLineTwo}
-                  onChange={(e) => updateAddForm('addressLineTwo', e.target.value)}
-                  fullWidth
-                />
-                <TextField
-                  label="City"
-                  value={addForm.city}
-                  onChange={(e) => updateAddForm('city', e.target.value)}
-                  fullWidth
-                />
-                <TextField
-                  label="State / Province"
-                  value={addForm.stateProvince}
-                  onChange={(e) => updateAddForm('stateProvince', e.target.value)}
-                  fullWidth
-                />
-                <TextField
-                  label="Zip Code"
-                  value={addForm.zipCode}
-                  onChange={(e) => updateAddForm('zipCode', e.target.value)}
-                  fullWidth
-                />
-                <TextField
-                  label="Country"
-                  value={addForm.country}
-                  onChange={(e) => updateAddForm('country', e.target.value)}
-                  fullWidth
-                />
-
-                <Typography variant="subtitle2" sx={{ pt: 1 }}>
-                  Contact
-                </Typography>
-
-                <TextField
-                  label="Primary Phone"
-                  value={addForm.primaryPhone}
-                  onChange={(e) => updateAddForm('primaryPhone', e.target.value)}
-                  fullWidth
-                />
-                <TextField
-                  label="Secondary Phone"
-                  value={addForm.secondaryPhone}
-                  onChange={(e) => updateAddForm('secondaryPhone', e.target.value)}
-                  fullWidth
-                />
-
-                <Typography variant="subtitle2" sx={{ pt: 1 }}>
-                  System
-                </Typography>
-
-                <FormControl fullWidth>
-                  <InputLabel>System Role</InputLabel>
-                  <Select
-                    value={addForm.systemRole}
-                    label="System Role"
-                    onChange={(e) => updateAddForm('systemRole', String(e.target.value))}
-                  >
-                    {roles.map((role) => (
-                      <MenuItem key={role.id} value={role.title}>
-                        {role.title}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-
-                <TextField
-                  label="Notes"
-                  value={addForm.notes}
-                  onChange={(e) => updateAddForm('notes', e.target.value)}
-                  fullWidth
-                  multiline
-                  rows={4}
-                />
-              </Stack>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={closeAdd} disabled={saving}>
-                Cancel
-              </Button>
-              <Button
-                variant="contained"
-                color="success"
-                onClick={handleAddUser}
-                disabled={saving}
-              >
-                {saving ? 'Creating...' : 'Create User'}
-              </Button>
-            </DialogActions>
-          </Dialog>
+          <AddUserDialog
+            open={addOpen}
+            saving={saving}
+            form={addForm}
+            roles={roles}
+            onClose={closeAdd}
+            onSave={() => {
+              handleAddUser();
+            }}
+            updateForm={updateAddForm}
+            error={addError}
+          />
 
           <InviteUserDialog
             open={inviteOpen}

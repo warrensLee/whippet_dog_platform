@@ -178,7 +178,7 @@ class Person:
                     PersonID, FirstName, LastName, EmailAddress,
                     AddressLineOne, AddressLineTwo, City, StateProvince,
                     ZipCode, Country, PrimaryPhone, SecondaryPhone,
-                    SystemRole, PasswordHash, Notes, PublicNotes Locked,
+                    SystemRole, PasswordHash, Notes, PublicNotes, Locked,
                     LastEditedBy, LastEditedAt
                 )
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)

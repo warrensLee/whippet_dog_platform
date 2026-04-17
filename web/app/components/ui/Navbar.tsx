@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useContext, useState } from 'react'
+import React, { useContext, useState, Suspense } from 'react'
 import Link from "next/link";
 import Image from 'next/image'
 import authContext from '@/lib/auth/auth'
@@ -40,7 +40,7 @@ function getSearchType(pathname: string): "dogs" | "events" {
     return pathname.startsWith("/search/event") ? "events" : "dogs";
 }
 
-const Navbar = () => {
+const NavbarContent = () => {
     const user = useContext(authContext)
 
     const isAdmin =
@@ -112,6 +112,14 @@ const Navbar = () => {
                 </div>
             </div>
         </nav>
+    )
+}
+
+const Navbar = () => {
+    return (
+        <Suspense fallback={<div className="fixed top-0 w-full h-14 bg-black/30 backdrop-blur-md z-50" />}>
+            <NavbarContent />
+        </Suspense>
     )
 }
 

@@ -20,10 +20,7 @@ function ResetForm() {
     if (
       submitting ||
       !token ||
-      !password.trim() ||
-      !confirmPassword.trim() ||
-      !passwordRequirementsMet ||
-      password !== confirmPassword
+      !passwordRequirementsMet
     ) {
       return;
     }
@@ -56,9 +53,6 @@ function ResetForm() {
       setSubmitting(false);
     }
   }
-
-  // this will be used to disable the submit button if the passwords don't match
-  const passwordsMatch = password === confirmPassword;
 
   // this will be used to show an error message if the passwords don't match
   const showConfirmError = confirmPassword.length > 0 && confirmPassword !== password;
@@ -109,6 +103,7 @@ function ResetForm() {
             required
           />
           <PasswordRequirements
+            confirmPassword={confirmPassword}
             password={password}
             setRequirementsMet={setPasswordRequirementsMet}
           />
@@ -134,7 +129,7 @@ function ResetForm() {
             variant="contained"
             fullWidth
             sx={{ mt: 2 }}
-            disabled={submitting || !password.trim() || !passwordRequirementsMet || !passwordsMatch || !confirmPassword.trim() || !token}>
+            disabled={submitting || !password.trim() || !passwordRequirementsMet || !token}>
             {submitting ? "Resetting…" : "Reset Password"}
           </Button>
         </Box>

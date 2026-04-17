@@ -58,6 +58,7 @@ export type EditForm = {
 };
 
 export type AddForm = {
+  username: string
   firstName: string;
   lastName: string;
   email: string;
@@ -72,6 +73,7 @@ export type AddForm = {
   systemRole: string;
   notes: string;
   publicNotes: string
+  password: string
 };
 
 export const emptyForm: EditForm = {
@@ -108,5 +110,7 @@ export const emptyAddForm: AddForm = {
   secondaryPhone: '',
   systemRole: '',
   notes: '',
-  publicNotes: ''
+  publicNotes: '',
+  username: '',
+  password: '',
 };

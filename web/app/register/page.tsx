@@ -163,7 +163,7 @@ function RegisterPage() {
             autoComplete="new-password"
             required
           />
-          <PasswordRequirements password={password} setRequirementsMet={(met) => setPasswordRequirementsMet(met)} />
+          <PasswordRequirements confirmPassword={confirmPassword} password={password} setRequirementsMet={(met) => setPasswordRequirementsMet(met)} />
           <TextField
             label="Confirm Password"
             variant="outlined"
@@ -172,8 +172,6 @@ function RegisterPage() {
             margin="normal"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            error={password != confirmPassword}
-            helperText={(password != confirmPassword) ? "Passwords do not match" : ""}
             autoComplete="new-password"
             required
           />
@@ -191,7 +189,7 @@ function RegisterPage() {
             variant="contained"
             color="primary"
             fullWidth
-            disabled={!passwordRequirementsMet || password != confirmPassword}
+            disabled={!passwordRequirementsMet}
             sx={{ mt: 2 }}
           >
             {submitting ? "Registering…" : "Register"}

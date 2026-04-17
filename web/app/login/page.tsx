@@ -34,7 +34,7 @@ export default function LoginPage() {
       const data = (await res.json().catch(() => null));
 
       if (res.ok && data?.ok) {
-        window.location.assign("/admin");
+        window.location.assign("/");
         return;
       } else {
         // if there is no error message from the backend, show a generic one.
@@ -63,7 +63,7 @@ export default function LoginPage() {
         alignItems: "flex-start",
         backgroundColor: "background.default",
         boxSizing: "border-box",
-        }}
+      }}
     >
       <Paper
         elevation={3}

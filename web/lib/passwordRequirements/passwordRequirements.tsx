@@ -13,10 +13,11 @@ class PasswordRequirement {
 
 }
 
-export default function PasswordRequirements({ password, setRequirementsMet }: { password: string, setRequirementsMet: (f: boolean) => void }) {
+export default function PasswordRequirements({ password, confirmPassword, setRequirementsMet }: { password: string, confirmPassword: string, setRequirementsMet: (f: boolean) => void }) {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const requirements = [
+        new PasswordRequirement("Passwords must match", (password) => password == confirmPassword),
         new PasswordRequirement("Must be at least 12 characters", (password) => password.length >= 12),
         new PasswordRequirement("Must have at least 1 uppercase character", (password) => password.toLowerCase() != password),
         new PasswordRequirement("Must have at least 1 symbol", (password) => new RegExp("[^A-z0-9]").test(password)),
