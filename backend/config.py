@@ -2,7 +2,7 @@ import os
 
 class Config:
     """Base configuration"""
-    SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-change-me")
+    SECRET_KEY = os.environ.get("SECRET_KEY")
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
     RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")

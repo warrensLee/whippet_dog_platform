@@ -6,6 +6,7 @@ from classes.person import Person
 from classes.change_log import ChangeLog
 from classes.user_role import UserRole
 from utils.auth_helpers import current_editor_id, current_role, require_scope
+from utils.error_handler import handle_error
 
 person_bp = Blueprint("person", __name__, url_prefix="/api/person")
 
@@ -88,7 +89,7 @@ def register_person():
         )
         return jsonify({"ok": True, "data": {"personId": person.person_id}}), 201
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 
 @person_bp.post("/edit")
@@ -166,7 +167,7 @@ def edit_person():
         )
         return jsonify({"ok": True}), 200
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 @person_bp.post("/delete")
 def delete_person():
@@ -222,7 +223,7 @@ def delete_person():
         )
         return jsonify({"ok": True}), 200
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 @person_bp.post("/change-password")
 def change_password():
@@ -273,7 +274,7 @@ def change_password():
         )
         return jsonify({"ok": True}), 200
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 
 @person_bp.post("/change-user-role")
@@ -333,7 +334,7 @@ def change_user_role():
         )
         return jsonify({"ok": True, "data": {"systemRole": new_role}}), 200
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 
 @person_bp.get("/get/<person_id>")
@@ -390,7 +391,7 @@ def list_all_persons():
         persons_data = [p.to_dict() for p in persons]
         return jsonify({"ok": True, "data": persons_data}), 200
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 
 @person_bp.get("/search")
@@ -461,7 +462,7 @@ def search_people():
             people.append(p.to_dict() if p else row)
         return jsonify({"ok": True, "data": people}), 200
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 @person_bp.get("/mine")
 def get_my_person():
@@ -480,7 +481,7 @@ def get_my_person():
 
         return jsonify({"ok": True, "data": person.to_dict()}), 200
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
     
 # @person_bp.get("/mine")
 # def get_my_person():
@@ -523,7 +524,7 @@ def is_board_member(person_id: str):
         is_member = _has_role(person_id, "board")
         return jsonify({"ok": True, "data": {"isBoardMember": is_member}}), 200
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 
 @person_bp.get("/is-secretary/<person_id>")
@@ -543,7 +544,7 @@ def is_secretary(person_id: str):
         is_sec = _has_role(person_id, "secretary")
         return jsonify({"ok": True, "data": {"isSecretary": is_sec}}), 200
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 
 @person_bp.get("/is-judge/<person_id>")
@@ -563,7 +564,7 @@ def is_judge(person_id: str):
         is_jdg = _has_role(person_id, "judge")
         return jsonify({"ok": True, "data": {"isJudge": is_jdg}}), 200
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 
 @person_bp.post("/update-profile")

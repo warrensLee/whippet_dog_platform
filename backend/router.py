@@ -15,6 +15,7 @@ from controller.stats import stats_bp
 from controller.title_type import title_type_bp
 from controller.user_role import user_role_bp
 from database import get_conn
+from utils.error_handler import handle_error
 
 api_bp = Blueprint("api", __name__, url_prefix="/api")
 
@@ -36,7 +37,7 @@ def health():
         cur.close()
         return "OK", 200
     except Exception as e:
-        return "ERROR", 500
+        return handle_error(e, "Database error")
 
 
 

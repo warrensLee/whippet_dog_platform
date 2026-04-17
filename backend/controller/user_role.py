@@ -3,6 +3,7 @@ from mysql.connector import Error
 from classes.user_role import UserRole
 from classes.change_log import ChangeLog
 from utils.auth_helpers import current_editor_id, current_role, require_scope
+from utils.error_handler import handle_error
 
 user_role_bp = Blueprint("user_role", __name__, url_prefix="/api/user_role")
 
@@ -117,7 +118,7 @@ def register_user_role():
         return jsonify({"ok": True, "data": saved.to_dict() if saved else user_role.to_dict()}), 201
 
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 
 @user_role_bp.post("/edit")
@@ -177,7 +178,7 @@ def edit_user_role():
         return jsonify({"ok": True, "data": role_after.to_dict()}), 200
 
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 
 @user_role_bp.post("/delete")
@@ -233,4 +234,4 @@ def delete_user_role():
         return jsonify({"ok": True}), 200
 
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")

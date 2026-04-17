@@ -8,6 +8,7 @@ from classes.dog_title import DogTitle
 from classes.change_log import ChangeLog
 from classes.user_role import UserRole
 from utils.auth_helpers import current_editor_id, current_role, require_scope
+from utils.error_handler import handle_error
 from database import fetch_one
 
 meet_result_bp = Blueprint("meet_result", __name__, url_prefix="/api/meet_result")
@@ -112,7 +113,7 @@ def register_meet_result():
         return jsonify({"ok": True}), 201
 
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 
 @meet_result_bp.post("/edit")
@@ -182,7 +183,7 @@ def edit_meet_result():
         return jsonify({"ok": True}), 200
 
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 
 @meet_result_bp.post("/delete")
@@ -240,7 +241,7 @@ def delete_meet_result():
         return jsonify({"ok": True}), 200
 
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 
 @meet_result_bp.get("/get/<meet_number>/<cwa_number>")
@@ -257,4 +258,4 @@ def list_all_meet_results():
         meet_results = MeetResult.list_all_meet_results()
         return jsonify({"ok": True, "data": [mr.to_dict() for mr in meet_results]}), 200
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")

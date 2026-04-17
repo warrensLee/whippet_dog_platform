@@ -5,6 +5,7 @@ from classes.title_type import TitleType
 from classes.change_log import ChangeLog
 from classes.dog_title import DogTitle
 from utils.auth_helpers import current_editor_id, current_role, require_scope
+from utils.error_handler import handle_error
 
 
 title_type_bp = Blueprint("title_type", __name__, url_prefix="/api/title_type")
@@ -48,7 +49,7 @@ def add_title_type():
         return jsonify({"ok": True, "data": title_type.to_dict()}), 201
 
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 
 @title_type_bp.post("/edit")
@@ -110,7 +111,7 @@ def edit_title_type():
         return jsonify({"ok": True, "data": after_snapshot}), 200
 
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 
 @title_type_bp.post("/delete")
@@ -151,7 +152,7 @@ def delete_title_type():
         return jsonify({"ok": True, "data": {"title": title}}), 200
 
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 @title_type_bp.get("/get/<title>")
 def get_title_type(title):
@@ -185,4 +186,4 @@ def get_all_title_types():
         data = [t.to_dict() for t in title_types]
         return jsonify({"ok": True, "data": data}), 200
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")

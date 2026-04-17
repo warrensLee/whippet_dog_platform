@@ -9,6 +9,7 @@ from classes.dog_title import DogTitle
 from classes.change_log import ChangeLog
 from classes.user_role import UserRole
 from utils.auth_helpers import current_editor_id, current_role, require_scope
+from utils.error_handler import handle_error
 from database import fetch_one, fetch_all
 
 race_result_bp = Blueprint("race_result", __name__, url_prefix="/api/race_result")
@@ -133,7 +134,7 @@ def register_race_result():
         return jsonify({"ok": True}), 201
 
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 
 @race_result_bp.post("/edit")
@@ -206,7 +207,7 @@ def edit_race_result():
         return jsonify({"ok": True}), 200
 
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 
 @race_result_bp.post("/delete")
@@ -265,7 +266,7 @@ def delete_race_result():
         return jsonify({"ok": True}), 200
 
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 
 @race_result_bp.get("/get/<meet_number>/<program>/<race_number>/<cwa_number>")
@@ -282,7 +283,7 @@ def list_all_race_results():
         race_results = RaceResult.list_all_race_results()
         return jsonify({"ok": True, "data": [rr.to_dict() for rr in race_results]}), 200
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 
 def _get_race_entries(meet_number: str, program: str, race_number: str):
@@ -349,9 +350,9 @@ def get_race_entries(meet_number, program, race_number):
         }), 200
 
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
     except Exception as e:
-        return jsonify({"ok": False, "error": f"Server error: {str(e)}"}), 500
+        return handle_error(e, "Server error")
 
 @race_result_bp.get("/points_distribution/<meet_number>/<program>/<race_number>/<cwa_number>")
 def get_placement_and_dpc_points(meet_number, program, race_number, cwa_number):
@@ -413,8 +414,8 @@ def get_placement_and_dpc_points(meet_number, program, race_number, cwa_number):
         }), 200
 
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
     except Exception as e:
-        return jsonify({"ok": False, "error": f"Server error: {str(e)}"}), 500
+        return handle_error(e, "Server error")
     
     

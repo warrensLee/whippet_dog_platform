@@ -4,6 +4,7 @@ from datetime import datetime
 import os
 import tempfile
 from utils.auth_helpers import check_login_and_scope_strict
+from utils.error_handler import handle_error
 from database import fetch_all, fetch_one, get_conn
 from classes.dog import Dog
 from classes.person import Person 
@@ -26,31 +27,6 @@ def get_tables():
     key = f"Tables_in_{db_name}"
     tables = fetch_all("SHOW TABLES")
     return [row[key] for row in tables]
-
-
-def dump_to_file(path: str):
-    with open(path, "w", encoding="utf-8") as file:
-        file.write("SET FOREIGN_KEY_CHECKS=0;\n\n")
-
-        for table_name in get_tables():
-            file.write(f"DROP TABLE IF EXISTS `{table_name}`;\n")
-
-            create = fetch_one(f"SHOW CREATE TABLE `{table_name}`")
-            file.write(create["Create Table"] + ";\n\n")
-
-            rows = fetch_all(f"SELECT * FROM `{table_name}`")
-
-            for row in rows:
-                columns = ", ".join(f"`{col}`" for col in row.keys())
-                values = ", ".join(escape(val) for val in row.values())
-
-                file.write(
-                    f"INSERT INTO `{table_name}` ({columns}) VALUES ({values});\n"
-                )
-
-            file.write("\n")
-
-        file.write("SET FOREIGN_KEY_CHECKS=1;\n")
 
 
 def restore_from_file(path):
@@ -116,7 +92,7 @@ def dump_database():
             headers={"Content-disposition": f"attachment; filename={timestamp}-db-dump.sql.zst"}
         )
     except Exception as e:
-        return jsonify({"ok": False, "error": str(e)}), 500
+        return handle_error(e, "Server error")
 
 
 def zstd_decompression_wrapper(compressed_stream):
@@ -181,7 +157,7 @@ def restore_database():
         restore_from_commands(iter_commands(zstd_decompression_wrapper(chunked_reader())))
         return jsonify({"ok": True}), 200 
     except Exception as e:
-        return jsonify({"ok": False, "error": str(e)}), 500
+        return handle_error(e, "Server error")
 
 
 @database_bp.get("/counts")

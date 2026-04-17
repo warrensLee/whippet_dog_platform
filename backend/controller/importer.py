@@ -3,6 +3,7 @@ from mysql.connector import Error
 from classes.importer import CsvImporter
 from classes.user_role import UserRole
 from utils.auth_helpers import current_role, require_scope
+from utils.error_handler import handle_error
 
 import_bp = Blueprint("import_bp", __name__, url_prefix="/api/import")
 importer = CsvImporter()
@@ -86,10 +87,10 @@ def import_csv():
         return jsonify({"ok": False, "error": str(e)}), 400
 
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
     except Exception as e:
-        return jsonify({"ok": False, "error": str(e)}), 500
+        return handle_error(e, "Server error")
 
 @import_bp.get("/types")
 def get_import_types():

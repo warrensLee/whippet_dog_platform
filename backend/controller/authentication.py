@@ -13,6 +13,7 @@ from utils.email_service import send_invite_email
 from utils.email_service import send_reset_email
 from utils.turnstile import validate_turnstile
 from utils.auth_helpers import current_user
+from utils.error_handler import handle_error
 
 
 DUMMY_HASH = generate_password_hash("dummy_password")
@@ -83,7 +84,7 @@ def register():
         return jsonify({"ok": True}), 201
 
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
     
 @auth_bp.post("/invite")
 def invite_user():
@@ -126,7 +127,7 @@ def invite_user():
         return jsonify({"ok": True, "message": "Invite sent"}), 200
 
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 
 @auth_bp.post("/login")

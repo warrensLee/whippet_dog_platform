@@ -10,6 +10,7 @@ from classes.change_log import ChangeLog
 from classes.user_role import UserRole
 from database import fetch_one
 from utils.auth_helpers import current_editor_id, current_role, require_scope
+from utils.error_handler import handle_error
 
 
 dog_title_bp = Blueprint("dog_title", __name__, url_prefix="/api/dog_title")
@@ -81,7 +82,7 @@ def add_dog_title():
         return jsonify({"ok": True, "data": dog_title.to_dict()}), 201
 
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 
 @dog_title_bp.post("/edit")
@@ -151,7 +152,7 @@ def edit_dog_title():
         return jsonify({"ok": True, "data": after_snapshot}), 200
 
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 
 @dog_title_bp.post("/delete")
@@ -204,7 +205,7 @@ def delete_dog_title():
         return jsonify({"ok": True, "data": {"cwaNumber": cwa_number, "title": title}}), 200
 
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 
 @dog_title_bp.get("/get/<cwa_number>")
@@ -260,4 +261,4 @@ def get_all_dog_titles():
         #     return jsonify({"ok": False, "error": "Not allowed to view dog titles"}), 403
             
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")

@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from classes.stats import Stats
+from utils.error_handler import handle_error
 
 stats_bp = Blueprint('stats', __name__, url_prefix='/api/stats')
 
@@ -11,7 +12,7 @@ def get_top_all_time(limit):
         results = stats_controller.get_top_all_time(limit)
         return jsonify({'success': True, 'data': results, 'count': len(results)}), 200
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        return handle_error(e, "Server error")
 
 @stats_bp.get('/top/<int:year>/<int:limit>')
 def get_top_by_year(year, limit):
@@ -19,7 +20,7 @@ def get_top_by_year(year, limit):
         results = stats_controller.get_top_by_year(year, limit)
         return jsonify({'success': True, 'data': results, 'count': len(results)}), 200
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        return handle_error(e, "Server error")
 
 
 @stats_bp.get('/search/year/<int:year>')
@@ -30,7 +31,7 @@ def search_by_year(year):
         results = stats_controller.search_stats_by_year(year, dog_id, owner_id)
         return jsonify({'success': True, 'data': results, 'year': year, 'count': len(results)}), 200
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        return handle_error(e, "Server error")
 
 @stats_bp.get('/search/dog/<dog_id>')
 def search_by_dog(dog_id):
@@ -42,7 +43,7 @@ def search_by_dog(dog_id):
             return jsonify({'success': False, 'error': 'Dog not found'}), 404
         return jsonify({'success': True, 'data': result}), 200
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        return handle_error(e, "Server error")
 
 @stats_bp.get('/search/owner/<owner_id>')
 def search_by_owner(owner_id):
@@ -54,7 +55,7 @@ def search_by_owner(owner_id):
             return jsonify({'success': False, 'error': 'Owner not found'}), 404
         return jsonify({'success': True, 'data': result}), 200
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        return handle_error(e, "Server error")
 
 @stats_bp.get('/years')
 def get_years():
@@ -62,4 +63,4 @@ def get_years():
         years = stats_controller.get_available_years()
         return jsonify({'success': True, 'data': years}), 200
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        return handle_error(e, "Server error")

@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify
 from mysql.connector import Error
 from classes.change_log import ChangeLog
 from utils.auth_helpers import current_role
+from utils.error_handler import handle_error
 
 change_log_bp = Blueprint("change_log", __name__, url_prefix="/api/change_log")
 
@@ -55,4 +56,4 @@ def list_all_change_logs():
         #     return jsonify({"ok": False, "error": "Not allowed to view change logs"}), 403
 
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")

@@ -9,7 +9,9 @@ from classes.meet_result import MeetResult
 from classes.change_log import ChangeLog
 from classes.user_role import UserRole
 from utils.auth_helpers import current_editor_id, current_role, require_scope
+from utils.error_handler import handle_error
 from classes.title_type import TitleType 
+
 
 dog_bp = Blueprint("dog", __name__, url_prefix="/api/dog")
 
@@ -61,7 +63,7 @@ def register_dog():
         return jsonify({"ok": True}), 201
 
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 
 @dog_bp.post("/public_notes") 
@@ -145,7 +147,7 @@ def edit_dog():
         return jsonify({"ok": True}), 200
 
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 
 @dog_bp.post("/delete")
@@ -252,7 +254,7 @@ def delete_dog():
         return jsonify({"ok": True}), 200
 
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 
 @dog_bp.get("/get/<cwa_number>")
@@ -299,7 +301,7 @@ def list_all_dogs():
         return jsonify({"ok": True, "data": dogs_data}), 200
 
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 @dog_bp.get("/title_descriptions/<cwa_number>")
 def list_dog_title_descriptions(cwa_number):
@@ -312,7 +314,7 @@ def list_dog_title_descriptions(cwa_number):
         dog_titles = [ TitleType.find_by_identifier(x).title_description for x in dog.check_titles()]
         return jsonify({"ok": True, "data": dog_titles}), 200
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 @dog_bp.get("/titles/<cwa_number>")
 def list_dog_titles(cwa_number):
@@ -335,7 +337,7 @@ def list_dog_titles(cwa_number):
         dog_titles = dog.check_titles()
         return jsonify({"ok": True, "data": dog_titles}), 200
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 @dog_bp.get("/grade/<cwa_number>")
 def get_dog_grade(cwa_number):
@@ -366,9 +368,9 @@ def get_dog_grade(cwa_number):
             }
         ), 200
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
     except Exception as e:
-        return jsonify({"ok": False, "error": str(e)}), 500
+        return handle_error(e, "Server error")
 
 
 @dog_bp.get("/age/<cwa_number>")
@@ -429,9 +431,9 @@ def get_dog_age(cwa_number):
             }
         ), 200
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
     except Exception as e:
-        return jsonify({"ok": False, "error": str(e)}), 500
+        return handle_error(e, "Server error")
 
 
 @dog_bp.get("/my-dogs")
@@ -448,9 +450,9 @@ def list_my_dogs():
         dogs = Dog.list_dogs_for_owner(current_editor_person_id()())
         return jsonify({"ok": True, "data": [d.to_dict() for d in dogs]}), 200
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
     except Exception as e:
-        return jsonify({"ok": False, "error": str(e)}), 500
+        return handle_error(e, "Server error")
 
 
 @dog_bp.get("/arx/<cwa_number>")
@@ -474,7 +476,7 @@ def check_arx_title(cwa_number):
         arx = dog.check_arx_title()
         return jsonify({"ok": True, "arx": arx}), 200
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 
 @dog_bp.get("/trp/<cwa_number>")
@@ -506,9 +508,9 @@ def check_trp_title(cwa_number):
             }
         ), 200
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
     except Exception as e:
-        return jsonify({"ok": False, "error": str(e)}), 500
+        return handle_error(e, "Server error")
 
 @dog_bp.get("/pr/<cwa_number>")
 def check_pr_title(cwa_number):
@@ -539,7 +541,7 @@ def check_pr_title(cwa_number):
             }
         ), 200
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 
 @dog_bp.get("/narx/<cwa_number>")
@@ -571,9 +573,9 @@ def check_narx_title(cwa_number):
             }
         ), 200
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
     except Exception as e:
-        return jsonify({"ok": False, "error": str(e)}), 500
+        return handle_error(e, "Server error")
 
 @dog_bp.get("/dpc/<cwa_number>")
 def check_dpc_title(cwa_number):
@@ -604,9 +606,9 @@ def check_dpc_title(cwa_number):
             }
         ), 200
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
     except Exception as e:
-        return jsonify({"ok": False, "error": str(e)}), 500
+        return handle_error(e, "Server error")
 
 @dog_bp.get("/hc/<cwa_number>")
 def check_hc_title(cwa_number):
@@ -637,9 +639,9 @@ def check_hc_title(cwa_number):
             }
         ), 200
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
     except Exception as e:
-        return jsonify({"ok": False, "error": str(e)}), 500
+        return handle_error(e, "Server error")
 
 
 # This endpoint allows searching dogs by various attributes 
@@ -674,7 +676,7 @@ def search_dogs():
         return jsonify({"ok": True, "total": len(items), "items": items}), 200
 
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 
 @dog_bp.get("/meets/<cwa_number>")
@@ -694,7 +696,7 @@ def list_meets_for_dog(cwa_number):
         meets = Dog.list_meets_with_results_for_dog(cwa_number)  
         return jsonify({"ok": True, "data": meets}), 200
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 @dog_bp.get("/wins/<cwa_number>")
 def get_dog_stats(cwa_number):
@@ -714,4 +716,4 @@ def get_dog_stats(cwa_number):
         return jsonify({"ok": True, "data": stats}), 200
 
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")

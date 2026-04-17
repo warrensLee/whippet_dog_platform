@@ -6,6 +6,7 @@ from classes.user_role import UserRole
 from classes.change_log import ChangeLog
 from database import fetch_one
 from utils.auth_helpers import current_editor_id, current_role, require_scope
+from utils.error_handler import handle_error
 
 dog_owner_bp = Blueprint("dog_owner", __name__, url_prefix="/api/dog_owner")
 
@@ -54,7 +55,7 @@ def list_dog_owner_links():
         return jsonify({"ok": True, "data": data}), 200
 
     except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {str(e)}"}), 500
+        return handle_error(e, "Database error")
 
 
 
