@@ -37,6 +37,8 @@ class CsvImporter:
             "meetNumber": ("meetNumber", "MeetNumber", "MEET NUMBER", "Meet #"),
             "cwaNumber": ("cwaNumber", "CWANumber", "CWA NO", "CWA No", "CWA #"),
             "average": ("average", "Average", "AVG"),
+            "conformationPlacement": ("conformationPlacement", "ConformationPlacement", "CONFORMATION PLACEMENT", "Conformation Placement", "Conformation Place"),
+            "matchPoints": ("matchPoints", "MatchPoints", "MATCH POINTS", "Match Points"),
             "grade": ("grade", "Grade"),
             "meetPlacement": ("meetPlacement", "MeetPlacement", "MEET PLACEMENT", "Meet Place", "Place"),
             "meetPoints": ("meetPoints", "MeetPoints", "MEET POINTS", "Points"),

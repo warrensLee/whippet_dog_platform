@@ -144,6 +144,8 @@ CREATE TABLE `MeetResults` (
     `Average` DECIMAL(5,2) NOT NULL,
     `Grade` VARCHAR(3) NOT NULL,
     `MeetPlacement` INT NOT NULL,
+    `ConformationPlacement` INT NOT NULL,
+    `MatchPoints` DECIMAL(5,2) NOT NULL,
     `MeetPoints` DECIMAL(5,2) NOT NULL,
     `ARXEarned` DECIMAL(5,2) NOT NULL,
     `NARXEarned` DECIMAL(5,2) NOT NULL,

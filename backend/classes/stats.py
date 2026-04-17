@@ -248,3 +248,44 @@ class Stats:
         
         results = fetch_all(query)
         return [row['year'] for row in results]
+    
+    def get_dog_info(self, cwa_number, year=None):
+        params = []
+        
+        meet_results_join = """
+            LEFT JOIN (
+                SELECT
+                    CWANumber,
+                    COALESCE(SUM(MeetPoints), 0) AS total_meet_points,
+                    COALESCE(SUM(MatchPoints), 0) AS total_match_points,
+                    COALESCE(SUM(HCScore), 0) AS total_hc_score
+                FROM MeetResults
+        """
+
+        if year:
+            meet_results_join += " WHERE YEAR(LastEditedAt) = %s"
+            params.append(year)
+
+        meet_results_join += """
+                GROUP BY CWANumber
+            ) rr ON d.CWANumber = rr.CWANumber
+        """
+
+        query = f"""
+            SELECT 
+                d.*,
+                CONCAT(o.FirstName, ' ', o.LastName) AS owner_name,
+                o.PersonID AS owner_id,
+                COALESCE(rr.total_meet_points, 0) AS total_meet_points,
+                COALESCE(rr.total_match_points, 0) AS total_match_points,
+                COALESCE(rr.total_hc_score, 0) AS total_hc_score
+            FROM Dog d
+            LEFT JOIN DogOwner do ON d.CWANumber = do.CWAID
+            LEFT JOIN Person o ON do.PersonID = o.ID
+            {meet_results_join}
+            WHERE d.CWANumber = %s
+        """
+
+        params.append(cwa_number)
+
+        return fetch_one(query, tuple(params))

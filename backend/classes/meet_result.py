@@ -3,13 +3,16 @@ from mysql.connector import Error
 
 class MeetResult:
     
-    def __init__(self, meet_number, cwa_number, average, grade, meet_placement, meet_points, arx_earned,
-                 narx_earned, shown, show_placement, show_points, dpc_leg, hc_score, hc_leg_earned, aom_earned, dpc_points, last_edited_by=None, last_edited_at=None):
+    def __init__(self, meet_number, cwa_number, average, grade, meet_placement, conformation_placement,
+                 match_points, meet_points, arx_earned, narx_earned, shown, show_placement, show_points,
+                 dpc_leg, hc_score, hc_leg_earned, aom_earned, dpc_points, last_edited_by=None, last_edited_at=None):
         self.meet_number = meet_number
         self.cwa_number = cwa_number
         self.average = average
         self.grade = grade
         self.meet_placement = meet_placement
+        self.conformation_placement = conformation_placement
+        self.match_points = match_points
         self.meet_points = meet_points
         self.arx_earned = arx_earned
         self.narx_earned = narx_earned
@@ -33,6 +36,8 @@ class MeetResult:
             average=(data.get("average") or "").strip(),
             grade=(data.get("grade") or "").strip(),
             meet_placement=(data.get("meetPlacement") or "").strip(),
+            conformation_placement=(data.get("conformationPlacement") or "").strip(),
+            match_points=(data.get("matchPoints") or "").strip(),
             meet_points=(data.get("meetPoints") or "").strip(),
             arx_earned=(data.get("arxEarned") or "").strip(),
             narx_earned=(data.get("narxEarned") or "").strip(),
@@ -59,6 +64,8 @@ class MeetResult:
             average=row.get("Average"),
             grade=row.get("Grade"),
             meet_placement=row.get("MeetPlacement"),
+            conformation_placement=row.get("ConformationPlacement"),
+            match_points=row.get("MatchPoints"),
             meet_points=row.get("MeetPoints"),
             arx_earned=row.get("ARXEarned"),
             narx_earned=row.get("NARXEarned"),
@@ -79,8 +86,8 @@ class MeetResult:
         """Find a meet result by meet_number and cwanumber."""
         row = fetch_one(
             """
-            SELECT MeetNumber, CWANumber, Average, Grade, MeetPlacement, MeetPoints,
-                    ARXEarned, NARXEarned, Shown, ShowPlacement, ShowPoints, DPCLeg,
+            SELECT MeetNumber, CWANumber, Average, Grade, MeetPlacement, ConformationPlacement,
+                    MatchPoints, MeetPoints, ARXEarned, NARXEarned, Shown, ShowPlacement, ShowPoints, DPCLeg,
                     HCScore, HCLegEarned, AOMEarned, DPCPoints, LastEditedBy, LastEditedAt
             FROM MeetResults
             WHERE MeetNumber = %s AND CWANumber = %s
@@ -117,6 +124,10 @@ class MeetResult:
             errors.append("Grade is required")
         if not self.meet_placement:
             errors.append("Meet placement is required")
+        if not self.conformation_placement:
+            errors.append("Conformation placement is required")
+        if not self.match_points:
+            errors.append("Match points is required")
         if not self.meet_points:
             errors.append("Meet points is required")
         if not self.arx_earned:
@@ -159,11 +170,11 @@ class MeetResult:
             execute(
                 """
                 INSERT INTO MeetResults (
-                    MeetNumber, CWANumber, Average, Grade, MeetPlacement, MeetPoints,
-                    ARXEarned, NARXEarned, Shown, ShowPlacement, ShowPoints, DPCLeg,
+                    MeetNumber, CWANumber, Average, Grade, MeetPlacement, ConformationPlacement,
+                    MatchPoints, MeetPoints, ARXEarned, NARXEarned, Shown, ShowPlacement, ShowPoints, DPCLeg,
                     HCScore, HCLegEarned, AOMEarned, DPCPoints, LastEditedBy, LastEditedAt
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
                     self.meet_number,
@@ -171,6 +182,8 @@ class MeetResult:
                     self.average,
                     self.grade,
                     self.meet_placement,
+                    self.conformation_placement,
+                    self.match_points,
                     self.meet_points,
                     self.arx_earned,
                     self.narx_earned,
@@ -199,6 +212,8 @@ class MeetResult:
                 SET Average = %s,
                     Grade = %s,
                     MeetPlacement = %s,
+                    ConformationPlacement = %s,
+                    MatchPoints = %s,
                     MeetPoints = %s,
                     ARXEarned = %s,
                     NARXEarned = %s,
@@ -218,6 +233,8 @@ class MeetResult:
                     self.average,
                     self.grade,
                     self.meet_placement,
+                    self.conformation_placement,
+                    self.match_points,
                     self.meet_points,
                     self.arx_earned,
                     self.narx_earned,
@@ -257,8 +274,8 @@ class MeetResult:
         """Retrieve all meet results from the database."""
         rows = fetch_all(
             """
-            SELECT MeetNumber, CWANumber, Average, Grade, MeetPlacement, MeetPoints,
-                    ARXEarned, NARXEarned, Shown, ShowPlacement, ShowPoints, DPCLeg,
+            SELECT MeetNumber, CWANumber, Average, Grade, MeetPlacement, ConformationPlacement,
+                    MatchPoints, MeetPoints, ARXEarned, NARXEarned, Shown, ShowPlacement, ShowPoints, DPCLeg,
                     HCScore, HCLegEarned, AOMEarned, DPCPoints, LastEditedBy, LastEditedAt
             FROM MeetResults
             """
@@ -288,7 +305,6 @@ class MeetResult:
         rows = fetch_all(query, (cwa_number,))
         return [cls.from_db_row(row) for row in rows]
 
-
     @classmethod
     def delete_all_for_dog(cls, cwa_number):
         query = """
@@ -312,6 +328,8 @@ class MeetResult:
             "average": self.average,
             "grade": self.grade,
             "meetPlacement": self.meet_placement,
+            "conformationPlacement": self.conformation_placement,
+            "matchPoints": self.match_points,
             "meetPoints": self.meet_points,
             "arxEarned": self.arx_earned,
             "narxEarned": self.narx_earned,
