@@ -356,10 +356,10 @@ def get_person(person_id: str):
 
     return jsonify({"ok": True, "data": person.to_dict()}), 200
 
-@person_bp.get("/name/<person_id>")
+@person_bp.get("/public/<person_id>")
 def get_person_name(person_id: str):
     """
-    Return just the person's first and last name.
+    Return the person's first and last name along with public notes.
     """
     person = Person.find_by_identifier(person_id)
     if not person:
@@ -367,7 +367,8 @@ def get_person_name(person_id: str):
 
     name_data = {
         "firstName": person.first_name,
-        "lastName": person.last_name
+        "lastName": person.last_name,
+        "publicNotes": person.public_notes
     }
     return jsonify({"ok": True, "data": name_data}), 200
 
@@ -575,7 +576,7 @@ def update_profile():
             return jsonify({"ok": False, "error": "Not signed in"}), 401   
         person = Person.find_by_id(current_id)
         person.public_notes = request.data.decode("utf-8")
-        person.save()
+        person.update()
         return jsonify({"ok": True})
     except Error as e:
         print(e)

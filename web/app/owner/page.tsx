@@ -2,8 +2,13 @@
 import HeroSection from "@/app/components/ui/HeroSection";
 import { Box, Button, Chip, Paper, Typography } from "@mui/material";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useContext, useEffect, useState } from "react";
 import axios from "axios";
+import Loading from "@/lib/loading";
+import RichTextViewer from "@/lib/richtext/RichTextViewer";
+import authContext from "@/lib/auth/auth";
+import RichTextEditor from "@/lib/richtext/RichTextEditor";
+import { last } from "slate";
 class ownedDog {
     name: string
     id: number
@@ -36,28 +41,32 @@ function DogCard({ dog }: { dog: ownedDog }) {
                     {dog.titles.map((title: string) => <Chip sx={{ m: 1, p: 1 }} key={title} label={title} />)}
                 </div>
             </Box>
-            <Button sx={{ alignSelf: "right" }} href={"/dog/" + dog.id} variant="contained" color="success">View Dog</Button>
+            <Button sx={{ alignSelf: "right" }} href={"/dog?id=" + dog.id} variant="contained" color="success">View Dog</Button>
         </Paper>
     )
 }
 
 export default function Page() {
-    return (<Suspense><Owner /></Suspense>)
+    return (<Suspense fallback={<Loading />}><Owner /></Suspense>)
 }
 
 function Owner() {
     const params = useSearchParams();
     const [ownerName, setOwnerName] = useState<string>("");
+    const [publicNotes, setPublicNotes] = useState<string>("");
     const [dogs, setDogs] = useState<Array<ownedDog>>([]);
+    const [editingProfile, setEditingProfile] = useState(false)
+    const user = useContext(authContext);
 
     useEffect(() => {
         async function getData() {
-            const nameResponse = await axios.get("/api/person/name/" + params.get("id"));
+            const nameResponse = await axios.get("/api/person/public/" + params.get("id"));
             if (!nameResponse.data.ok) {
                 setOwnerName(nameResponse.data.data.error);
                 return;
             }
             setOwnerName(nameResponse.data.data.firstName + " " + nameResponse.data.data.lastName)
+            setPublicNotes(nameResponse.data.data.publicNotes)
             const ownedDogsResponse = await axios.get("/api/dog_owner/get?personID=" + params.get("id"));
             if (!ownedDogsResponse.data.ok) {
                 setOwnerName("Failed to get Dogs");
@@ -88,6 +97,11 @@ function Owner() {
         }
         getData();
     }, [params])
+
+    function handleSaveNotes() {
+        fetch("/api/person/update-profile", { method: "POST", "body": publicNotes })
+        setEditingProfile(false)
+    }
     return (
 
         <main className="pt-24 bg-[#1F4D2E]">
@@ -95,11 +109,18 @@ function Owner() {
 
             <section className="bg-[#E7F0E9] pt-12 pb-24 flex-center" style={{ display: "flex", justifyContent: "center", flexDirection: "column", alignItems: "center" }}>
                 <Typography sx={{ display: "inline" }} noWrap variant="h2">Owned Dogs</Typography>
-                <div style={{ display: "flex", width: "fit-content", flexDirection: "column" }}>
+                <div style={{ display: "flex", width: "50%", minWidth: "fit-content", maxWidth: "750px", flexDirection: "column" }}>
                     {dogs.map((dog) => <DogCard key={dog.id} dog={dog} />)}
                 </div>
+                <Typography sx={{ display: "inline" }} noWrap variant="h2">Profile</Typography>
+                <div style={{ display: "flex", width: "50%", minWidth: "fit-content", maxWidth: "750px", flexDirection: "column" }} >
+                    {!editingProfile && <RichTextViewer text={publicNotes} />}
+                    {editingProfile && <RichTextEditor style={{}} onChange={setPublicNotes} value={publicNotes} />}
+                    {editingProfile && <Button variant="contained" color="success" onClick={handleSaveNotes} fullWidth>Save </Button>}
+                    {!editingProfile && user != undefined && user != "NotAuthenticated" && user.PersonID == params.get("id") && <Button variant="contained" color="success" onClick={(s) => setEditingProfile(true)} >Edit Profile</Button>}
+                </div>
             </section>
-        </main>
+        </main >
     )
 
 }

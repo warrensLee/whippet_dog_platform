@@ -4,6 +4,7 @@ from mysql.connector import Error
 from classes.dog_owner import DogOwner, list_owner_people_for_dog
 from classes.user_role import UserRole
 from classes.change_log import ChangeLog
+from classes.person import Person
 from database import fetch_one
 from utils.auth_helpers import current_editor_id, current_role, require_scope
 from utils.error_handler import handle_error
@@ -49,9 +50,11 @@ def list_dog_owner_links():
             # rows = DogOwner.list_all(cwa_id=cwa_id, person_id=current_editor_id())
 
         # else:
-        rows = DogOwner.list_for_person(person_id)
-
-        data = [r.to_dict() if hasattr(r, "to_dict") else r for r in (rows or [])]
+        person = Person.find_by_identifier(person_id)
+        if not person:
+            return jsonify({"ok": False, "error": "invalid Person"})
+        rows = DogOwner.list_for_person(person.id)
+        data = [r.to_dict() for r in rows]
         return jsonify({"ok": True, "data": data}), 200
 
     except Error as e:

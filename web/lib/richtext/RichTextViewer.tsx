@@ -5,12 +5,12 @@ import { renderElement, renderLeaf } from "./rendering";
 
 export default function RichTextViewer({ text }: { text: string }) {
 
-    const editor = useMemo(() => withReact(createEditor()), []);
+  const editor = useMemo(() => withReact(createEditor()), []);
 
-    const renderElementCallback = useCallback((props: RenderElementProps) => renderElement(props), []);
-    const renderLeafCallback = useCallback((props: RenderLeafProps) => renderLeaf(props), []);
+  const renderElementCallback = useCallback((props: RenderElementProps) => renderElement(props), []);
+  const renderLeafCallback = useCallback((props: RenderLeafProps) => renderLeaf(props), []);
 
-    return (<div><Slate editor={editor} initialValue={
+  return (<div><Slate key={text} editor={editor} initialValue={
     (() => {
       try {
         return JSON.parse(text);
@@ -24,6 +24,6 @@ export default function RichTextViewer({ text }: { text: string }) {
       }
     })()
   } >
-        <Editable readOnly renderElement={renderElementCallback} renderLeaf={renderLeafCallback} />
-    </Slate></div>)
+    <Editable readOnly renderElement={renderElementCallback} renderLeaf={renderLeafCallback} />
+  </Slate></div>)
 }
