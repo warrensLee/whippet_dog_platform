@@ -54,3 +54,10 @@ export async function deleteUserRequest(user: Person) {
       confirmId: user.id,
     });
 }
+
+export async function resetUserPasswordRequest(personId: string, newPassword: string) {
+  return axios.post('/api/person/reset-password', {
+    personId,
+    newPassword,
+  });
+}

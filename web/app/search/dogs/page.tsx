@@ -250,6 +250,7 @@ function SearchPage() {
                         query={q}
                         sort={sort}
                         placeholder="Search by CWA number, AKC number, registered name, owner, or title."
+                        roundedLeft={true}
                     />
                     {/* 
                         Small status line gives feedback without taking up too much space.

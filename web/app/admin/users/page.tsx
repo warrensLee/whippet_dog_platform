@@ -7,6 +7,7 @@ import HeroSection from '@/app/components/ui/HeroSection';
 
 import {
   deleteUserRequest,
+  resetUserPasswordRequest,
   saveUserEditRequest,
   toggleUserLockRequest,
 } from '@/lib/user/adminUserActions';
@@ -45,7 +46,9 @@ import EditUserDialog from '../../components/user/EditUserDialog';
 import DummyUserDialog from '../../components/user/DummyUserDialog';
 import InviteUserDialog from '../../components/user/InviteUserDialog';
 import DeleteUserDialog from '../../components/user/DeleteUserDialog';
+import ChangePasswordDialog from '../../components/user/ChangePasswordDialog';
 import DeleteIcon from '@mui/icons-material/Delete';
+import KeyIcon from '@mui/icons-material/Key';
 
 import { AddForm, EditForm, Person, UserRole, emptyAddForm, emptyForm } from './types';
 import AddUserDialog from './AddUserDialog';
@@ -76,6 +79,9 @@ export default function AdminUsersPage() {
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<Person | null>(null);
+
+  const [passwordResetOpen, setPasswordResetOpen] = useState(false);
+  const [userToResetPassword, setUserToResetPassword] = useState<Person | null>(null);
 
   const fetchUsers = async () => {
     const res = await axios.get('/api/person/search');
@@ -377,6 +383,54 @@ export default function AdminUsersPage() {
       }
       else {
         setError('Failed to delete user');
+      }
+    }
+    finally {
+      setSaving(false);
+    }
+  };
+
+  const openResetPassword = (user: Person) => {
+    setUserToResetPassword(user);
+    setError('');
+    setSuccess('');
+    setPasswordResetOpen(true);
+  };
+
+  const closeResetPassword = () => {
+    if (saving) return;
+    setPasswordResetOpen(false);
+    setUserToResetPassword(null);
+  };
+
+  const handleResetPassword = async (newPassword: string) => {
+    if (!userToResetPassword)
+      return;
+
+    try {
+      setSaving(true);
+      setError('');
+      setSuccess('');
+
+      const res = await resetUserPasswordRequest(userToResetPassword.personId, newPassword);
+
+      if (!res.data.ok) {
+        setError(res.data.error || 'Failed to reset password');
+        return;
+      }
+
+      setSuccess('Password reset successfully');
+      closeResetPassword();
+    }
+    catch (err: unknown) {
+      if (err instanceof AxiosError && err.response) {
+        setError(err.response.data.error || 'Failed to reset password');
+      }
+      else if (err instanceof Error) {
+        setError(err.message || 'Failed to reset password');
+      }
+      else {
+        setError('Failed to reset password');
       }
     }
     finally {
@@ -699,11 +753,12 @@ export default function AdminUsersPage() {
                           <TableCell>{user.lastEditedBy || '-'}</TableCell>
                           <TableCell>{user.lastEditedAt || '-'}</TableCell>
                           <TableCell>
-                            <Stack direction="row" spacing={1}>
+                            <Stack direction="row" spacing={1} flexWrap="wrap">
                               <IconButton
                                 onClick={() => openEdit(user)}
                                 color="primary"
                                 disabled={saving}
+                                title="Edit"
                               >
                                 <EditIcon />
                               </IconButton>
@@ -714,8 +769,22 @@ export default function AdminUsersPage() {
                                     onClick={() => openDelete(user)}
                                     color="error"
                                     disabled={!!deleteDisabledReason}
+                                    title="Delete"
                                   >
                                     <DeleteIcon />
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
+
+                              <Tooltip title="Reset Password">
+                                <span>
+                                  <IconButton
+                                    onClick={() => openResetPassword(user)}
+                                    color="secondary"
+                                    disabled={saving}
+                                    title="Reset Password"
+                                  >
+                                    <KeyIcon />
                                   </IconButton>
                                 </span>
                               </Tooltip>
@@ -727,6 +796,7 @@ export default function AdminUsersPage() {
                                     color={user.locked ? "success" : "warning"}
                                     disabled={!!lockDisabledReason}
                                     onClick={() => handleToggleLock(user)}
+                                    size="small"
                                   >
                                     {user.locked ? "Unlock" : "Lock"}
                                   </Button>
@@ -795,6 +865,17 @@ export default function AdminUsersPage() {
             userToDelete={userToDelete}
             onClose={closeDelete}
             onDelete={handleDeleteUser}
+          />
+
+          <ChangePasswordDialog
+            open={passwordResetOpen}
+            saving={saving}
+            personId={userToResetPassword?.personId || ''}
+            personName={
+              userToResetPassword?.personId || ''
+            }
+            onClose={closeResetPassword}
+            onSave={handleResetPassword}
           />
 
         </section>

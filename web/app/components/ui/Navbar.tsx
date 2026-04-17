@@ -51,7 +51,7 @@ const NavbarContent = () => {
     const pathname = usePathname();
 
     const [searchMenuAnchor, setSearchMenuAnchor] = useState<HTMLElement | null>(null);
-    const [searchType, setSearchType] = useState<"dogs" | "events">( getSearchType(pathname) );
+    const [searchType, setSearchType] = useState<"dogs" | "events">(getSearchType(pathname));
     const searchParams = useSearchParams();
     const currentQuery = searchParams.get("q") ?? "";
     const currentSort = searchParams.get("sort") ?? "";
@@ -71,12 +71,12 @@ const NavbarContent = () => {
                         className="object-contain"
                     />
                 </Link>
-                <div style={{ width: "50%", maxWidth: "750px", display: "flex", alignItems: "center", gap: "12px", }}>               
+                <div className='hidden w-[50%] align-center md:flex max-w-750px'>
                     <button
                         onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
                             setSearchMenuAnchor(event.currentTarget);
                         }}
-                        className="rounded-full bg-white/10 border border-white/20 px-4 py-3 text-white font-semibold shadow-sm hover:bg-white/15 transition flex items-center gap-2 whitespace-nowrap"
+                        className="rounded-l-full bg-white/10 border border-white/20 px-4 py-3 text-white font-semibold shadow-sm hover:bg-white/15 transition items-center gap-2 whitespace-nowrap"
                     >
                         {searchType === "dogs" ? "Dogs" : "Events"} <MenuIcon />
                     </button>
@@ -98,17 +98,17 @@ const NavbarContent = () => {
                     </Menu>
                     {/* update this if event search route changes */}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                        <SearchBar action={searchType === "dogs" ? "/" : "/search/event"} query={currentQuery} sort={currentSort} />
+                        <SearchBar action={searchType === "dogs" ? "/search/dogs" : "/search/meets"} query={currentQuery} sort={currentSort} roundedLeft={false} />
                     </div>
                 </div>
                 {/* if admin, show a button that directs a user to the dashboard */}
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 justify-">
                     {isAdmin && (
                         <Link href="/admin" className="rounded-full border border-white/20 bg-white/10 px-6 py-3 font-semibold text-white shadow-sm transition hover:bg-white/15 hover:shadow-md" >
                             Dashboard
                         </Link>
                     )}
-                <UserMenu />
+                    <UserMenu />
                 </div>
             </div>
         </nav>

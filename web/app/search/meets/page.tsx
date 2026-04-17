@@ -187,6 +187,7 @@ function SearchPage() {
                         query={q}
                         sort={sort}
                         placeholder="Search by meet number, club, or location"
+                        roundedLeft={true}
                     />
                     <div className="mt-4 text-sm text-white/75">
                         {

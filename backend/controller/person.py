@@ -581,3 +581,55 @@ def update_profile():
         print(e)
         return jsonify({"ok": False, "error" : "internal server error"})
 
+@person_bp.post("/reset-password")
+def reset_password():
+    role = current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+    deny = require_scope(role.edit_person_scope, "reset passwords")
+    if deny:
+        return deny
+
+    if role.edit_person_scope != UserRole.ALL:
+        return jsonify({"ok": False, "error": "Not authorized to reset passwords"}), 403
+
+    data = request.get_json(silent=True) or {}
+    person_id = (data.get("personId") or "").strip()
+    new_password = (data.get("newPassword") or "").strip()
+
+    if not person_id:
+        return jsonify({"ok": False, "error": "Person ID is required"}), 400
+    if not new_password:
+        return jsonify({"ok": False, "error": "New password is required"}), 400
+    if len(new_password) < 6:
+        return jsonify({"ok": False, "error": "New password must be at least 6 characters"}), 400
+
+    try:
+        person = Person.find_by_identifier(person_id)
+        if not person:
+            return jsonify({"ok": False, "error": "Person does not exist"}), 404
+
+        before_snapshot = person.to_dict()
+
+        person.set_password(new_password)
+        person.last_edited_by = current_editor_id()
+        person.last_edited_at = datetime.now(timezone.utc)
+        person.update()
+
+        refreshed = Person.find_by_identifier(person_id)
+        after_snapshot = refreshed.to_dict() if refreshed else person.to_dict()
+
+        ChangeLog.log(
+            changed_table="Person",
+            record_pk=person.id,
+            operation="UPDATE",
+            changed_by=current_editor_id(),
+            source="api/person/reset-password POST",
+            before_obj=before_snapshot,
+            after_obj=after_snapshot,
+        )
+        return jsonify({"ok": True}), 200
+    except Error as e:
+        return handle_error(e, "Database error")
+
