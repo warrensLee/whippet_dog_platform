@@ -421,6 +421,7 @@ function AdminDogsPage() {
                 */}
                 <div className="rounded-3xl border border-white/15 bg-white/10 p-4 md:p-5 backdrop-blur">
                     <SearchBar
+                        roundedLeft={true}
                         action="/admin/dogs"
                         query={q}
                         sort={sort}
@@ -667,9 +668,9 @@ function AdminDogsPage() {
                                                         className="mt-1 h-4 w-4 rounded border-black/20"
                                                     />
 
-                                                <div className="text-xl font-semibold text-[#12301D]">
-                                                    {d.registeredName || d.cwaNumber}
-                                                </div>
+                                                    <div className="text-xl font-semibold text-[#12301D]">
+                                                        {d.registeredName || d.cwaNumber}
+                                                    </div>
                                                 </div>
 
                                                 <div className="shrink-0 rounded-full px-3 py-1 text-xs font-semibold bg-[#2E6B3F]/10 text-[#2E6B3F]">

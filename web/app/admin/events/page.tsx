@@ -409,6 +409,7 @@ function AdminEventsPage() {
                 */}
                 <div className="rounded-3xl border border-white/15 bg-white/10 p-4 md:p-5 backdrop-blur">
                     <SearchBar
+                        roundedLeft={true}
                         action="/admin/events"
                         query={q}
                         sort={sort}
