@@ -255,3 +255,11 @@ def search_meets():
 
     except Error as e:
         return handle_error(e, "Database error")
+
+@meet_bp.get("/<meet_number>/dogs")
+def get_dogs_in_meet(meet_number):
+    try:
+        data = Meet.get_dogs_for_meet(meet_number)
+        return jsonify({"ok": True, "data": data}), 200
+    except Error as e:        
+        return handle_error(e, "Database error")
