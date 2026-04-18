@@ -13,11 +13,7 @@ type Props = {
     style: React.CSSProperties
 };
 
-const LIST_TYPES = ['numbered-list', 'bulleted-list'] as const
-const TEXT_ALIGN_TYPES = ['left', 'center', 'right', 'justify'] as const
-
-type AlignType = (typeof TEXT_ALIGN_TYPES)[number]
-type ListType = (typeof LIST_TYPES)[number]
+type ListType = typeof LIST_TYPES[number]
 
 export default function RichTextEditor({ value, onChange, style = {} }: Props) {
     const editor = useMemo(() => withReact(createEditor()), []);
@@ -64,7 +60,7 @@ export default function RichTextEditor({ value, onChange, style = {} }: Props) {
                     </Tooltip>
 
                     <Tooltip title="Heading">
-                        <span><BlockButton format="heading-one" blockType="type"><Title /></BlockButton></span>
+                        <span><HeadingSelector /></span>
                     </Tooltip>
 
                     <Tooltip title="Align Left">
@@ -121,14 +117,74 @@ function ElementSelector({ children, mark }: { children: ReactNode, mark: keyof 
     );
 }
 
-const isAlignElement = (
-    element: CustomElement
-): boolean => {
-    return 'align' in element
+function HeadingSelector() {
+    const editor = useSlate();
+    const [isOpen, setIsOpen] = React.useState(false);
+
+    const currentType = () => {
+        const { selection } = editor;
+        if (!selection) return 'paragraph';
+
+        const [match] = Array.from(
+            Editor.nodes(editor, {
+                at: Editor.unhangRange(editor, selection),
+                match: n => Node.isElement(n) && ['paragraph', 'heading-one', 'heading-two', 'heading-three'].includes(n.type)
+            })
+        );
+        if (!match) return "paragraph"
+        return (match[0] as CustomElement).type
+    };
+
+    const toggleHeading = (type: CustomElementType) => {
+        Transforms.setNodes(editor, { type }, { match: n => Node.isElement(n) && ['paragraph', 'heading-one', 'heading-two', 'heading-three'].includes(n.type as string) });
+        setIsOpen(false);
+    };
+
+    const types = [
+        { type: 'paragraph', label: 'Paragraph' },
+        { type: 'heading-one', label: 'Heading 1' },
+        { type: 'heading-two', label: 'Heading 2' },
+        { type: 'heading-three', label: 'Heading 3' }
+    ];
+
+    const activeType = currentType();
+
+    return (
+        <div className="relative">
+            <button type="button"
+                className={"bg-gray-100 hover:bg-gray-700 flex items-center" + SELECTOR_CLASSNAME}
+                onClick={(e) => {
+                    e.preventDefault();
+                    setIsOpen(!isOpen);
+                }}
+            >
+                <Title />
+                <span className="ml-1 text-sm uppercase">{activeType.replace('-', ' ')}</span>
+            </button>
+
+            {isOpen && (
+                <div className="absolute bg-white border border-gray-300 rounded shadow-lg py-1 z-50 mt-2 mr-2 min-w-[150px]">
+                    {types.map((t) => (
+                        <button type="button"
+                            key={t.type}
+                            onClick={(event) => {
+                                event.preventDefault();
+                                toggleHeading(t.type as CustomElementType);
+                            }}
+                            className={`w-full text-left px-4 py-2 hover:bg-gray-200 ${activeType === t.type ? 'bg-gray-100 font-semibold' : ''}`}
+                        >
+                            {t.label}
+                        </button>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
 }
 
+const LIST_TYPES = ['numbered-list', 'bulleted-list'] as const
 
-function BlockButton({ format, blockType = 'type', children }: { format: CustomElementType, blockType: 'type', children: ReactNode } | { format: AlignType, blockType: 'align', children: ReactNode }) {
+function BlockButton({ format, blockType = 'type', children }: { format: CustomElementType, blockType: 'type', children: ReactNode } | { format: 'left' | 'center' | 'right', blockType: 'align', children: ReactNode }) {
     const editor = useSlate()
 
     const isBlockActive = () => {
@@ -140,7 +196,7 @@ function BlockButton({ format, blockType = 'type', children }: { format: CustomE
                 at: Editor.unhangRange(editor, selection),
                 match: n => {
                     if (Node.isElement(n)) {
-                        if (blockType === 'align' && isAlignElement(n)) {
+                        if (blockType === 'align') {
                             return n.align === format
                         }
                         return n.type === format
@@ -158,7 +214,7 @@ function BlockButton({ format, blockType = 'type', children }: { format: CustomE
         const isList = LIST_TYPES.includes(format as ListType)
 
         Transforms.unwrapNodes(editor, {
-            match: n => Node.isElement(n) && LIST_TYPES.includes(n.type as ListType) && !TEXT_ALIGN_TYPES.includes(format as AlignType),
+            match: n => Node.isElement(n) && LIST_TYPES.includes(n.type as ListType),
             split: true,
         })
         const newProperties: Partial<SlateElement> = {}

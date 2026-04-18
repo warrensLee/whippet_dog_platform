@@ -9,11 +9,11 @@ export function renderElement(props: RenderElementProps) {
         return <ol {...props.attributes} className={justify + " list-decimal list-inside"
         }>{props.children}</ol>
     } else if (props.element.type == "heading-one") {
-        return <p {...props.attributes} className={"text-2xl " + justify}>{props.children}</p>
+        return <p {...props.attributes} className={"text-3xl " + justify}>{props.children}</p>
     } else if (props.element.type == "heading-two") {
-        return <p {...props.attributes} className={"text-xl " + justify}>{props.children}</p>
+        return <p {...props.attributes} className={"text-2xl " + justify}>{props.children}</p>
     } else if (props.element.type == "heading-three") {
-        return <p {...props.attributes} className={"text-l " + justify}>{props.children}</p>
+        return <p {...props.attributes} className={"text-xl " + justify}>{props.children}</p>
     } else if (props.element.type == "list-item") {
         return <li {...props.attributes} className={justify}>{props.children}</li >
     }
