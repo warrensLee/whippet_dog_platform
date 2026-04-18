@@ -203,7 +203,8 @@ class Person:
             execute(
                 """
                 UPDATE Person
-                SET FirstName = %s,
+                SET PersonID = %s,
+                    FirstName = %s,
                     LastName = %s,
                     EmailAddress = %s,
                     AddressLineOne = %s,
@@ -224,7 +225,7 @@ class Person:
                 WHERE ID = %s
                 """,
                 (
-                    self.first_name, self.last_name, self.email,
+                    self.person_id, self.first_name, self.last_name, self.email,
                     self.address_line_one, self.address_line_two, self.city, self.state_province,
                     self.zip_code, self.country, self.primary_phone, self.secondary_phone,
                     self.system_role, self.password_hash, self.notes, self.public_notes, self.locked,

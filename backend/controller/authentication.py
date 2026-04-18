@@ -32,45 +32,105 @@ def register():
     if not invite:
         return jsonify({"ok": False, "error": "Invalid or expired invite token"}), 400
 
-    person = Person.from_request_data(data)
+    incoming = Person.from_request_data(data)
 
     if not password:
         return jsonify({"ok": False, "error": "Password is required"}), 400
 
-    if person.email:
+    if incoming.email:
         try:
             valid = email_validator.validate_email(
-                person.email,
+                incoming.email,
                 allow_smtputf8=True,
                 check_deliverability=False
             )
-            person.email = valid.normalized
+            incoming.email = valid.normalized
         except email_validator.EmailNotValidError as e:
             return jsonify({"ok": False, "error": f"Invalid email address: {str(e)}"}), 400
     else:
         return jsonify({"ok": False, "error": "Email is required"}), 400
 
-    if person.email.lower() != invite.email.lower():
+    if incoming.email.lower() != invite.email.lower():
         return jsonify({"ok": False, "error": "Email does not match invite"}), 400
 
-    if not person.system_role:
-        person.system_role = "PUBLIC"
-
-    person.last_edited_by = person.id
-    person.last_edited_at = datetime.now(timezone.utc)
-
-    validation_errors = person.validate()
-    if validation_errors:
-        return jsonify({"ok": False, "error": ", ".join(validation_errors)}), 400
-
-    if Person.exists(person.person_id):
-        return jsonify({"ok": False, "error": "Username already exists"}), 409
-
-    person.set_password(password)
-
     try:
+        # claim existing dummy account
+        if invite.person_id:
+            person = Person.find_by_id(invite.person_id)
+            if not person:
+                return jsonify({"ok": False, "error": "Dummy account does not exist"}), 404
+
+            before_snapshot = person.to_dict()
+
+            # only block username if they are changing it to one that already exists
+            if incoming.person_id and incoming.person_id != person.person_id and Person.exists(incoming.person_id):
+                return jsonify({"ok": False, "error": "Username already exists"}), 409
+
+            person.person_id = incoming.person_id
+            person.first_name = incoming.first_name
+            person.last_name = incoming.last_name
+            person.email = incoming.email
+            person.address_line_one = incoming.address_line_one
+            person.address_line_two = incoming.address_line_two
+            person.city = incoming.city
+            person.state_province = incoming.state_province
+            person.zip_code = incoming.zip_code
+            person.country = incoming.country
+            person.primary_phone = incoming.primary_phone
+            person.secondary_phone = incoming.secondary_phone
+            person.notes = incoming.notes
+            person.public_notes = incoming.public_notes
+
+            if incoming.person_id:
+                person.person_id = incoming.person_id
+
+            if not person.system_role:
+                person.system_role = "PUBLIC"
+
+            person.set_password(password)
+            person.last_edited_by = person.id
+            person.last_edited_at = datetime.now(timezone.utc)
+
+            validation_errors = person.validate()
+            if validation_errors:
+                return jsonify({"ok": False, "error": ", ".join(validation_errors)}), 400
+
+            person.update()
+            invite.mark_used()
+
+            refreshed = Person.find_by_id(person.id)
+            ChangeLog.log(
+                changed_table="Person",
+                record_pk=person.id,
+                operation="UPDATE",
+                changed_by=person.id,
+                source="api/auth/register POST (claim dummy)",
+                before_obj=before_snapshot,
+                after_obj=refreshed.to_dict() if refreshed else person.to_dict(),
+            )
+
+            return jsonify({"ok": True, "claimedDummy": True}), 200
+
+        # normal invite flow
+        person = incoming
+
+        if not person.system_role:
+            person.system_role = "PUBLIC"
+
+        person.last_edited_by = person.id
+        person.last_edited_at = datetime.now(timezone.utc)
+
+        validation_errors = person.validate()
+        if validation_errors:
+            return jsonify({"ok": False, "error": ", ".join(validation_errors)}), 400
+
+        if Person.exists(person.person_id):
+            return jsonify({"ok": False, "error": "Username already exists"}), 409
+
+        person.set_password(password)
         person.save()
         invite.mark_used()
+
         ChangeLog.log(
             changed_table="Person",
             record_pk=person.person_id,
@@ -81,7 +141,7 @@ def register():
             after_obj=person.to_dict(),
         )
 
-        return jsonify({"ok": True}), 201
+        return jsonify({"ok": True, "claimedDummy": False}), 201
 
     except Error as e:
         return handle_error(e, "Database error")
@@ -298,3 +358,40 @@ def change_password():
     person.update()
 
     return jsonify({"ok": True, "message": "Password reset successful"}), 200
+
+@auth_bp.post("/invite-claim-dummy")
+def invite_claim_dummy():
+    current_user = session.get("user") or {}
+    if not current_user.get("PersonID"):
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+    role_title = (current_user.get("SystemRole") or "").strip().upper()
+    if role_title != "ADMIN":
+        return jsonify({"ok": False, "error": "Not authorized"}), 403
+
+    data = request.get_json(silent=True) or {}
+    record_id = data.get("id")
+    email = (data.get("email") or "").strip()
+
+    if not record_id:
+        return jsonify({"ok": False, "error": "ID is required"}), 400
+    if not email:
+        return jsonify({"ok": False, "error": "Email is required"}), 400
+
+    person = Person.find_by_id(record_id)
+    if not person:
+        return jsonify({"ok": False, "error": "Person does not exist"}), 404
+
+    token = secrets.token_urlsafe(32)
+    expires_at = datetime.now(timezone.utc) + timedelta(days=2)
+
+    RegistrationInvite.create(
+        email=email,
+        token=token,
+        expires_at=expires_at,
+        created_by=current_user["ID"],
+        person_id=person.id
+    )
+
+    send_invite_email(email, token)
+    return jsonify({"ok": True, "message": "Invite created successfully"}), 200
