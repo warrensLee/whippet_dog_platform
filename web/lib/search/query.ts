@@ -68,6 +68,6 @@ export async function searchDogs(request: DogSearchRequest): Promise<DogSearchRe
             ? process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
             : "";
 
-    const url = `${base}/api/search?${usp.toString()}`;
+    const url = `${base}/api/dog/search?${usp.toString()}`;
     return fetchJSON<DogSearchResponse>(url);
 }

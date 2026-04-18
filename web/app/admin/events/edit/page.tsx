@@ -376,7 +376,7 @@ function EditEventPage() {
                         </Link>
 
                         <Link
-                            href={`/event?id=${encodeURIComponent(form.meetNumber || meetNumber)}`}
+                            href={`/meet?id=${encodeURIComponent(form.meetNumber || meetNumber)}`}
                             className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
                         >
                             View Event Page

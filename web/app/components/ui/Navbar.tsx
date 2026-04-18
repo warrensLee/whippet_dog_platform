@@ -19,7 +19,6 @@ function UserMenu() {
             Login
         </button>)
     }
-
     return (<div>
         <button onClick={(event: React.MouseEvent<HTMLButtonElement>) => { setMenuAnchor(event.currentTarget); setOpen(true) }} className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] hover:shadow-md transition">
             {user.PersonID} <MenuIcon />
@@ -28,9 +27,10 @@ function UserMenu() {
             style: { width: "auto" },
         }}>
             <MenuItem onClick={() => axios.post("/api/auth/logout").then(() => window.location.href = "/")}>Logout</MenuItem>
-            <MenuItem onClick={() => window.location.href = "/edit/profile"}>Edit Profile</MenuItem>
+            <MenuItem onClick={() => window.location.href = "/edit/profile"}>Edit Information</MenuItem>
             <MenuItem onClick={() => window.location.href = "/change-password"}>Change Password</MenuItem>
-            <MenuItem>View My Dogs</MenuItem>
+            <MenuItem onClick={() => window.location.href = "/owner/?id=" + user.PersonID}>View My Profile</MenuItem>
+            {user.SystemRole === "ADMIN" && <MenuItem onClick={() => window.location.href = "/admin"}>Admin Dashboard</MenuItem>}
         </Menu>
     </div>
     )
@@ -41,15 +41,7 @@ function getSearchType(pathname: string): "dogs" | "events" {
 }
 
 const NavbarContent = () => {
-    const user = useContext(authContext)
-
-    const isAdmin =
-        user !== undefined &&
-        user !== "NotAuthenticated" &&
-        user.SystemRole === "ADMIN";
-
     const pathname = usePathname();
-
     const [searchMenuAnchor, setSearchMenuAnchor] = useState<HTMLElement | null>(null);
     const [searchType, setSearchType] = useState<"dogs" | "events">(getSearchType(pathname));
     const searchParams = useSearchParams();
@@ -101,13 +93,7 @@ const NavbarContent = () => {
                         <SearchBar action={searchType === "dogs" ? "/search/dogs" : "/search/meets"} query={currentQuery} sort={currentSort} roundedLeft={false} />
                     </div>
                 </div>
-                {/* if admin, show a button that directs a user to the dashboard */}
                 <div className="flex items-center gap-3 justify-">
-                    {isAdmin && (
-                        <Link href="/admin" className="rounded-full border border-white/20 bg-white/10 px-6 py-3 font-semibold text-white shadow-sm transition hover:bg-white/15 hover:shadow-md" >
-                            Dashboard
-                        </Link>
-                    )}
                     <UserMenu />
                 </div>
             </div>

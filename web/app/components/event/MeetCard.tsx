@@ -38,7 +38,7 @@ export default function MeetCard({
           {/* Meet number badge */}
           <div className="shrink-0 rounded-lg bg-[#2E6B3F]/10 px-2.5 py-1.5">
             <Link
-              href={`/event?meetNumber=${encodeURIComponent(meet.MeetNumber)}`}
+              href={`/meet?id=${encodeURIComponent(meet.MeetNumber)}`}
               className="font-semibold text-[#12301D] hover:text-[#2E6B3F] hover:underline"
             >
               #{meet.MeetNumber}

@@ -8,7 +8,6 @@ import Loading from "@/lib/loading";
 import RichTextViewer from "@/lib/richtext/RichTextViewer";
 import authContext from "@/lib/auth/auth";
 import RichTextEditor from "@/lib/richtext/RichTextEditor";
-import { last } from "slate";
 class ownedDog {
     name: string
     id: number
@@ -117,7 +116,7 @@ function Owner() {
                     {!editingProfile && <RichTextViewer text={publicNotes} />}
                     {editingProfile && <RichTextEditor style={{}} onChange={setPublicNotes} value={publicNotes} />}
                     {editingProfile && <Button variant="contained" color="success" onClick={handleSaveNotes} fullWidth>Save </Button>}
-                    {!editingProfile && user != undefined && user != "NotAuthenticated" && user.PersonID == params.get("id") && <Button variant="contained" color="success" onClick={(s) => setEditingProfile(true)} >Edit Profile</Button>}
+                    {!editingProfile && user != undefined && user != "NotAuthenticated" && user.PersonID == params.get("id") && <Button variant="contained" color="success" onClick={() => setEditingProfile(true)} >Edit Profile</Button>}
                 </div>
             </section>
         </main >

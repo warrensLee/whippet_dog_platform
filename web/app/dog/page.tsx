@@ -138,7 +138,7 @@ function DogPage() {
         topContent={
           <div className="mb-2 mt-16 flex flex-wrap justify-center gap-3">
             <Link
-              href="/search"
+              href="/search/dogs"
               className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
             >
               Back to Search

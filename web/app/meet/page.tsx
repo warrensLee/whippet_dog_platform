@@ -222,7 +222,7 @@ function MeetPage() {
                 topContent={
                     <div className="mt-16 mb-2 flex flex-wrap justify-center gap-3">
                         <Link
-                            href="/search"
+                            href="/search/meets"
                             className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
                         >
                             Back to Search
