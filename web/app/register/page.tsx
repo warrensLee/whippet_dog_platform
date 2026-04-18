@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, Suspense, useState } from "react";
-import { Box, Paper, TextField, Button, Typography, Grid } from "@mui/material";
+import { Box, Paper, TextField, Typography, Grid } from "@mui/material";
 import { useSearchParams } from "next/navigation";
 import PasswordRequirements from "@/lib/passwordRequirements/passwordRequirements";
 
@@ -184,16 +184,13 @@ function RegisterPage() {
             </Typography>
           )}
 
-          <Button
+          <button
             type="submit"
-            variant="contained"
-            color="primary"
-            fullWidth
             disabled={!passwordRequirementsMet}
-            sx={{ mt: 2 }}
+            className="mt-2 rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60 w-full"
           >
             {submitting ? "Registering…" : "Register"}
-          </Button>
+          </button>
 
           <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 2 }}>
             Already have an account?{" "}

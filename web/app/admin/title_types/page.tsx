@@ -16,7 +16,6 @@ import {
   Typography,
   CircularProgress,
   Box,
-  Button,
 } from '@mui/material';
 import HeroSection from '@/app/components/ui/HeroSection';
 import axios from 'axios';
@@ -132,17 +131,16 @@ export default function TitleTypesPage() {
             </Table>
           </TableContainer>
 
-          <Button
-            color="success"
-            sx={{ width: "80%" }}
-            variant="contained"
+          <button
+            type="button"
             onClick={() => {
               setSelectedTitleType(new TitleType());
               setEditDialogOpen(true);
             }}
+            className="mt-2 rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60 w-[80%]"
           >
             Add Title Type
-          </Button>
+          </button>
         </section>
       </main>
     </AuthGuard>

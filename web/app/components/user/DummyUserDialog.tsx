@@ -4,7 +4,6 @@ import React, { useMemo, useState } from 'react';
 import axios, { AxiosError } from 'axios';
 import {
   Alert,
-  Button,
   Dialog,
   DialogActions,
   DialogContent,
@@ -229,17 +228,17 @@ export default function DummyUserDialog({ open, saving, roles, onClose, onSave, 
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={handleClose} disabled={saving}>
+        <button type="button" onClick={handleClose} disabled={saving} className="rounded-full border border-[#12301D]/15 bg-white px-6 py-3 font-semibold text-[#12301D] hover:bg-[#12301D]/5 transition disabled:opacity-60">
           Cancel
-        </Button>
-        <Button
-          variant="contained"
-          color="success"
+        </button>
+        <button
+          type="button"
           onClick={handleCreateDummy}
           disabled={saving}
+          className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60"
         >
           {saving ? 'Creating...' : 'Create Dummy Account'}
-        </Button>
+        </button>
       </DialogActions>
     </Dialog>
   );

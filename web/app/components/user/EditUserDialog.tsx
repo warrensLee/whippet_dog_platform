@@ -2,7 +2,6 @@
 
 import React from 'react';
 import {
-  Button,
   Dialog,
   DialogActions,
   DialogContent,
@@ -166,12 +165,12 @@ export default function EditUserDialog({
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} disabled={saving}>
+        <button type="button" onClick={onClose} disabled={saving} className="rounded-full border border-[#12301D]/15 bg-white px-6 py-3 font-semibold text-[#12301D] hover:bg-[#12301D]/5 transition disabled:opacity-60">
           Cancel
-        </Button>
-        <Button variant="contained" onClick={onSave} disabled={saving}>
+        </button>
+        <button type="button" onClick={onSave} disabled={saving} className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60">
           {saving ? 'Saving...' : 'Save'}
-        </Button>
+        </button>
       </DialogActions>
     </Dialog>
   );

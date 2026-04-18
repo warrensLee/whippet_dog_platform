@@ -2,10 +2,8 @@
 
 import React, { useState } from 'react';
 import axios, { AxiosError } from 'axios';
-import 
-{
+import {
   Alert,
-  Button,
   Dialog,
   DialogActions,
   DialogContent,
@@ -104,17 +102,17 @@ export default function InviteUserDialog({open, saving, onClose, onSave,}: Props
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={handleClose} disabled={saving}>
+        <button type="button" onClick={handleClose} disabled={saving} className="rounded-full border border-[#12301D]/15 bg-white px-6 py-3 font-semibold text-[#12301D] hover:bg-[#12301D]/5 transition disabled:opacity-60">
           Cancel
-        </Button>
-        <Button
-          variant="contained"
-          color="success"
+        </button>
+        <button
+          type="button"
           onClick={handleInvite}
           disabled={saving || !email.trim()}
+          className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60"
         >
           {saving ? 'Sending...' : 'Send Invite'}
-        </Button>
+        </button>
       </DialogActions>
     </Dialog>
   );

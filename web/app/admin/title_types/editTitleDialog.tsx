@@ -5,7 +5,6 @@ import {
     DialogTitle,
     DialogContent,
     DialogActions,
-    Button,
     TextField,
     Box,
 } from '@mui/material';
@@ -114,17 +113,17 @@ const EditTitleTypeDialog = ({
             </DialogContent>
 
             <DialogActions>
-                <Button onClick={onClose} color="inherit">
+                <button type="button" onClick={onClose} className="rounded-full border border-[#12301D]/15 bg-white px-6 py-3 font-semibold text-[#12301D] hover:bg-[#12301D]/5 transition">
                     Cancel
-                </Button>
+                </button>
 
-                <Button
-                    color="success"
+                <button
+                    type="button"
                     onClick={handleSave}
-                    variant="contained"
+                    className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition"
                 >
                     {isEditMode ? "Save Changes" : "Add Title Type"}
-                </Button>
+                </button>
             </DialogActions>
         </Dialog>
     );

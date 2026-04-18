@@ -1,6 +1,7 @@
 'use client'
 import HeroSection from "@/app/components/ui/HeroSection";
-import { Box, Button, Chip, Paper, Typography } from "@mui/material";
+import { Box, Chip, Paper, Typography } from "@mui/material";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useContext, useEffect, useState } from "react";
 import axios from "axios";
@@ -40,7 +41,7 @@ function DogCard({ dog }: { dog: ownedDog }) {
                     {dog.titles.map((title: string) => <Chip sx={{ m: 1, p: 1 }} key={title} label={title} />)}
                 </div>
             </Box>
-            <Button sx={{ alignSelf: "right" }} href={"/dog?id=" + dog.id} variant="contained" color="success">View Dog</Button>
+            <Link href={"/dog?id=" + dog.id} className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition">View Dog</Link>
         </Paper>
     )
 }
@@ -115,8 +116,8 @@ function Owner() {
                 <div style={{ display: "flex", width: "50%", minWidth: "fit-content", maxWidth: "750px", flexDirection: "column" }} >
                     {!editingProfile && <RichTextViewer text={publicNotes} />}
                     {editingProfile && <RichTextEditor style={{}} onChange={setPublicNotes} value={publicNotes} />}
-                    {editingProfile && <Button variant="contained" color="success" onClick={handleSaveNotes} fullWidth>Save </Button>}
-                    {!editingProfile && user != undefined && user != "NotAuthenticated" && user.PersonID == params.get("id") && <Button variant="contained" color="success" onClick={() => setEditingProfile(true)} >Edit Profile</Button>}
+                    {editingProfile && <button type="button" onClick={handleSaveNotes} className="mt-2 rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60 w-full">Save </button>}
+                    {!editingProfile && user != undefined && user != "NotAuthenticated" && user.PersonID == params.get("id") && <button type="button" onClick={() => setEditingProfile(true)} className="mt-2 rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60 w-full">Edit Profile</button>}
                 </div>
             </section>
         </main >

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import axios, { AxiosError } from 'axios';
 import AuthGuard from '@/lib/auth/authGuard';
 import HeroSection from '@/app/components/ui/HeroSection';
@@ -15,7 +16,6 @@ import {
 import {
   Alert,
   Box,
-  Button,
   Chip,
   CircularProgress,
   FormControl,
@@ -580,16 +580,13 @@ export default function AdminUsersPage() {
         >
           <Box sx={{ width: '95%', maxWidth: '1600px' }}>
             <Box sx={{ mb: 2 }}>
-              <Button
-                fullWidth
-                color="success"
-                variant="contained"
+              <button
+                type="button"
                 onClick={openAddMenu}
-                endIcon={<ArrowDropDownIcon />}
-                sx={{ py: 1.5, fontWeight: 600 }}
+                className="mt-2 rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60 w-full"
               >
                 Add User
-              </Button>
+              </button>
 
               <Menu
                 anchorEl={addMenuAnchor}
@@ -679,17 +676,17 @@ export default function AdminUsersPage() {
                 </Select>
               </FormControl>
 
-              <Button
-                variant="outlined"
+              <button
+                type="button"
                 onClick={() => {
                   setSearch('');
                   setRoleFilter('all');
                   setStatusFilter('all');
                 }}
-                sx={{ minWidth: 140 }}
+                className="rounded-full border border-[#12301D]/15 bg-white px-6 py-3 font-semibold text-nowrap text-[#12301D] hover:bg-[#12301D]/5 transition"
               >
                 Clear Filters
-              </Button>
+              </button>
             </Box>
 
             <TableContainer component={Paper}>
@@ -791,15 +788,14 @@ export default function AdminUsersPage() {
 
                               <Tooltip title={lockDisabledReason}>
                                 <span>
-                                  <Button
-                                    variant="contained"
-                                    color={user.locked ? "success" : "warning"}
+                                  <button
+                                    type="button"
+                                    className="rounded-full bg-orange-500 px-6 py-3 font-semibold text-white shadow-sm hover:bg-orange-700 transition disabled:opacity-60 w-full"
                                     disabled={!!lockDisabledReason}
                                     onClick={() => handleToggleLock(user)}
-                                    size="small"
                                   >
                                     {user.locked ? "Unlock" : "Lock"}
-                                  </Button>
+                                  </button>
                                 </span>
                               </Tooltip>
                             </Stack>

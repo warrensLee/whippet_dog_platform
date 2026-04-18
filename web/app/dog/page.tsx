@@ -18,7 +18,7 @@ import { formatDate } from "../../lib/ui/formatDate";
 import { TITLE_FAMILIES } from "../../lib/dog/constants";
 import { ageLabel, calcAgeMonths, getStatusColor } from "../../lib/dog/utils";
 import type { DogDetail, DogOwner, MeetEntry } from "../../lib/dog/types";
-import { Button } from "@mui/material";
+
 import RichTextEditor from "@/lib/richtext/RichTextEditor";
 import RichTextViewer from "@/lib/richtext/RichTextViewer";
 
@@ -235,10 +235,10 @@ function DogPage() {
               {publicNotes && !editingPublicNotes && (
                 <RichTextViewer text={publicNotes} />
               )}
-              {editingPublicNotes && <div><RichTextEditor value={publicNotes} onChange={(v: string) => setPublicNotes(v)} style={{}} /><Button variant="contained" color="success" onClick={savePublicNotes}>Save</Button></div>}
+              {editingPublicNotes && <div><RichTextEditor value={publicNotes} onChange={(v: string) => setPublicNotes(v)} style={{}} /><button type="button" onClick={savePublicNotes} className="mt-2 rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60 w-full">Save</button></div>}
 
               {!editingPublicNotes && user != "NotAuthenticated" && user != undefined && owners.filter((o) => o.PersonID == user.ID).length != 0 && (
-                <Button variant="contained" color="success" onClick={() => setEditingPublicNotes(true)}>Edit Public Notes</Button>
+                <button type="button" onClick={() => setEditingPublicNotes(true)} className="mt-2 rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60 w-full">Edit Public Notes</button>
               )}
             </Card>
           )}

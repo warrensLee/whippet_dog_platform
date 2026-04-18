@@ -17,7 +17,6 @@ import {
   Chip,
   CircularProgress,
   Box,
-  Button,
 } from '@mui/material';
 import HeroSection from '@/app/components/ui/HeroSection';
 import axios from 'axios';
@@ -128,10 +127,10 @@ export default function UserRoles() {
               </TableBody>
             </Table>
           </TableContainer >
-          <Button color="success" sx={{ width: "80%" }} variant="contained" onClick={() => {
+          <button type="button" onClick={() => {
             setSelectedRole(new UserRole())
             setEditDialogOpen(true)
-          }}>Add Role</Button>
+          }} className="bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60 w-[80%]">Add Role</button>
         </section>
       </main >
     </AuthGuard>

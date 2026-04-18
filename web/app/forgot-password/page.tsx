@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Box, Paper, TextField, Button, Typography } from "@mui/material";
+import { Box, Paper, TextField, Typography } from "@mui/material";
 import Turnstile from "@/lib/Turnstile";
 import Link from "next/link";
 
@@ -87,14 +87,13 @@ export default function ForgotPassword() {
 
         {/* Adds loading state for visualization */}
         
-        <Button 
-          type="submit"
-          variant="contained"
-          fullWidth sx={{ mt: 2 }} 
-          disabled={submitting || !identifier.trim() || !token} 
-        >
-          {submitting ? "Sending…" : "Send Reset Link"}
-        </Button>
+        <button
+           type="submit"
+           disabled={submitting || !identifier.trim() || !token}
+           className="mt-2 rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60 w-full"
+         >
+           {submitting ? "Sending…" : "Send Reset Link"}
+         </button>
         <Typography align="center" sx={{ mt: 2, fontSize: 13 }}>
           <Link href="/login" style={{ color: "gray" }}>
             Back to login

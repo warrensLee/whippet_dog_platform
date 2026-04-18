@@ -4,7 +4,6 @@ import {
     DialogTitle,
     DialogContent,
     DialogActions,
-    Button,
     TextField,
     FormControl,
     Select,
@@ -125,10 +124,10 @@ const EditRoleDialog = ({ open, onClose, roleData, onSave }: { open: boolean, on
                 </Grid>
             </DialogContent>
             <DialogActions>
-                <Button onClick={onClose} color="inherit">Cancel</Button>
-                <Button color="success" onClick={handleSave} variant="contained">
+                <button type="button" onClick={onClose} className="rounded-full border border-[#12301D]/15 bg-white px-6 py-3 font-semibold text-[#12301D] hover:bg-[#12301D]/5 transition">Cancel</button>
+                <button type="button" onClick={handleSave} className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition">
                     Save Changes
-                </Button>
+                </button>
             </DialogActions>
         </Dialog>
     );

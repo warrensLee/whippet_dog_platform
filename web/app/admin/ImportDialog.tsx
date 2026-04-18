@@ -5,7 +5,6 @@ import {
   Box,
   Paper,
   Typography,
-  Button,
   FormControl,
   InputLabel,
   Select,
@@ -109,7 +108,7 @@ export default function ImportCSV({ onSuccess, onFail, onCancel }: { onSuccess: 
       </IconButton>
       <Box sx={{ display: "grid", gap: 2 }}>
         <Box sx={{ display: "flex", gap: 2 }}>
-          <Button color="success" variant="contained" component="label">
+          <button type="button" className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition">
             Choose CSV
             <input
               hidden
@@ -117,7 +116,7 @@ export default function ImportCSV({ onSuccess, onFail, onCancel }: { onSuccess: 
               accept=".csv,text/csv"
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             />
-          </Button>
+          </button>
 
           <Typography variant="body2" sx={{ mt: 1 }}>
             {file ? `Selected: ${file.name}` : "No file selected"}
@@ -156,9 +155,9 @@ export default function ImportCSV({ onSuccess, onFail, onCancel }: { onSuccess: 
         </Box>
 
         <Box>
-          <Button fullWidth variant="contained" disabled={!canSubmit} onClick={onSubmit}>
+          <button type="button" disabled={!canSubmit} onClick={onSubmit} className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60 w-full">
             {loading ? "Importing..." : "Upload & Import"}
-          </Button>
+          </button>
           {loading && <CircularProgress size={20} sx={{ ml: 2 }} />}
         </Box>
 

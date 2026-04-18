@@ -4,7 +4,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Box,
-  Button,
   Chip,
   CircularProgress,
   Dialog,
@@ -211,14 +210,14 @@ export default function ChangeLogManager() {
                               <TableCell>{log.changedBy}</TableCell>
                               <TableCell>{formatDate(log.changedAt)}</TableCell>
                               <TableCell align="center">
-                                <Button
-                                  variant="outlined"
-                                  size="small"
-                                  onClick={() => setSelectedLog(log)}
-                                >
-                                  View
-                                </Button>
-                              </TableCell>
+                                 <button
+                                   type="button"
+                                   onClick={() => setSelectedLog(log)}
+                                   className="rounded-full border border-[#12301D]/15 bg-white px-4 py-1.5 text-sm font-semibold text-[#12301D] hover:bg-[#12301D]/5 transition"
+                                 >
+                                   View
+                                 </button>
+                               </TableCell>
                             </TableRow>
                           );
                         })}

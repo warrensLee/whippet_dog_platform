@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import AuthGuard from "@/lib/auth/authGuard";
 import HeroSection from "../components/ui/HeroSection";
-import { Alert, Button, Dialog, Paper, Snackbar, Typography } from "@mui/material";
+import { Alert, Dialog, Paper, Snackbar, Typography } from "@mui/material";
 import axios from "axios";
 import ImportCsvPage from "./ImportDialog";
 
@@ -13,9 +14,6 @@ const panelStyle = {
   p: 2,
 }
 
-const buttonStyle = {
-  m: 1
-}
 export default function Admin() {
 
   const [dogCount, setDogCount] = useState()
@@ -99,25 +97,29 @@ export default function Admin() {
         >
           <Paper sx={panelStyle}>
             <Typography variant="h4">{dogCount} Dogs</Typography>
-            <Button sx={buttonStyle} href="/admin/dogs" variant="contained" color="success">Manage Dogs</Button>
-            <Button href="/admin/title_types" variant="contained" color="success">Manage Titles</Button>
+            <div className="flex flex-column">
+              <Link href="/admin/dogs" className="block rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Manage Dogs</Link>
+              <Link href="/admin/title_types" className="block rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Manage Titles</Link>
+            </div>
           </Paper>
           <Paper sx={panelStyle}>
             <Typography variant="h4">{peopleCount} People</Typography>
-            <Button sx={buttonStyle} href="/admin/users" variant="contained" color="success">Manage Users</Button>
-            <Button sx={buttonStyle} href="/admin/user_roles" variant="contained" color="success">Manage User Roles</Button>
+            <div className="flex flex-column">
+              <Link href="/admin/users" className="block rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Manage Users</Link>
+              <Link href="/admin/user_roles" className="block rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Manage User Roles</Link>
+            </div>
           </Paper>
           <Paper sx={panelStyle}>
             <Typography variant="h4">{meetCount} Events</Typography>
-            <Button sx={buttonStyle} href="/admin/events" variant="contained" color="success">Manage Events</Button>
+            <Link href="/admin/events" className="block rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Manage Events</Link>
           </Paper>
           <Paper sx={panelStyle}>
             <Typography variant="h4">Database</Typography>
-            <Button sx={buttonStyle} href="/admin/history" variant="contained" color="success">View history</Button>
-            <Button sx={buttonStyle} onClick={() => setImportDialogOpen(true)} variant="contained" color="success">Import Records</Button>
-            <Button sx={buttonStyle} variant="contained" color="success" onClick={dumpDB}>Download Dump</Button>
+            <Link href="/admin/history" className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">View history</Link>
+            <button type="button" onClick={() => setImportDialogOpen(true)} className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Import Records</button>
+            <button type="button" onClick={dumpDB} className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Download Dump</button>
             <input id="restoreFileInput" style={{ display: "none" }} type="file" accept=".sql.zst" onChange={restoreDB} />
-            <Button sx={buttonStyle} variant="contained" color="success" onClick={() => document.getElementById("restoreFileInput")!.click()}>Restore</Button>
+            <button type="button" onClick={() => document.getElementById("restoreFileInput")!.click()} className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Restore</button>
           </Paper>
 
         </section>

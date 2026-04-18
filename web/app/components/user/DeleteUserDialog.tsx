@@ -1,9 +1,7 @@
 'use client';
 
 import React from 'react';
-import 
-{
-  Button,
+import {
   Dialog,
   DialogActions,
   DialogContent,
@@ -51,17 +49,17 @@ export default function DeleteUserDialog(
         </Typography>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} disabled={saving}>
+        <button type="button" onClick={onClose} disabled={saving} className="rounded-full border border-[#12301D]/15 bg-white px-6 py-3 font-semibold text-[#12301D] hover:bg-[#12301D]/5 transition disabled:opacity-60">
           Cancel
-        </Button>
-        <Button
+        </button>
+        <button
+          type="button"
           onClick={onDelete}
-          color="error"
-          variant="contained"
           disabled={saving}
+          className="rounded-full border border-red-200 bg-red-50 px-5 py-2.5 text-sm font-semibold text-red-700 hover:bg-red-100 transition disabled:opacity-50"
         >
           {saving ? 'Deleting...' : 'Delete User'}
-        </Button>
+        </button>
       </DialogActions>
     </Dialog>
   );

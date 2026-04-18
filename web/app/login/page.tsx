@@ -1,6 +1,6 @@
 "use client"
 import { useState } from "react";
-import { Box, Paper, TextField, Button, Typography } from '@mui/material';
+import { Box, Paper, TextField, Typography } from '@mui/material';
 import Turnstile from "@/lib/Turnstile";
 import Link from "next/link";
 
@@ -101,17 +101,13 @@ export default function LoginPage() {
           />
           <Typography color="red">{message}</Typography>
           <Turnstile onSuccess={(hi: string) => setToken(hi)} />
-          <Button
+          <button
             type="submit"
-            variant="contained"
-            color="success"
-            fullWidth
-            sx={{ mt: 2 }}
             disabled={submitting || !token || !username.trim() || !password}
+            className="mt-2 rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60 w-full"
           >
-            {/* Adds loading state for visualization */}
             {submitting ? "Logging in..." : "Login"}
-          </Button>
+          </button>
           <Typography align="center" sx={{ mt: 2, fontSize: 13 }}>
             {/* Utilize the Link component for internal navigation */}
             <Link href="/forgot-password" style={{ color: "gray" }}>

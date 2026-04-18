@@ -1,7 +1,7 @@
 
 'use client'
 import React, { useEffect, useState } from 'react';
-import { TextField, Button, Grid, Box, Typography, MenuItem, Paper, Snackbar, Alert } from '@mui/material';
+import { TextField, Grid, Box, Typography, MenuItem, Paper, Snackbar, Alert } from '@mui/material';
 import { getNames } from 'country-list';
 import parsePhoneNumber from 'libphonenumber-js'
 import axios from 'axios';
@@ -162,9 +162,9 @@ export default function ProfileForm() {
                                     }
                                 }}
                             />
-                            <Button fullWidth variant="contained" color="success" onClick={handleSave}>
+                            <button type="button" onClick={handleSave} className="mt-2 rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60 w-full">
                                 Save
-                            </Button>
+                            </button>
                         </Box>
                     </Paper>
                 </section>
