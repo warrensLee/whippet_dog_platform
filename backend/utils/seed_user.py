@@ -12,9 +12,6 @@ SYSTEM_ROLE = os.getenv("SEED_ADMIN_ROLE", "ADMIN")
 
 def seed_user():
     existing = len(Person.list_all_persons()) > 0
-    if existing:
-        print(f"Admin already exists: {existing.person_id} ({existing.email})")
-        return
 
     person = Person(
          id=None,
