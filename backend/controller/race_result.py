@@ -113,10 +113,47 @@ def register_race_result():
     if validation_errors:
         return jsonify({"ok": False, "error": ", ".join(validation_errors)}), 400
 
-    if RaceResult.exists(race_result.meet_number, race_result.program, race_result.race_number, race_result.cwa_number):
+    if RaceResult.exists(
+        race_result.meet_number,
+        race_result.cwa_number,
+        race_result.program,
+        race_result.race_number
+    ):
         return jsonify({"ok": False, "error": "Race result already exists"}), 409
 
     try:
+        dog = Dog.find_by_identifier(race_result.cwa_number)
+        if not dog:
+            return jsonify({"ok": False, "error": "Dog does not exist"}), 404
+
+        race_rows = _get_race_entries(
+            race_result.meet_number,
+            race_result.program,
+            race_result.race_number
+        )
+
+        cwa_numbers = [row.get("CWANumber") for row in race_rows if row.get("CWANumber")]
+        if race_result.cwa_number not in cwa_numbers:
+            cwa_numbers.append(race_result.cwa_number)
+
+        count_adults = race_result.count_num_adult_whippets(cwa_numbers)
+        dpc_distribution = race_result.get_dpc_point_distribution(count_adults)
+
+        placement = str(race_result.placement).strip().upper() if race_result.placement is not None else ""
+
+        race_result.meet_points = race_result.get_placement_points(placement)
+        race_result.aom_earned = 0.5 if placement == "AOM" else 0.0
+        race_result.dpc_points = 0.0
+
+        if placement.isdigit():
+            placement_num = int(placement)
+            if (
+                placement_num <= len(dpc_distribution)
+                and not dog.is_dpc()
+                and not dog.is_akc_or_ckc()
+            ):
+                race_result.dpc_points = dpc_distribution[placement_num - 1]
+
         race_result.save()
 
         ChangeLog.log(
@@ -131,7 +168,7 @@ def register_race_result():
 
         _sync_after_race_change(race_result.meet_number, race_result.cwa_number, editor_id, now)
 
-        return jsonify({"ok": True}), 201
+        return jsonify({"ok": True, "data": race_result.to_dict()}), 201
 
     except Error as e:
         return handle_error(e, "Database error")

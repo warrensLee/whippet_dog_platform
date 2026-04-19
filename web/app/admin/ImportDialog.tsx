@@ -108,7 +108,7 @@ export default function ImportCSV({ onSuccess, onFail, onCancel }: { onSuccess: 
       </IconButton>
       <Box sx={{ display: "grid", gap: 2 }}>
         <Box sx={{ display: "flex", gap: 2 }}>
-          <button type="button" className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition">
+          <label className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition cursor-pointer">
             Choose CSV
             <input
               hidden
@@ -116,8 +116,7 @@ export default function ImportCSV({ onSuccess, onFail, onCancel }: { onSuccess: 
               accept=".csv,text/csv"
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             />
-          </button>
-
+          </label>            
           <Typography variant="body2" sx={{ mt: 1 }}>
             {file ? `Selected: ${file.name}` : "No file selected"}
           </Typography>

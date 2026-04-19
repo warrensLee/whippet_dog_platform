@@ -166,7 +166,7 @@ class CsvImporter:
 
         if import_type == "meet_results":
             yn = lambda v: "1" if (v or "").strip().upper() in ("1", "YES", "Y", "TRUE") else "0"
-            for field in ["arxEarned", "narxEarned", "shown", "dpcLeg", "hcLegEarned"]:
+            for field in ["shown", "dpcLeg", "hcLegEarned"]:
                 payload[field] = yn(payload.get(field))
             if payload.get("shown") == "0":
                 payload["showPlacement"] = payload.get("showPlacement") or "0"
