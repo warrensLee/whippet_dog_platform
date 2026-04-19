@@ -746,7 +746,7 @@ class Dog:
         """Recalculate dog stats from all meet results"""
         if not self.cwa_number:
             return
-        
+
         stats = fetch_one("""
             SELECT 
                 SUM(MeetPoints) as total_meet_points,
@@ -755,20 +755,51 @@ class Dog:
                 SUM(ShowPoints) as total_show_points,
                 SUM(DPCLeg) as total_dpc_legs,
                 SUM(CASE WHEN MeetPlacement = 1 THEN 1 ELSE 0 END) as meet_wins,
-                COUNT(*) as meet_appearances
-            FROM MeetResults
+                COUNT(*) as meet_appearances,
+                SUM(AOMEarned) as total_aom_earned            FROM MeetResults
             WHERE CWANumber = %s
         """, (self.cwa_number,))
-        
+
+        hc_wins_row = fetch_one("""
+            SELECT COUNT(*) as hc_wins
+            FROM MeetResults mr
+            WHERE mr.CWANumber = %s
+            AND mr.MeetPlacement IS NOT NULL
+            AND mr.ConformationPlacement IS NOT NULL
+            AND mr.MeetPlacement + mr.ConformationPlacement = (
+                SELECT MIN(inner_mr.MeetPlacement + inner_mr.ConformationPlacement)
+                FROM MeetResults inner_mr
+                WHERE inner_mr.MeetNumber = mr.MeetNumber
+                    AND inner_mr.MeetPlacement IS NOT NULL
+                    AND inner_mr.ConformationPlacement IS NOT NULL
+            )
+            AND mr.MeetPlacement = (
+                SELECT MIN(inner_mr.MeetPlacement)
+                FROM MeetResults inner_mr
+                WHERE inner_mr.MeetNumber = mr.MeetNumber
+                    AND inner_mr.MeetPlacement IS NOT NULL
+                    AND inner_mr.ConformationPlacement IS NOT NULL
+                    AND inner_mr.MeetPlacement + inner_mr.ConformationPlacement = (
+                        SELECT MIN(inner2.MeetPlacement + inner2.ConformationPlacement)
+                        FROM MeetResults inner2
+                        WHERE inner2.MeetNumber = mr.MeetNumber
+                        AND inner2.MeetPlacement IS NOT NULL
+                        AND inner2.ConformationPlacement IS NOT NULL
+                    )
+            )
+        """, (self.cwa_number,))
+
         if stats:
-            self.average = self.compute_last_three_meet_average()
-            self.meet_points = float(self.meet_points or 0) + float(stats['total_meet_points'] or 0)
-            self.arx_points  = float(self.arx_points  or 0) + float(stats['total_arx'] or 0)
-            self.narx_points = float(self.narx_points or 0) + float(stats['total_narx'] or 0)
-            self.show_points = int(self.show_points  or 0) + int(stats['total_show_points'] or 0)
-            self.dpc_legs    = int(self.dpc_legs     or 0) + int(stats['total_dpc_legs'] or 0)
-            self.meet_appearences = int(self.meet_appearences or 0) + int(stats['meet_appearances'] or 0)
-            self.meet_wins = float(self.meet_wins or 0) + float(stats['meet_wins'] or 0)
+            self.average            = self.compute_last_three_meet_average()
+            self.meet_points        = float(stats['total_meet_points'] or 0)
+            self.arx_points         = float(stats['total_arx'] or 0)
+            self.narx_points        = float(stats['total_narx'] or 0)
+            self.show_points        = int(stats['total_show_points'] or 0)
+            self.dpc_legs           = int(stats['total_dpc_legs'] or 0)
+            self.meet_appearences   = int(stats['meet_appearances'] or 0)
+            self.meet_wins          = int(stats['meet_wins'] or 0)
+            self.high_combined_wins = int((hc_wins_row or {}).get('hc_wins') or 0)
+            self.aom_earned         = int(stats['total_aom_earned'] or 0)
             self.update()
 
     def get_owner_emails(self):
