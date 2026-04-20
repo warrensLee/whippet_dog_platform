@@ -756,7 +756,8 @@ class Dog:
                 SUM(DPCLeg) as total_dpc_legs,
                 SUM(CASE WHEN MeetPlacement = 1 THEN 1 ELSE 0 END) as meet_wins,
                 COUNT(*) as meet_appearances,
-                SUM(AOMEarned) as total_aom_earned            FROM MeetResults
+                SUM(AOMEarned) as total_aom_earned            
+            FROM MeetResults
             WHERE CWANumber = %s
         """, (self.cwa_number,))
 

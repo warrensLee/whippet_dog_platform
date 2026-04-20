@@ -286,39 +286,66 @@ class CsvImporter:
                 if not dog:
                     continue
 
-                before_row = fetch_one(
-                    "SELECT COALESCE(SUM(MeetPoints),0) AS total "
-                    "FROM MeetResults WHERE CWANumber=%s",
-                    (cwa,),
-                ) or {}
-                old_total = float(before_row.get("total") or 0)
+                # Create meet result record if it doesn't exist yet
+                meet_result = MeetResult.from_request_data({
+                    "meetNumber": meet,
+                    "cwaNumber": cwa,
+                    "average": "0.00",
+                    "grade": dog.current_grade or "FTE",
+                    "meetPlacement": "0",
+                    "conformationPlacement": "0",
+                    "matchPoints": "0",
+                    "meetPoints": "0.00",
+                    "arxEarned": "0.00",
+                    "narxEarned": "0.00",
+                    "shown": "0",
+                    "showPlacement": "0",
+                    "showPoints": "0",
+                    "dpcLeg": "0",
+                    "hcScore": "0",
+                    "hcLegEarned": "0",
+                    "aomEarned": "0.00",
+                    "dpcPoints": "0.00",
+                })
+                meet_result.last_edited_by = editor_id
+                meet_result.last_edited_at = now
+                errors = meet_result.validate()
+                meet_result.save()
 
                 meet_result = MeetResult.find_by_identifier(meet, cwa)
-                if meet_result:
-                    before_snapshot = meet_result.to_dict() if hasattr(meet_result, "to_dict") else None
-                    meet_result.update_from_race_results()
-                    after = MeetResult.find_by_identifier(meet, cwa)
-                    after_snapshot = after.to_dict() if after and hasattr(after, "to_dict") else None
-
+                if not meet_result:
+                    meet_result = MeetResult.from_request_data({ ... })
+                    meet_result.last_edited_by = editor_id
+                    meet_result.last_edited_at = now
+                    meet_result.save()
                     ChangeLog.log(
                         changed_table="MeetResults",
                         record_pk=f"cwaNumber={cwa}|meetNumber={meet}",
-                        operation="UPDATE",
+                        operation="INSERT",
                         changed_by=editor_id,
                         source="api/import POST",
-                        before_obj=before_snapshot,
-                        after_obj=after_snapshot,
+                        before_obj=None,
+                        after_obj=meet_result.to_dict() if hasattr(meet_result, "to_dict") else None,
                     )
 
-                after_row = fetch_one(
-                    "SELECT COALESCE(SUM(MeetPoints),0) AS total "
-                    "FROM MeetResults WHERE CWANumber=%s",
-                    (cwa,),
-                ) or {}
-                new_total = float(after_row.get("total") or 0)
-                dog.meet_points = float(dog.meet_points or 0) - old_total + new_total
-                dog.update()
+                # Now recalculate meet result from race results
+                before_snapshot = meet_result.to_dict() if hasattr(meet_result, "to_dict") else None
+                meet_result.update_from_race_results()
+                after = MeetResult.find_by_identifier(meet, cwa)
+                after_snapshot = after.to_dict() if after and hasattr(after, "to_dict") else None
 
+                ChangeLog.log(
+                    changed_table="MeetResults",
+                    record_pk=f"cwaNumber={cwa}|meetNumber={meet}",
+                    operation="UPDATE",
+                    changed_by=editor_id,
+                    source="api/import POST",
+                    before_obj=before_snapshot,
+                    after_obj=after_snapshot,
+                )
+
+                # Recalculate dog stats and titles
+                dog.update_from_meet_results()
                 DogTitle.sync_titles_for_dog(dog, editor_id, now)
 
             else:

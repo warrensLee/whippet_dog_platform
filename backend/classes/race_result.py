@@ -7,6 +7,9 @@ TODO:
 from database import fetch_all, fetch_one, execute
 from mysql.connector import Error
 from classes.dog import Dog
+import math
+from database import fetch_one, fetch_all
+from datetime import datetime, timezone
 
 class RaceResult:
 
@@ -261,7 +264,8 @@ class RaceResult:
             return [4, 2]
         elif count_adults >= 10:
             return [3, 1]
-        
+        return []
+
     def get_placement_points(self, placement):
         '''Add points for a single placement'''
         if placement == "1":
@@ -275,6 +279,208 @@ class RaceResult:
         elif placement == "AOM":
             return 0.5
         return 0
+
+    def completed_all_4_programs_for_arx(self):
+        """Dog must complete all 4 programs with no incident in this meet."""
+        rows = fetch_all("""
+            SELECT Program, Incident
+            FROM RaceResults
+            WHERE MeetNumber = %s AND CWANumber = %s
+        """, (self.meet_number, self.cwa_number)) or []
+
+        programs = set()
+        for row in rows:
+            program = str(row.get("Program") or "").strip()
+            incident = str(row.get("Incident") or "").strip()
+            if incident:
+                return False
+            if program:
+                programs.add(program)
+        return len(programs) == 4
+
+    def _get_arx_narx_eligibility(self, meet_placement):
+        """Shared eligibility check for ARX/NARX. Returns (eligible, meet_placement) tuple."""
+        dog = Dog.find_by_identifier(self.cwa_number)
+        if not dog or not dog.is_adult():
+            return False, 0
+
+        if not self.completed_all_4_programs_for_arx():
+            return False, 0
+
+        rows = fetch_all("""
+            SELECT DISTINCT CWANumber FROM RaceResults WHERE MeetNumber = %s
+        """, (self.meet_number,)) or []
+
+        cwa_numbers = [r["CWANumber"] for r in rows if r.get("CWANumber")]
+        adult_starts = self.count_num_adult_whippets(cwa_numbers)
+        if adult_starts <= 0:
+            return False, 0
+
+        cutoff = math.ceil(adult_starts / 2)
+
+        try:
+            meet_placement = int(meet_placement or 0)
+        except (TypeError, ValueError):
+            return False, 0
+
+        in_top_half = meet_placement > 0 and meet_placement <= cutoff
+        return in_top_half, meet_placement
+
+    def calculate_arx_earned(self, meet_placement):
+        dog = Dog.find_by_identifier(self.cwa_number)
+        if not dog or not dog.is_adult():
+            return 0
+
+        if "ARX" in dog.check_arx_titles():
+            return 0
+
+        eligible, _ = self._get_arx_narx_eligibility(meet_placement)
+        return 1 if eligible else 0
+
+    def calculate_narx_earned(self, meet_placement):
+        """NARX earned same as ARX but always passes even if dog already has NARX titles."""
+        eligible, _ = self._get_arx_narx_eligibility(meet_placement)
+        return 1 if eligible else 0
+
+    @classmethod
+    def calculate_dpc_leg_for_meet(cls, meet_number):
+        rows = fetch_all("""
+            SELECT *
+            FROM MeetResults
+            WHERE MeetNumber = %s
+        """, (meet_number,)) or []
+
+        from classes.meet_result import MeetResult
+        results = [MeetResult.from_db_row(r) for r in rows]
+
+        shown_results = [
+            r for r in results
+            if str(r.conformation_placement).strip().isdigit()
+        ]
+
+        total_shown = len(shown_results)
+
+        winner_cwa = None
+        if total_shown >= 2:
+            shown_results.sort(key=lambda r: int(r.conformation_placement))
+
+            for r in shown_results:
+                dog = Dog.find_by_identifier(r.cwa_number)
+                if not dog:
+                    continue
+
+                placement = int(r.conformation_placement)
+                if placement >= total_shown:
+                    continue
+
+                titles = set(dog.check_titles() or [])
+
+                is_champion = bool(
+                    getattr(dog, "akc_champion", False) or
+                    getattr(dog, "ckc_champion", False) or
+                    getattr(dog, "is_akc_champion", False) or
+                    getattr(dog, "is_ckc_champion", False)
+                )
+
+                if is_champion or "DPC" in titles or "DPCX" in titles:
+                    continue
+
+                winner_cwa = r.cwa_number
+                break
+
+        for r in results:
+            r.dpc_leg = 1 if r.cwa_number == winner_cwa else 0
+            r.update()
+
+    def calculate_hc_score(self):
+        """
+        HC score = sum of numeric race placements for this dog in this meet.
+        Dog must be adult, complete all 4 programs, and have no incident.
+        Lower HC score is better.
+        """
+        dog = Dog.find_by_identifier(self.cwa_number)
+        if not dog or not dog.is_adult():
+            return 0
+
+        if not self.completed_all_4_programs_for_arx():
+            return 0
+
+        rows = fetch_all("""
+            SELECT Placement
+            FROM RaceResults
+            WHERE MeetNumber = %s AND CWANumber = %s
+        """, (self.meet_number, self.cwa_number)) or []
+
+        score = 0
+        count = 0
+
+        for row in rows:
+            placement = str(row.get("Placement") or "").strip().upper()
+
+            if placement.isdigit():
+                score += int(placement)
+                count += 1
+            else:
+                return 0
+
+        return score if count == 4 else 0
+    
+    def calculate_hc_score(self, meet_placement, show_placement):
+        """HC score = meet_placement + conformation_placement. Lower is better."""
+        if meet_placement > 0:
+            return  meet_placement + show_placement 
+        return 0
+
+    @classmethod
+    def calculate_hc_leg_for_meet(cls, meet_number):
+        """
+        Set HCScore and HCLegEarned in MeetResults for all dogs in a meet.
+        Lowest eligible HC score gets the HC leg, tiebreaker is lowest meet_placement.
+        """
+        meet_rows = fetch_all("""
+            SELECT *
+            FROM MeetResults
+            WHERE MeetNumber = %s
+        """, (meet_number,)) or []
+
+        if not meet_rows:
+            return
+
+        from classes.meet_result import MeetResult
+        meet_results = [MeetResult.from_db_row(row) for row in meet_rows]
+
+        for mr in meet_results:
+            rr = cls(
+                meet_number=mr.meet_number,
+                cwa_number=mr.cwa_number,
+                program=None, race_number=None, entry_type=None,
+                box=None, placement=None, meet_points=None,
+                aom_earned=None, dpc_points=None, incident=None,
+                last_edited_by=None, last_edited_at=None,
+            )
+            mr.hc_score = rr.calculate_hc_score(mr.meet_placement, mr.show_placement)
+            mr.hc_leg_earned = 0
+
+        eligible = [mr for mr in meet_results if mr.hc_score and mr.hc_score > 0]
+
+        winner_cwa = None
+        if eligible:
+            best_score = min(mr.hc_score for mr in eligible)
+            tied = [mr for mr in eligible if mr.hc_score == best_score]
+            if len(tied) == 1:
+                winner_cwa = tied[0].cwa_number
+            else:
+                tied.sort(key=lambda mr: int(mr.meet_placement or 999))
+                winner_cwa = tied[0].cwa_number
+
+        for mr in meet_results:
+            mr.hc_leg_earned = 1 if mr.cwa_number == winner_cwa else 0
+            mr.update()
+
+        if winner_cwa:
+            dog = Dog.find_by_identifier(winner_cwa)
+            if dog:
+                dog.update_from_meet_results()
 
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""

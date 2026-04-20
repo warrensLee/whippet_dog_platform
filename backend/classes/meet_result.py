@@ -1,5 +1,9 @@
 from database import fetch_all, fetch_one, execute
 from mysql.connector import Error
+from classes.dog import Dog
+from classes.race_result import RaceResult
+from datetime import datetime, timezone
+
 
 class MeetResult:
     
@@ -144,8 +148,8 @@ class MeetResult:
                 "SELECT MeetNumber FROM Meet WHERE MeetNumber = %s LIMIT 1",
                 (self.meet_number,)
             )
-        if not meet_exists:
-            errors.append(f"Meet number '{self.meet_number}' does not exist")
+            if not meet_exists:
+                errors.append(f"Meet number '{self.meet_number}' does not exist")
     
         if self.cwa_number:
             dog_exists = fetch_one(
@@ -283,17 +287,74 @@ class MeetResult:
         return [MeetResult.from_db_row(row) for row in rows]
     
     def update_from_race_results(self):
-        """Recalculate meet_points from RaceResults for this meet+dog"""
-        if not self.meet_number or not self.cwa_number:
+        """Recalculate meet result totals from RaceResults for this meet+dog."""
+        if not self.meet_number or not self.cwa_number: 
             return
 
-        row = fetch_one(
-            "SELECT COALESCE(SUM(MeetPoints), 0) AS total_points FROM RaceResults WHERE MeetNumber = %s AND CWANumber = %s",
-            (self.meet_number, self.cwa_number),
-        ) or {}
+        race_rows = fetch_all("""
+            SELECT Placement, MeetPoints, AOMEarned, DPCPoints
+            FROM RaceResults
+            WHERE MeetNumber = %s AND CWANumber = %s
+        """, (self.meet_number, self.cwa_number)) or []
 
-        self.meet_points = float(self.meet_points or 0) + float(row.get("total_points") or 0)
+        placements = [str(r.get("Placement") or "").strip().upper() for r in race_rows]
+
+        rr = RaceResult(
+            meet_number=self.meet_number,
+            cwa_number=self.cwa_number,
+            program=None, race_number=None, entry_type=None,
+            box=None, placement=None, meet_points=None,
+            aom_earned=None, dpc_points=None, incident=None,
+            last_edited_by=None, last_edited_at=None,
+        )
+
+        self.meet_points = sum(rr.get_placement_points(p) for p in placements)
+        self.aom_earned = sum(float(r.get("AOMEarned") or 0) for r in race_rows)
+        # self.dpc_points = sum(float(r.get("DPCPoints") or 0) for r in race_rows) use dpc distribution
+
+        placement_row = fetch_one("""
+            SELECT placement
+            FROM (
+                SELECT
+                    CWANumber,
+                    RANK() OVER (ORDER BY SUM(MeetPoints) DESC) AS placement
+                FROM RaceResults
+                WHERE MeetNumber = %s
+                GROUP BY CWANumber
+            ) ranked
+            WHERE CWANumber = %s
+        """, (self.meet_number, self.cwa_number)) or {}
+
+        self.meet_placement = int(placement_row.get("placement") or 0)
+
+        cwa_rows = fetch_all("""
+            SELECT DISTINCT CWANumber
+            FROM RaceResults
+            WHERE MeetNumber = %s
+        """, (self.meet_number,)) or []
+
+        cwa_numbers = [r.get("CWANumber") for r in cwa_rows if r.get("CWANumber")]
+        adult_count = rr.count_num_adult_whippets(cwa_numbers)
+        dpc_distribution = rr.get_dpc_point_distribution(adult_count)
+
+        dog = Dog.find_by_identifier(self.cwa_number)
+        if dog and dog.is_adult() and self.meet_placement > 0:
+            idx = self.meet_placement - 1
+            self.dpc_points = dpc_distribution[idx] if 0 <= idx < len(dpc_distribution) else 0
+        else:
+            self.dpc_points = 0
+
+        rr.meet_number = self.meet_number
+        rr.cwa_number = self.cwa_number
+        self.arx_earned = rr.calculate_arx_earned(self.meet_placement)
+        self.narx_earned = rr.calculate_narx_earned(self.meet_placement)
+        self.hc_score = rr.calculate_hc_score(self.meet_placement, self.conformation_placement)
+        
+        self.last_edited_at = datetime.now(timezone.utc)
         self.update()
+
+        RaceResult.calculate_dpc_leg_for_meet(self.meet_number)
+        RaceResult.calculate_hc_leg_for_meet(self.meet_number)
 
     @classmethod
     def list_meets_with_results_for_dog(cls, cwa_number):
