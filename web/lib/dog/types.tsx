@@ -30,6 +30,7 @@ export interface DogDetail {
   foreignNumber?: string | null;
   ytdMatchPoints?: number | null;
   ytdYear?: number | null;
+  kennelClubChampion?: boolean | null;
 }
 
 export interface MeetResult {

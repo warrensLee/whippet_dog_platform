@@ -193,8 +193,9 @@ function DogPage() {
         <div className="mx-auto max-w-4xl space-y-6 px-6">
           <div className="flex flex-wrap gap-6">
             <StatPill label="Completed Meets" value={dog?.meetAppearences ?? "—"} />
-            <StatPill label="Meet Points" value={dog?.meetPoints ?? "—"} accent />
             <StatPill label="Meet Wins" value={dog?.meetWins ?? "—"} />
+            <StatPill label="YTD Match Points" value={dog?.ytdMatchPoints ?? "—"} accent />
+            <StatPill label="High Combined Wins" value={dog?.highCombinedWins ?? "—"} />
           </div>
 
           <div className="grid grid-cols-1 gap-6">
@@ -210,6 +211,7 @@ function DogPage() {
                   <FieldRow label="Current Grade" value={dog.currentGrade} />
                   <FieldRow label="Registered #" value={dog.registeredNumber} />
                   <FieldRow label="Registry Type" value={dog.foreignType} />
+                  <FieldRow label="AKC/CKC Champion" value={dog.kennelClubChampion ? "Yes" : "No"} />
                   <FieldRow label="DNA" value={dog.dna} />
                   <FieldRow label="Sire DNA" value={dog.sireDna} />
                   <FieldRow label="Dam DNA" value={dog.damDna} />
@@ -261,25 +263,25 @@ function DogPage() {
                     {currentYear} YTD
                   </button>
                   <PointBar
-                    label={`Meet Pts (${statsMode === "ytd" ? currentYear + " YTD" : "All Time"})`}
+                    label={`Meet Points (${statsMode === "ytd" ? `${currentYear} YTD` : "All Time"})`}
                     value={dogStats?.total_meet_points ?? 0}
                     max={maxPoints}
                   />
 
                   <PointBar
-                    label={`Match Pts (${statsMode === "ytd" ? currentYear + " YTD" : "All Time"})`}
+                    label={`Match Points (${statsMode === "ytd" ? `${currentYear} YTD` : "All Time"})`}
                     value={dogStats?.total_match_points ?? 0}
                     max={maxPoints}
                   />
 
                   <PointBar
-                    label={`HC Score (${statsMode === "ytd" ? currentYear + " YTD" : "All Time"})`}
+                    label={`High Combined Points (${statsMode === "ytd" ? `${currentYear} YTD` : "All Time"})`}
                     value={dogStats?.total_hc_score ?? 0}
                     max={maxPoints}
                   />
 
                   <PointBar
-                    label="DPC Pts"
+                    label="DPC Points"
                     value={dog?.showPoints ?? 0}
                     max={maxPoints}
                   />
@@ -364,6 +366,16 @@ function DogPage() {
                 ))}
               </div>
             </div>
+          )}
+                    
+          {dog && (
+            <Card title="DPC Progress">
+              <FieldRow label="Historic DPC Legs" value={`${dog.dpcLegs ?? 0} / 5`} />
+              <FieldRow label="DPC Points" value={dog.showPoints ?? 0} />
+              <p className="mt-2 text-xs text-[#12301D]/60">
+                Historic dogs may qualify through DPC legs. Current progression also tracks DPC points.
+              </p>
+            </Card>
           )}
 
           <Card title={`All Titles${titles.length ? ` (${titles.length})` : ""}`}>

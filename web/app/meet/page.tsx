@@ -56,6 +56,8 @@ interface FinalMeetResult {
     arxEarned?: number | string | null;
     narxEarned?: number | string | null;
     incident?: string | null;
+    hcScore?: number | string | null;
+    dpcPoints?: number | string | null;
 }
 
 function normalizeEventDetail(e: Record<string, unknown>): EventDetail {

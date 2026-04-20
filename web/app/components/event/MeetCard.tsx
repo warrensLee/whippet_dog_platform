@@ -97,7 +97,7 @@ export default function MeetCard({
 
                       {r.conformationPlacement != null && (
                         <span className="text-[#12301D]/70">
-                          Conformation:{" "}
+                          Match Placement:{" "}
                           <span className="font-semibold text-[#12301D]">
                             #{r.conformationPlacement}
                           </span>
