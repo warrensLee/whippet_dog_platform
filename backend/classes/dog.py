@@ -867,3 +867,24 @@ class Dog:
             FROM Dog 
         """)
         return stats["COUNT(*)"]
+    
+    @classmethod
+    def get_ytd_match_points(cls, cwa_number: str, year: int | None = None):
+        if year is None:
+            from datetime import datetime
+            year = datetime.now().year
+        
+        row = fetch_one("""
+            SELECT 
+                SUM(MeetPoints) as ytd_match_points
+            FROM MeetResults mr
+            JOIN Meet m ON m.MeetNumber = mr.MeetNumber
+            WHERE mr.CWANumber = %s
+              AND YEAR(m.MeetDate) = %s
+        """, (cwa_number, year)) or {}
+        
+        return {
+            "cwaNumber": cwa_number,
+            "year": year,
+            "ytdMatchPoints": float(row.get("ytd_match_points") or 0)
+        }

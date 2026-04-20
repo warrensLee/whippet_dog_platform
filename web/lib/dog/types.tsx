@@ -28,6 +28,8 @@ export interface DogDetail {
   akcNumber?: string | null;
   ckcNumber?: string | null;
   foreignNumber?: string | null;
+  ytdMatchPoints?: number | null;
+  ytdYear?: number | null;
 }
 
 export interface MeetResult {

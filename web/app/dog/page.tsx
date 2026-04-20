@@ -161,9 +161,8 @@ function DogPage() {
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <StatPill label="Completed Meets" value={dog?.meetAppearences ?? "—"} />
             <StatPill label="Meet Points" value={dog?.meetPoints ?? "—"} accent />
+            <StatPill label="YTD Match Points" value={dog?.ytdMatchPoints ?? "—"} />
             <StatPill label="Meet Wins" value={dog?.meetWins ?? "—"} />
-            <StatPill label="YTD Placement Points" value={dog?.meetWins ?? "—"} />
-            <StatPill label="High Combo Wins" value={dog?.highCombinedWins ?? "—"} />
           </div>
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">

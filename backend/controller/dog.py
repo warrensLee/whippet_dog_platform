@@ -276,7 +276,13 @@ def get_dog(cwa_number):
     role = current_role()
     can_view_private = bool(role and role.edit_dog_scope == UserRole.ALL)
 
-    return jsonify({"ok": True, "data": dog.to_dict(include_private=can_view_private)}), 200
+    ytd_data = Dog.get_ytd_match_points(cwa_number)
+    
+    dog_dict = dog.to_dict(include_private=can_view_private)
+    dog_dict["ytdMatchPoints"] = ytd_data["ytdMatchPoints"]
+    dog_dict["ytdYear"] = ytd_data["year"]
+
+    return jsonify({"ok": True, "data": dog_dict}), 200
 
 @dog_bp.get("/get")
 def list_all_dogs():
