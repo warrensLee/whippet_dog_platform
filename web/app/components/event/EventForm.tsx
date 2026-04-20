@@ -3,6 +3,7 @@
 
 import * as React from "react";
 import type { EventFormValues } from "@/app/admin/events/types";
+import RichTextEditor from "@/lib/richtext/RichTextEditor";
 
 type Props = {
     values: EventFormValues;
@@ -123,34 +124,34 @@ export default function EventForm({
         placeholder?: string;
         type?: string;
     }> = [
-        {
-            label: "Club Abbreviation",
-            field: "clubAbbreviation",
-            placeholder: "AAWC, BWA, CMANYWHIPS, DWC, WINE, SMART, etc.",
-        },
-        {
-            label: "Location",
-            field: "location",
-        },
-        {
-            label: "Meet Date",
-            field: "meetDate",
-            type: "date",
-        },
-        {
-            label: "Race Secretary",
-            field: "raceSecretary",
-        },
-        {
-            label: "Judge",
-            field: "judge",
-        },
-        {
-            label: "Yards",
-            field: "yards",
-            type: "text",
-        },
-    ];
+            {
+                label: "Club Abbreviation",
+                field: "clubAbbreviation",
+                placeholder: "AAWC, BWA, CMANYWHIPS, DWC, WINE, SMART, etc.",
+            },
+            {
+                label: "Location",
+                field: "location",
+            },
+            {
+                label: "Meet Date",
+                field: "meetDate",
+                type: "date",
+            },
+            {
+                label: "Race Secretary",
+                field: "raceSecretary",
+            },
+            {
+                label: "Judge",
+                field: "judge",
+            },
+            {
+                label: "Yards",
+                field: "yards",
+                type: "text",
+            },
+        ];
 
     return (
         <form
@@ -181,22 +182,16 @@ export default function EventForm({
             </div>
 
             <div className="mt-6 space-y-5">
-                <TextAreaField
-                    label="Notes"
-                    field="publicNotes"
-                    value={values.publicNotes}
-                    onChange={onChange}
-                    placeholder="Enter notes for this meet."
-                />
+                <label className="mb-2 block text-sm font-medium text-[#12301D]">
+                    Public Notes
+                </label>
+                <RichTextEditor value={values.publicNotes} style={{}} onChange={(s) => onChange("publicNotes", s)} />
 
                 {canEditPrivateNotes && (
-                    <TextAreaField
-                        label="Private Notes"
-                        field="privateNotes"
-                        value={values.privateNotes}
-                        onChange={onChange}
-                        placeholder="Admin-only notes."
-                    />
+                    <div><label className="mb-2 block text-sm font-medium text-[#12301D]">
+                        Private Notes
+                    </label>
+                        <RichTextEditor value={values.privateNotes} style={{}} onChange={(s) => onChange("privateNotes", s)} /></div>
                 )}
             </div>
 

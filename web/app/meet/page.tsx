@@ -13,6 +13,7 @@ import RaceLineup from "../components/event/RaceLineup";
 import FinalMeetResults from "../components/event/FinalMeetResults";
 import authContext from "@/lib/auth/auth";
 import Loading from "@/lib/loading";
+import RichTextViewer from "@/lib/richtext/RichTextViewer";
 
 /*
     This page is focused on one event/meet record.
@@ -345,7 +346,7 @@ function MeetPage() {
                             <p className="mb-2 text-sm font-semibold text-[#12301D]">Public Notes</p>
 
                             {event.publicNotes ? (
-                                <p className="text-sm text-[#12301D]/70">{event.publicNotes}</p>
+                                <RichTextViewer text={event.publicNotes} />
                             ) : (
                                 <p className="text-sm italic text-[#12301D]/40">No notes available</p>
                             )}
@@ -353,12 +354,12 @@ function MeetPage() {
                             {event.privateNotes && (
                                 <div className="mt-4 border-t pt-3">
                                     <p className="mb-2 text-sm font-semibold text-[#12301D]">Private Notes</p>
-                                    <p className="text-sm text-[#12301D]/70">{event.privateNotes}</p>
+                                    <RichTextViewer text={event.privateNotes} />
                                 </div>
                             )}
                         </Card>
                     )}
-                    
+
 
                     <FinalMeetResults
                         results={finalMeetResults.map((row) => ({

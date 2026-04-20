@@ -574,7 +574,7 @@ function AdminEventsPage() {
                                 </Link>
 
                                 <Link
-                                    href="/search"
+                                    href="/search/meets"
                                     className="rounded-full border border-[#12301D]/15 bg-white px-5 py-2.5 text-sm font-semibold text-[#12301D] hover:bg-[#12301D]/5 transition"
                                 >
                                     View Public Search

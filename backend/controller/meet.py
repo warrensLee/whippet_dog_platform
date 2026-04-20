@@ -14,16 +14,13 @@ from database import fetch_all
 meet_bp = Blueprint("meet", __name__, url_prefix="/api/meet")
 
 
-def _is_meet_owner(meet):
+def _is_meet_owner(meet: Meet):
     person_id = current_editor_id()
     if not person_id or not meet:
         return False
 
-    judge = getattr(meet, "judge", None) or getattr(meet, "Judge", None)
-    race_secretary = (getattr(meet, "race_secretary", None) or getattr(
-        meet, "raceSecretary", None) or getattr(meet, "RaceSecretary", None))
 
-    return (judge) == (person_id) or (race_secretary) == (person_id)
+    return (meet.judge) == (person_id) or (meet.race_secretary) == (person_id)
 
 
 @meet_bp.post("/add")
