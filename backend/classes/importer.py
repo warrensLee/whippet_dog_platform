@@ -286,40 +286,38 @@ class CsvImporter:
                 if not dog:
                     continue
 
-                # Create meet result record if it doesn't exist yet
-                meet_result = MeetResult.from_request_data({
-                    "meetNumber": meet,
-                    "cwaNumber": cwa,
-                    "average": "0.00",
-                    "grade": dog.current_grade or "FTE",
-                    "meetPlacement": "0",
-                    "conformationPlacement": "0",
-                    "matchPoints": "0",
-                    "meetPoints": "0.00",
-                    "arxEarned": "0.00",
-                    "narxEarned": "0.00",
-                    "shown": "0",
-                    "showPlacement": "0",
-                    "showPoints": "0",
-                    "dpcLeg": "0",
-                    "hcScore": "0",
-                    "hcLegEarned": "0",
-                    "aomEarned": "0.00",
-                    "dpcPoints": "0.00",
-                })
-                meet_result.last_edited_by = editor_id
-                meet_result.last_edited_at = now
-                errors = meet_result.validate()
-                if errors:
-                    continue
-                meet_result.save()
-
                 meet_result = MeetResult.find_by_identifier(meet, cwa)
+
                 if not meet_result:
-                    meet_result = MeetResult.from_request_data({ ... })
+                    meet_result = MeetResult.from_request_data({
+                        "meetNumber": meet,
+                        "cwaNumber": cwa,
+                        "average": "0.00",
+                        "grade": dog.current_grade or "FTE",
+                        "meetPlacement": "0",
+                        "conformationPlacement": "0",
+                        "matchPoints": "0",
+                        "meetPoints": "0.00",
+                        "arxEarned": "0.00",
+                        "narxEarned": "0.00",
+                        "shown": "0",
+                        "showPlacement": "0",
+                        "showPoints": "0",
+                        "dpcLeg": "0",
+                        "hcScore": "0",
+                        "hcLegEarned": "0",
+                        "aomEarned": "0.00",
+                        "dpcPoints": "0.00",
+                    })
                     meet_result.last_edited_by = editor_id
                     meet_result.last_edited_at = now
+
+                    errors = meet_result.validate()
+                    if errors:
+                        continue
+
                     meet_result.save()
+
                     ChangeLog.log(
                         changed_table="MeetResults",
                         record_pk=f"cwaNumber={cwa}|meetNumber={meet}",
@@ -330,7 +328,10 @@ class CsvImporter:
                         after_obj=meet_result.to_dict() if hasattr(meet_result, "to_dict") else None,
                     )
 
-                # Now recalculate meet result from race results
+                    meet_result = MeetResult.find_by_identifier(meet, cwa)
+                    if not meet_result:
+                        continue
+
                 before_snapshot = meet_result.to_dict() if hasattr(meet_result, "to_dict") else None
                 meet_result.update_from_race_results()
                 after = MeetResult.find_by_identifier(meet, cwa)
@@ -346,7 +347,6 @@ class CsvImporter:
                     after_obj=after_snapshot,
                 )
 
-                # Recalculate dog stats and titles
                 dog.update_from_meet_results()
                 DogTitle.sync_titles_for_dog(dog, editor_id, now)
 

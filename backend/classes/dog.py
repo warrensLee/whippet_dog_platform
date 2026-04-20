@@ -753,6 +753,7 @@ class Dog:
                 SUM(ARXEarned) as total_arx,
                 SUM(NARXEarned) as total_narx,
                 SUM(ShowPoints) as total_show_points,
+                SUM(DPCPoints) as total_dpc_points,
                 SUM(DPCLeg) as total_dpc_legs,
                 SUM(CASE WHEN MeetPlacement = 1 THEN 1 ELSE 0 END) as meet_wins,
                 COUNT(*) as meet_appearances,
@@ -796,6 +797,7 @@ class Dog:
             self.arx_points         = float(stats['total_arx'] or 0)
             self.narx_points        = float(stats['total_narx'] or 0)
             self.show_points        = int(stats['total_show_points'] or 0)
+            self.dpc_points        = int(stats['total_dpc_legs'] or 0) * 5  
             self.dpc_legs           = int(stats['total_dpc_legs'] or 0)
             self.meet_appearences   = int(stats['meet_appearances'] or 0)
             self.meet_wins          = int(stats['meet_wins'] or 0)
