@@ -413,6 +413,21 @@ export default function DogForm
                     onChange={onChange}
                     className="md:col-span-2"
                 />
+
+                {/* Kennel Club Champion checkbox */}
+                <div className="md:col-span-2">
+                    <div className="flex items-center gap-3">
+                        <input
+                            type="checkbox"
+                            checked={values.kennelClubChampion}
+                            onChange={(e) => onChange("kennelClubChampion", e.target.checked)}
+                            className="h-5 w-5 rounded border-gray-300 text-[#2E6B3F] focus:ring-[#2E6B3F]"
+                        />
+                        <span className="text-sm text-[#12301D]">
+                            Kennel Club Champion
+                        </span>
+                    </div>
+                </div>
             </div>
 
             {/* Public Notes section */}

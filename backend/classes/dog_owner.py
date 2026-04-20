@@ -175,8 +175,8 @@ def list_owner_people_for_dog(cwa_id):
             do.CWAID,
             do.PersonID,
             p.FirstName,
+            p.PersonID AS userID,
             p.LastName,
-            p.EmailAddress,
             do.LastEditedBy,
             do.LastEditedAt
         FROM DogOwner do

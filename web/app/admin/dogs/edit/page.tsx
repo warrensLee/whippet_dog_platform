@@ -57,6 +57,7 @@ type RawDogGetResponse = {
         dna?: string | null;
         sireDna?: string | null;
         damDna?: string | null;
+        kennelClubChampion: boolean;
         meetPoints?: string | null;
         arxPoints?: string | null;
         narxPoints?: string | null;
@@ -94,6 +95,7 @@ function buildFormFromDog(data: NonNullable<RawDogGetResponse["data"]>): DogForm
         narxPoints: normalizeText(data.narxPoints),
         showPoints: normalizeText(data.showPoints),
         dpcLegs: normalizeText(data.dpcLegs),
+        kennelClubChampion: data.kennelClubChampion,
         meetWins: normalizeText(data.meetWins),
         meetAppearences: normalizeText(data.meetAppearences),
         highCombinedWins: normalizeText(data.highCombinedWins),
@@ -124,6 +126,7 @@ function buildEditPayload(form: DogFormValues): DogFormValues {
         narxPoints: form.narxPoints.trim(),
         showPoints: form.showPoints.trim(),
         dpcLegs: form.dpcLegs.trim(),
+        kennelClubChampion: form.kennelClubChampion,
         meetWins: form.meetWins.trim(),
         meetAppearences: form.meetAppearences.trim(),
         highCombinedWins: form.highCombinedWins.trim(),

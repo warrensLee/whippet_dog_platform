@@ -30,6 +30,7 @@ CREATE TABLE `Dog` (
     `DNA` VARCHAR(50),
     `SireDNA` VARCHAR(50),
     `DamDNA` VARCHAR(50),
+    `KennelClubChampion` TINYINT(1) NOT NULL DEFAULT 0,
     `LastEditedBy` INT,
     `LastEditedAt` TIMESTAMP
 );

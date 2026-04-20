@@ -62,7 +62,7 @@ export interface DogOwner {
   PersonID?: string | number;
   FirstName?: string;
   LastName?: string;
-  EmailAddress?: string;
+  UserID: string;
 }
 
 export type TierColor =

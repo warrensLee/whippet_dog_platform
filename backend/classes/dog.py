@@ -16,7 +16,7 @@ class Dog:
     def __init__(self, cwa_number, registered_number, foreign_type, call_name,
                  registered_name, birthdate, pedigree_link, status, average, current_grade, meet_points, arx_points,
                  narx_points, show_points, dpc_legs, meet_wins, meet_appearences, high_combined_wins, aom_earned, public_notes, private_notes, 
-                 dna, sire_dna, dam_dna, last_edited_by=None, last_edited_at=None):
+                 dna, sire_dna, dam_dna, kennel_club_champion=False, last_edited_by=None, last_edited_at=None):
         self.cwa_number = cwa_number
         self.registered_number = registered_number
         self.foreign_type = foreign_type
@@ -41,6 +41,7 @@ class Dog:
         self.dna = dna
         self.sire_dna = sire_dna
         self.dam_dna = dam_dna
+        self.kennel_club_champion = kennel_club_champion
         self.last_edited_by = last_edited_by
         self.last_edited_at = last_edited_at
 
@@ -259,6 +260,7 @@ class Dog:
             dna=(data.get("dna") or "").strip() or None,
             sire_dna=(data.get("sireDna") or "").strip() or None,
             dam_dna=(data.get("damDna") or "").strip() or None,
+            kennel_club_champion=data.get("kennelClubChampion"),
             last_edited_by=data.get("lastEditedBy"),
             last_edited_at=data.get("lastEditedAt")
         )
@@ -293,6 +295,7 @@ class Dog:
             dna=row.get("DNA"),
             sire_dna=row.get("SireDNA"),
             dam_dna=row.get("DamDNA"),
+            kennel_club_champion=bool(row.get("KennelClubChampion")),
             last_edited_by=row.get("LastEditedBy"),
             last_edited_at=row.get("LastEditedAt")
         )
@@ -307,7 +310,7 @@ class Dog:
                     Status, Average, CurrentGrade,
                     MeetPoints, ARXPoints, NARXPoints, ShowPoints,
                     DPCLegs, MeetWins, MeetAppearences, HighCombinedWins, AOMEarned, PublicNotes, PrivateNotes,
-                    DNA, SireDNA, DamDNA, LastEditedBy, LastEditedAt
+                    DNA, SireDNA, DamDNA, KennelClubChampion, LastEditedBy, LastEditedAt
             FROM Dog
             WHERE CWANumber = %s
             LIMIT 1
@@ -563,11 +566,11 @@ class Dog:
                     Status, Average, CurrentGrade,
                     MeetPoints, ARXPoints, NARXPoints, ShowPoints,
                     DPCLegs, MeetWins, MeetAppearences, HighCombinedWins, AOMEarned, PublicNotes, PrivateNotes,
-                    DNA, SireDNA, DamDNA, LastEditedBy, LastEditedAt
+                    DNA, SireDNA, DamDNA, KennelClubChampion, LastEditedBy, LastEditedAt
                 )
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,
                         %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                        %s, %s, %s, %s, %s, %s, %s, %s)
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
                     self.cwa_number,
@@ -594,6 +597,7 @@ class Dog:
                     self.dna,
                     self.sire_dna,
                     self.dam_dna,
+                    self.kennel_club_champion,
                     self.last_edited_by,
                     self.last_edited_at,
                 ),
@@ -631,6 +635,7 @@ class Dog:
                     DNA = %s,
                     SireDNA = %s,
                     DamDNA = %s,
+                    KennelClubChampion = %s,
                     LastEditedBy = %s,
                     LastEditedAt = %s
                 WHERE CWANumber = %s
@@ -659,6 +664,7 @@ class Dog:
                     self.dna,
                     self.sire_dna,
                     self.dam_dna,
+                    self.kennel_club_champion,
                     self.last_edited_by,
                     self.last_edited_at,
                     self.cwa_number
@@ -853,6 +859,7 @@ class Dog:
             "dna": self.dna,
             "sireDna": self.sire_dna,
             "damDna": self.dam_dna,
+            "kennelClubChampion": self.kennel_club_champion,
             "lastEditedBy": self.last_edited_by,
             "lastEditedAt": self.last_edited_at.isoformat() if self.last_edited_at else None
         }

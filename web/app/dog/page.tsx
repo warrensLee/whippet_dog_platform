@@ -254,7 +254,7 @@ function DogPage() {
                   return (
                     <div
                       key={owner.PersonID ?? index}
-                      className="flex items-center gap-4 py-3 first:pt-0 last:pb-0"
+                      className="flex items-center gap-4 py-3 first:pt-0 last:pb-0 align-center"
                     >
                       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#2E6B3F]">
                         <span className="text-sm font-bold text-white">
@@ -267,11 +267,15 @@ function DogPage() {
                           {fullName}
                         </p>
                       </div>
+                      <div className="max-w-fit">
+                        <a className="mt-2 rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60 w-full" href={"/owner?id=" + owner.UserID}>View Owner</a>
+                      </div>
                     </div>
                   );
                 })}
               </div>
-            )}
+            )
+            }
           </Card>
 
           {dog && (
