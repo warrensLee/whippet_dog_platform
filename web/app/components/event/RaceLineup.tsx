@@ -5,16 +5,16 @@ import Link from "next/link";
 import { fetchJson } from "@/lib/ui/fetchJson";
 
 type RaceLineupEntry = {
-  cwaNumber: string;
-  dogName: string;
-  registeredName: string | null;
-  placement: number | null;
-  meetPoints: number | null;
-  aomEarned: number | null;
-  dpcPoints: number | null;
+    cwaNumber: string;
+    dogName: string;
+    registeredName: string | null;
+    placement: number | null;
+    meetPoints: number | null;
+    aomEarned: number | null;
+    dpcPoints: number | null;
 };
 
-type RaceLineup = {
+type RaceLineupDetail = {
     meetNumber: string;
     program: string;
     raceNumber: string;
@@ -23,9 +23,38 @@ type RaceLineup = {
 
 type BaseRace = {
     raceNumber: string | number;
+    displayRaceNumber?: number;
     program?: string;
     entryCount?: number;
 };
+
+function groupEntriesByPlacement(entries: RaceLineupEntry[]) {
+    const groups = new Map<string, RaceLineupEntry[]>();
+
+    for (const entry of entries) {
+        const key = entry.placement != null ? String(entry.placement) : "—";
+
+        if (!groups.has(key)) {
+            groups.set(key, []);
+        }
+
+        groups.get(key)!.push(entry);
+    }
+
+    return Array.from(groups.entries()).sort((a, b) => {
+        const aNum = Number(a[0]);
+        const bNum = Number(b[0]);
+
+        if (!Number.isNaN(aNum) && !Number.isNaN(bNum)) {
+            return aNum - bNum;
+        }
+
+        if (a[0] === "—") return 1;
+        if (b[0] === "—") return -1;
+
+        return a[0].localeCompare(b[0]);
+    });
+}
 
 export default function RaceLineup({
     meetNumber,
@@ -35,20 +64,18 @@ export default function RaceLineup({
     meetNumber: string;
     race: BaseRace;
     currentCwaNumber?: string;
-})
-{
+}) {
     const [open, setOpen] = React.useState(false);
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState("");
-    const [detail, setDetail] = React.useState<RaceLineup | null>(null);
+    const [detail, setDetail] = React.useState<RaceLineupDetail | null>(null);
 
     React.useEffect(() => {
         if (!open || detail) return;
 
         let cancelled = false;
 
-        async function loadRaceLineup()
-        {
+        async function loadRaceLineup() {
             try {
                 setLoading(true);
                 setError("");
@@ -56,7 +83,7 @@ export default function RaceLineup({
                 const raceNumber = encodeURIComponent(String(race.raceNumber));
                 const program = encodeURIComponent(String(race.program ?? ""));
 
-                const res = await fetchJson<{ ok: boolean; data: RaceLineup }>(
+                const res = await fetchJson<{ ok: boolean; data: RaceLineupDetail }>(
                     `/api/race_result/by_race/${encodeURIComponent(meetNumber)}/${program}/${raceNumber}`
                 );
 
@@ -81,6 +108,10 @@ export default function RaceLineup({
         };
     }, [open, detail, meetNumber, race.program, race.raceNumber]);
 
+    const groupedEntries = React.useMemo(() => {
+        return detail ? groupEntriesByPlacement(detail.entries) : [];
+    }, [detail]);
+
     return (
         <div className="overflow-hidden rounded-xl border border-black/8 bg-white/70">
             <button
@@ -90,7 +121,7 @@ export default function RaceLineup({
             >
                 <div>
                     <p className="text-sm font-semibold text-[#12301D]">
-                        Race #{race.raceNumber}
+                        Race #{race.displayRaceNumber ?? race.raceNumber}
                     </p>
                     <p className="mt-1 text-xs text-[#12301D]/55">
                         {race.entryCount ?? 0} entries
@@ -115,56 +146,47 @@ export default function RaceLineup({
                     ) : error ? (
                         <p className="text-xs font-medium text-red-600">{error}</p>
                     ) : detail && detail.entries.length > 0 ? (
-                        <div className="space-y-1.5">
-                            {detail.entries.map((entry) => {
-                                const isCurrentDog = currentCwaNumber != null && entry.cwaNumber === currentCwaNumber;
-                                return (
-                                    <div
-                                    key={`${detail.program}-${detail.raceNumber}-${entry.cwaNumber}`}
-                                    className={`rounded-lg px-3 py-3 text-xs ${
-                                        isCurrentDog
-                                        ? "bg-[#2E6B3F]/10 ring-1 ring-[#2E6B3F]/20"
-                                        : "bg-black/5"
-                                    }`}
-                                    >
-                                    <div className="flex items-start justify-between gap-3">
-                                        <div className="min-w-0">
-                                        <div className="flex flex-wrap items-center gap-2">
-                                            <span className="text-sm font-bold text-[#2E6B3F]">
-                                            #{entry.placement ?? "—"} place
-                                            </span>
-
-                                            <Link
-                                            href={`/dog?id=${encodeURIComponent(entry.cwaNumber)}`}
-                                            className="text-sm font-semibold text-[#12301D] hover:text-[#2E6B3F] hover:underline"
-                                            >
-                                            {entry.dogName}
-                                            </Link>
-
-                                            {isCurrentDog && (
-                                            <span className="rounded-full bg-[#2E6B3F]/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#2E6B3F]">
-                                                This Dog
-                                            </span>
-                                            )}
+                        <div className="space-y-2">
+                            {groupedEntries.map(([placement, entries]) => (
+                                <div
+                                    key={`${detail.program}-${detail.raceNumber}-${placement}`}
+                                    className="rounded-lg bg-black/5 px-3 py-2"
+                                >
+                                    <div className="flex items-start gap-3">
+                                        <div className="min-w-[3rem] text-sm font-bold text-[#2E6B3F]">
+                                            {placement === "—" ? "—" : `#${placement} Place`}
                                         </div>
 
-                                        {entry.registeredName ? (
-                                            <p className="mt-0.5 truncate text-[11px] text-[#12301D]/55">
-                                            {entry.registeredName}
-                                            </p>
-                                        ) : null}
+                                        <div className="min-w-0 flex-1 text-sm text-[#12301D]">
+                                            <div className="flex flex-wrap gap-x-2 gap-y-1">
+                                                {entries.map((entry, index) => {
+                                                    const isCurrentDog =
+                                                        currentCwaNumber != null &&
+                                                        entry.cwaNumber === currentCwaNumber;
 
-                                        <Link
-                                            href={`/dog?id=${encodeURIComponent(entry.cwaNumber)}`}
-                                            className="mt-0.5 inline-block text-[11px] text-[#12301D]/45 hover:text-[#2E6B3F] hover:underline"
-                                        >
-                                            {entry.cwaNumber}
-                                        </Link>
+                                                    return (
+                                                        <React.Fragment key={entry.cwaNumber}>
+                                                            <Link
+                                                                href={`/dog?id=${encodeURIComponent(entry.cwaNumber)}`}
+                                                                className={`hover:underline ${
+                                                                    isCurrentDog
+                                                                        ? "font-bold text-[#2E6B3F]"
+                                                                        : "font-medium text-[#12301D]"
+                                                                }`}
+                                                            >
+                                                                {entry.dogName}
+                                                            </Link>
+                                                            {index < entries.length - 1 ? (
+                                                                <span className="text-[#12301D]/40">,</span>
+                                                            ) : null}
+                                                        </React.Fragment>
+                                                    );
+                                                })}
+                                            </div>
                                         </div>
                                     </div>
-                                    </div>
-                                );
-                            })}
+                                </div>
+                            ))}
                         </div>
                     ) : (
                         <p className="text-xs text-[#12301D]/50">

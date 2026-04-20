@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import axios from "axios";
 
 type DogTitle = {
     title: string;
@@ -16,6 +17,7 @@ type TitleType = {
     lastEditedBy?: string | number | null;
     lastEditedAt?: string | null;
 };
+
 
 const emptyTitleForm: DogTitle = {
     title: "",
@@ -39,6 +41,13 @@ function SectionCard({
             {children}
         </div>
     );
+}
+
+export async function getTitlesInDateRange(start: string, end: string) {
+  const response = await axios.get("/api/dog_title/date-range", {
+    params: { start, end },
+  });
+  return response.data;
 }
 
 export default function DogTitlesSection({ cwaNumber }: { cwaNumber: string }) {

@@ -49,7 +49,14 @@ function DogPage() {
   const [publicNotes, setPublicNotes] = React.useState("")
   const [editingPublicNotes, setEditingPublicNotes] = React.useState(false)
   const user = React.useContext(authContext)
-
+  const [statsMode, setStatsMode] = React.useState<"all" | "ytd">("all");
+  const [dogStats, setDogStats] = React.useState<{
+    total_meet_points: number;
+    total_match_points: number;
+    total_hc_score: number;
+  } | null>(null);
+  const [statsLoading, setStatsLoading] = React.useState(false);
+  const currentYear = new Date().getFullYear();
 
   const canEditDog = (user != undefined && user != "NotAuthenticated" && (user.hasPermission("editAllDogs") && (user.hasPermission("editOwnDogs") || owners.filter((o) => o.PersonID == user.ID).length != 0)))
 
@@ -74,6 +81,7 @@ function DogPage() {
             ? meetsRes.value.data
             : []
         );
+        console.log("dog meets data:", meetsRes.status === "fulfilled" ? meetsRes.value.data : meetsRes);
         setOwners(
           ownersRes.status === "fulfilled" && Array.isArray(ownersRes.value.data)
             ? ownersRes.value.data
@@ -96,6 +104,36 @@ function DogPage() {
     load();
   }, [cwaNumber, encodedCwaNumber]);
 
+  React.useEffect(() => {
+    if (!cwaNumber) 
+      return;
+
+    async function loadStats() {
+      try {
+        setStatsLoading(true);
+
+        const url =
+          statsMode === "ytd"
+            ? `/api/dog/stats/${encodedCwaNumber}/year/${currentYear}`
+            : `/api/dog/stats/${encodedCwaNumber}`;
+
+        const res = await fetchJson<{ success: boolean; data: any }>(url);
+
+        if (res.success) {
+          setDogStats(res.data);
+        } else {
+          setDogStats(null);
+        }
+      } catch {
+        setDogStats(null);
+      } finally {
+        setStatsLoading(false);
+      }
+    }
+
+    loadStats();
+  }, [cwaNumber, encodedCwaNumber, statsMode, currentYear]);
+
   function savePublicNotes() {
     fetch("/api/dog/public_notes", {
       method: "POST", body: JSON.stringify({
@@ -110,9 +148,9 @@ function DogPage() {
   }
   const ageMonths = calcAgeMonths(dog?.birthdate);
   const maxPoints = Math.max(
-    dog?.meetPoints ?? 0,
-    dog?.arxPoints ?? 0,
-    dog?.narxPoints ?? 0,
+    dogStats?.total_meet_points ?? 0,
+    dogStats?.total_match_points ?? 0,
+    dogStats?.total_hc_score ?? 0,
     dog?.showPoints ?? 0,
     1
   );
@@ -120,11 +158,6 @@ function DogPage() {
   const statusLabel = dog?.status?.trim() || "Status unknown";
   const statusColor = getStatusColor(dog?.status);
   console.log(publicNotes)
-
-  const isAdmin =
-    user !== "NotAuthenticated" &&
-    user !== undefined &&
-    user.SystemRole === "ADMIN";
 
   return (
     <main className="min-h-screen bg-[#1F4D2E]">
@@ -158,7 +191,7 @@ function DogPage() {
 
       <section className="bg-[#E7F0E9] pb-24 pt-10">
         <div className="mx-auto max-w-4xl space-y-6 px-6">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-4">
             <StatPill label="Completed Meets" value={dog?.meetAppearences ?? "—"} />
             <StatPill label="Meet Points" value={dog?.meetPoints ?? "—"} accent />
             <StatPill label="YTD Match Points" value={dog?.ytdMatchPoints ?? "—"} />
@@ -200,15 +233,58 @@ function DogPage() {
               )}
             </Card>
 
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setStatsMode("all")}
+                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                  statsMode === "all"
+                    ? "bg-[#2E6B3F] text-white"
+                    : "bg-white text-[#12301D] border border-black/10"
+                }`}
+              >
+                All Time
+              </button>
+
+              <button
+                onClick={() => setStatsMode("ytd")}
+                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                  statsMode === "ytd"
+                    ? "bg-[#2E6B3F] text-white"
+                    : "bg-white text-[#12301D] border border-black/10"
+                }`}
+              >
+                {currentYear} YTD
+              </button>
+            </div>
+
             <Card title="Points Breakdown" className="h-full lg:col-span-3">
               {loading ? (
                 <p className="text-sm text-[#12301D]/40">Loading…</p>
               ) : dog ? (
                 <>
-                  <PointBar label="Meet Pts" value={dog.meetPoints ?? 0} max={maxPoints} />
-                  <PointBar label="ARX Pts" value={dog.arxPoints ?? 0} max={maxPoints} />
-                  <PointBar label="NARX Pts" value={dog.narxPoints ?? 0} max={maxPoints} />
-                  <PointBar label="Show Pts" value={dog.showPoints ?? 0} max={maxPoints} />
+                  <PointBar
+                    label={`Meet Pts (${statsMode === "ytd" ? currentYear + " YTD" : "All Time"})`}
+                    value={dogStats?.total_meet_points ?? 0}
+                    max={maxPoints}
+                  />
+
+                  <PointBar
+                    label={`Match Pts (${statsMode === "ytd" ? currentYear + " YTD" : "All Time"})`}
+                    value={dogStats?.total_match_points ?? 0}
+                    max={maxPoints}
+                  />
+
+                  <PointBar
+                    label={`HC Score (${statsMode === "ytd" ? currentYear + " YTD" : "All Time"})`}
+                    value={dogStats?.total_hc_score ?? 0}
+                    max={maxPoints}
+                  />
+
+                  <PointBar
+                    label="DPC Pts"
+                    value={dog?.showPoints ?? 0}
+                    max={maxPoints}
+                  />
                   {/* Swap show points with DPC Points and Match Points */}
 
                   <div className="mt-4 flex flex-wrap gap-3">
@@ -261,8 +337,7 @@ function DogPage() {
                           {(owner.FirstName?.[0] ?? "?").toUpperCase()}
                         </span>
                       </div>
-
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-semibold text-[#12301D]">
                           {fullName}
                         </p>

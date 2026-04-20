@@ -10,6 +10,7 @@ import StatPill from "../components/ui/StatPill";
 import { fetchJson } from "../../lib/ui/fetchJson";
 import { formatDate } from "../../lib/ui/formatDate";
 import RaceLineup from "../components/event/RaceLineup";
+import FinalMeetResults from "../components/event/FinalMeetResults";
 import authContext from "@/lib/auth/auth";
 import Loading from "@/lib/loading";
 
@@ -36,8 +37,24 @@ interface EventDetail {
 interface MeetRace {
     meetNumber: string;
     raceNumber: string | number;
+    displayRaceNumber?: number;
     program?: string;
     entryCount?: number;
+}
+
+interface FinalMeetResult {
+    cwaNumber: string;
+    place?: number | string | null;
+    grade?: string | null;
+    callName?: string | null;
+    registeredName?: string | null;
+    ownerName?: string | null;
+    ownerIDs?: string | null;
+    meetPoints?: number | string | null;
+    scratchDQInfo?: string | null;
+    arxEarned?: number | string | null;
+    narxEarned?: number | string | null;
+    incident?: string | null;
 }
 
 function normalizeEventDetail(e: Record<string, unknown>): EventDetail {
@@ -84,9 +101,8 @@ function groupRacesByProgram(races: MeetRace[]) {
     }
 
     return Array.from(groups.entries())
-        .map(([program, items]) => ({
-            program,
-            races: [...items].sort((a, b) => {
+        .map(([program, items]) => {
+            const sorted = [...items].sort((a, b) => {
                 const aNum = Number(a.raceNumber);
                 const bNum = Number(b.raceNumber);
 
@@ -95,8 +111,18 @@ function groupRacesByProgram(races: MeetRace[]) {
                 }
 
                 return String(a.raceNumber).localeCompare(String(b.raceNumber));
-            }),
-        }))
+            });
+
+            const renumbered = sorted.map((race, index) => ({
+                ...race,
+                displayRaceNumber: index + 1,
+            }));
+
+            return {
+                program,
+                races: renumbered,
+            };
+        })
         .sort((a, b) => {
             const aNum = Number(a.program);
             const bNum = Number(b.program);
@@ -128,6 +154,8 @@ function MeetPage() {
     const programGroups = React.useMemo(() => groupRacesByProgram(races), [races]);
     const user = React.useContext(authContext);
 
+    const [finalMeetResults, setFinalMeetResults] = React.useState<FinalMeetResult[]>([]);
+
     const isAdmin =
         user !== "NotAuthenticated" &&
         user !== undefined &&
@@ -147,13 +175,17 @@ function MeetPage() {
                 setLoading(true);
                 setError("");
 
-                const [eventRes, racesRes] = await Promise.allSettled([
+                const [eventRes, racesRes, resultsRes] = await Promise.allSettled([
                     fetchJson<{ ok: boolean; data: EventDetail }>(
                         `/api/meet/get/${encodedMeetNumber}`,
                         { credentials: "include" }
                     ),
                     fetchJson<{ ok: boolean; data: MeetRace[] }>(
                         `/api/meet/get/${encodedMeetNumber}/races`,
+                        { credentials: "include" }
+                    ),
+                    fetchJson<{ ok: boolean; data: FinalMeetResult[] }>(
+                        `/api/meet_result/final_by_meet/${encodedMeetNumber}`,
                         { credentials: "include" }
                     ),
                 ]);
@@ -175,6 +207,14 @@ function MeetPage() {
                     setRaces(Array.isArray(racesRes.value.data) ? racesRes.value.data : []);
                 } else {
                     setRaces([]);
+                }
+
+                if (resultsRes.status === "fulfilled") {
+                    console.log("final meet results response:", resultsRes.value.data);
+                    setFinalMeetResults(Array.isArray(resultsRes.value.data) ? resultsRes.value.data : []);
+                } else {
+                    console.error("final meet results failed:", resultsRes.reason);
+                    setFinalMeetResults([]);
                 }
             } finally {
                 if (!cancelled) {
@@ -318,6 +358,24 @@ function MeetPage() {
                             )}
                         </Card>
                     )}
+                    
+
+                    <FinalMeetResults
+                        results={finalMeetResults.map((row) => ({
+                            CWANumber: row.cwaNumber,
+                            Place: row.place,
+                            Grade: row.grade,
+                            CallName: row.callName,
+                            RegisteredName: row.registeredName,
+                            OwnerName: row.ownerName,
+                            OwnerIDs: row.ownerIDs,
+                            MeetPoints: row.meetPoints,
+                            ScratchDQInfo: row.scratchDQInfo,
+                            ARX: row.arxEarned,
+                            NARX: row.narxEarned,
+                            Incident: row.incident,
+                        }))}
+                    />
 
                     <Card title="Programs & Races">
                         {loading ? (

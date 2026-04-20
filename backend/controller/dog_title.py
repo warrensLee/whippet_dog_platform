@@ -230,7 +230,42 @@ def get_dog_title(cwa_number):
     data = [t.to_dict() for t in dog_titles]
     return jsonify({"ok": True, "data": data}), 200
 
+@dog_title_bp.get("/date-range")
+def get_titles_in_date_range():
+    start = (request.args.get("start") or "").strip()
+    end = (request.args.get("end") or "").strip()
 
+    if not start or not end:
+        return jsonify({"ok": False, "error": "start and end are required"}), 400
+
+    try:
+        rows = DogTitle.list_titles_in_date_range(start, end)
+
+        data = []
+        for row in rows:
+            owner_first = row.get("OwnerFirstName") or ""
+            owner_last = row.get("OwnerLastName") or ""
+            owner_name = f"{owner_first} {owner_last}".strip()
+
+            data.append({
+                "cwaNumber": row.get("CWANumber"),
+                "registeredName": row.get("RegisteredName"),
+                "callName": row.get("CallName"),
+                "title": row.get("Title"),
+                "titleNumber": row.get("TitleNumber"),
+                "titleDate": row.get("TitleDate").isoformat() if row.get("TitleDate") else None,
+                "namePrefix": row.get("NamePrefix"),
+                "nameSuffix": row.get("NameSuffix"),
+                "ownerPersonID": row.get("OwnerPersonID"),
+                "ownerName": owner_name or None,
+                "ownerEmail": row.get("OwnerEmailAddress"),
+            })
+
+        return jsonify({"ok": True, "data": data, "count": len(data)}), 200
+
+    except Error as e:
+        return handle_error(e, "Database error")
+    
 @dog_title_bp.get("/get")
 def get_all_dog_titles():
     """Get all dog titles."""

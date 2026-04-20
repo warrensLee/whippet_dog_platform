@@ -2,6 +2,8 @@ from database import fetch_one, fetch_all, execute
 from mysql.connector import Error
 from datetime import datetime
 from utils.validators import (s, require, int_field, float_field, fk_exists, enum_field, str_field)
+from classes.meet_result import MeetResult
+from classes.race_result import RaceResult
 
 class Dog:
 
@@ -395,7 +397,7 @@ class Dog:
         for m in meets:
             meet_no = m["MeetNumber"]
 
-            m["meetResults"] = fetch_all(
+            meet_results_rows = fetch_all(
                 """
                 SELECT *
                 FROM MeetResults
@@ -405,7 +407,7 @@ class Dog:
                 (meet_no, cwa_number),
             ) or []
 
-            m["raceResults"] = fetch_all(
+            race_results_rows = fetch_all(
                 """
                 SELECT *
                 FROM RaceResults
@@ -415,6 +417,13 @@ class Dog:
                 (meet_no, cwa_number),
             ) or []
 
+            m["meetResults"] = [
+                MeetResult.from_db_row(r).to_dict() for r in meet_results_rows
+            ]
+
+            m["raceResults"] = [
+                RaceResult.from_db_row(r).to_dict() for r in race_results_rows
+            ]
         return meets
 
     

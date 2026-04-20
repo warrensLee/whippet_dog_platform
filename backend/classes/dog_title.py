@@ -274,7 +274,37 @@ class DogTitle:
             (cwa_number,),
         ) or []
         return [cls.from_db_row(row) for row in rows]
-
+    
+    @classmethod
+    def list_titles_in_date_range(cls, start_date, end_date):
+        rows = fetch_all(
+            """
+            SELECT
+                dt.CWANumber,
+                dt.Title,
+                dt.TitleNumber,
+                dt.TitleDate,
+                dt.NamePrefix,
+                dt.NameSuffix,
+                d.RegisteredName,
+                d.CallName,
+                o.ID AS OwnerPersonID,
+                o.FirstName AS OwnerFirstName,
+                o.LastName AS OwnerLastName,
+                o.EmailAddress AS OwnerEmailAddress
+            FROM DogTitles dt
+            JOIN Dog d
+                ON d.CWANumber = dt.CWANumber
+            LEFT JOIN DogOwner do
+                ON do.CWAID = dt.CWANumber
+            LEFT JOIN Person o
+                ON o.ID = do.PersonID
+            WHERE dt.TitleDate >= %s AND dt.TitleDate <= %s
+            ORDER BY dt.TitleDate DESC, d.RegisteredName ASC, dt.Title ASC
+            """,
+            (start_date, end_date),
+        )
+        return rows
 
 
     def to_session_dict(self):

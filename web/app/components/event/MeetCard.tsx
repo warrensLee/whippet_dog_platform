@@ -13,29 +13,24 @@ export default function MeetCard({
 
   const meetDate = meet.MeetDate
     ? new Date(meet.MeetDate).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    })
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      })
     : "Unknown Date";
 
   const meetResult = meet.meetResults?.[0];
-  const placement = meetResult?.MeetPlacement;
-  const points = meetResult?.MeetPoints;
-
-  // const totalRaces = meet.raceResults?.length ?? 0;
-  // const totalMeetResults = meet.meetResults?.length ?? 0;
+  const placement = meetResult?.meetPlacement;
+  const points = meetResult?.meetPoints;
 
   return (
     <div className="overflow-hidden rounded-2xl border border-black/10 bg-white/70 shadow-sm transition-shadow hover:shadow-md">
-      {/* Header — always visible */}
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
         className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-white/90"
       >
-        <div className="flex items-center gap-3 min-w-0">
-          {/* Meet number badge */}
+        <div className="min-w-0 flex items-center gap-3">
           <div className="shrink-0 rounded-lg bg-[#2E6B3F]/10 px-2.5 py-1.5">
             <Link
               href={`/meet?id=${encodeURIComponent(meet.MeetNumber)}`}
@@ -46,12 +41,12 @@ export default function MeetCard({
           </div>
 
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-[#12301D] truncate">
+            <p className="truncate text-sm font-semibold text-[#12301D]">
               {meet.ClubAbbreviation || "Unknown Club"}{" "}
               <span className="font-normal text-[#12301D]/50">· {meetDate}</span>
             </p>
             {meet.Location && (
-              <p className="text-xs text-[#12301D]/45 truncate">{meet.Location}</p>
+              <p className="truncate text-xs text-[#12301D]/45">{meet.Location}</p>
             )}
           </div>
         </div>
@@ -79,11 +74,8 @@ export default function MeetCard({
         </div>
       </button>
 
-      {/* Expanded detail */}
       {open && (
-        <div className="border-t border-black/8 px-4 py-3 space-y-4">
-
-          {/* Meet Results */}
+        <div className="space-y-4 border-t border-black/8 px-4 py-3">
           {meet.meetResults && meet.meetResults.length > 0 && (
             <div>
               <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-[#12301D]/40">
@@ -96,28 +88,75 @@ export default function MeetCard({
                     className="flex items-start justify-between gap-3 rounded-lg bg-black/5 px-3 py-2 text-xs"
                   >
                     <div className="flex flex-wrap gap-x-3 gap-y-1">
-                      {r.MeetPlacement != null && (
+                      {r.meetPlacement != null && (
                         <span>
-                          <span className="font-bold text-[#2E6B3F]">#{r.MeetPlacement}</span>
-                          <span className="text-[#12301D]/50 ml-1">place</span>
+                          <span className="font-bold text-[#2E6B3F]">#{r.meetPlacement}</span>
+                          <span className="ml-1 text-[#12301D]/50">Place</span>
                         </span>
                       )}
-                      {r.ARXEarned != null && (
-                        <span className="text-[#12301D]/70">ARX: <span className="font-semibold text-[#12301D]">{r.ARXEarned}</span></span>
+
+                      {r.conformationPlacement != null && (
+                        <span className="text-[#12301D]/70">
+                          Conformation:{" "}
+                          <span className="font-semibold text-[#12301D]">
+                            #{r.conformationPlacement}
+                          </span>
+                        </span>
                       )}
-                      {r.NARXEarned != null && (
-                        <span className="text-[#12301D]/70">NARX: <span className="font-semibold text-[#12301D]">{r.NARXEarned}</span></span>
+
+                      {r.matchPoints != null && (
+                        <span className="text-[#12301D]/70">
+                          Match Pts:{" "}
+                          <span className="font-semibold text-[#12301D]">
+                            {r.matchPoints}
+                          </span>
+                        </span>
                       )}
-                      {r.ShowPoints != null && (
-                        <span className="text-[#12301D]/70">Show: <span className="font-semibold text-[#12301D]">{r.ShowPoints}</span></span>
+
+                      {r.arxEarned != null && (
+                        <span className="text-[#12301D]/70">
+                          ARX:{" "}
+                          <span className="font-semibold text-[#12301D]">
+                            {r.arxEarned}
+                          </span>
+                        </span>
                       )}
-                      {r.DPCLeg === 1 && (
+
+                      {r.narxEarned != null && (
+                        <span className="text-[#12301D]/70">
+                          NARX:{" "}
+                          <span className="font-semibold text-[#12301D]">
+                            {r.narxEarned}
+                          </span>
+                        </span>
+                      )}
+
+                      {r.dpcPoints != null && (
+                        <span className="text-[#12301D]/70">
+                          DPC Pts:{" "}
+                          <span className="font-semibold text-[#12301D]">
+                            {r.dpcPoints}
+                          </span>
+                        </span>
+                      )}
+
+                      {r.hcScore != null && (
+                        <span className="text-[#12301D]/70">
+                          HC Score:{" "}
+                          <span className="font-semibold text-[#12301D]">
+                            {r.hcScore}
+                          </span>
+                        </span>
+                      )}
+
+                      {r.dpcLeg === 1 && (
                         <span className="font-semibold text-[#2E6B3F]">DPC Leg ✓</span>
                       )}
                     </div>
-                    {r.MeetPoints != null && (
+
+                    {r.meetPoints != null && (
                       <span className="whitespace-nowrap font-semibold text-[#2E6B3F]">
-                        {r.MeetPoints} pt
+                        {r.meetPoints} pt
                       </span>
                     )}
                   </div>
@@ -126,7 +165,6 @@ export default function MeetCard({
             </div>
           )}
 
-          {/* Race Results */}
           {meet.raceResults && meet.raceResults.length > 0 && (
             <div>
               <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-[#12301D]/40">
@@ -139,29 +177,54 @@ export default function MeetCard({
                     className="flex items-start justify-between gap-3 rounded-lg bg-black/5 px-3 py-2 text-xs"
                   >
                     <div className="flex flex-wrap gap-x-3 gap-y-1">
-                      {r.Program != null && (
+                      {r.program != null && (
                         <span className="text-[#12301D]/70">
-                          Prog <span className="font-semibold text-[#12301D]">{r.Program}</span>
+                          Prog{" "}
+                          <span className="font-semibold text-[#12301D]">
+                            {r.program}
+                          </span>
                         </span>
                       )}
-                      {r.RaceNumber != null && (
+
+                      {r.raceNumber != null && (
                         <span className="text-[#12301D]/70">
-                          Race <span className="font-semibold text-[#12301D]">{r.RaceNumber}</span>
+                          Race{" "}
+                          <span className="font-semibold text-[#12301D]">
+                            {r.raceNumber}
+                          </span>
+                        </span>
+                      )}
+
+                      {r.dpcPoints != null && (
+                        <span className="text-[#12301D]/70">
+                          DPC Pts:{" "}
+                          <span className="font-semibold text-[#12301D]">
+                            {r.dpcPoints}
+                          </span>
                         </span>
                       )}
                     </div>
-                    {r.Placement != null && (
-                      <span className="whitespace-nowrap font-bold text-[#2E6B3F]">
-                        #{r.Placement}
-                      </span>
-                    )}
+
+                    <div className="flex items-center gap-3">
+                      {r.meetPoints != null && (
+                        <span className="whitespace-nowrap font-semibold text-[#12301D]/70">
+                          {r.meetPoints} pt
+                        </span>
+                      )}
+
+                      {r.placement != null && (
+                        <span className="whitespace-nowrap font-bold text-[#2E6B3F]">
+                          #{r.placement}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {(!meet.meetResults?.length && !meet.raceResults?.length) && (
+          {!meet.meetResults?.length && !meet.raceResults?.length && (
             <p className="text-xs text-[#12301D]/50">No detailed results available.</p>
           )}
         </div>

@@ -57,7 +57,7 @@ def _apply_meet_stats_delta(dog: Dog, old: dict, new: dict, editor_id: str, now:
     dog.dpc_legs = int(dog.dpc_legs or 0) - int(old["dpc_legs"]) + int(new["dpc_legs"])
     dog.meet_wins = int(dog.meet_wins or 0) - int(old["meet_wins"]) + int(new["meet_wins"])
     dog.meet_appearences = int(dog.meet_appearences or 0) - int(old["meet_appearences"]) + int(new["meet_appearences"])
-    dog.dpc_points = int(dog.dpc_points or 0) - int(old["dpc_points"]) + int(new["dpc_points"])
+    #dog.dpc_points = int(dog.dpc_points or 0) - int(old["dpc_points"]) + int(new["dpc_points"])
 
     if hasattr(dog, "compute_last_three_meet_average"):
         dog.average = dog.compute_last_three_meet_average()
@@ -199,7 +199,7 @@ def edit_race_result():
     if not cwa_number:
         return jsonify({"ok": False, "error": "CWA Number is required"}), 400
 
-    existing = RaceResult.find_by_identifier(meet_number, program, race_number, cwa_number)
+    existing = RaceResult.find_by_identifier(meet_number, cwa_number, program, race_number)
     if not existing:
         return jsonify({"ok": False, "error": "Race result does not exist"}), 404
 
@@ -224,9 +224,41 @@ def edit_race_result():
         return jsonify({"ok": False, "error": ", ".join(validation_errors)}), 400
 
     try:
+        dog = Dog.find_by_identifier(cwa_number)
+        if not dog:
+            return jsonify({"ok": False, "error": "Dog does not exist"}), 404
+
+        race_rows = _get_race_entries(
+            race_result.meet_number,
+            race_result.program,
+            race_result.race_number
+        )
+
+        cwa_numbers = [row.get("CWANumber") for row in race_rows if row.get("CWANumber")]
+        if race_result.cwa_number not in cwa_numbers:
+            cwa_numbers.append(race_result.cwa_number)
+
+        count_adults = race_result.count_num_adult_whippets(cwa_numbers)
+        dpc_distribution = race_result.get_dpc_point_distribution(count_adults) or []
+
+        placement = str(race_result.placement).strip().upper() if race_result.placement is not None else ""
+
+        race_result.meet_points = race_result.get_placement_points(placement)
+        race_result.aom_earned = 0.5 if placement == "AOM" else 0.0
+        race_result.dpc_points = 0.0
+
+        if placement.isdigit():
+            placement_num = int(placement)
+            if (
+                placement_num <= len(dpc_distribution)
+                and not dog.is_dpc()
+                and not dog.is_akc_or_ckc()
+            ):
+                race_result.dpc_points = dpc_distribution[placement_num - 1]
+
         race_result.update()
 
-        refreshed = RaceResult.find_by_identifier(meet_number, program, race_number, cwa_number)
+        refreshed = RaceResult.find_by_identifier(meet_number, cwa_number, program, race_number)
         after_snapshot = refreshed.to_dict() if refreshed else race_result.to_dict()
 
         ChangeLog.log(
@@ -274,7 +306,7 @@ def delete_race_result():
     if not cwa_number:
         return jsonify({"ok": False, "error": "CWA Number is required"}), 400
 
-    race_result = RaceResult.find_by_identifier(meet_number, program, race_number, cwa_number)
+    race_result = RaceResult.find_by_identifier(meet_number, cwa_number, program, race_number)
     if not race_result:
         return jsonify({"ok": False, "error": "Race result does not exist"}), 404
 
@@ -286,11 +318,11 @@ def delete_race_result():
 
     try:
         before_snapshot = race_result.to_dict()
-        race_result.delete(meet_number, program, race_number, cwa_number)
+        race_result.delete(meet_number, cwa_number, program, race_number)
 
         ChangeLog.log(
             changed_table="RaceResults",
-            record_pk=f"{meet_number}|{program}|{race_number}|{cwa_number}",
+            record_pk=f"{meet_number}|{cwa_number}|{program}|{race_number}",
             operation="DELETE",
             changed_by=editor_id,
             source="api/race_result/delete POST",
@@ -308,7 +340,7 @@ def delete_race_result():
 
 @race_result_bp.get("/get/<meet_number>/<program>/<race_number>/<cwa_number>")
 def get_race_result(meet_number, program, race_number, cwa_number):
-    race_result = RaceResult.find_by_identifier(meet_number, program, race_number, cwa_number)
+    race_result = RaceResult.find_by_identifier(meet_number, cwa_number, program, race_number)
     if not race_result:
         return jsonify({"ok": False, "error": "Race result does not exist"}), 404
     return jsonify({"ok": True, "data": race_result.to_dict()}), 200
@@ -332,6 +364,9 @@ def _get_race_entries(meet_number: str, program: str, race_number: str):
             rr.MeetPoints AS MeetPoints,
             rr.AOMEarned AS AOMEarned,
             rr.DPCPoints AS DPCPoints,
+            rr.EntryType AS EntryType,
+            rr.Box AS Box,
+            rr.Incident AS Incident,
             d.CallName AS CallName,
             d.RegisteredName AS RegisteredName
         FROM RaceResults rr
@@ -374,6 +409,9 @@ def get_race_entries(meet_number, program, race_number):
                 "meetPoints": row.get("MeetPoints"),
                 "aomEarned": row.get("AOMEarned"),
                 "dpcPoints": row.get("DPCPoints"),
+                "entryType": row.get("EntryType"),
+                "box": row.get("Box"),
+                "incident": row.get("Incident"),
             })
 
         return jsonify({
@@ -411,7 +449,7 @@ def get_placement_and_dpc_points(meet_number, program, race_number, cwa_number):
         dpc_points_distribution = RaceResult.get_dpc_point_distribution(count_adults)
 
         dog = Dog.find_by_identifier(cwa_number) if cwa_number else None
-        race_result = RaceResult.find_by_identifier(meet_number, program, race_number, cwa_number) if cwa_number else None
+        race_result = RaceResult.find_by_identifier(meet_number, cwa_number, program, race_number) if cwa_number else None
 
         results = []
         for entry in entries:

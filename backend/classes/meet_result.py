@@ -1,12 +1,10 @@
 from database import fetch_all, fetch_one, execute
 from mysql.connector import Error
-from classes.dog import Dog
-from classes.race_result import RaceResult
 from datetime import datetime, timezone
 
 
 class MeetResult:
-    
+
     def __init__(self, meet_number, cwa_number, average, grade, meet_placement, conformation_placement,
                  match_points, meet_points, arx_earned, narx_earned, shown, show_placement, show_points,
                  dpc_leg, hc_score, hc_leg_earned, aom_earned, dpc_points, last_edited_by=None, last_edited_at=None):
@@ -40,7 +38,8 @@ class MeetResult:
             average=(data.get("average") or "").strip(),
             grade=(data.get("grade") or "").strip(),
             meet_placement=(data.get("meetPlacement") or "").strip(),
-            conformation_placement=(data.get("conformationPlacement") or "").strip(),
+            conformation_placement=(
+                data.get("conformationPlacement") or "").strip(),
             match_points=(data.get("matchPoints") or "").strip(),
             meet_points=(data.get("meetPoints") or "").strip(),
             arx_earned=(data.get("arxEarned") or "").strip(),
@@ -56,7 +55,7 @@ class MeetResult:
             last_edited_by=data.get("lastEditedBy"),
             last_edited_at=data.get("lastEditedAt")
         )
-    
+
     @classmethod
     def from_db_row(cls, row):
         """Create a MeetResult instance from a database row."""
@@ -143,14 +142,16 @@ class MeetResult:
         if len(self.cwa_number) > 10:
             errors.append("CWA number must be 10 characters or less")
 
+        meet_exists = None
         if self.meet_number:
             meet_exists = fetch_one(
                 "SELECT MeetNumber FROM Meet WHERE MeetNumber = %s LIMIT 1",
                 (self.meet_number,)
             )
-            if not meet_exists:
-                errors.append(f"Meet number '{self.meet_number}' does not exist")
-    
+               
+        if not meet_exists:
+            errors.append(f"Meet number '{self.meet_number}' does not exist")
+
         if self.cwa_number:
             dog_exists = fetch_one(
                 "SELECT CWANumber FROM Dog WHERE CWANumber = %s LIMIT 1",
@@ -158,7 +159,7 @@ class MeetResult:
             )
             if not dog_exists:
                 errors.append(f"CWA number '{self.cwa_number}' does not exist")
-        
+
         if self.last_edited_by:
             person_exists = fetch_one(
                 "SELECT PersonID FROM Person WHERE ID = %s LIMIT 1",
@@ -259,7 +260,7 @@ class MeetResult:
             return True
         except Error as e:
             raise e
-    
+
     def delete(self, meet_number, cwa_number):
         """Delete meet result from database. Returns True on success, raises Error on failure."""
         try:
@@ -285,11 +286,15 @@ class MeetResult:
             """
         )
         return [MeetResult.from_db_row(row) for row in rows]
-    
+
     def update_from_race_results(self):
         """Recalculate meet result totals from RaceResults for this meet+dog."""
         if not self.meet_number or not self.cwa_number: 
             return
+        
+        from classes.race_result import RaceResult
+        from classes.dog import Dog
+
 
         race_rows = fetch_all("""
             SELECT Placement, MeetPoints, AOMEarned, DPCPoints
@@ -373,7 +378,7 @@ class MeetResult:
             WHERE CWANumber = %s
         """
         execute(query, (cwa_number,))
-        
+
     def to_session_dict(self):
         """Convert to minimal dictionary for session storage."""
         return {
@@ -406,3 +411,85 @@ class MeetResult:
             "lastEditedAt": self.last_edited_at.isoformat() if self.last_edited_at else None
         }
         return data
+
+    @classmethod
+    def list_results_for_meet(cls, meet_number):
+        rows = fetch_all(
+            """
+            SELECT MeetNumber, CWANumber, Average, Grade, MeetPlacement, ConformationPlacement,
+                MatchPoints, MeetPoints, ARXEarned, NARXEarned, Shown, ShowPlacement, ShowPoints,
+                DPCLeg, HCScore, HCLegEarned, AOMEarned, DPCPoints, LastEditedBy, LastEditedAt
+            FROM MeetResults
+            WHERE MeetNumber = %s
+            ORDER BY CWANumber ASC
+            """,
+            (meet_number,),
+        )
+        return [cls.from_db_row(row) for row in rows]
+
+    @classmethod
+    def list_final_results_for_meet(cls, meet_number):
+        rows = fetch_all(
+            """
+            SELECT
+                mr.CWANumber,
+                mr.MeetPlacement,
+                mr.Grade,
+                mr.MeetPoints,
+                mr.ARXEarned,
+                mr.NARXEarned,
+                d.CallName,
+                d.RegisteredName,
+
+                -- Owner display (simple)
+                GROUP_CONCAT(
+                    DISTINCT CONCAT_WS(' ', p.FirstName, p.LastName)
+                    ORDER BY p.LastName, p.FirstName
+                    SEPARATOR ', '
+                ) AS OwnerName,
+
+                -- Owner IDs (for links)
+                GROUP_CONCAT(
+                    DISTINCT p.ID
+                    ORDER BY p.LastName, p.FirstName
+                    SEPARATOR ','
+                ) AS OwnerIDs,
+
+                -- Incidents (from race results)
+                GROUP_CONCAT(
+                    DISTINCT rr.Incident
+                    ORDER BY rr.Program, rr.RaceNumber
+                    SEPARATOR ', '
+                ) AS Incident
+
+            FROM MeetResults mr
+
+            JOIN Dog d ON d.CWANumber = mr.CWANumber
+            LEFT JOIN DogOwner do ON do.CWAID = d.CWANumber
+            LEFT JOIN Person p ON p.ID = do.PersonID
+
+            LEFT JOIN RaceResults rr 
+            ON rr.CWANumber = mr.CWANumber 
+            AND rr.MeetNumber = mr.MeetNumber
+
+            WHERE mr.MeetNumber = %s
+
+            GROUP BY
+                mr.CWANumber,
+                mr.MeetPlacement,
+                mr.Grade,
+                mr.MeetPoints,
+                mr.ARXEarned,
+                mr.NARXEarned,
+                d.CallName,
+                d.RegisteredName
+
+            ORDER BY
+                (mr.MeetPlacement IS NULL OR mr.MeetPlacement = '') ASC,
+                LENGTH(mr.MeetPlacement) ASC,
+                mr.MeetPlacement ASC,
+                d.CallName ASC
+            """,
+            (meet_number,),
+        )
+        return rows

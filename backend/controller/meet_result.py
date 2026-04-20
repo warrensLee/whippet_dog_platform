@@ -56,7 +56,7 @@ def _apply_meet_stats_delta(dog: Dog, old: dict, new: dict, editor_id: str, now:
     dog.dpc_legs = int(dog.dpc_legs or 0) - int(old["dpc_legs"]) + int(new["dpc_legs"])
     dog.meet_wins = int(dog.meet_wins or 0) - int(old["meet_wins"]) + int(new["meet_wins"])
     dog.meet_appearences = int(dog.meet_appearences or 0) - int(old["meet_appearences"]) + int(new["meet_appearences"])
-    dog.dpc_points = int(dog.dpc_points or 0) - int(old["dpc_points"]) + int(new["dpc_points"])
+    #dog.dpc_points = int(dog.dpc_points or 0) - int(old["dpc_points"]) + int(new["dpc_points"])
     if hasattr(dog, "compute_last_three_meet_average"):
         dog.average = dog.compute_last_three_meet_average()
     dog.update()
@@ -257,5 +257,39 @@ def list_all_meet_results():
     try:
         meet_results = MeetResult.list_all_meet_results()
         return jsonify({"ok": True, "data": [mr.to_dict() for mr in meet_results]}), 200
+    except Error as e:
+        return handle_error(e, "Database error")
+    
+@meet_result_bp.get("/by_meet/<meet_number>")
+def list_meet_results_for_meet(meet_number):
+    try:
+        meet_results = MeetResult.list_results_for_meet(meet_number)
+        return jsonify({"ok": True, "data": [mr.to_dict() for mr in meet_results]}), 200
+    except Error as e:
+        return handle_error(e, "Database error")
+    
+@meet_result_bp.get("/final_by_meet/<meet_number>")
+def list_final_meet_results_for_meet(meet_number):
+    try:
+        rows = MeetResult.list_final_results_for_meet(meet_number)
+
+        data = [
+            {
+                "cwaNumber": row.get("CWANumber"),
+                "place": row.get("MeetPlacement"),
+                "grade": row.get("Grade"),
+                "callName": row.get("CallName"),
+                "registeredName": row.get("RegisteredName"),
+                "ownerName": row.get("OwnerName"),
+                "ownerIDs": row.get("OwnerIDs"),   
+                "meetPoints": row.get("MeetPoints"),
+                "arxEarned": row.get("ARXEarned"),
+                "narxEarned": row.get("NARXEarned"),
+                "incident": row.get("Incident"),   
+            }
+            for row in rows
+        ]
+
+        return jsonify({"ok": True, "data": data}), 200
     except Error as e:
         return handle_error(e, "Database error")

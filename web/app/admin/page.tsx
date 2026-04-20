@@ -100,6 +100,7 @@ export default function Admin() {
             <div className="flex flex-column">
               <Link href="/admin/dogs" className="block rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Manage Dogs</Link>
               <Link href="/admin/title_types" className="block rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Manage Titles</Link>
+              <Link href="/admin/titles" className="block rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">View Earned Titles</Link>
             </div>
           </Paper>
           <Paper sx={panelStyle}>
@@ -121,7 +122,6 @@ export default function Admin() {
             <input id="restoreFileInput" style={{ display: "none" }} type="file" accept=".sql.zst" onChange={restoreDB} />
             <button type="button" onClick={() => document.getElementById("restoreFileInput")!.click()} className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Restore</button>
           </Paper>
-
         </section>
       </main>
     </AuthGuard>

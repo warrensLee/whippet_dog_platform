@@ -1,14 +1,15 @@
 // admin/events/edit?meetNumber=
-
 "use client";
 
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import EventForm from "@/app/components/event/EventForm";
-import type { EventFormValues } from "@/app/admin/events/types";
-import { emptyEventFormValues } from "@/app/admin/events/types";
+import MeetRaceEditor from "@/app/components/event/MeetRaceEditor";
 import HeroSection from "@/app/components/ui/HeroSection";
+import type { EventFormValues, MeetRaceSummary, EditableRaceEntry, MeetResultRow} from "@/app/admin/events/types";
+import { emptyEventFormValues } from "@/app/admin/events/types";
+import { fetchMeetRaces, fetchRaceEntries, fetchMeetResults, saveRaceEntry } from "@/lib/event/fetch";
 
 /*
     Safely converts incoming unknown values to strings.
@@ -49,24 +50,22 @@ function toDateInputValue(value?: string) {
 
     return `${year}-${month}-${day}`;
 }
-
-type RawEventGetResponse =
+type RawEventGetResponse = {
+    ok: boolean;
+    data?:
     {
-        ok: boolean;
-        data?:
-        {
-            meetNumber?: string;
-            clubAbbreviation?: string | null;
-            meetDate?: string;
-            raceSecretary?: string | null;
-            judge?: string | null;
-            location?: string | null;
-            yards?: string | null;
-            publicNotes?: string | null;
-            privateNotes?: string | null;
-        };
-        error?: string;
+        meetNumber?: string;
+        clubAbbreviation?: string | null;
+        meetDate?: string;
+        raceSecretary?: string | null;
+        judge?: string | null;
+        location?: string | null;
+        yards?: string | null;
+        publicNotes?: string | null;
+        privateNotes?: string | null;
     };
+    error?: string;
+};
 
 /*
     Converts backend Event data into the exact EventFormValues shape
@@ -132,6 +131,177 @@ function EditEventPage() {
     const [form, setForm] = React.useState<EventFormValues>(emptyEventFormValues);
     const [initialForm, setInitialForm] = React.useState<EventFormValues>(emptyEventFormValues);
 
+    const [raceSummaries, setRaceSummaries] = React.useState<MeetRaceSummary[]>([]);
+    const [raceEntriesByKey, setRaceEntriesByKey] = React.useState<Record<string, EditableRaceEntry[]>>({});
+    const [meetResultsByDog, setMeetResultsByDog] = React.useState<Record<string, MeetResultRow>>({});
+    const [raceSectionLoading, setRaceSectionLoading] = React.useState(true);
+    const [raceSectionError, setRaceSectionError] = React.useState("");
+    const [expandedRaces, setExpandedRaces] = React.useState<Record<string, boolean>>({});
+    const [savingRaceKey, setSavingRaceKey] = React.useState<string>("");
+
+    function handleRaceEntryChange(raceKey: string, cwaNumber: string, field: keyof EditableRaceEntry, value: string) {
+        setRaceEntriesByKey((prev) => {
+            const next = { ...prev };
+            next[raceKey] = (next[raceKey] || []).map((entry) => {
+                if (entry.cwaNumber !== cwaNumber) {
+                    return entry;
+                }
+
+                return {
+                    ...entry,
+                    [field]: value,
+                };
+            });
+
+            return next;
+        });
+    }
+
+    function toggleRaceExpanded(raceKey: string) {
+        setExpandedRaces((prev) => ({
+            ...prev,
+            [raceKey]: !prev[raceKey],
+        }));
+    }
+
+    async function handleSaveRaceEntry(entry: EditableRaceEntry) {
+        const saveKey = `${entry.meetNumber}__${entry.program}__${entry.raceNumber}__${entry.cwaNumber}`;
+        setSavingRaceKey(saveKey);
+
+        try {
+            await saveRaceEntry({
+                meetNumber: entry.meetNumber,
+                cwaNumber: entry.cwaNumber,
+                program: entry.program,
+                raceNumber: entry.raceNumber,
+                entryType: entry.entryType,
+                box: entry.box,
+                placement: entry.placement,
+                incident: entry.incident,
+            });
+
+            const refreshed = await fetchRaceEntries(entry.meetNumber, entry.program, entry.raceNumber);
+
+            if (refreshed?.ok) {
+                const raceKey = `${entry.meetNumber}__${entry.program}__${entry.raceNumber}`;
+
+                setRaceEntriesByKey((prev) => ({
+                    ...prev,
+                    [raceKey]: (refreshed.data?.entries ?? []).map((item: any) => ({
+                        meetNumber: entry.meetNumber,
+                        program: entry.program,
+                        raceNumber: entry.raceNumber,
+                        cwaNumber: item.cwaNumber ?? "",
+                        entryType: item.entryType ?? "",
+                        box: item.box ?? "",
+                        placement: String(item.placement ?? ""),
+                        incident: item.incident ?? "",
+                        meetPoints: item.meetPoints ?? "",
+                        aomEarned: item.aomEarned ?? "",
+                        dpcPoints: item.dpcPoints ?? "",
+                        dogName: item.dogName ?? item.cwaNumber ?? "",
+                    })),
+                }));
+            }
+
+            const refreshedMeetResults = await fetchMeetResults(entry.meetNumber);
+
+            if (refreshedMeetResults?.ok) {
+                const map: Record<string, MeetResultRow> = {};
+
+                for (const row of refreshedMeetResults.data ?? []) {
+                    map[row.cwaNumber] = row;
+                }
+
+                setMeetResultsByDog(map);
+            }
+        } catch (e) {
+            alert(e instanceof Error ? e.message : "Failed to save race entry.");
+        } finally {
+            setSavingRaceKey("");
+        }
+    }
+
+    React.useEffect(() => {
+        if (!authorized || !meetNumber) {
+            return;
+        }
+
+        let cancelled = false;
+
+        async function loadRaceEditorData() {
+            setRaceSectionLoading(true);
+            setRaceSectionError("");
+
+            try {
+                const raceSummaryJson = await fetchMeetRaces(meetNumber);
+                const meetResultsJson = await fetchMeetResults(meetNumber);
+
+                if (!raceSummaryJson?.ok) {
+                    throw new Error(raceSummaryJson?.error || "Failed to load races.");
+                }
+
+                if (!meetResultsJson?.ok) {
+                    throw new Error(meetResultsJson?.error || "Failed to load meet results.");
+                }
+
+                const summaries = raceSummaryJson.data ?? [];
+                const meetResults = meetResultsJson.data ?? [];
+
+                const meetResultsMap: Record<string, MeetResultRow> = {};
+                for (const row of meetResults) {
+                    meetResultsMap[row.cwaNumber] = row;
+                }
+
+                const nextRaceEntriesByKey: Record<string, EditableRaceEntry[]> = {};
+
+                for (const race of summaries) {
+                    const entriesJson = await fetchRaceEntries(meetNumber, race.program, race.raceNumber);
+                    if (!entriesJson?.ok) {
+                        continue;
+                    }
+
+                    const entries = entriesJson.data?.entries ?? [];
+                    const key = `${meetNumber}__${race.program}__${race.raceNumber}`;
+
+                    nextRaceEntriesByKey[key] = entries.map((entry: any) => ({
+                        meetNumber,
+                        program: race.program,
+                        raceNumber: race.raceNumber,
+                        cwaNumber: entry.cwaNumber ?? "",
+                        entryType: entry.entryType ?? "",
+                        box: entry.box ?? "",
+                        placement: String(entry.placement ?? ""),
+                        incident: entry.incident ?? "",
+                        meetPoints: entry.meetPoints ?? "",
+                        aomEarned: entry.aomEarned ?? "",
+                        dpcPoints: entry.dpcPoints ?? "",
+                        dogName: entry.dogName ?? entry.cwaNumber ?? "",
+                    }));
+                }
+
+                if (!cancelled) {
+                    setRaceSummaries(summaries);
+                    setMeetResultsByDog(meetResultsMap);
+                    setRaceEntriesByKey(nextRaceEntriesByKey);
+                }
+            } catch (e) {
+                if (!cancelled) {
+                    setRaceSectionError(e instanceof Error ? e.message : "Failed to load race editor data.");
+                }
+            } finally {
+                if (!cancelled) {
+                    setRaceSectionLoading(false);
+                }
+            }
+        }
+
+        loadRaceEditorData();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [authorized, meetNumber]);
 
     /*
         Checks whether the current user is signed in and allowed
@@ -439,6 +609,28 @@ function EditEventPage() {
                         isEditMode={true}
                         canEditPrivateNotes={isAdmin}
                     />
+                    <div className="mt-10">
+                        <div className="rounded-2xl border border-black/10 bg-white p-8 shadow-md">
+                            <h2 className="text-2xl font-bold text-[#12301D]">Programs & Race Results</h2>
+                            <div className="mt-1 h-1 w-14 rounded-full bg-[#2E6B3F]/70" />
+
+                            <div className="mt-6">
+                                <MeetRaceEditor
+                                    meetNumber={meetNumber}
+                                    raceSummaries={raceSummaries}
+                                    raceEntriesByKey={raceEntriesByKey}
+                                    meetResultsByDog={meetResultsByDog}
+                                    expandedRaces={expandedRaces}
+                                    onToggleRace={toggleRaceExpanded}
+                                    onChangeEntry={handleRaceEntryChange}
+                                    onSaveEntry={handleSaveRaceEntry}
+                                    savingRaceKey={savingRaceKey}
+                                    loading={raceSectionLoading}
+                                    error={raceSectionError}
+                                />
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
         </main>

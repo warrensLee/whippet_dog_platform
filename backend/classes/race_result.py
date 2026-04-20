@@ -6,10 +6,19 @@ TODO:
 
 from database import fetch_all, fetch_one, execute
 from mysql.connector import Error
-from classes.dog import Dog
 import math
 from database import fetch_one, fetch_all
 from datetime import datetime, timezone
+
+def _text(value):
+    if value is None:
+        return ""
+    return str(value).strip()
+
+def _get_dog_class():
+    """Helper to avoid circular imports."""
+    from classes.dog import Dog
+    return Dog
 
 class RaceResult:
 
@@ -38,8 +47,8 @@ class RaceResult:
             program=(data.get("program") or "").strip(),
             race_number=(data.get("raceNumber") or "").strip(),
             entry_type=(data.get("entryType") or "").strip(),
-            box=(data.get("box") or "").strip(),
-            placement=(data.get("placement") or "").strip(),
+            box=_text(data.get("box")),
+            placement=_text(data.get("placement")),
             aom_earned=(data.get("aomEarned") or "").strip() or "0.00",
             dpc_points=(data.get("dpcPoints") or "").strip() or "0.00",
             meet_points=(data.get("meetPoints") or "").strip() or "0.00",
@@ -240,6 +249,7 @@ class RaceResult:
 
     def count_num_adult_whippets(self, cwa_numbers):
         """Calculate the number of adult whippets in the race based on CWA numbers."""
+        Dog = _get_dog_class()
         count_adults = 0
         for cwa in cwa_numbers:
             dog = Dog.find_by_identifier(cwa)
@@ -299,6 +309,7 @@ class RaceResult:
         return len(programs) == 4
 
     def _get_arx_narx_eligibility(self, meet_placement):
+        Dog = _get_dog_class()
         """Shared eligibility check for ARX/NARX. Returns (eligible, meet_placement) tuple."""
         dog = Dog.find_by_identifier(self.cwa_number)
         if not dog or not dog.is_adult():
@@ -327,6 +338,7 @@ class RaceResult:
         return in_top_half, meet_placement
 
     def calculate_arx_earned(self, meet_placement):
+        Dog = _get_dog_class()
         dog = Dog.find_by_identifier(self.cwa_number)
         if not dog or not dog.is_adult():
             return 0
@@ -344,6 +356,7 @@ class RaceResult:
 
     @classmethod
     def calculate_dpc_leg_for_meet(cls, meet_number):
+        Dog = _get_dog_class()
         rows = fetch_all("""
             SELECT *
             FROM MeetResults
@@ -398,6 +411,7 @@ class RaceResult:
         Dog must be adult, complete all 4 programs, and have no incident.
         Lower HC score is better.
         """
+        Dog = _get_dog_class()
         dog = Dog.find_by_identifier(self.cwa_number)
         if not dog or not dog.is_adult():
             return 0
@@ -426,9 +440,12 @@ class RaceResult:
         return score if count == 4 else 0
     
     def calculate_hc_score(self, meet_placement, show_placement):
-        """HC score = meet_placement + conformation_placement. Lower is better."""
-        if meet_placement > 0:
-            return  meet_placement + show_placement 
+        meet_placement = int(meet_placement or 0)
+        show_placement = int(show_placement or 0)
+
+        if meet_placement > 0 and show_placement > 0:
+            return meet_placement + show_placement
+
         return 0
 
     @classmethod
@@ -437,6 +454,7 @@ class RaceResult:
         Set HCScore and HCLegEarned in MeetResults for all dogs in a meet.
         Lowest eligible HC score gets the HC leg, tiebreaker is lowest meet_placement.
         """
+        Dog = _get_dog_class()
         meet_rows = fetch_all("""
             SELECT *
             FROM MeetResults

@@ -33,19 +33,28 @@ export interface DogDetail {
 }
 
 export interface MeetResult {
-  MeetPlacement?: number;
-  MeetPoints?: number;
-  ARXEarned?: number;
-  NARXEarned?: number;
-  ShowPoints?: number;
-  DPCLeg?: number;
+  meetPlacement?: number | null;
+  meetPoints?: number | null;
+  arxEarned?: number | null;
+  narxEarned?: number | null;
+  conformationPlacement?: number | null;
+  matchPoints?: number | null;
+  showPlacement?: number | null;
+  showPoints?: number | null;
+  dpcLeg?: number | null;
+  dpcPoints?: number | null;
+  hcScore?: number | null;
+  hcLegEarned?: number | null;
+  aomEarned?: number | null;
   [key: string]: unknown;
 }
 
 export interface RaceResult {
-  Program?: string | number;
-  RaceNumber?: string | number;
-  Placement?: number;
+  program?: string | number;
+  raceNumber?: string | number;
+  placement?: number | null;
+  meetPoints?: number | null;
+  dpcPoints?: number | null;
   [key: string]: unknown;
 }
 
@@ -54,6 +63,8 @@ export interface MeetEntry {
   MeetDate?: string;
   ClubAbbreviation?: string;
   Location?: string;
+  RaceSecretary?: string;
+  Judge?: string;
   meetResults?: MeetResult[];
   raceResults?: RaceResult[];
 }
