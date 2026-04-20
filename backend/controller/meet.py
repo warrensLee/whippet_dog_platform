@@ -1,4 +1,6 @@
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, jsonify, request, session, Response
+import csv
+import io
 from mysql.connector import Error
 from datetime import datetime, timezone
 from classes.meet import Meet
@@ -257,10 +259,20 @@ def search_meets():
     except Error as e:
         return handle_error(e, "Database error")
 
-@meet_bp.get("/<meet_number>/dogs")
-def get_dogs_in_meet(meet_number):
+@meet_bp.get("/<meet_number>/dogs.csv")
+def download_dogs_csv(meet_number):
     try:
         data = Meet.get_dogs_for_meet(meet_number)
-        return jsonify({"ok": True, "data": data}), 200
+        if not data:
+            return Response("", mimetype="text/csv")
+        
+        output = io.StringIO()
+        writer = csv.DictWriter(output, fieldnames=data[0].keys())
+        writer.writeheader()
+        writer.writerows(data)
+        
+        response = Response(output.getvalue(), mimetype="text/csv")
+        response.headers["Content-Disposition"] = f'attachment; filename="meet_{meet_number}_dogs.csv"'
+        return response
     except Error as e:        
         return handle_error(e, "Database error")

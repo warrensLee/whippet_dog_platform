@@ -73,9 +73,9 @@ function AdminEventsPage() {
                 usp.set("page", String(page));
                 usp.set("limit", String(limit));
                 usp.set("sort", sort);
-                if (user != "NotAuthenticated" && user != undefined && !user.hasPermission("editAllMeets")) {
+                /*if (user != "NotAuthenticated" && user != undefined && !user.hasPermission("editAllMeets")) {
                     usp.set("owner", String(user.ID))
-                }
+                }*/
                 const res = await fetch(
                     `/api/meet/get?${usp.toString()}`,
                     {
