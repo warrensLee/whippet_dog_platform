@@ -108,10 +108,13 @@ function Owner() {
             <HeroSection title={ownerName} />
 
             <section className="bg-[#E7F0E9] pt-12 pb-24 flex-center" style={{ display: "flex", justifyContent: "center", flexDirection: "column", alignItems: "center" }}>
-                <Typography sx={{ display: "inline" }} noWrap variant="h2">Owned Dogs</Typography>
-                <div style={{ display: "flex", width: "50%", minWidth: "fit-content", maxWidth: "750px", flexDirection: "column" }}>
-                    {dogs.map((dog) => <DogCard key={dog.id} dog={dog} />)}
-                </div>
+                {
+                    dogs.length != 0 && <div><Typography sx={{ display: "inline" }} noWrap variant="h2">Owned Dogs</Typography>
+                        <div style={{ display: "flex", width: "50%", minWidth: "fit-content", maxWidth: "750px", flexDirection: "column" }}>
+                            {dogs.map((dog) => <DogCard key={dog.id} dog={dog} />)}
+                        </div>
+                    </div>
+                }
                 <Typography sx={{ display: "inline" }} noWrap variant="h2">Profile</Typography>
                 <div style={{ display: "flex", width: "50%", minWidth: "fit-content", maxWidth: "750px", flexDirection: "column" }} >
                     {!editingProfile && <RichTextViewer text={publicNotes} />}
