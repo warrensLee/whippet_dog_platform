@@ -46,7 +46,7 @@ class MeetResult:
             arx_earned=(data.get("arxEarned") or "").strip(),
             narx_earned=(data.get("narxEarned") or "").strip(),
             shown=(data.get("shown") or "").strip(),
-            show_placement=(data.get("showPlacement") or "").strip(),
+            show_placement=(data.get("showPlacement") or "0").strip(),
             show_points=(data.get("showPoints") or "").strip(),
             dpc_leg=(data.get("dpcLeg") or "").strip(),
             hc_score=(data.get("hcScore") or "").strip(),

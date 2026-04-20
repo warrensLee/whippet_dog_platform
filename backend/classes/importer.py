@@ -310,6 +310,8 @@ class CsvImporter:
                 meet_result.last_edited_by = editor_id
                 meet_result.last_edited_at = now
                 errors = meet_result.validate()
+                if errors:
+                    continue
                 meet_result.save()
 
                 meet_result = MeetResult.find_by_identifier(meet, cwa)
