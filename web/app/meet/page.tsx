@@ -11,6 +11,7 @@ import { fetchJson } from "../../lib/ui/fetchJson";
 import { formatDate } from "../../lib/ui/formatDate";
 import RaceLineup from "../components/event/RaceLineup";
 import FinalMeetResults from "../components/event/FinalMeetResults";
+import MeetSpecialWinners from "../components/event/MeetSpecialWinners";
 import authContext from "@/lib/auth/auth";
 import Loading from "@/lib/loading";
 import RichTextViewer from "@/lib/richtext/RichTextViewer";
@@ -31,7 +32,6 @@ interface EventDetail {
     requestFormLink?: string;
     resultsLink?: string;
     publicNotes?: string;
-    status?: string;
     privateNotes?: string;
 }
 
@@ -58,28 +58,39 @@ interface FinalMeetResult {
     incident?: string | null;
     hcScore?: number | string | null;
     dpcPoints?: number | string | null;
+    entryType?: string | null;
 }
 
 function normalizeEventDetail(e: Record<string, unknown>): EventDetail {
-    // Helper to check both camelCase and PascalCase
-    const get = (key: string): string => {
+    const getString = (key: string): string => {
         const pascal = key.charAt(0).toUpperCase() + key.slice(1);
         const value = e[key] ?? e[pascal];
-        return typeof value === 'string' ? value : "";
+        return typeof value === "string" ? value : "";
     };
+
+    const getStringOrNumber = (key: string): string | number | undefined => {
+        const pascal = key.charAt(0).toUpperCase() + key.slice(1);
+        const value = e[key] ?? e[pascal];
+
+        if (typeof value === "string" || typeof value === "number") {
+            return value;
+        }
+
+        return undefined;
+    };
+
     return {
-        meetNumber: get("meetNumber"),
-        meetDate: get("meetDate"),
-        clubAbbreviation: get("clubAbbreviation"),
-        raceSecretary: get("raceSecretary"),
-        judge: get("judge"),
-        location: get("location"),
-        yards: get("yards"),
-        requestFormLink: get("requestFormLink"),
-        resultsLink: get("resultsLink"),
-        publicNotes: get("publicNotes"),
-        status: get("status"),
-        privateNotes: get("privateNotes"),
+        meetNumber: getString("meetNumber"),
+        meetDate: getString("meetDate"),
+        clubAbbreviation: getString("clubAbbreviation"),
+        raceSecretary: getString("raceSecretary"),
+        judge: getString("judge"),
+        location: getString("location"),
+        yards: getStringOrNumber("yards"),
+        requestFormLink: getString("requestFormLink"),
+        resultsLink: getString("resultsLink"),
+        publicNotes: getString("publicNotes"),
+        privateNotes: getString("privateNotes"),
     };
 }
 
@@ -233,14 +244,6 @@ function MeetPage() {
         };
     }, [meetNumber, encodedMeetNumber]);
 
-    const statusLabel = event?.status?.trim() || "Status unknown";
-    const statusColor =
-        statusLabel === "Upcoming"
-            ? "bg-blue-100 text-blue-700"
-            : statusLabel === "Completed"
-                ? "bg-emerald-100 text-emerald-700"
-                : "bg-neutral-200 text-neutral-600";
-
     const totalEntries = races.reduce((sum, race) => sum + (race.entryCount ?? 0), 0);
 
     const heroTitle = loading
@@ -289,7 +292,7 @@ function MeetPage() {
                         <StatPill label="Programs" value={programGroups.length} accent />
                         <StatPill label="Races" value={races.length} />
                         <StatPill label="Entries" value={totalEntries} />
-                        <StatPill label="Yards" value={event?.yards || "—"} />
+                        <StatPill label="Yards" value={event?.yards ?? "—"} />
                     </div>
 
                     <Card title="Details">
@@ -303,8 +306,7 @@ function MeetPage() {
                                 <FieldRow label="Race Secretary" value={event.raceSecretary} />
                                 <FieldRow label="Judge" value={event.judge} />
                                 <FieldRow label="Location" value={event.location} />
-                                <FieldRow label="Yards" value={event.yards} />
-                                <FieldRow label="Status" value={event.status} />
+                                <FieldRow label="Yards" value={event.yards ?? "—"} />
 
                                 {event.requestFormLink ? (
                                     <div className="pt-3">
@@ -332,11 +334,6 @@ function MeetPage() {
                                     </div>
                                 ) : null}
 
-                                <div className="mt-4 flex flex-wrap gap-3">
-                                    <span className={`rounded-full px-4 py-1 text-xs font-semibold ${statusColor}`}>
-                                        {statusLabel}
-                                    </span>
-                                </div>
                             </>
                         ) : (
                             <p className="text-sm text-[#12301D]/40">No event found.</p>
@@ -377,7 +374,20 @@ function MeetPage() {
                             ARX: row.arxEarned,
                             NARX: row.narxEarned,
                             Incident: row.incident,
+                            EntryType: row.entryType,
                         }))}
+                    />
+
+                    <MeetSpecialWinners
+                        results={finalMeetResults
+                            .filter((row) => String(row.entryType ?? "").trim().toUpperCase() !== "PUPPY")
+                            .map((row) => ({
+                                cwaNumber: row.cwaNumber,
+                                callName: row.callName,
+                                registeredName: row.registeredName,
+                                hcScore: row.hcScore,
+                                dpcPoints: row.dpcPoints,
+                            }))}
                     />
 
                     <Card title="Programs & Races">

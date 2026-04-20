@@ -841,9 +841,11 @@ class Dog:
             "Status": self.status,
             "CurrentGrade": self.current_grade
         }
-
+    
     def to_dict(self, include_private=True):
         """Convert to dictionary for JSON responses."""
+        ytd_match = self.get_ytd_match_points(self.cwa_number)
+
         data = {
             "cwaNumber": self.cwa_number,
             "registeredNumber": self.registered_number,
@@ -863,6 +865,8 @@ class Dog:
             "meetWins": self.meet_wins,
             "meetAppearences": self.meet_appearences,
             "highCombinedWins": self.high_combined_wins,
+            "ytdMatchPoints": ytd_match.get("ytdMatchPoints"),
+            "ytdYear": ytd_match.get("year"),
             "aomEarned": self.aom_earned,
             "publicNotes": self.public_notes,
             "dna": self.dna,
@@ -872,10 +876,10 @@ class Dog:
             "lastEditedBy": self.last_edited_by,
             "lastEditedAt": self.last_edited_at.isoformat() if self.last_edited_at else None
         }
-        
+
         if include_private:
             data["privateNotes"] = self.private_notes
-        
+
         return data
 
     @staticmethod
@@ -906,4 +910,84 @@ class Dog:
             "cwaNumber": cwa_number,
             "year": year,
             "ytdMatchPoints": float(row.get("ytd_match_points") or 0)
+        }
+    
+    @classmethod
+    def get_high_combined_wins(cls, cwa_number: str):
+        row = fetch_one("""
+            SELECT COUNT(*) as hc_wins
+            FROM MeetResults mr
+            WHERE mr.CWANumber = %s
+            AND mr.MeetPlacement IS NOT NULL
+            AND mr.ConformationPlacement IS NOT NULL
+            AND mr.MeetPlacement + mr.ConformationPlacement = (
+                SELECT MIN(inner_mr.MeetPlacement + inner_mr.ConformationPlacement)
+                FROM MeetResults inner_mr
+                WHERE inner_mr.MeetNumber = mr.MeetNumber
+                    AND inner_mr.MeetPlacement IS NOT NULL
+                    AND inner_mr.ConformationPlacement IS NOT NULL
+            )
+            AND mr.MeetPlacement = (
+                SELECT MIN(inner_mr.MeetPlacement)
+                FROM MeetResults inner_mr
+                WHERE inner_mr.MeetNumber = mr.MeetNumber
+                    AND inner_mr.MeetPlacement IS NOT NULL
+                    AND inner_mr.ConformationPlacement IS NOT NULL
+                    AND inner_mr.MeetPlacement + inner_mr.ConformationPlacement = (
+                        SELECT MIN(inner2.MeetPlacement + inner2.ConformationPlacement)
+                        FROM MeetResults inner2
+                        WHERE inner2.MeetNumber = mr.MeetNumber
+                        AND inner2.MeetPlacement IS NOT NULL
+                        AND inner2.ConformationPlacement IS NOT NULL
+                    )
+            )
+        """, (cwa_number,)) or {}
+
+        return {
+            "cwaNumber": cwa_number,
+            "highCombinedWins": int(row.get("hc_wins") or 0)
+        }
+
+
+    @classmethod
+    def get_ytd_high_combined_wins(cls, cwa_number: str, year: int | None = None):
+        if year is None:
+            from datetime import datetime
+            year = datetime.now().year
+
+        row = fetch_one("""
+            SELECT COUNT(*) as ytd_hc_wins
+            FROM MeetResults mr
+            JOIN Meet m ON m.MeetNumber = mr.MeetNumber
+            WHERE mr.CWANumber = %s
+            AND YEAR(m.MeetDate) = %s
+            AND mr.MeetPlacement IS NOT NULL
+            AND mr.ConformationPlacement IS NOT NULL
+            AND mr.MeetPlacement + mr.ConformationPlacement = (
+                SELECT MIN(inner_mr.MeetPlacement + inner_mr.ConformationPlacement)
+                FROM MeetResults inner_mr
+                WHERE inner_mr.MeetNumber = mr.MeetNumber
+                    AND inner_mr.MeetPlacement IS NOT NULL
+                    AND inner_mr.ConformationPlacement IS NOT NULL
+            )
+            AND mr.MeetPlacement = (
+                SELECT MIN(inner_mr.MeetPlacement)
+                FROM MeetResults inner_mr
+                WHERE inner_mr.MeetNumber = mr.MeetNumber
+                    AND inner_mr.MeetPlacement IS NOT NULL
+                    AND inner_mr.ConformationPlacement IS NOT NULL
+                    AND inner_mr.MeetPlacement + inner_mr.ConformationPlacement = (
+                        SELECT MIN(inner2.MeetPlacement + inner2.ConformationPlacement)
+                        FROM MeetResults inner2
+                        WHERE inner2.MeetNumber = mr.MeetNumber
+                        AND inner2.MeetPlacement IS NOT NULL
+                        AND inner2.ConformationPlacement IS NOT NULL
+                    )
+            )
+        """, (cwa_number, year)) or {}
+
+        return {
+            "cwaNumber": cwa_number,
+            "year": year,
+            "ytdHighCombinedWins": int(row.get("ytd_hc_wins") or 0)
         }

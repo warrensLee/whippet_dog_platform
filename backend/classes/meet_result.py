@@ -321,13 +321,67 @@ class MeetResult:
             SELECT placement
             FROM (
                 SELECT
-                    CWANumber,
-                    RANK() OVER (ORDER BY SUM(MeetPoints) DESC) AS placement
-                FROM RaceResults
-                WHERE MeetNumber = %s
-                GROUP BY CWANumber
-            ) ranked
-            WHERE CWANumber = %s
+                    ranked.CWANumber,
+                    ranked.EntryType,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY ranked.EntryType
+                        ORDER BY
+                            ranked.TotalMeetPoints DESC,
+                            ranked.LastProgramNum DESC,
+                            ranked.LastRaceNum DESC,
+                            ranked.LastRacePlacementNum ASC,
+                            ranked.CWANumber ASC
+                    ) AS placement
+                FROM (
+                    SELECT
+                        rr.CWANumber,
+                        MAX(rr.EntryType) AS EntryType,
+                        SUM(COALESCE(rr.MeetPoints, 0)) AS TotalMeetPoints,
+                        MAX(CASE
+                            WHEN rr.Program REGEXP '^[0-9]+$' THEN CAST(rr.Program AS UNSIGNED)
+                            ELSE NULL
+                        END) AS LastProgramNum,
+                        MAX(CASE
+                            WHEN rr.Program = (
+                                SELECT MAX(CASE
+                                    WHEN rr2.Program REGEXP '^[0-9]+$' THEN CAST(rr2.Program AS UNSIGNED)
+                                    ELSE NULL
+                                END)
+                                FROM RaceResults rr2
+                                WHERE rr2.MeetNumber = rr.MeetNumber
+                                AND rr2.CWANumber = rr.CWANumber
+                            )
+                            AND rr.RaceNumber REGEXP '^[0-9]+$'
+                            THEN CAST(rr.RaceNumber AS UNSIGNED)
+                            ELSE NULL
+                        END) AS LastRaceNum,
+                        MIN(CASE
+                            WHEN rr.Program = (
+                                SELECT MAX(CASE
+                                    WHEN rr3.Program REGEXP '^[0-9]+$' THEN CAST(rr3.Program AS UNSIGNED)
+                                    ELSE NULL
+                                END)
+                                FROM RaceResults rr3
+                                WHERE rr3.MeetNumber = rr.MeetNumber
+                                AND rr3.CWANumber = rr.CWANumber
+                            )
+                            AND rr.RaceNumber = (
+                                SELECT MAX(rr4.RaceNumber)
+                                FROM RaceResults rr4
+                                WHERE rr4.MeetNumber = rr.MeetNumber
+                                AND rr4.CWANumber = rr.CWANumber
+                                AND rr4.Program = rr.Program
+                            )
+                            AND rr.Placement REGEXP '^[0-9]+$'
+                            THEN CAST(rr.Placement AS UNSIGNED)
+                            ELSE NULL
+                        END) AS LastRacePlacementNum
+                    FROM RaceResults rr
+                    WHERE rr.MeetNumber = %s
+                    GROUP BY rr.CWANumber
+                ) ranked
+            ) placed
+            WHERE placed.CWANumber = %s
         """, (self.meet_number, self.cwa_number)) or {}
 
         self.meet_placement = int(placement_row.get("placement") or 0)
@@ -431,64 +485,66 @@ class MeetResult:
     def list_final_results_for_meet(cls, meet_number):
         rows = fetch_all(
             """
-            SELECT
-                mr.CWANumber,
-                mr.MeetPlacement,
-                mr.Grade,
-                mr.MeetPoints,
-                mr.ARXEarned,
-                mr.NARXEarned,
-                d.CallName,
-                d.RegisteredName,
+                SELECT
+                    mr.CWANumber,
+                    mr.MeetPlacement,
+                    mr.Grade,
+                    mr.MeetPoints,
+                    mr.ARXEarned,
+                    mr.NARXEarned,
+                    mr.HCScore,
+                    mr.DPCPoints,
+                    d.CallName,
+                    d.RegisteredName,
 
-                -- Owner display (simple)
-                GROUP_CONCAT(
-                    DISTINCT CONCAT_WS(' ', p.FirstName, p.LastName)
-                    ORDER BY p.LastName, p.FirstName
-                    SEPARATOR ', '
-                ) AS OwnerName,
+                    MAX(rr.EntryType) AS EntryType,
 
-                -- Owner IDs (for links)
-                GROUP_CONCAT(
-                    DISTINCT p.ID
-                    ORDER BY p.LastName, p.FirstName
-                    SEPARATOR ','
-                ) AS OwnerIDs,
+                    GROUP_CONCAT(
+                        DISTINCT CONCAT_WS(' ', p.FirstName, p.LastName)
+                        ORDER BY p.LastName, p.FirstName
+                        SEPARATOR ', '
+                    ) AS OwnerName,
 
-                -- Incidents (from race results)
-                GROUP_CONCAT(
-                    DISTINCT rr.Incident
-                    ORDER BY rr.Program, rr.RaceNumber
-                    SEPARATOR ', '
-                ) AS Incident
+                    GROUP_CONCAT(
+                        DISTINCT p.PersonID
+                        ORDER BY p.LastName, p.FirstName
+                        SEPARATOR ','
+                    ) AS OwnerIDs,
 
-            FROM MeetResults mr
+                    GROUP_CONCAT(
+                        DISTINCT rr.Incident
+                        ORDER BY rr.Program, rr.RaceNumber
+                        SEPARATOR ', '
+                    ) AS Incident
 
-            JOIN Dog d ON d.CWANumber = mr.CWANumber
-            LEFT JOIN DogOwner do ON do.CWAID = d.CWANumber
-            LEFT JOIN Person p ON p.ID = do.PersonID
-
-            LEFT JOIN RaceResults rr 
-            ON rr.CWANumber = mr.CWANumber 
-            AND rr.MeetNumber = mr.MeetNumber
-
-            WHERE mr.MeetNumber = %s
-
-            GROUP BY
-                mr.CWANumber,
-                mr.MeetPlacement,
-                mr.Grade,
-                mr.MeetPoints,
-                mr.ARXEarned,
-                mr.NARXEarned,
-                d.CallName,
-                d.RegisteredName
-
-            ORDER BY
-                (mr.MeetPlacement IS NULL OR mr.MeetPlacement = '') ASC,
-                LENGTH(mr.MeetPlacement) ASC,
-                mr.MeetPlacement ASC,
-                d.CallName ASC
+                FROM MeetResults mr
+                JOIN Dog d ON d.CWANumber = mr.CWANumber
+                LEFT JOIN DogOwner do ON do.CWAID = d.CWANumber
+                LEFT JOIN Person p ON p.ID = do.PersonID
+                LEFT JOIN RaceResults rr
+                    ON rr.CWANumber = mr.CWANumber
+                AND rr.MeetNumber = mr.MeetNumber
+                WHERE mr.MeetNumber = %s
+                GROUP BY
+                    mr.CWANumber,
+                    mr.MeetPlacement,
+                    mr.Grade,
+                    mr.MeetPoints,
+                    mr.ARXEarned,
+                    mr.NARXEarned,
+                    mr.HCScore,
+                    mr.DPCPoints,
+                    d.CallName,
+                    d.RegisteredName
+                ORDER BY
+                    CASE
+                        WHEN UPPER(COALESCE(MAX(rr.EntryType), '')) = 'PUPPY' THEN 1
+                        ELSE 0
+                    END,
+                    (mr.MeetPlacement IS NULL OR mr.MeetPlacement = '') ASC,
+                    LENGTH(mr.MeetPlacement) ASC,
+                    mr.MeetPlacement ASC,
+                    d.CallName ASC
             """,
             (meet_number,),
         )

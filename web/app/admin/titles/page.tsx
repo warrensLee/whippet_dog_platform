@@ -6,7 +6,11 @@ import {
   Box,
   Button,
   CircularProgress,
+  FormControl,
+  InputLabel,
+  MenuItem,
   Paper,
+  Select,
   Table,
   TableBody,
   TableCell,
@@ -36,6 +40,47 @@ export default function AdminTitlesPage() {
   const [rows, setRows] = React.useState<TitleReportRow[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
+  const [sortBy, setSortBy] = React.useState("date-desc");
+
+  const sortedRows = React.useMemo(() => {
+  const sorted = [...rows];
+
+  sorted.sort((a, b) => {
+    const dogA = (a.registeredName || a.callName || "").toLowerCase();
+    const dogB = (b.registeredName || b.callName || "").toLowerCase();
+
+    const ownerA = (a.ownerName || "").toLowerCase();
+    const ownerB = (b.ownerName || "").toLowerCase();
+
+    const dateA = a.titleDate ? new Date(a.titleDate).getTime() : 0;
+    const dateB = b.titleDate ? new Date(b.titleDate).getTime() : 0;
+
+    switch (sortBy) {
+      case "date-asc":
+        return dateA - dateB;
+
+      case "date-desc":
+        return dateB - dateA;
+
+      case "owner-asc":
+        return ownerA.localeCompare(ownerB);
+
+      case "owner-desc":
+        return ownerB.localeCompare(ownerA);
+
+      case "dog-asc":
+        return dogA.localeCompare(dogB);
+
+      case "dog-desc":
+        return dogB.localeCompare(dogA);
+
+      default:
+        return 0;
+    }
+  });
+
+  return sorted;
+}, [rows, sortBy]);
 
   async function handleSearch() {
     try {
@@ -112,6 +157,23 @@ export default function AdminTitlesPage() {
                 />
               </Box>
 
+              <FormControl sx={{ minWidth: 220 }}>
+                <InputLabel id="sort-by-label">Sort By</InputLabel>
+                <Select
+                  labelId="sort-by-label"
+                  value={sortBy}
+                  label="Sort By"
+                  onChange={(e) => setSortBy(e.target.value)}
+                >
+                  <MenuItem value="date-desc">Date Descending</MenuItem>
+                  <MenuItem value="date-asc">Date Ascending</MenuItem>
+                  <MenuItem value="owner-asc">Owner Name A–Z</MenuItem>
+                  <MenuItem value="owner-desc">Owner Name Z–A</MenuItem>
+                  <MenuItem value="dog-asc">Dog Name A–Z</MenuItem>
+                  <MenuItem value="dog-desc">Dog Name Z–A</MenuItem>
+                </Select>
+              </FormControl>
+
               <Button
                 color="success"
                 variant="contained"
@@ -152,7 +214,7 @@ export default function AdminTitlesPage() {
               </TableHead>
 
               <TableBody>
-                {rows.map((row, index) => (
+                {sortedRows.map((row, index) => (
                   <TableRow
                     key={`${row.cwaNumber}-${row.title}-${index}`}
                     hover

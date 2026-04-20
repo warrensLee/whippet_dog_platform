@@ -14,11 +14,14 @@ type FinalMeetResult = {
   Incident?: string | null;
   ARX?: number | string | null;
   NARX?: number | string | null;
+  EntryType?: string | null;
 };
 
-export default function FinalMeetResults({
+function ResultsTable({
+  title,
   results,
 }: {
+  title: string;
   results: FinalMeetResult[];
 }) {
   const formatValue = (value?: string | number | null): string => {
@@ -61,11 +64,13 @@ export default function FinalMeetResults({
   };
 
   return (
-    <Card title={`Final Meet Results${results.length ? ` (${results.length})` : ""}`}>
+    <div>
+      <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.08em] text-[#12301D]/75">
+        {title}
+      </p>
+
       {results.length === 0 ? (
-        <p className="py-4 text-center text-sm text-[#12301D]/40">
-          No final meet results found.
-        </p>
+        <p className="py-2 text-sm text-[#12301D]/40">No results found.</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full border-collapse text-[14px] leading-tight text-[#12301D] [td]:align-middle">
@@ -138,6 +143,37 @@ export default function FinalMeetResults({
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function FinalMeetResults({
+  results,
+}: {
+  results: FinalMeetResult[];
+}) {
+  const adultResults = results.filter(
+    (dog) => String(dog.EntryType ?? "").trim().toUpperCase() !== "PUPPY"
+  );
+
+  const puppyResults = results.filter(
+    (dog) => String(dog.EntryType ?? "").trim().toUpperCase() === "PUPPY"
+  );
+
+  return (
+    <Card title={`Final Meet Results${results.length ? ` (${results.length})` : ""}`}>
+      {results.length === 0 ? (
+        <p className="py-4 text-center text-sm text-[#12301D]/40">
+          No final meet results found.
+        </p>
+      ) : (
+        <div className="space-y-6">
+          <ResultsTable title="Adult Results" results={adultResults} />
+          {puppyResults.length > 0 && (
+            <ResultsTable title="Puppy Results" results={puppyResults} />
+          )}
         </div>
       )}
     </Card>

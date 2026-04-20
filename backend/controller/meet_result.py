@@ -18,6 +18,35 @@ def _is_owner(cwa_number: str) -> bool:
     return DogOwner.exists(cwa_number, pid) if pid else False
 
 
+# def _meet_stats(cwa_number: str) -> dict:
+#     row = fetch_one(
+#         """
+#         SELECT
+#             COALESCE(SUM(MeetPoints),0) AS meet_points,
+#             COALESCE(SUM(ARXEarned),0)  AS arx_points,
+#             COALESCE(SUM(NARXEarned),0) AS narx_points,
+#             COALESCE(SUM(ShowPoints),0) AS show_points,
+#             COALESCE(SUM(DPCLeg),0)     AS dpc_legs,
+#             COALESCE(SUM(CASE WHEN MeetPlacement=1 THEN 1 ELSE 0 END),0) AS meet_wins,
+#             COALESCE(COUNT(*),0)        AS meet_appearences,
+#             COALESCE(SUM(DPCPoints),0)  AS dpc_points
+#         FROM MeetResults
+#         WHERE CWANumber=%s
+#         """,
+#         (cwa_number,),
+#     ) or {}
+
+#     return {
+#         "meet_points": float(row.get("meet_points") or 0),
+#         "arx_points": float(row.get("arx_points") or 0),
+#         "narx_points": float(row.get("narx_points") or 0),
+#         "show_points": float(row.get("show_points") or 0),
+#         "dpc_legs": float(row.get("dpc_legs") or 0),
+#         "meet_wins": float(row.get("meet_wins") or 0),
+#         "meet_appearences": float(row.get("meet_appearences") or 0),
+#         "dpc_points": float(row.get("dpc_points") or 0),
+#     }
+
 def _meet_stats(cwa_number: str) -> dict:
     row = fetch_one(
         """
@@ -36,6 +65,38 @@ def _meet_stats(cwa_number: str) -> dict:
         (cwa_number,),
     ) or {}
 
+    hc_row = fetch_one(
+        """
+        SELECT COUNT(*) as hc_wins
+        FROM MeetResults mr
+        WHERE mr.CWANumber = %s
+          AND mr.MeetPlacement IS NOT NULL
+          AND mr.ConformationPlacement IS NOT NULL
+          AND mr.MeetPlacement + mr.ConformationPlacement = (
+              SELECT MIN(inner_mr.MeetPlacement + inner_mr.ConformationPlacement)
+              FROM MeetResults inner_mr
+              WHERE inner_mr.MeetNumber = mr.MeetNumber
+                AND inner_mr.MeetPlacement IS NOT NULL
+                AND inner_mr.ConformationPlacement IS NOT NULL
+          )
+          AND mr.MeetPlacement = (
+              SELECT MIN(inner_mr.MeetPlacement)
+              FROM MeetResults inner_mr
+              WHERE inner_mr.MeetNumber = mr.MeetNumber
+                AND inner_mr.MeetPlacement IS NOT NULL
+                AND inner_mr.ConformationPlacement IS NOT NULL
+                AND inner_mr.MeetPlacement + inner_mr.ConformationPlacement = (
+                    SELECT MIN(inner2.MeetPlacement + inner2.ConformationPlacement)
+                    FROM MeetResults inner2
+                    WHERE inner2.MeetNumber = mr.MeetNumber
+                      AND inner2.MeetPlacement IS NOT NULL
+                      AND inner2.ConformationPlacement IS NOT NULL
+                )
+          )
+        """,
+        (cwa_number,),
+    ) or {}
+
     return {
         "meet_points": float(row.get("meet_points") or 0),
         "arx_points": float(row.get("arx_points") or 0),
@@ -45,8 +106,8 @@ def _meet_stats(cwa_number: str) -> dict:
         "meet_wins": float(row.get("meet_wins") or 0),
         "meet_appearences": float(row.get("meet_appearences") or 0),
         "dpc_points": float(row.get("dpc_points") or 0),
+        "high_combined_wins": int(hc_row.get("hc_wins") or 0),
     }
-
 
 def _apply_meet_stats_delta(dog: Dog, old: dict, new: dict, editor_id: str, now: datetime):
     dog.meet_points = float(dog.meet_points or 0) - old["meet_points"] + new["meet_points"]
@@ -56,12 +117,11 @@ def _apply_meet_stats_delta(dog: Dog, old: dict, new: dict, editor_id: str, now:
     dog.dpc_legs = int(dog.dpc_legs or 0) - int(old["dpc_legs"]) + int(new["dpc_legs"])
     dog.meet_wins = int(dog.meet_wins or 0) - int(old["meet_wins"]) + int(new["meet_wins"])
     dog.meet_appearences = int(dog.meet_appearences or 0) - int(old["meet_appearences"]) + int(new["meet_appearences"])
-    #dog.dpc_points = int(dog.dpc_points or 0) - int(old["dpc_points"]) + int(new["dpc_points"])
+    dog.high_combined_wins = int(new["high_combined_wins"])
     if hasattr(dog, "compute_last_three_meet_average"):
         dog.average = dog.compute_last_three_meet_average()
     dog.update()
     DogTitle.sync_titles_for_dog(dog, editor_id, now)
-
 
 @meet_result_bp.post("/add")
 def register_meet_result():
@@ -281,11 +341,14 @@ def list_final_meet_results_for_meet(meet_number):
                 "callName": row.get("CallName"),
                 "registeredName": row.get("RegisteredName"),
                 "ownerName": row.get("OwnerName"),
-                "ownerIDs": row.get("OwnerIDs"),   
+                "ownerIDs": row.get("OwnerIDs"),
                 "meetPoints": row.get("MeetPoints"),
                 "arxEarned": row.get("ARXEarned"),
                 "narxEarned": row.get("NARXEarned"),
-                "incident": row.get("Incident"),   
+                "incident": row.get("Incident"),
+                "hcScore": row.get("HCScore"),
+                "dpcPoints": row.get("DPCPoints"),
+                "entryType": row.get("EntryType"),
             }
             for row in rows
         ]
