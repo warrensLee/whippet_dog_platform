@@ -13,7 +13,10 @@ export default function RichTextViewer({ text }: { text: string }) {
   return (<div><Slate key={text} editor={editor} initialValue={
     (() => {
       try {
-        return JSON.parse(text);
+        return JSON.parse(text) || [{
+          type: "paragraph",
+          children: [{ text: text || "" }],
+        }];
       } catch {
         return [
           {

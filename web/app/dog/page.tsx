@@ -105,7 +105,7 @@ function DogPage() {
   }, [cwaNumber, encodedCwaNumber]);
 
   React.useEffect(() => {
-    if (!cwaNumber) 
+    if (!cwaNumber)
       return;
 
     async function loadStats() {
@@ -191,14 +191,13 @@ function DogPage() {
 
       <section className="bg-[#E7F0E9] pb-24 pt-10">
         <div className="mx-auto max-w-4xl space-y-6 px-6">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-4">
+          <div className="flex flex-wrap gap-6">
             <StatPill label="Completed Meets" value={dog?.meetAppearences ?? "—"} />
             <StatPill label="Meet Points" value={dog?.meetPoints ?? "—"} accent />
-            <StatPill label="YTD Match Points" value={dog?.ytdMatchPoints ?? "—"} />
             <StatPill label="Meet Wins" value={dog?.meetWins ?? "—"} />
           </div>
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+          <div className="grid grid-cols-1 gap-6">
             <Card title="Details" className="h-full lg:col-span-2">
               {loading ? (
                 <p className="text-sm text-[#12301D]/40">Loading…</p>
@@ -233,28 +232,8 @@ function DogPage() {
               )}
             </Card>
 
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setStatsMode("all")}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  statsMode === "all"
-                    ? "bg-[#2E6B3F] text-white"
-                    : "bg-white text-[#12301D] border border-black/10"
-                }`}
-              >
-                All Time
-              </button>
+            <div className="flex flex-wrap gap-2 flex-row">
 
-              <button
-                onClick={() => setStatsMode("ytd")}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  statsMode === "ytd"
-                    ? "bg-[#2E6B3F] text-white"
-                    : "bg-white text-[#12301D] border border-black/10"
-                }`}
-              >
-                {currentYear} YTD
-              </button>
             </div>
 
             <Card title="Points Breakdown" className="h-full lg:col-span-3">
@@ -262,6 +241,25 @@ function DogPage() {
                 <p className="text-sm text-[#12301D]/40">Loading…</p>
               ) : dog ? (
                 <>
+                  <button
+                    onClick={() => setStatsMode("all")}
+                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${statsMode === "all"
+                      ? "bg-[#2E6B3F] text-white"
+                      : "bg-white text-[#12301D] border border-black/10"
+                      }`}
+                  >
+                    All Time
+                  </button>
+
+                  <button
+                    onClick={() => setStatsMode("ytd")}
+                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${statsMode === "ytd"
+                      ? "bg-[#2E6B3F] text-white"
+                      : "bg-white text-[#12301D] border border-black/10"
+                      }`}
+                  >
+                    {currentYear} YTD
+                  </button>
                   <PointBar
                     label={`Meet Pts (${statsMode === "ytd" ? currentYear + " YTD" : "All Time"})`}
                     value={dogStats?.total_meet_points ?? 0}
@@ -300,6 +298,7 @@ function DogPage() {
               ) : (
                 <p className="text-sm text-[#12301D]/40">No points available.</p>
               )}
+
             </Card>
           </div>
 
@@ -343,7 +342,7 @@ function DogPage() {
                         </p>
                       </div>
                       <div className="max-w-fit">
-                        <a className="mt-2 rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60 w-full" href={"/owner?id=" + owner.UserID}>View Owner</a>
+                        <a className="mt-2 rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60 w-full" href={"/owner?id=" + owner.userID}>View Owner</a>
                       </div>
                     </div>
                   );

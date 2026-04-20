@@ -895,7 +895,7 @@ class Dog:
         
         row = fetch_one("""
             SELECT 
-                SUM(MeetPoints) as ytd_match_points
+                SUM(MatchPoints) as ytd_match_points
             FROM MeetResults mr
             JOIN Meet m ON m.MeetNumber = mr.MeetNumber
             WHERE mr.CWANumber = %s

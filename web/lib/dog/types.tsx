@@ -70,10 +70,10 @@ export interface MeetEntry {
 }
 
 export interface DogOwner {
+  userID: string;
   PersonID?: string | number;
   FirstName?: string;
   LastName?: string;
-  UserID: string;
 }
 
 export type TierColor =
