@@ -93,14 +93,14 @@ def register_race_result():
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.edit_race_results_scope, "create race results")
+    deny = require_scope(role.edit_meet_scope, "create race results")
     if deny:
         return deny
 
     data = request.get_json(silent=True) or {}
     race_result = RaceResult.from_request_data(data)
 
-    if role.edit_race_results_scope == UserRole.SELF and not _is_owner(race_result.cwa_number):
+    if role.edit_meet_scope == UserRole.SELF and not _is_owner(race_result.cwa_number):
         return jsonify({"ok": False, "error": "You can only add race results for dogs you own"}), 403
 
     editor_id = current_editor_id()
@@ -180,7 +180,7 @@ def edit_race_result():
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.edit_race_results_scope, "edit race results")
+    deny = require_scope(role.edit_meet_scope, "edit race results")
     if deny:
         return deny
 
@@ -203,7 +203,7 @@ def edit_race_result():
     if not existing:
         return jsonify({"ok": False, "error": "Race result does not exist"}), 404
 
-    if role.edit_race_results_scope == UserRole.SELF and not _is_owner(cwa_number):
+    if role.edit_meet_scope == UserRole.SELF and not _is_owner(cwa_number):
         return jsonify({"ok": False, "error": "You can only edit race results for dogs you own"}), 403
 
     editor_id = current_editor_id()
@@ -285,7 +285,7 @@ def delete_race_result():
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.edit_race_results_scope, "delete race results")
+    deny = require_scope(role.edit_meet_scope, "delete race results")
     if deny:
         return deny
 
@@ -310,7 +310,7 @@ def delete_race_result():
     if not race_result:
         return jsonify({"ok": False, "error": "Race result does not exist"}), 404
 
-    if role.edit_race_results_scope == UserRole.SELF and not _is_owner(cwa_number):
+    if role.edit_meet_scope == UserRole.SELF and not _is_owner(cwa_number):
         return jsonify({"ok": False, "error": "You can only delete race results for dogs you own"}), 403
 
     editor_id = current_editor_id()

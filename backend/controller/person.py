@@ -45,11 +45,7 @@ def register_person():
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.edit_person_scope, "create people")
-    if deny:
-        return deny
-
-    if role.edit_person_scope != UserRole.ALL:
+    if role.title != "ADMIN":
         return jsonify({"ok": False, "error": "Not authorized to create people"}), 403
 
     data = request.get_json(silent=True) or {}
@@ -98,17 +94,10 @@ def edit_person():
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
+    if role.title != "ADMIN":
+        return jsonify({"ok": False, "error": "Not authorized to edit people"}), 403
+
     data = request.get_json(silent=True) or {}
-    deny = require_scope(role.edit_person_scope, "edit people")
-
-    if deny:
-        target = Person.find_by_id(data.get("id"))
-        if not target or not _is_self(target):
-            return deny
-        
-    # if deny and current_editor_id() != data.get("personId", ""):
-    #     return deny
-
     record_id = data.get("id")
     if not record_id:
         return jsonify({"ok": False, "error": "ID is required"}), 400
@@ -116,9 +105,6 @@ def edit_person():
     existing = Person.find_by_id(record_id)
     if not existing:
         return jsonify({"ok": False, "error": "Person does not exist"}), 404
-    
-    if role.edit_person_scope == UserRole.SELF and not _is_self(existing):
-        return jsonify({"ok": False, "error": "You can only edit your own profile"}), 403
 
     # Prevent locking yourself out
     if "locked" in data and data["locked"] and _is_self(existing):
@@ -175,11 +161,7 @@ def delete_person():
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.edit_person_scope, "delete people")
-    if deny:
-        return deny
-
-    if role.edit_person_scope != UserRole.ALL:
+    if role.title != "ADMIN":
         return jsonify({"ok": False, "error": "Not authorized to delete people"}), 403
 
     data = request.get_json(silent=True) or {}
@@ -283,10 +265,8 @@ def change_user_role():
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(UserRole.ALL, "edit person")
-    if deny:
-        return deny
-    
+    if role.title != "ADMIN":
+        return jsonify({"ok": False, "error": "Not authorized to change user roles"}), 403
 
     data = request.get_json(silent=True) or {}
     person_id = (data.get("personId") or "").strip()
@@ -296,14 +276,6 @@ def change_user_role():
         return jsonify({"ok": False, "error": "Person ID is required"}), 400
     if not new_role:
         return jsonify({"ok": False, "error": "System role is required"}), 400
-    
-    if role.edit_person_scope == UserRole.SELF:
-        target = Person.find_by_identifier(person_id)
-        if not target or not _is_self(target):
-            return jsonify({"ok": False, "error": "Not authorized to change other users"}), 403
-
-    # if role.edit_person_scope == UserRole.SELF and person_id != current_editor_id():
-    #     return jsonify({"ok": False, "error": "Not authorized to change other users"}), 403
 
     try:
         person = Person.find_by_identifier(person_id)
@@ -343,12 +315,8 @@ def get_person(person_id: str):
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.edit_person_scope, "view people")
-    if deny:
-        return deny
-
-    if role.edit_person_scope == UserRole.SELF and not _is_owner(person_id):
-        return jsonify({"ok": False, "error": "Forbidden"}), 403
+    if role.title != "ADMIN":
+        return jsonify({"ok": False, "error": "Not authorized to view people"}), 403
 
     person = Person.find_by_identifier(person_id)
     if not person:
@@ -380,12 +348,8 @@ def list_all_persons():
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.edit_person_scope, "view people")
-    if deny:
-        return deny
-
-    if role.edit_person_scope != UserRole.ALL:
-        return jsonify({"ok": False, "error": "Not allowed to list all people"}), 403
+    if role.title != "ADMIN":
+        return jsonify({"ok": False, "error": "Not authorized to list all people"}), 403
 
     try:
         persons = Person.list_all_persons()
@@ -401,9 +365,8 @@ def search_people():
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.edit_person_scope, "search people")
-    if deny:
-        return deny
+    if role.title != "ADMIN":
+        return jsonify({"ok": False, "error": "Not authorized to search people"}), 403
 
     q = (request.args.get("q") or "").strip()
     active_only = (request.args.get("activeOnly") or "true").strip().lower() != "false"
@@ -588,11 +551,7 @@ def reset_password():
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.edit_person_scope, "reset passwords")
-    if deny:
-        return deny
-
-    if role.edit_person_scope != UserRole.ALL:
+    if role.title != "ADMIN":
         return jsonify({"ok": False, "error": "Not authorized to reset passwords"}), 403
 
     data = request.get_json(silent=True) or {}

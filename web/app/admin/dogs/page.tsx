@@ -6,6 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import type { DogSearchResponse } from "@/app/admin/dogs/types";
 import HeroSection from "@/app/components/ui/HeroSection";
 import SearchBar from "@/app/components/ui/SearchBar";
+import { userAgent } from "next/server";
+import authContext from "@/lib/auth/auth";
 
 /*
     Clamps a number to a safe integer range.
@@ -33,6 +35,7 @@ export default function Page() {
 function AdminDogsPage() {
     const router = useRouter();
     const sp = useSearchParams();
+    const user = React.useContext(authContext)
 
     /*
         Current search and paging values pulled from URL params.
@@ -68,7 +71,9 @@ function AdminDogsPage() {
             try {
                 const usp = new URLSearchParams();
                 usp.set("q", q);
-
+                if (user != "NotAuthenticated" && user != undefined && !user.hasPermission("editAllDogs")) {
+                    usp.set("owner", String(user.ID))
+                }
                 const res = await fetch(
                     `/api/dog/search?${usp.toString()}`,
                     {

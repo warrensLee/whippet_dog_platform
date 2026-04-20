@@ -233,9 +233,10 @@ def get_meet_races(meet_number):
 @meet_bp.get("/search")
 def search_meets():
     q = (request.args.get("q") or "").strip()
+    owner = request.args.get("owner", None)
 
     try:
-        rows = Meet.search(query=q)
+        rows = Meet.search(query=q, owner_person_id=owner)
 
         items = []
         for r in rows:

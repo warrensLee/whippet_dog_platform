@@ -40,6 +40,7 @@ function buildCreatePayload(form: DogFormValues): DogFormValues {
         meetWins: form.meetWins.trim(),
         meetAppearences: form.meetAppearences.trim(),
         highCombinedWins: form.highCombinedWins.trim(),
+        kennelClubChampion: form.kennelClubChampion
     };
 }
 

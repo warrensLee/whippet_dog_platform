@@ -63,12 +63,8 @@ def register_user_role():
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.edit_user_role_scope, "create user roles")
-    if deny:
-        return deny
-
-    if role.edit_user_role_scope == UserRole.NONE:
-        return jsonify({"ok": False, "error": "Not allowed to create user roles"}), 403
+    if role.title != "ADMIN":
+        return jsonify({"ok": False, "error": "Not authorized to create user roles"}), 403
 
     data = request.get_json(silent=True) or {}
     user_role = UserRole.from_request_data(data)
@@ -76,21 +72,6 @@ def register_user_role():
     title = (user_role.title or "").strip().upper()
     if title in PROTECTED_ROLES:
         return jsonify({"ok": False, "error": f'Cannot create protected role "{title}"'}), 403
-
-    if role.edit_user_role_scope == UserRole.SELF:
-        if hasattr(user_role, "matches_scopes"):
-            allowed = user_role.matches_scopes(role)
-        else:
-            user_role.copy_scopes_from(role)
-            allowed = True
-
-        if not allowed:
-            return jsonify(
-                {
-                    "ok": False,
-                    "error": "Not allowed to create a role with different permissions.",
-                }
-            ), 403
 
     user_role.last_edited_by = current_editor_id()
     errors = user_role.validate()
@@ -127,12 +108,8 @@ def edit_user_role():
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.edit_user_role_scope, "edit user roles")
-    if deny:
-        return deny
-
-    if role.edit_user_role_scope == UserRole.NONE:
-        return jsonify({"ok": False, "error": "Not allowed to edit user roles"}), 403
+    if role.title != "ADMIN":
+        return jsonify({"ok": False, "error": "Not authorized to edit user roles"}), 403
 
     data = request.get_json(silent=True) or {}
     role_id = data.get("roleId") or data.get("id")
@@ -146,12 +123,6 @@ def edit_user_role():
     title = (role_before.title or "").strip().upper()
     if title in PROTECTED_ROLES:
         return jsonify({"ok": False, "error": f'Cannot edit protected role "{title}"'}), 403
-
-    if role.edit_user_role_scope == UserRole.SELF and not role_before.matches_scopes(role):
-        return jsonify({
-            "ok": False,
-            "error": "Not allowed to edit roles with different permissions."
-        }), 403
 
     user_role = UserRole.from_request_data({**data, "title": title, "id": role_id})
 
@@ -187,12 +158,8 @@ def delete_user_role():
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.edit_user_role_scope, "delete user roles")
-    if deny:
-        return deny
-
-    if role.edit_user_role_scope  == UserRole.NONE:
-        return jsonify({"ok": False, "error": "Not allowed to delete user roles"}), 403
+    if role.title != "ADMIN":
+        return jsonify({"ok": False, "error": "Not authorized to delete user roles"}), 403
 
     data = request.get_json(silent=True) or {}
     role_id = data.get("roleId") or data.get("id")
@@ -206,14 +173,6 @@ def delete_user_role():
     title = (target.title or "").strip().upper()
     if title in PROTECTED_ROLES:
         return jsonify({"ok": False, "error": f'Cannot delete protected role "{title}"'}), 403
-
-    if role.edit_user_role_scope == UserRole.SELF and not target.matches_scopes(role):
-        return jsonify(
-            {
-                "ok": False,
-                "error": "Not allowed to delete roles with different permissions.",
-            }
-        ), 403
 
 
     before_snapshot = target.to_dict()

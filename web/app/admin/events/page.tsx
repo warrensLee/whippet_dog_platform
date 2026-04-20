@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import type { EventSearchResponse } from "@/app/admin/events/types";
 import HeroSection from "@/app/components/ui/HeroSection";
 import SearchBar from "@/app/components/ui/SearchBar";
+import authContext from "@/lib/auth/auth";
 
 /*
     Clamps a number to a safe integer range.
@@ -60,7 +61,7 @@ function AdminEventsPage() {
     */
     const [deleting, setDeleting] = React.useState(false);
     const [selectedEvents, setSelectedEvents] = React.useState<string[]>([]);
-
+    const user = React.useContext(authContext)
     const loadEvents = React.useCallback(
         async function () {
             setLoading(true);
@@ -72,7 +73,9 @@ function AdminEventsPage() {
                 usp.set("page", String(page));
                 usp.set("limit", String(limit));
                 usp.set("sort", sort);
-
+                if (user != "NotAuthenticated" && user != undefined && !user.hasPermission("editAllMeets")) {
+                    usp.set("owner", String(user.ID))
+                }
                 const res = await fetch(
                     `/api/meet/get?${usp.toString()}`,
                     {

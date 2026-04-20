@@ -3,7 +3,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import axios, { AxiosError } from 'axios';
-import AuthGuard from '@/lib/auth/authGuard';
 import HeroSection from '@/app/components/ui/HeroSection';
 
 import {
@@ -52,6 +51,8 @@ import KeyIcon from '@mui/icons-material/Key';
 
 import { AddForm, EditForm, Person, UserRole, emptyAddForm, emptyForm } from './types';
 import AddUserDialog from './AddUserDialog';
+import AdminGuard from '@/lib/auth/adminGuard';
+import Loading from '@/lib/loading';
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<Person[]>([]);
@@ -537,32 +538,12 @@ export default function AdminUsersPage() {
 
   if (loading) {
     return (
-      <AuthGuard permissions={['editAllPersons']}>
-        <main className="pt-24 bg-[#1F4D2E] min-h-screen">
-          <HeroSection
-            title="User Admin"
-            subtitle="Search, review, and edit user accounts"
-          />
-          <section
-            className="bg-[#E7F0E9] pt-12 pb-24"
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              flexDirection: 'column',
-            }}
-          >
-            <Box display="flex" justifyContent="center" p={5}>
-              <CircularProgress />
-            </Box>
-          </section>
-        </main>
-      </AuthGuard>
+      <Loading></Loading>
     );
   }
 
   return (
-    <AuthGuard permissions={['editAllPersons']}>
+    <AdminGuard>
       <main className="pt-24 bg-[#1F4D2E] min-h-screen">
         <HeroSection
           title="User Admin"
@@ -876,6 +857,6 @@ export default function AdminUsersPage() {
 
         </section>
       </main>
-    </AuthGuard>
+    </AdminGuard>
   );
 }

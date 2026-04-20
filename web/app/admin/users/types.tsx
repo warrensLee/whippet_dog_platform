@@ -2,15 +2,8 @@ export type UserRole = {
   id: number | string;
   title: string;
   editDogScope: number;
-  editPersonScope: number;
-  editDogOwnerScope: number;
-  editUserRoleScope: number;
   editMeetScope: number;
-  editMeetResultsScope: number;
-  editRaceResultsScope: number;
-  editDogTitlesScope: number;
   editTitleTypeScope: number;
-  editDatabaseScope: number;
   lastEditedBy?: string | null;
   lastEditedAt?: string | null;
 };

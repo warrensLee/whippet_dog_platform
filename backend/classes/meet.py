@@ -244,7 +244,7 @@ class Meet:
         return stats["COUNT(*)"]
 
     @staticmethod
-    def search(query):
+    def search(query, owner_person_id=None):
         q = (query or "").strip()
         like = f"%{q}%"
 
@@ -263,9 +263,14 @@ class Meet:
                 OR Yards LIKE %s
                 OR PublicNotes LIKE %s
                 OR PrivateNotes LIKE %s
-            ORDER BY MeetDate DESC, MeetNumber ASC
         """
         params = [like, like, like, like, like, like, like, like, like]
+
+        if owner_person_id:
+            sql += " AND (RaceSecretary = %s OR Judge = %s)"
+            params.extend([owner_person_id, owner_person_id])
+
+        sql += " ORDER BY MeetDate DESC, MeetNumber ASC"
 
         rows = fetch_all(sql, params)
         return rows

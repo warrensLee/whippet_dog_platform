@@ -31,14 +31,14 @@ def add_dog_title():
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.edit_dog_titles_scope, "add dog titles")
+    deny = require_scope(role.edit_dog_scope, "add dog titles")
     if deny:
         return deny
 
     data = request.get_json(silent=True) or {}
     dog_title = DogTitle.from_request_data(data)
 
-    if role.edit_dog_titles_scope == UserRole.SELF:
+    if role.edit_dog_scope == UserRole.SELF:
         if not _is_owner(dog_title.cwa_number):
             return jsonify({
                 "ok": False,
@@ -92,7 +92,7 @@ def edit_dog_title():
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.edit_dog_titles_scope, "edit dog titles")
+    deny = require_scope(role.edit_dog_scope, "edit dog titles")
     if deny:
         return deny
 
@@ -105,7 +105,7 @@ def edit_dog_title():
     if not title:
         return jsonify({"ok": False, "error": "title is required"}), 400
 
-    if role.edit_dog_titles_scope == UserRole.SELF:
+    if role.edit_dog_scope == UserRole.SELF:
         if not _is_owner(cwa_number):
             return jsonify({
                 "ok": False,
@@ -162,7 +162,7 @@ def delete_dog_title():
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.edit_dog_titles_scope, "delete dog titles")
+    deny = require_scope(role.edit_dog_scope, "delete dog titles")
     if deny:
         return deny
 
@@ -177,7 +177,7 @@ def delete_dog_title():
     if not title:
         return jsonify({"ok": False, "error": "title is required"}), 400
 
-    if role.edit_dog_titles_scope == UserRole.SELF:
+    if role.edit_dog_scope == UserRole.SELF:
         if not _is_owner(cwa_number):
             return jsonify({
                 "ok": False,

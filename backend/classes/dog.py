@@ -322,7 +322,7 @@ class Dog:
         return cls.from_db_row(row)
     
     @classmethod
-    def search(cls, query, only_owner_person_id):
+    def search(cls, query, owner_person_id=None):
         q = (query or "").strip()
         like = f"%{q}%"
 
@@ -356,9 +356,9 @@ class Dog:
         """
         params = [like, like, like, like, like, like, like, like]
 
-        if only_owner_person_id:
+        if owner_person_id:
             sql += " AND do.PersonID = %s"
-            params.append(only_owner_person_id)
+            params.append(owner_person_id)
 
         sql += """
             GROUP BY d.CWANumber

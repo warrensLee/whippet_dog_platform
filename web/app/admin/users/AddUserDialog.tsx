@@ -92,12 +92,14 @@ export default function AddUserDialog({
             Password
           </Typography>
           <TextField
+            type="password"
             label="Password"
             value={form.password}
             onChange={(e) => updateForm('password', e.target.value)}
             fullWidth
           />
           <TextField
+            type="password"
             label="confirm Password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}

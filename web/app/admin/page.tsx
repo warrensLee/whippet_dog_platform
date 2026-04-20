@@ -7,6 +7,7 @@ import HeroSection from "../components/ui/HeroSection";
 import { Alert, Dialog, Paper, Snackbar, Typography } from "@mui/material";
 import axios from "axios";
 import ImportCsvPage from "./ImportDialog";
+import AdminGuard from "@/lib/auth/adminGuard";
 
 
 const panelStyle = {
@@ -83,7 +84,7 @@ export default function Admin() {
     }
   }
   return (
-    <AuthGuard permissions={["editAllDatabase"]}>
+    <AuthGuard>
 
       <main className="pt-24 bg-[#1F4D2E]">
         <HeroSection title="Admin Dashboard" />
@@ -95,35 +96,49 @@ export default function Admin() {
           className="bg-[#E7F0E9] pt-12 pb-24"
           style={{ display: "flex", flexWrap: "wrap", justifyContent: "center" }}
         >
-          <Paper sx={panelStyle}>
-            <Typography variant="h4">{dogCount} Dogs</Typography>
-            <div className="flex flex-column">
-              <Link href="/admin/dogs" className="block rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Manage Dogs</Link>
-              <Link href="/admin/title_types" className="block rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Manage Titles</Link>
-              <Link href="/admin/titles" className="block rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">View Earned Titles</Link>
-            </div>
-          </Paper>
-          <Paper sx={panelStyle}>
-            <Typography variant="h4">{peopleCount} People</Typography>
-            <div className="flex flex-column">
-              <Link href="/admin/users" className="block rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Manage Users</Link>
-              <Link href="/admin/user_roles" className="block rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Manage User Roles</Link>
-            </div>
-          </Paper>
-          <Paper sx={panelStyle}>
-            <Typography variant="h4">{meetCount} Events</Typography>
-            <Link href="/admin/events" className="block rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Manage Events</Link>
-          </Paper>
-          <Paper sx={panelStyle}>
-            <Typography variant="h4">Database</Typography>
-            <Link href="/admin/history" className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">View history</Link>
-            <button type="button" onClick={() => setImportDialogOpen(true)} className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Import Records</button>
-            <button type="button" onClick={dumpDB} className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Download Dump</button>
-            <input id="restoreFileInput" style={{ display: "none" }} type="file" accept=".sql.zst" onChange={restoreDB} />
-            <button type="button" onClick={() => document.getElementById("restoreFileInput")!.click()} className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Restore</button>
-          </Paper>
+          <AuthGuard permissions={["editOwnDogs"]} redirect={false}>
+            <Paper sx={panelStyle}>
+              <Typography variant="h4">{dogCount} Dogs</Typography>
+              <div className="flex flex-column">
+                <Link href="/admin/titles" className="block rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">View Earned Titles</Link>
+                <Link href="/admin/dogs" className="block rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Manage Dogs</Link>
+              </div>
+            </Paper>
+          </AuthGuard>
+          <AuthGuard permissions={["editOwnTitleTypes"]} redirect={false}>
+            <Paper sx={panelStyle}>
+              <Typography variant="h4">Titles</Typography>
+              <div className="flex flex-column">
+                <Link href="/admin/title_types" className="block rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Manage Titles</Link>
+
+              </div>
+            </Paper>
+          </AuthGuard>
+          <AuthGuard permissions={["editOwnMeet"]} redirect={false}>
+            <Paper sx={panelStyle}>
+              <Typography variant="h4">{meetCount} Events</Typography>
+              <Link href="/admin/events" className="block rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Manage Events</Link>
+            </Paper>
+          </AuthGuard>
+          <AdminGuard redirect={false}>
+            <Paper sx={panelStyle}>
+              <Typography variant="h4">{peopleCount} People</Typography>
+              <div className="flex flex-column">
+                <Link href="/admin/users" className="block rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Manage Users</Link>
+                <Link href="/admin/user_roles" className="block rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Manage User Roles</Link>
+              </div>
+            </Paper>
+            <Paper sx={panelStyle}>
+              <Typography variant="h4">Database</Typography>
+              <Link href="/admin/history" className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">View history</Link>
+              <button type="button" onClick={() => setImportDialogOpen(true)} className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Import Records</button>
+              <button type="button" onClick={dumpDB} className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Download Dump</button>
+              <input id="restoreFileInput" style={{ display: "none" }} type="file" accept=".sql.zst" onChange={restoreDB} />
+              <button type="button" onClick={() => document.getElementById("restoreFileInput")!.click()} className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Restore</button>
+            </Paper>
+          </AdminGuard>
         </section>
       </main>
-    </AuthGuard>
+    </AuthGuard >
   );
 }

@@ -58,7 +58,7 @@ function DogPage() {
   const [statsLoading, setStatsLoading] = React.useState(false);
   const currentYear = new Date().getFullYear();
 
-  const canEditDog = (user != undefined && user != "NotAuthenticated" && (user.hasPermission("editAllDogs") && (user.hasPermission("editOwnDogs") || owners.filter((o) => o.PersonID == user.ID).length != 0)))
+  const canEditDog = (user != undefined && user != "NotAuthenticated" && (user.hasPermission("editAllDogs") || (user.hasPermission("editOwnDogs") && owners.filter((o) => o.PersonID == user.ID).length != 0)))
 
   React.useEffect(() => {
     if (!cwaNumber) return;

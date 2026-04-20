@@ -11,8 +11,12 @@ importer = CsvImporter()
 @import_bp.post("")
 def import_csv():
     role = current_role()
+
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+    if role.title != "ADMIN":
+        return jsonify({"ok": False, "error": "Importer requires ADMIN role"}), 403
 
     if "file" not in request.files:
         return jsonify({"ok": False, "error": "Missing file field 'file'"}), 400
@@ -24,6 +28,7 @@ def import_csv():
     import_type = (request.args.get("type") or "dogs").strip().lower()
     mode = (request.args.get("mode") or "insert").strip().lower()
 
+    #TODO: the below if statement can be refactored to be better 
     if import_type == "dogs":
         deny = require_scope(role.edit_dog_scope, "import dogs")
 
@@ -31,41 +36,29 @@ def import_csv():
         deny = require_scope(role.edit_meet_scope, "import meets")
 
     elif import_type == "meet_results":
-        deny = require_scope(role.edit_meet_results_scope, "import meet results")
+        deny = require_scope(role.edit_meet_scope, "import meet results")
 
     elif import_type == "race_results":
-        deny = require_scope(role.edit_race_results_scope, "import race results")
+        deny = require_scope(role.edit_meet_scope, "import race results")
     
     elif import_type == "dog_owners":
-        deny = require_scope(role.edit_dog_owner_scope, "import dog owners")
+        deny = require_scope(role.edit_dog_scope, "import dog owners")
 
     elif import_type == "dog_titles":
-       deny = require_scope(role.edit_dog_titles_scope, "import dog titles")
-
-    elif import_type == "persons":
-        deny = require_scope(role.edit_person_scope, "import persons")
+       deny = require_scope(role.edit_dog_scope, "import dog titles")
 
     elif import_type == "title_types":
         deny = require_scope(role.edit_title_type_scope, "import title types")
 
-    elif import_type == "user_roles":
-        deny = require_scope(role.edit_user_role_scope, "import user roles")
-
     else:
         return jsonify({"ok": False, "error": "Invalid import type"}), 400
 
-    if deny:
-        return deny
-    
     if ((import_type == "dogs" and role.edit_dog_scope != UserRole.ALL)
             or (import_type == "meets" and role.edit_meet_scope != UserRole.ALL)
-            or (import_type == "meet_results" and role.edit_meet_results_scope != UserRole.ALL)
-            or (import_type == "race_results" and role.edit_race_results_scope != UserRole.ALL)
-            or (import_type == "dog_owners" and role.edit_dog_owner_scope != UserRole.ALL)
-            or (import_type == "dog_titles" and role.edit_dog_titles_scope != UserRole.ALL)
-            or (import_type == "persons" and role.edit_person_scope != UserRole.ALL)
+            or (import_type == "meet_results" and role.edit_meet_scope != UserRole.ALL)
+            or (import_type == "race_results" and role.edit_meet_scope != UserRole.ALL)
+            or (import_type == "dog_titles" and role.edit_dog_scope != UserRole.ALL)
             or (import_type == "title_types" and role.edit_title_type_scope != UserRole.ALL)
-            or (import_type == "user_roles" and role.edit_user_role_scope != UserRole.ALL)
         ):
         return jsonify({
             "ok": False,

@@ -20,7 +20,7 @@ import {
 } from '@mui/material';
 import HeroSection from '@/app/components/ui/HeroSection';
 import axios from 'axios';
-import AuthGuard from '@/lib/auth/authGuard';
+import AdminGuard from '@/lib/auth/adminGuard';
 
 const getScopeLabel = (scope: number) => {
   switch (scope) {
@@ -72,7 +72,7 @@ export default function UserRoles() {
   if (error) return <Typography color="error">{error}</Typography>;
 
   return (
-    <AuthGuard permissions={["editAllUserRoles"]}>
+    <AdminGuard>
       <main className="pt-24 bg-[#1F4D2E]">
         <HeroSection title="Edit User Roles" />
         <section className="bg-[#E7F0E9] pt-12 pb-24 flex-center" style={{ display: "flex", justifyContent: "center", flexDirection: "column", alignItems: "center" }}>
@@ -133,6 +133,6 @@ export default function UserRoles() {
           }} className="bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60 w-[80%]">Add Role</button>
         </section>
       </main >
-    </AuthGuard>
+    </AdminGuard>
   );
 };

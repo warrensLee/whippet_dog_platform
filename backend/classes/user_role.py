@@ -11,30 +11,16 @@ class UserRole:
         title=None,
         id=None,
         edit_dog_scope=0,
-        edit_person_scope=0,
-        edit_dog_owner_scope=0,
-        edit_user_role_scope=0,
         edit_meet_scope=0,
-        edit_meet_results_scope=0,
-        edit_race_results_scope=0,
-        edit_dog_titles_scope=0,
         edit_title_type_scope=0,
-        edit_database_scope=0,
         last_edited_by=None,
         last_edited_at=None,
     ):
         self.id = id
         self.title = (title or "").strip().upper()
         self.edit_dog_scope = int(edit_dog_scope or 0)
-        self.edit_person_scope = int(edit_person_scope or 0)
-        self.edit_dog_owner_scope = int(edit_dog_owner_scope or 0)
-        self.edit_user_role_scope = int(edit_user_role_scope or 0)
         self.edit_meet_scope = int(edit_meet_scope or 0)
-        self.edit_meet_results_scope = int(edit_meet_results_scope or 0)
-        self.edit_race_results_scope = int(edit_race_results_scope or 0)
-        self.edit_dog_titles_scope = int(edit_dog_titles_scope or 0)
         self.edit_title_type_scope = int(edit_title_type_scope or 0)
-        self.edit_database_scope = int(edit_database_scope or 0)
         self.last_edited_by = last_edited_by
         self.last_edited_at = last_edited_at
 
@@ -44,15 +30,8 @@ class UserRole:
             id=data.get("id") or data.get("roleId"),
             title=(data.get("title") or "").strip(),
             edit_dog_scope=data.get("editDogScope", 0),
-            edit_person_scope=data.get("editPersonScope", 0),
-            edit_dog_owner_scope=data.get("editDogOwnerScope", 0),
-            edit_user_role_scope=data.get("editUserRoleScope", 0),
             edit_meet_scope=data.get("editMeetScope", 0),
-            edit_meet_results_scope=data.get("editMeetResultsScope", 0),
-            edit_race_results_scope=data.get("editRaceResultsScope", 0),
-            edit_dog_titles_scope=data.get("editDogTitlesScope", 0),
             edit_title_type_scope=data.get("editTitleTypeScope", 0),
-            edit_database_scope=data.get("editDatabaseScope", 0),
             last_edited_by=data.get("lastEditedBy"),
             last_edited_at=data.get("lastEditedAt"),
         )
@@ -65,15 +44,8 @@ class UserRole:
             id=row.get("ID"),
             title=row.get("Title"),
             edit_dog_scope=row.get("EditDogScope"),
-            edit_person_scope=row.get("EditPersonScope"),
-            edit_dog_owner_scope=row.get("EditDogOwnerScope"),
-            edit_user_role_scope=row.get("EditUserRoleScope"),
             edit_meet_scope=row.get("EditMeetScope"),
-            edit_meet_results_scope=row.get("EditMeetResultsScope"),
-            edit_race_results_scope=row.get("EditRaceResultsScope"),
-            edit_dog_titles_scope=row.get("EditDogTitlesScope"),
             edit_title_type_scope=row.get("EditTitleTypeScope"),
-            edit_database_scope=row.get("EditDatabaseScope"),
             last_edited_by=row.get("LastEditedBy"),
             last_edited_at=row.get("LastEditedAt"),
         )
@@ -133,15 +105,8 @@ class UserRole:
 
         for field in [
             self.edit_dog_scope,
-            self.edit_person_scope,
-            self.edit_dog_owner_scope,
-            self.edit_user_role_scope,
             self.edit_meet_scope,
-            self.edit_meet_results_scope,
-            self.edit_race_results_scope,
-            self.edit_dog_titles_scope,
             self.edit_title_type_scope,
-            self.edit_database_scope,
         ]:
             if field not in (0, 1, 2):
                 errors.append("Permission scopes must be 0 (none), 1 (self), or 2 (all).")
@@ -155,33 +120,19 @@ class UserRole:
             INSERT INTO UserRole (
                 Title,
                 EditDogScope,
-                EditPersonScope,
-                EditDogOwnerScope,
-                EditUserRoleScope,
                 EditMeetScope,
-                EditMeetResultsScope,
-                EditRaceResultsScope,
-                EditDogTitlesScope,
                 EditTitleTypeScope,
-                EditDatabaseScope,
                 LastEditedBy,
                 LastEditedAt
             ) VALUES (
-                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW()
+                %s, %s, %s, %s, %s, NOW()
             )
             """,
             (
                 self.title,
                 self.edit_dog_scope,
-                self.edit_person_scope,
-                self.edit_dog_owner_scope,
-                self.edit_user_role_scope,
                 self.edit_meet_scope,
-                self.edit_meet_results_scope,
-                self.edit_race_results_scope,
-                self.edit_dog_titles_scope,
                 self.edit_title_type_scope,
-                self.edit_database_scope,
                 self.last_edited_by,
             ),
         )
@@ -196,30 +147,16 @@ class UserRole:
             UPDATE UserRole
             SET
                 EditDogScope = %s,
-                EditPersonScope = %s,
-                EditDogOwnerScope = %s,
-                EditUserRoleScope = %s,
                 EditMeetScope = %s,
-                EditMeetResultsScope = %s,
-                EditRaceResultsScope = %s,
-                EditDogTitlesScope = %s,
                 EditTitleTypeScope = %s,
-                EditDatabaseScope = %s,
                 LastEditedBy = %s,
                 LastEditedAt = NOW()
             WHERE ID = %s
             """,
             (
                 self.edit_dog_scope,
-                self.edit_person_scope,
-                self.edit_dog_owner_scope,
-                self.edit_user_role_scope,
                 self.edit_meet_scope,
-                self.edit_meet_results_scope,
-                self.edit_race_results_scope,
-                self.edit_dog_titles_scope,
                 self.edit_title_type_scope,
-                self.edit_database_scope,
                 self.last_edited_by,
                 self.id,
             ),
@@ -235,15 +172,8 @@ class UserRole:
         """Return just the permission scope fields (no id/title/timestamps)."""
         return {
             "edit_dog_scope": self.edit_dog_scope,
-            "edit_person_scope": self.edit_person_scope,
-            "edit_dog_owner_scope": self.edit_dog_owner_scope,
-            "edit_user_role_scope": self.edit_user_role_scope,
             "edit_meet_scope": self.edit_meet_scope,
-            "edit_meet_results_scope": self.edit_meet_results_scope,
-            "edit_race_results_scope": self.edit_race_results_scope,
-            "edit_dog_titles_scope": self.edit_dog_titles_scope,
             "edit_title_type_scope": self.edit_title_type_scope,
-            "edit_database_scope": self.edit_database_scope,
         }
 
     def matches_scopes(self, other):
@@ -258,30 +188,16 @@ class UserRole:
             raise ValueError("copy_scopes_from: other role is required")
 
         self.edit_dog_scope = other.edit_dog_scope
-        self.edit_person_scope = other.edit_person_scope
-        self.edit_dog_owner_scope = other.edit_dog_owner_scope
-        self.edit_user_role_scope = other.edit_user_role_scope
         self.edit_meet_scope = other.edit_meet_scope
-        self.edit_meet_results_scope = other.edit_meet_results_scope
-        self.edit_race_results_scope = other.edit_race_results_scope
-        self.edit_dog_titles_scope = other.edit_dog_titles_scope
         self.edit_title_type_scope = other.edit_title_type_scope
-        self.edit_database_scope = other.edit_database_scope
 
     def to_dict(self):
         return {
             "id": self.id,
             "title": self.title,
             "editDogScope": self.edit_dog_scope,
-            "editPersonScope": self.edit_person_scope,
-            "editDogOwnerScope": self.edit_dog_owner_scope,
-            "editUserRoleScope": self.edit_user_role_scope,
             "editMeetScope": self.edit_meet_scope,
-            "editMeetResultsScope": self.edit_meet_results_scope,
-            "editRaceResultsScope": self.edit_race_results_scope,
-            "editDogTitlesScope": self.edit_dog_titles_scope,
             "editTitleTypeScope": self.edit_title_type_scope,
-            "editDatabaseScope": self.edit_database_scope,
             "lastEditedBy": self.last_edited_by,
             "lastEditedAt": self.last_edited_at.isoformat() if self.last_edited_at else None,
         }

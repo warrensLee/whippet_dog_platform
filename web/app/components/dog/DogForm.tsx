@@ -375,7 +375,7 @@ export default function DogForm
                                         key={String(fieldConfig.field)}
                                         label={fieldConfig.label}
                                         field={fieldConfig.field}
-                                        value={values[fieldConfig.field]}
+                                        value={values[fieldConfig.field] as string}
                                         onChange={onChange}
                                         placeholder={fieldConfig.placeholder}
                                         type={fieldConfig.type}

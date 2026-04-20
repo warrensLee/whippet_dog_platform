@@ -36,14 +36,14 @@ def list_dog_owner_links():
     # if not role:
     #     return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    # deny = require_scope(role.edit_dog_owner_scope, "view dog owners")
+    # deny = require_scope(role.edit_dog_scope, "view dog owners")
     # if deny:
     #     return deny
 
     person_id = request.args.get("personID")
 
     try:
-        # if role.edit_dog_owner_scope == UserRole.SELF:
+        # if role.edit_dog_scope == UserRole.SELF:
             # if not current_editor_id():
                 # return jsonify({"ok": False, "error": "Not signed in"}), 401
 
@@ -68,7 +68,7 @@ def add_owner():
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.edit_dog_owner_scope, "add dog owners")
+    deny = require_scope(role.edit_dog_scope, "add dog owners")
     if deny:
         return deny
 
@@ -79,7 +79,7 @@ def add_owner():
     if not cwa_id or not person_id:
         return jsonify({"ok": False, "error": "cwaId and personId are required"}), 400
 
-    if role.edit_dog_owner_scope == UserRole.SELF and person_id != current_editor_id():
+    if role.edit_dog_scope == UserRole.SELF and person_id != current_editor_id():
         return jsonify({"ok": False, "error": "You may only add yourself as an owner"}), 403
 
     if not fetch_one("SELECT 1 FROM Dog WHERE CWANumber = %s LIMIT 1", (cwa_id,)):
@@ -126,7 +126,7 @@ def remove_owner():
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.edit_dog_owner_scope, "delete dog owners")
+    deny = require_scope(role.edit_dog_scope, "delete dog owners")
     if deny:
         return deny
 
@@ -137,7 +137,7 @@ def remove_owner():
     if not cwa_id or not person_id:
         return jsonify({"ok": False, "error": "cwaId and personId are required"}), 400
 
-    if role.edit_dog_owner_scope == UserRole.SELF and person_id != current_editor_id():
+    if role.edit_dog_scope == UserRole.SELF and person_id != current_editor_id():
         return jsonify({"ok": False, "error": "You may only remove yourself as an owner"}), 403
 
     existing = DogOwner.find_by_identifier(cwa_id, person_id)
@@ -170,7 +170,7 @@ def transfer_primary_ownership():
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.edit_dog_owner_scope, "edit dog owners")
+    deny = require_scope(role.edit_dog_scope, "edit dog owners")
     if deny:
         return deny
 
@@ -181,7 +181,7 @@ def transfer_primary_ownership():
     if not cwa_id or not new_owner_person_id:
         return jsonify({"ok": False, "error": "cwaId and newOwnerPersonId are required"}), 400
 
-    if role.edit_dog_owner_scope == UserRole.SELF:
+    if role.edit_dog_scope == UserRole.SELF:
         return jsonify({
             "ok": False,
             "error": "Transfer requires ALL permissions. You can only manage your own ownership."

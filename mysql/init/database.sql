@@ -47,15 +47,8 @@ CREATE TABLE `UserRole` (
     `ID` INT PRIMARY KEY AUTO_INCREMENT,
     `Title` VARCHAR(20) NOT NULL UNIQUE,
     `EditDogScope` TINYINT NOT NULL DEFAULT 0,
-    `EditPersonScope` TINYINT NOT NULL DEFAULT 0,
-    `EditDogOwnerScope` TINYINT NOT NULL DEFAULT 0,
-    `EditUserRoleScope` TINYINT NOT NULL DEFAULT 0,
     `EditMeetScope` TINYINT NOT NULL DEFAULT 0,
-    `EditMeetResultsScope` TINYINT NOT NULL DEFAULT 0,
-    `EditRaceResultsScope` TINYINT NOT NULL DEFAULT 0,
-    `EditDogTitlesScope` TINYINT NOT NULL DEFAULT 0,
     `EditTitleTypeScope` TINYINT NOT NULL DEFAULT 0,
-    `EditDatabaseScope` TINYINT NOT NULL DEFAULT 0,
     `LastEditedBy` INT,
     `LastEditedAt` TIMESTAMP
 );
@@ -300,15 +293,8 @@ INSERT INTO UserRole
 (
   Title,
   EditDogScope,
-  EditPersonScope,
-  EditDogOwnerScope,
-  EditUserRoleScope,
   EditMeetScope,
-  EditMeetResultsScope,
-  EditRaceResultsScope,
-  EditDogTitlesScope,
   EditTitleTypeScope,
-  EditDatabaseScope,
   LastEditedBy,
   LastEditedAt
 )
@@ -316,30 +302,16 @@ VALUES
 (
   'ADMIN',
   2,  -- Dog
-  2,  -- Person
-  2,  -- DogOwner
-  2,  -- UserRole
   2,  -- Meet
-  2,  -- MeetResults
-  2,  -- RaceResults
-  2,  -- DogTitles
   2,  -- TitleType
-  2,  -- Database
   NULL,
   NULL
 ),
 (
   'PUBLIC',
   0,  -- Dog 
-  0,  -- Person 
-  0,  -- DogOwner 
-  0,  -- UserRole
   0,  -- Meet
-  0,  -- MeetResults
-  0,  -- RaceResults
-  0,  -- DogTitles
   0,  -- TitleType
-  0,  -- Database
   NULL,
   NULL
 );

@@ -162,7 +162,4 @@ def restore_database():
 
 @database_bp.get("/counts")
 def counts():
-    deny = check_login_and_scope_strict('database', action="restore the database")
-    if deny:
-        return deny
     return jsonify({"dogs":Dog.count(), "people": Person.count(), "meets": Meet.count()}), 200

@@ -9,6 +9,8 @@ import { emptyDogFormValues } from "@/app/admin/dogs/types";
 import HeroSection from "@/app/components/ui/HeroSection";
 import DogOwnersSection from "@/app/components/dog/DogOwnersSection";
 import DogTitlesSection from "@/app/components/dog/DogTitlesSection";
+import authContext from "@/lib/auth/auth";
+import AuthGuard from "@/lib/auth/authGuard";
 
 /*
     Safely converts incoming unknown values to strings.
@@ -149,11 +151,6 @@ function EditDogPage() {
 
     const id = String(params.get("id") ?? "").trim();
 
-    /*
-        Auth/loading state for protecting the page.
-    */
-    const [authLoading, setAuthLoading] = React.useState(true);
-    const [authorized, setAuthorized] = React.useState(false);
 
     /*
         Page/form state.
@@ -166,53 +163,10 @@ function EditDogPage() {
     const [initialForm, setInitialForm] = React.useState<DogFormValues>(emptyDogFormValues);
 
     /*
-        Checks whether the current user is signed in and allowed
-        to manage dog records.
-    */
-    React.useEffect(() => {
-        let cancelled = false;
-
-        async function checkAccess() {
-            try {
-                const res = await fetch("/api/auth/me", {
-                    cache: "no-store",
-                    credentials: "include",
-                });
-
-                const json = await res.json().catch(() => null);
-
-                if (!res.ok || !json?.signedIn || !json?.canManageDogs) {
-                    router.replace("/login");
-                    return;
-                }
-
-                if (!cancelled) {
-                    setAuthorized(true);
-                }
-            } catch {
-                router.replace("/login");
-            } finally {
-                if (!cancelled) {
-                    setAuthLoading(false);
-                }
-            }
-        }
-
-        checkAccess();
-
-        return () => {
-            cancelled = true;
-        };
-    }, [router]);
-
-    /*
         After authorization succeeds, load the dog record that matches
         the route id and populate the edit form.
     */
     React.useEffect(() => {
-        if (!authorized) {
-            return;
-        }
 
         if (!id) {
             setError("Invalid dog ID.");
@@ -268,7 +222,7 @@ function EditDogPage() {
         return () => {
             cancelled = true;
         };
-    }, [authorized, id]);
+    }, [id]);
 
     /*
         Generic form field updater passed down into DogForm.
@@ -337,144 +291,137 @@ function EditDogPage() {
     /*
         While auth is still being checked, show a simple gate screen.
     */
-    if (authLoading) {
-        return (
-            <main className="min-h-screen flex items-center justify-center bg-[#1F4D2E] text-white">
-                Checking access...
-            </main>
-        );
-    }
+
 
     /*
         If auth check finished but user is not authorized, we return null
         because the redirect is already being handled.
     */
-    if (!authorized) {
-        return null;
-    }
 
     const publicDogHref = buildPublicDogHref(form.cwaNumber, id);
     const displayName = form.registeredName || form.callName || id || "Unknown Dog";
 
     return (
-        <main className="bg-[#1F4D2E] pt-24">
-            <HeroSection
-                title="Edit Dog"
-                subtitle="Update dog information securely through the admin panel."
-                topContent={
-                    <div className="mt-4 flex flex-wrap justify-center gap-3">
-                        <Link
-                            href="/admin/dogs"
-                            className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
-                        >
-                            Back to Admin Dogs
-                        </Link>
-
-
-                        <Link
-                            href={publicDogHref}
-                            className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
-                        >
-                            View Dog Page
-                        </Link>
-                    </div>
-                }
-            >
-                <div className="-mt-6 flex flex-wrap items-center justify-center gap-3 text-sm text-white/80">
-                    <span>
-                        Editing record:{" "}
-                        <span className="font-semibold text-white">{displayName}</span>
-                    </span>
-
-                    {form.cwaNumber ? (
-                        <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold text-white">
-                            CWA #{form.cwaNumber}
-                        </span>
-                    ) : null}
-
-                    {form.status ? (
-                        <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold text-white">
-                            {form.status}
-                        </span>
-                    ) : null}
-                </div>
-            </HeroSection>
-
-            <section className="bg-[#E7F0E9] pb-24 pt-12">
-                <div className="mx-auto max-w-5xl px-4 space-y-8">
-                    <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                        <div>
-                            <h2 className="text-2xl font-bold text-[#12301D]">
-                                Dog Information
-                            </h2>
-                            <div className="mt-1 h-1 w-14 rounded-full bg-[#2E6B3F]/70" />
-                        </div>
-
-                        <div className="flex flex-wrap gap-3">
-                            <button
-                                type="button"
-                                onClick={handleResetForm}
-                                disabled={loading || saving}
-                                className="rounded-full border border-[#12301D]/15 bg-white px-5 py-2.5 text-sm font-semibold text-[#12301D] transition hover:bg-[#12301D]/5 disabled:opacity-50"
+        <AuthGuard>
+            <main className="bg-[#1F4D2E] pt-24">
+                <HeroSection
+                    title="Edit Dog"
+                    subtitle="Update dog information securely through the admin panel."
+                    topContent={
+                        <div className="mt-4 flex flex-wrap justify-center gap-3">
+                            <Link
+                                href="/admin/dogs"
+                                className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
                             >
-                                Reset Changes
-                            </button>
+                                Back to Admin Dogs
+                            </Link>
 
-                            <button
-                                type="button"
-                                onClick={() => router.back()}
-                                disabled={saving}
-                                className="rounded-full border border-[#12301D]/15 bg-white px-5 py-2.5 text-sm font-semibold text-[#12301D] transition hover:bg-[#12301D]/5 disabled:opacity-50"
+
+                            <Link
+                                href={publicDogHref}
+                                className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
                             >
-                                Cancel
-                            </button>
+                                View Dog Page
+                            </Link>
                         </div>
+                    }
+                >
+                    <div className="-mt-6 flex flex-wrap items-center justify-center gap-3 text-sm text-white/80">
+                        <span>
+                            Editing record:{" "}
+                            <span className="font-semibold text-white">{displayName}</span>
+                        </span>
+
+                        {form.cwaNumber ? (
+                            <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold text-white">
+                                CWA #{form.cwaNumber}
+                            </span>
+                        ) : null}
+
+                        {form.status ? (
+                            <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold text-white">
+                                {form.status}
+                            </span>
+                        ) : null}
                     </div>
+                </HeroSection>
 
-                    {loading ? (
-                        <div className="rounded-2xl border border-black/10 bg-white/90 p-6 shadow-sm">
-                            <p className="text-sm text-[#12301D]/60">Loading dog record...</p>
-                        </div>
-                    ) : error && !form.cwaNumber ? (
-                        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 shadow-sm">
-                            <p className="text-sm font-medium text-red-700">{error}</p>
+                <section className="bg-[#E7F0E9] pb-24 pt-12">
+                    <div className="mx-auto max-w-5xl px-4 space-y-8">
+                        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                            <div>
+                                <h2 className="text-2xl font-bold text-[#12301D]">
+                                    Dog Information
+                                </h2>
+                                <div className="mt-1 h-1 w-14 rounded-full bg-[#2E6B3F]/70" />
+                            </div>
 
-                            <div className="mt-4">
+                            <div className="flex flex-wrap gap-3">
+                                <button
+                                    type="button"
+                                    onClick={handleResetForm}
+                                    disabled={loading || saving}
+                                    className="rounded-full border border-[#12301D]/15 bg-white px-5 py-2.5 text-sm font-semibold text-[#12301D] transition hover:bg-[#12301D]/5 disabled:opacity-50"
+                                >
+                                    Reset Changes
+                                </button>
+
                                 <button
                                     type="button"
                                     onClick={() => router.back()}
-                                    className="rounded-full border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100"
+                                    disabled={saving}
+                                    className="rounded-full border border-[#12301D]/15 bg-white px-5 py-2.5 text-sm font-semibold text-[#12301D] transition hover:bg-[#12301D]/5 disabled:opacity-50"
                                 >
-                                    Go Back
+                                    Cancel
                                 </button>
                             </div>
                         </div>
-                    ) : (
-                        <DogForm
-                            values={form}
-                            onChange={updateField}
-                            onSubmit={handleSubmit}
-                            saving={saving}
-                            submitLabel={saving ? "Saving..." : "Save Changes"}
-                            error={error}
-                            success={success}
-                            onCancel={() => {
-                                router.back();
-                            }}
-                            form={form}
-                            setForm={setForm}
-                            isEditMode={true}
-                        />
-                    )}
 
-                    {!loading && form.cwaNumber && (
-                        <>
-                            <DogOwnersSection cwaNumber={form.cwaNumber} />
-                            <DogTitlesSection cwaNumber={form.cwaNumber} />
-                        </>
-                    )}
-                </div>
-            </section>
-        </main>
+                        {loading ? (
+                            <div className="rounded-2xl border border-black/10 bg-white/90 p-6 shadow-sm">
+                                <p className="text-sm text-[#12301D]/60">Loading dog record...</p>
+                            </div>
+                        ) : error && !form.cwaNumber ? (
+                            <div className="rounded-2xl border border-red-200 bg-red-50 p-6 shadow-sm">
+                                <p className="text-sm font-medium text-red-700">{error}</p>
+
+                                <div className="mt-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => router.back()}
+                                        className="rounded-full border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100"
+                                    >
+                                        Go Back
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <DogForm
+                                values={form}
+                                onChange={updateField}
+                                onSubmit={handleSubmit}
+                                saving={saving}
+                                submitLabel={saving ? "Saving..." : "Save Changes"}
+                                error={error}
+                                success={success}
+                                onCancel={() => {
+                                    router.back();
+                                }}
+                                form={form}
+                                setForm={setForm}
+                                isEditMode={true}
+                            />
+                        )}
+
+                        {!loading && form.cwaNumber && (
+                            <>
+                                <DogOwnersSection cwaNumber={form.cwaNumber} />
+                                <DogTitlesSection cwaNumber={form.cwaNumber} />
+                            </>
+                        )}
+                    </div>
+                </section>
+            </main>
+        </AuthGuard>
     );
 }

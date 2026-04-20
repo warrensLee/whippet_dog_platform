@@ -662,9 +662,10 @@ def search_dogs():
     #     return deny
 
     q = (request.args.get("q") or "").strip()
+    owner = request.args.get("owner", None)
 
     try:
-        rows = Dog.search(query=q, only_owner_person_id=None)
+        rows = Dog.search(query=q, owner_person_id=owner)
 
         items = []
         for r in rows:
