@@ -1,11 +1,11 @@
-cwaNumber,registeredName,callName,birthdate,status,currentGrade,akcNumber,ckcNumber,foreignNumber,foreignType,pedigreeLink,average,meetPoints,arxPoints,narxPoints,showPoints,dpcLegs,meetWins,meetAppearences,highCombinedWins,aomEarned,notes
-T90005,CSV SPEED KING,BOLT,2017-05-12,Active,A,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV
-T90006,CSV NIGHT DASHER,LUNA,2019-11-03,Active,B,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV
-T90007,CSV TRACK STAR,FLASH,2020-02-18,Active,A,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV
-T90008,CSV SILVER STRIDE,COMET,2016-08-27,Inactive,B,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV
-T90009,CSV GOLDEN ROCKET,BLAZE,2018-01-14,Active,A,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV
-T90010,CSV RIVER RUNNER,STREAM,2021-06-09,Active,C,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV
-T90011,CSV DUSTY TRAIL,EMBER,2019-04-22,Active,B,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV
-T90012,CSV WIND CHASER,STORM,2015-12-30,Inactive,A,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV
-T90013,CSV FAST FURY,NOVA,2022-03-11,Active,D,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV
-T90014,CSV STEEL SHADOW,PHANTOM,2018-09-19,Active,B,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV
+cwaNumber,registeredName,callName,birthdate,status,currentGrade,akcNumber,ckcNumber,foreignNumber,foreignType,pedigreeLink,average,meetPoints,arxPoints,narxPoints,showPoints,dpcLegs,meetWins,meetAppearences,highCombinedWins,aomEarned,notes,kennelClub
+T90005,CSV SPEED KING,BOLT,2017-05-12,Active,A,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV,1
+T90006,CSV NIGHT DASHER,LUNA,2019-11-03,Active,B,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV,1
+T90007,CSV TRACK STAR,FLASH,2020-02-18,Active,A,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV,1
+T90008,CSV SILVER STRIDE,COMET,2016-08-27,Inactive,B,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV,0
+T90009,CSV GOLDEN ROCKET,BLAZE,2018-01-14,Active,A,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV,1
+T90010,CSV RIVER RUNNER,STREAM,2021-06-09,Active,C,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV,1
+T90011,CSV DUSTY TRAIL,EMBER,2019-04-22,Active,B,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV,1
+T90012,CSV WIND CHASER,STORM,2015-12-30,Inactive,A,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV,0
+T90013,CSV FAST FURY,NOVA,2022-03-11,Active,D,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV,1
+T90014,CSV STEEL SHADOW,PHANTOM,2018-09-19,Active,B,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV,1

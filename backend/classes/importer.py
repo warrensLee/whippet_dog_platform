@@ -23,6 +23,7 @@ class CsvImporter:
             "birthdate": ("birthdate", "Birthdate", "BIRTHDATE", "Birth Date"),
             "status": ("status", "Status"),
             "currentGrade": ("currentGrade", "CurrentGrade", "CURRENT GRADE", "Grade"),
+            "kennelClubChampion": ("kennelClubChampion", "KennelClubChampion", "kennelClub", "KENNEL CLUB", "Kennel Club"),
         },
         "meets": {
             "meetNumber": ("meetNumber", "MeetNumber", "MEET NUMBER", "Meet #"),
