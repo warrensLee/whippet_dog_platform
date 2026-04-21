@@ -132,7 +132,7 @@ export default function ChangeLogManager() {
 
   if (loading) {
     return (
-      <AuthGuard permissions={["editAllDatabase"]}>
+      <AuthGuard>
         <Box display="flex" justifyContent="center" p={5}>
           <CircularProgress />
         </Box>
@@ -142,7 +142,7 @@ export default function ChangeLogManager() {
 
   if (error) {
     return (
-      <AuthGuard permissions={["editAllDatabase"]}>
+      <AuthGuard>
         <Box p={4}>
           <Alert severity="error">{error}</Alert>
         </Box>
@@ -151,7 +151,7 @@ export default function ChangeLogManager() {
   }
 
   return (
-    <AuthGuard permissions={["editAllDatabase"]}>
+    <AuthGuard>
       <main className="pt-24 bg-[#1F4D2E]">
         <HeroSection title="Change Log History" />
 
