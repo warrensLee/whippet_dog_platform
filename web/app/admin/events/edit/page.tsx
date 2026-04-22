@@ -7,9 +7,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import EventForm from "@/app/components/event/EventForm";
 import MeetRaceEditor from "@/app/components/event/MeetRaceEditor";
 import HeroSection from "@/app/components/ui/HeroSection";
-import type { EventFormValues, MeetRaceSummary, EditableRaceEntry, MeetResultRow} from "@/app/admin/events/types";
+import type { EventFormValues, MeetRaceSummary, EditableRaceEntry, MeetResultRow } from "@/app/admin/events/types";
 import { emptyEventFormValues } from "@/app/admin/events/types";
 import { fetchMeetRaces, fetchRaceEntries, fetchMeetResults, saveRaceEntry } from "@/lib/event/fetch";
+import { PersonSearchResult } from "@/app/components/ui/PersonField";
 
 /*
     Safely converts incoming unknown values to strings.
@@ -27,6 +28,36 @@ function normalizeText(x: unknown): string {
     }
 
     return "";
+}
+
+/*
+    Fetches person details from the backend using their personId.
+    Converts the response into a PersonSearchResult object.
+*/
+async function fetchPersonById(personId: string): Promise<PersonSearchResult | null> {
+    if (!personId) return null;
+
+    try {
+        const res = await fetch(`/api/person/get/${encodeURIComponent(personId)}`, {
+            credentials: "include",
+        });
+
+        const json = await res.json().catch(() => null);
+
+        if (json?.ok && json.data) {
+            const person = json.data;
+            return {
+                personId: String(person.id || person.PersonID || ""),
+                firstName: String(person.firstName || person.FirstName || ""),
+                lastName: String(person.lastName || person.LastName || ""),
+                email: String(person.email || person.emailAddress || ""),
+            };
+        }
+    } catch {
+        // Ignore errors, return null
+    }
+
+    return null;
 }
 
 /*
@@ -58,7 +89,9 @@ type RawEventGetResponse = {
         clubAbbreviation?: string | null;
         meetDate?: string;
         raceSecretary?: string | null;
+        raceSecretaryName?: string | null;
         judge?: string | null;
+        judgeName?: string | null;
         location?: string | null;
         yards?: string | null;
         publicNotes?: string | null;
@@ -71,13 +104,18 @@ type RawEventGetResponse = {
     Converts backend Event data into the exact EventFormValues shape
     expected by the shared EventForm component.
 */
-function buildFormFromEvent(data: NonNullable<RawEventGetResponse["data"]>): EventFormValues {
+async function buildFormFromEvent(data: NonNullable<RawEventGetResponse["data"]>): Promise<EventFormValues> {
+    const [raceSecretary, judge] = await Promise.all([
+        fetchPersonById(data.raceSecretary || ""),
+        fetchPersonById(data.judge || "")
+    ]);
+
     return {
         meetNumber: normalizeText(data.meetNumber),
         clubAbbreviation: normalizeText(data.clubAbbreviation),
         meetDate: toDateInputValue(data.meetDate),
-        raceSecretary: normalizeText(data.raceSecretary),
-        judge: normalizeText(data.judge),
+        raceSecretary,
+        judge,
         location: normalizeText(data.location),
         yards: normalizeText(data.yards),
         publicNotes: normalizeText(data.publicNotes),
@@ -91,13 +129,13 @@ function buildFormFromEvent(data: NonNullable<RawEventGetResponse["data"]>): Eve
     This keeps trimming logic in one place instead of stuffing it
     directly into the submit handler like a junk drawer.
 */
-function buildEditPayload(form: EventFormValues): EventFormValues {
+function buildEditPayload(form: EventFormValues): Record<string, unknown> {
     return {
         meetNumber: form.meetNumber.trim(),
         clubAbbreviation: form.clubAbbreviation.trim(),
         meetDate: form.meetDate ? `${form.meetDate}T00:00:00` : "",
-        raceSecretary: form.raceSecretary.trim(),
-        judge: form.judge.trim(),
+        raceSecretary: form.raceSecretary?.personId || "",
+        judge: form.judge?.personId || "",
         location: form.location.trim(),
         yards: form.yards.trim(),
         publicNotes: form.publicNotes.trim(),
@@ -387,7 +425,7 @@ function EditEventPage() {
                         return;
                     }
 
-                    const nextForm = buildFormFromEvent(json.data);
+                    const nextForm = await buildFormFromEvent(json.data);
                     setForm(nextForm);
                     setInitialForm(nextForm);
                 }
@@ -482,8 +520,8 @@ function EditEventPage() {
                 meetNumber: form.meetNumber.trim(),
                 clubAbbreviation: form.clubAbbreviation.trim(),
                 meetDate: form.meetDate,
-                raceSecretary: form.raceSecretary.trim(),
-                judge: form.judge.trim(),
+                raceSecretary: form.raceSecretary,
+                judge: form.judge,
                 location: form.location.trim(),
                 yards: form.yards.trim(),
                 publicNotes: form.publicNotes.trim(),
@@ -597,7 +635,8 @@ function EditEventPage() {
                         values={form}
                         onChange={updateField}
                         onSubmit={handleSubmit}
-                        saving={saving || loading}
+                        saving={saving}
+                        personLoading={loading}
                         submitLabel="Save Changes"
                         error={error}
                         success={success}

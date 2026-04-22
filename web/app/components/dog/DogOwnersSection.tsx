@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-
+import PersonField from "../ui/PersonField";
 type Owner = {
     personId: string;
     firstName?: string;
@@ -162,7 +162,8 @@ export default function DogOwnersSection({ cwaNumber }: { cwaNumber: string }) {
         }
     }
 
-    async function handleAdd(person: PersonSearchResult) {
+    async function handleAdd(person: PersonSearchResult | undefined) {
+        if (person == undefined) return;
         const personId = String(person.personId || "").trim();
         const dogId = String(cwaNumber || "").trim();
 
@@ -289,75 +290,8 @@ export default function DogOwnersSection({ cwaNumber }: { cwaNumber: string }) {
 
                 <div className="border-t border-black/8 pt-5">
                     <p className="mb-3 text-sm font-medium text-[#12301D]">Add an owner</p>
+                    <PersonField onChange={handleAdd} value={undefined} />
 
-                    <div className="relative">
-                        <input
-                            type="text"
-                            value={searchQuery}
-                            onChange={(e) => {
-                                const value = e.target.value;
-                                setSearchQuery(value);
-                                fetchPeople(value);
-                            }}
-                            placeholder="Search people by name or ID..."
-                            className="w-full rounded-2xl border border-black/10 bg-white px-4 py-2.5 text-sm text-[#12301D] outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
-                        />
-
-                        {searching && (
-                            <p className="mt-2 text-xs text-[#12301D]/50">Searching...</p>
-                        )}
-
-                        {searchError && (
-                            <p className="mt-2 text-xs text-red-600">{searchError}</p>
-                        )}
-
-                        {!searching && searchQuery.trim() && filteredOptions.length > 0 && (
-                            <div className="absolute left-0 top-full z-50 mt-2 max-h-60 w-full overflow-y-auto rounded-2xl border border-black/10 bg-white shadow-lg">
-                                {filteredOptions.map((person) => (
-                                    <button
-                                        key={person.personId}
-                                        type="button"
-                                        onClick={() => handleAdd(person)}
-                                        disabled={addingId === person.personId}
-                                        className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-[#2E6B3F]/10 disabled:opacity-50"
-                                    >
-                                        <div>
-                                            <p className="text-sm font-semibold text-[#12301D]">
-                                                {`${person.firstName || ""} ${person.lastName || ""}`.trim() || person.personId}
-                                            </p>
-                                            <p className="text-xs text-[#12301D]/50">
-                                                ID: {person.personId}
-                                                {person.email ? ` · ${person.email}` : ""}
-                                            </p>
-                                        </div>
-
-                                        <span className="rounded-full bg-[#2E6B3F] px-3 py-1 text-xs font-semibold text-white">
-                                            {addingId === person.personId ? "Adding..." : "Add"}
-                                        </span>
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-
-                        {!searching &&
-                            searchQuery.trim() &&
-                            !searchError &&
-                            filteredOptions.length === 0 &&
-                            peopleOptions.length > 0 && (
-                                <p className="mt-2 text-xs text-[#12301D]/50">
-                                    All matching people are already linked.
-                                </p>
-                            )}
-
-                        {!searching &&
-                            searchQuery.trim() &&
-                            !searchError &&
-                            peopleOptions.length === 0 && (
-                                <p className="mt-2 text-xs text-[#12301D]/50">
-                                    No people found.
-                                </p>
-                            )}
-                    </div>
                 </div>
 
                 {actionError && (

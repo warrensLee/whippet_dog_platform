@@ -674,14 +674,14 @@ function AdminEventsPage() {
                                                     <span className="block text-xs font-semibold uppercase tracking-wide text-[#12301D]/55">
                                                         Race Secretary
                                                     </span>
-                                                    <span>{e.raceSecretary || "—"}</span>
+                                                    <span>{e.raceSecretaryName || "—"}</span>
                                                 </div>
 
                                                 <div className="rounded-xl bg-[#E7F0E9] px-3 py-2">
                                                     <span className="block text-xs font-semibold uppercase tracking-wide text-[#12301D]/55">
                                                         Judge
                                                     </span>
-                                                    <span>{e.judge || "—"}</span>
+                                                    <span>{e.judgeName || "—"}</span>
                                                 </div>
                                             </div>
 

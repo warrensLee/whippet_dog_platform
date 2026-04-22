@@ -235,7 +235,7 @@ def search_meets():
     owner = request.args.get("owner", None)
 
     try:
-        rows = Meet.search(query=q, owner_person_id=owner)
+        rows = Meet.search(q)
 
         items = []
         for r in rows:
@@ -246,7 +246,9 @@ def search_meets():
                 "clubAbbreviation": d.get("ClubAbbreviation"),
                 "meetDate": d.get("MeetDate"),
                 "raceSecretary": d.get("RaceSecretary"),
+                "raceSecretaryName": d.get("RaceSecretaryName"),
                 "judge": d.get("Judge"),
+                "judgeName": d.get("JudgeName"),
                 "location": d.get("Location"),
                 "yards": d.get("Yards"),
                 "publicNotes": d.get("PublicNotes"),

@@ -89,17 +89,17 @@ class Person:
 
     @classmethod
     def find_by_identifier(cls, identifier):
-        """Find a person by person_id."""
+        """Find a person by person_id or id."""
         row = fetch_one(
             """
             SELECT ID, PersonID, FirstName, LastName, EmailAddress, SystemRole, PasswordHash,
                     AddressLineOne, AddressLineTwo, City, StateProvince, ZipCode, Country,
                    PrimaryPhone, SecondaryPhone, Notes, PublicNotes, Locked, LastEditedBy, LastEditedAt
             FROM Person
-            WHERE PersonID = %s
+            WHERE PersonID = %s OR ID = %s
             LIMIT 1
             """,
-            (identifier,),
+            (identifier,identifier),
         )
         return cls.from_db_row(row)
     

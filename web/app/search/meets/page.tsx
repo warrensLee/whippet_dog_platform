@@ -73,8 +73,8 @@ function SearchPage() {
                                         meetNumber: String(item.meetNumber ?? item.id ?? ""),
                                         clubAbbreviation: String(item.clubAbbreviation ?? ""),
                                         meetDate: String(item.meetDate ?? ""),
-                                        raceSecretary: String(item.raceSecretary ?? ""),
-                                        judge: String(item.judge ?? ""),
+                                        raceSecretary: String(item.raceSecretaryName ?? ""),
+                                        judge: String(item.judgeName ?? ""),
                                         location: String(item.location ?? ""),
                                         yards: String(item.yards ?? ""),
                                         publicNotes: String(item.publicNotes ?? ""),
@@ -373,14 +373,14 @@ function SearchPage() {
                                                     <span className="font-medium text-[#000000]">
                                                         Judge
                                                     </span>
-                                                    : {m.judge || "—"}
+                                                    : {m.judgeName || "—"}
                                                 </div>
 
                                                 <div>
                                                     <span className="font-medium text-[#000000]">
                                                         Race Secretary
                                                     </span>
-                                                    : {m.raceSecretary || "—"}
+                                                    : {m.raceSecretaryName || "—"}
                                                 </div>
 
                                                 <div className="col-span-2">

@@ -216,12 +216,17 @@ class Meet:
 
     def to_dict(self, include_private=True):
         """Convert to dictionary for JSON responses."""
+        judge_name = self._get_full_name(self.judge) if self.judge else None
+        race_secretary_name = self._get_full_name(self.race_secretary) if self.race_secretary else None
+        
         data = {
             "meetNumber": self.meet_number,
             "clubAbbreviation": self.club_abbreviation,
             "meetDate": self.meet_date,
             "raceSecretary": self.race_secretary,
+            "raceSecretaryName": race_secretary_name,
             "judge": self.judge,
+            "judgeName": judge_name,
             "location": self.location,
             "yards": self.yards,
             "publicNotes": self.public_notes,
@@ -233,6 +238,18 @@ class Meet:
             data["privateNotes"] = self.private_notes
 
         return data
+
+    def _get_full_name(self, person_id):
+        """Get full name for a person ID."""
+        if not person_id:
+            return None
+        row = fetch_one(
+            "SELECT FirstName, LastName FROM Person WHERE ID = %s",
+            (person_id,)
+        )
+        if row:
+            return f"{row.get('FirstName')} {row.get('LastName')}".strip()
+        return None
         
     @staticmethod
     def count():
@@ -244,33 +261,33 @@ class Meet:
         return stats["COUNT(*)"]
 
     @staticmethod
-    def search(query, owner_person_id=None):
+    def search(query):
         q = (query or "").strip()
         like = f"%{q}%"
 
         sql = """
             SELECT 
-                MeetNumber, ClubAbbreviation, MeetDate, RaceSecretary, Judge,
-                Location, Yards, PublicNotes, PrivateNotes, LastEditedBy, LastEditedAt
-            FROM Meet
+                m.MeetNumber, m.ClubAbbreviation, m.MeetDate, m.RaceSecretary,
+                CONCAT(pf.FirstName, ' ', pf.LastName) AS RaceSecretaryName,
+                m.Judge, CONCAT(jj.FirstName, ' ', jj.LastName) AS JudgeName,
+                m.Location, m.Yards, m.PublicNotes, m.PrivateNotes, m.LastEditedBy, m.LastEditedAt
+            FROM Meet m
+            LEFT JOIN Person pf ON m.RaceSecretary = pf.ID
+            LEFT JOIN Person jj ON m.Judge = jj.ID
             WHERE 
-                MeetNumber LIKE %s
-                OR ClubAbbreviation LIKE %s
-                OR MeetDate LIKE %s
-                OR RaceSecretary LIKE %s
-                OR Judge LIKE %s
-                OR Location LIKE %s
-                OR Yards LIKE %s
-                OR PublicNotes LIKE %s
-                OR PrivateNotes LIKE %s
+                m.MeetNumber LIKE %s
+                OR m.ClubAbbreviation LIKE %s
+                OR m.MeetDate LIKE %s
+                OR m.RaceSecretary LIKE %s
+                OR m.Judge LIKE %s
+                OR m.Location LIKE %s
+                OR m.Yards LIKE %s
+                OR m.PublicNotes LIKE %s
+                OR m.PrivateNotes LIKE %s
+        ORDER BY m.MeetDate DESC, m.MeetNumber ASC
         """
         params = [like, like, like, like, like, like, like, like, like]
 
-        if owner_person_id:
-            sql += " AND (RaceSecretary = %s OR Judge = %s)"
-            params.extend([owner_person_id, owner_person_id])
-
-        sql += " ORDER BY MeetDate DESC, MeetNumber ASC"
 
         rows = fetch_all(sql, params)
         return rows

@@ -4,7 +4,7 @@
 import * as React from "react";
 import type { EventFormValues } from "@/app/admin/events/types";
 import RichTextEditor from "@/lib/richtext/RichTextEditor";
-
+import PersonField, { PersonSearchResult } from "../ui/PersonField";
 type Props = {
     values: EventFormValues;
     onChange: <K extends keyof EventFormValues>(
@@ -19,6 +19,7 @@ type Props = {
     onCancel: () => void;
     isEditMode?: boolean;
     canEditPrivateNotes?: boolean;
+    personLoading?: boolean;
 };
 
 type InputFieldProps = {
@@ -35,18 +36,35 @@ type InputFieldProps = {
     className?: string;
 };
 
-type TextAreaFieldProps = {
+type PersonSelectFieldProps = {
     label: string;
-    field: keyof EventFormValues;
-    value: string;
-    onChange: <K extends keyof EventFormValues>(
-        key: K,
-        value: EventFormValues[K]
+    value: PersonSearchResult | null | undefined;
+    onChange: (
+        value: PersonSearchResult | undefined
     ) => void;
-    placeholder?: string;
-    rows?: number;
+    loading: boolean
     className?: string;
 };
+function PersonSelectField({
+    label,
+    value,
+    onChange,
+    loading = false,
+    className = "",
+}: PersonSelectFieldProps) {
+    const personName = value
+        ? `${value.firstName || ""} ${value.lastName || ""}`.trim() || value.personId
+        : "";
+
+    return (
+        <div className={className}>
+            <label className="mb-2 block text-sm font-medium text-[#12301D]">
+                {label}
+            </label>
+            <PersonField value={value} onChange={onChange} readOnly={loading} />
+        </div>
+    );
+}
 
 function InputField({
     label,
@@ -80,32 +98,6 @@ function InputField({
     );
 }
 
-function TextAreaField({
-    label,
-    field,
-    value,
-    onChange,
-    placeholder,
-    rows = 5,
-    className = "",
-}: TextAreaFieldProps) {
-    return (
-        <div className={className}>
-            <label className="mb-2 block text-sm font-medium text-[#12301D]">
-                {label}
-            </label>
-
-            <textarea
-                value={value}
-                onChange={(e) => onChange(field, e.target.value)}
-                placeholder={placeholder}
-                rows={rows}
-                className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
-            />
-        </div>
-    );
-}
-
 export default function EventForm({
     values,
     onChange,
@@ -117,6 +109,7 @@ export default function EventForm({
     onCancel,
     isEditMode = false,
     canEditPrivateNotes = false,
+    personLoading = false,
 }: Props) {
     const standardFields: Array<{
         label: string;
@@ -137,14 +130,6 @@ export default function EventForm({
                 label: "Meet Date",
                 field: "meetDate",
                 type: "date",
-            },
-            {
-                label: "Race Secretary",
-                field: "raceSecretary",
-            },
-            {
-                label: "Judge",
-                field: "judge",
             },
             {
                 label: "Yards",
@@ -173,12 +158,27 @@ export default function EventForm({
                         key={String(fieldConfig.field)}
                         label={fieldConfig.label}
                         field={fieldConfig.field}
-                        value={values[fieldConfig.field]}
+                        value={values[fieldConfig.field] as string}
                         onChange={onChange}
                         placeholder={fieldConfig.placeholder}
                         type={fieldConfig.type}
                     />
                 ))}
+            </div>
+
+            <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
+                <PersonSelectField
+                    label="Race Secretary"
+                    value={values.raceSecretary}
+                    onChange={(result) => onChange("raceSecretary", result)}
+                    loading={personLoading}
+                />
+                <PersonSelectField
+                    label="Judge"
+                    value={values.judge}
+                    onChange={(result) => onChange("judge", result)}
+                    loading={personLoading}
+                />
             </div>
 
             <div className="mt-6 space-y-5">
