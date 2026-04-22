@@ -3,7 +3,7 @@ import io
 from datetime import datetime
 import os
 import tempfile
-from utils.auth_helpers import check_login_and_scope_strict
+from utils.auth_helpers import current_role
 from utils.error_handler import handle_error
 from database import fetch_all, fetch_one, get_conn
 from classes.dog import Dog
@@ -81,9 +81,9 @@ def zstd_wrapper(text_stream):
 @database_bp.get("/dump")
 def dump_database():
     try:
-        deny = check_login_and_scope_strict('database', action="restore the database")
-        if deny:
-            return deny
+        role = current_role()
+        if role.title != "ADMIN":
+            return jsonify({"ok": False, "error": "Not authorized to dump the database"}), 403
 
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
         return Response(
@@ -151,9 +151,9 @@ def restore_database():
                 break
             yield chunk
     try:
-        deny = check_login_and_scope_strict('database', action="restore the database")
-        if deny:
-            return deny
+        role = current_role()
+        if role.title != "ADMIN":
+            return jsonify({"ok": False, "error": "Not authorized to restore the database"}), 403
         restore_from_commands(iter_commands(zstd_decompression_wrapper(chunked_reader())))
         return jsonify({"ok": True}), 200 
     except Exception as e:
