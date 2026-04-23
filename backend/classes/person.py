@@ -38,7 +38,7 @@ class Person:
         """Create a Person instance from request JSON data."""
         return cls(
             id=data.get("id"),
-            person_id=(data.get("personId") or "").strip(),
+            person_id=(data.get("personId") or "").strip() or None,
             first_name=(data.get("firstName") or "").strip(),
             last_name=(data.get("lastName") or "").strip(),
             email_address=(data.get("email") or "").strip(),
