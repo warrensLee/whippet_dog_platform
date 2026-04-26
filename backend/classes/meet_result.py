@@ -493,6 +493,7 @@ class MeetResult:
                     mr.ARXEarned,
                     mr.NARXEarned,
                     mr.HCScore,
+                    mr.MatchPoints,
                     mr.DPCPoints,
                     d.CallName,
                     d.RegisteredName,

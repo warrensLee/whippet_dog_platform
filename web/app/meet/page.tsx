@@ -59,6 +59,7 @@ interface FinalMeetResult {
     hcScore?: number | string | null;
     dpcPoints?: number | string | null;
     entryType?: string | null;
+    matchPoints?: string;
 }
 
 function normalizeEventDetail(e: Record<string, unknown>): EventDetail {
@@ -375,19 +376,10 @@ function MeetPage() {
                             NARX: row.narxEarned,
                             Incident: row.incident,
                             EntryType: row.entryType,
+                            HCScore: row.hcScore,
+                            MatchPoints: row.matchPoints,
+                            DPCPoints: row.dpcPoints
                         }))}
-                    />
-
-                    <MeetSpecialWinners
-                        results={finalMeetResults
-                            .filter((row) => String(row.entryType ?? "").trim().toUpperCase() !== "PUPPY")
-                            .map((row) => ({
-                                cwaNumber: row.cwaNumber,
-                                callName: row.callName,
-                                registeredName: row.registeredName,
-                                hcScore: row.hcScore,
-                                dpcPoints: row.dpcPoints,
-                            }))}
                     />
 
                     <Card title="Programs & Races">

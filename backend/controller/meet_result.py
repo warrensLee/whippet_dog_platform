@@ -347,6 +347,7 @@ def list_final_meet_results_for_meet(meet_number):
                 "narxEarned": row.get("NARXEarned"),
                 "incident": row.get("Incident"),
                 "hcScore": row.get("HCScore"),
+                "matchPoints": row.get("MatchPoints"),
                 "dpcPoints": row.get("DPCPoints"),
                 "entryType": row.get("EntryType"),
             }
