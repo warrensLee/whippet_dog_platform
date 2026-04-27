@@ -15,9 +15,9 @@ type FinalMeetResult = {
   ARX?: number | string | null;
   NARX?: number | string | null;
   EntryType?: string | null;
-  HCScore?: number;
-  MatchPoints?: string;
-  DPCPoints?: string;
+  HCScore?: string | number | null;
+  MatchPoints?: string | null;
+  DPCPoints?: string | number | null;
 };
 
 function ResultsTable({

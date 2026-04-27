@@ -11,7 +11,6 @@ import { fetchJson } from "../../lib/ui/fetchJson";
 import { formatDate } from "../../lib/ui/formatDate";
 import RaceLineup from "../components/event/RaceLineup";
 import FinalMeetResults from "../components/event/FinalMeetResults";
-import MeetSpecialWinners from "../components/event/MeetSpecialWinners";
 import authContext from "@/lib/auth/auth";
 import Loading from "@/lib/loading";
 import RichTextViewer from "@/lib/richtext/RichTextViewer";
