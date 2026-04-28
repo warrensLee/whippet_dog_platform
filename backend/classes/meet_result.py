@@ -297,12 +297,16 @@ class MeetResult:
 
 
         race_rows = fetch_all("""
-            SELECT Placement, MeetPoints, AOMEarned, DPCPoints
+            SELECT Placement, MeetPoints, AOMEarned, DPCPoints, Incident
             FROM RaceResults
             WHERE MeetNumber = %s AND CWANumber = %s
         """, (self.meet_number, self.cwa_number)) or []
 
-        placements = [str(r.get("Placement") or "").strip().upper() for r in race_rows]
+        valid_race_rows = [r for r in race_rows  if not str(r.get("Incident") or "").strip()]
+
+        placements = [str(r.get("Placement") or "").strip().upper() for r in valid_race_rows]
+
+        had_incident = len(valid_race_rows) != len(race_rows)
 
         rr = RaceResult(
             meet_number=self.meet_number,
@@ -314,8 +318,7 @@ class MeetResult:
         )
 
         self.meet_points = sum(rr.get_placement_points(p) for p in placements)
-        self.aom_earned = sum(float(r.get("AOMEarned") or 0) for r in race_rows)
-        # self.dpc_points = sum(float(r.get("DPCPoints") or 0) for r in race_rows) use dpc distribution
+        self.aom_earned = sum(float(r.get("AOMEarned") or 0) for r in valid_race_rows)
 
         placement_row = fetch_one("""
             SELECT placement
@@ -336,7 +339,13 @@ class MeetResult:
                     SELECT
                         rr.CWANumber,
                         MAX(rr.EntryType) AS EntryType,
-                        SUM(COALESCE(rr.MeetPoints, 0)) AS TotalMeetPoints,
+                        SUM(
+                            CASE
+                                WHEN rr.Incident IS NULL OR rr.Incident = ''
+                                THEN COALESCE(rr.MeetPoints, 0)
+                                ELSE 0
+                            END
+                        ) AS TotalMeetPoints,
                         MAX(CASE
                             WHEN rr.Program REGEXP '^[0-9]+$' THEN CAST(rr.Program AS UNSIGNED)
                             ELSE NULL
@@ -397,7 +406,7 @@ class MeetResult:
         dpc_distribution = rr.get_dpc_point_distribution(adult_count)
 
         dog = Dog.find_by_identifier(self.cwa_number)
-        if dog and dog.is_adult() and self.meet_placement > 0:
+        if dog and dog.is_adult() and self.meet_placement > 0 and not had_incident:
             idx = self.meet_placement - 1
             self.dpc_points = dpc_distribution[idx] if 0 <= idx < len(dpc_distribution) else 0
         else:

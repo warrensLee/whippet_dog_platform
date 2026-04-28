@@ -159,7 +159,7 @@ CREATE TABLE `MeetResults` (
 CREATE TABLE `ChangeLog` (
     `ID` INT PRIMARY KEY AUTO_INCREMENT,
     `ChangedTable` VARCHAR(50) NOT NULL,
-    `RecordPK` VARCHAR(50) NOT NULL,
+    `RecordPK` VARCHAR(300) NOT NULL,
     `Operation` VARCHAR(10) NOT NULL,
     `ChangedBy` INT,
     `ChangedAt` TIMESTAMP NOT NULL,
