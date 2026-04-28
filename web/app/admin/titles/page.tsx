@@ -6,11 +6,7 @@ import {
   Box,
   Button,
   CircularProgress,
-  FormControl,
-  InputLabel,
-  MenuItem,
   Paper,
-  Select,
   Table,
   TableBody,
   TableCell,
@@ -19,6 +15,7 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
+import { ArrowDownward, ArrowUpward } from "@mui/icons-material";
 import HeroSection from "@/app/components/ui/HeroSection";
 import { getTitlesInDateRange } from "../../components/dog/DogTitlesSection";
 
@@ -34,58 +31,89 @@ type TitleReportRow = {
   ownerEmail?: string | null;
 };
 
+type SortKey =
+  | "titleDate"
+  | "dog"
+  | "cwaNumber"
+  | "title"
+  | "ownerName"
+  | "ownerEmail";
+
+type SortDirection = "asc" | "desc";
+
 export default function AdminTitlesPage() {
-  const [start, setStart] = React.useState("");
-  const [end, setEnd] = React.useState("");
+  const today = new Date().toISOString().split("T")[0];
+
+  const [start, setStart] = React.useState(today);
+  const [end, setEnd] = React.useState(today);
   const [rows, setRows] = React.useState<TitleReportRow[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
-  const [sortBy, setSortBy] = React.useState("date-desc");
 
-  const sortedRows = React.useMemo(() => {
-  const sorted = [...rows];
+  const [sortKey, setSortKey] = React.useState<SortKey>("titleDate");
+  const [sortDirection, setSortDirection] = React.useState<SortDirection>("desc");
 
-  sorted.sort((a, b) => {
-    const dogA = (a.registeredName || a.callName || "").toLowerCase();
-    const dogB = (b.registeredName || b.callName || "").toLowerCase();
-
-    const ownerA = (a.ownerName || "").toLowerCase();
-    const ownerB = (b.ownerName || "").toLowerCase();
-
-    const dateA = a.titleDate ? new Date(a.titleDate).getTime() : 0;
-    const dateB = b.titleDate ? new Date(b.titleDate).getTime() : 0;
-
-    switch (sortBy) {
-      case "date-asc":
-        return dateA - dateB;
-
-      case "date-desc":
-        return dateB - dateA;
-
-      case "owner-asc":
-        return ownerA.localeCompare(ownerB);
-
-      case "owner-desc":
-        return ownerB.localeCompare(ownerA);
-
-      case "dog-asc":
-        return dogA.localeCompare(dogB);
-
-      case "dog-desc":
-        return dogB.localeCompare(dogA);
-
-      default:
-        return 0;
-    }
+  const [filters, setFilters] = React.useState({
+    date: "",
+    dog: "",
+    cwaNumber: "",
+    title: "",
+    owner: "",
+    email: "",
   });
 
-  return sorted;
-}, [rows, sortBy]);
+  React.useEffect(() => {
+    handleSearch();
+  }, []);
+
+  const displayRows = React.useMemo(() => {
+    return [...rows]
+      .filter((row) => {
+        const dog = row.registeredName || row.callName || "";
+
+        return (
+          (row.titleDate || "").toLowerCase().includes(filters.date.toLowerCase()) &&
+          dog.toLowerCase().includes(filters.dog.toLowerCase()) &&
+          row.cwaNumber.toLowerCase().includes(filters.cwaNumber.toLowerCase()) &&
+          row.title.toLowerCase().includes(filters.title.toLowerCase()) &&
+          (row.ownerName || "").toLowerCase().includes(filters.owner.toLowerCase()) &&
+          (row.ownerEmail || "").toLowerCase().includes(filters.email.toLowerCase())
+        );
+      })
+      .sort((a, b) => {
+        if (sortKey === "titleDate") {
+          const aTime = a.titleDate ? new Date(a.titleDate).getTime() : 0;
+          const bTime = b.titleDate ? new Date(b.titleDate).getTime() : 0;
+          return sortDirection === "asc" ? aTime - bTime : bTime - aTime;
+        }
+
+        const getValue = (row: TitleReportRow) => {
+          switch (sortKey) {
+            case "dog":
+              return (row.registeredName || row.callName || "").toLowerCase();
+            case "cwaNumber":
+              return row.cwaNumber.toLowerCase();
+            case "title":
+              return row.title.toLowerCase();
+            case "ownerName":
+              return (row.ownerName || "").toLowerCase();
+            case "ownerEmail":
+              return (row.ownerEmail || "").toLowerCase();
+            default:
+              return "";
+          }
+        };
+
+        const result = getValue(a).localeCompare(getValue(b));
+        return sortDirection === "asc" ? result : -result;
+      });
+  }, [rows, filters, sortKey, sortDirection]);
 
   async function handleSearch() {
     try {
       setLoading(true);
       setError("");
+
       const res = await getTitlesInDateRange(start, end);
 
       if (!res.ok) {
@@ -103,162 +131,107 @@ export default function AdminTitlesPage() {
     }
   }
 
+  function updateFilter(key: keyof typeof filters, value: string) {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function handleSort(key: SortKey) {
+    if (sortKey === key) {
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDirection("asc");
+    }
+  }
+
+  function sortIcon(key: SortKey) {
+    if (sortKey !== key) return null;
+
+    return sortDirection === "asc" ? (
+      <ArrowUpward fontSize="small" sx={{ ml: 0.5 }} />
+    ) : (
+      <ArrowDownward fontSize="small" sx={{ ml: 0.5 }} />
+    );
+  }
+
   return (
     <main className="pt-24 bg-[#1F4D2E]">
       <HeroSection title="Titles Earned" />
 
-      <section
-        className="bg-[#E7F0E9] pt-12 pb-24"
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          flexDirection: "column",
-          alignItems: "center",
-        }}
-      >
+      <section className="bg-[#E7F0E9] pt-12 pb-24 flex flex-col items-center">
         <Box sx={{ width: "80%", mt: 4 }}>
-          <Paper sx={{ p: 4, borderRadius: 3, boxShadow: 2 }}>
-            <Typography
-              variant="body2"
-              sx={{ color: "rgba(18, 48, 29, 0.6)", mb: 3 }}
-            >
-              View all of the dogs that earned titles within a specific timeframe, as well as identifying information to accompany each record.
-            </Typography>
+          <Paper sx={{ p: 4, borderRadius: 3 }}>
+            <Box display="flex" gap={3} flexWrap="wrap">
+              <input type="date" value={start} onChange={(e) => setStart(e.target.value)} />
+              <input type="date" value={end} onChange={(e) => setEnd(e.target.value)} />
 
-            <Box
-              sx={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: 3,
-                alignItems: "flex-end",
-              }}
-            >
-              <Box>
-                <label className="mb-1 block text-sm font-medium text-[#12301D]">
-                  Start Date
-                </label>
-                <input
-                  type="date"
-                  value={start}
-                  onChange={(e) => setStart(e.target.value)}
-                  className="rounded-lg border border-black/10 px-3 py-2"
-                />
-              </Box>
-
-              <Box>
-                <label className="mb-1 block text-sm font-medium text-[#12301D]">
-                  End Date
-                </label>
-                <input
-                  type="date"
-                  value={end}
-                  onChange={(e) => setEnd(e.target.value)}
-                  className="rounded-lg border border-black/10 px-3 py-2"
-                />
-              </Box>
-
-              <FormControl sx={{ minWidth: 220 }}>
-                <InputLabel id="sort-by-label">Sort By</InputLabel>
-                <Select
-                  labelId="sort-by-label"
-                  value={sortBy}
-                  label="Sort By"
-                  onChange={(e) => setSortBy(e.target.value)}
-                >
-                  <MenuItem value="date-desc">Date Descending</MenuItem>
-                  <MenuItem value="date-asc">Date Ascending</MenuItem>
-                  <MenuItem value="owner-asc">Owner Name A–Z</MenuItem>
-                  <MenuItem value="owner-desc">Owner Name Z–A</MenuItem>
-                  <MenuItem value="dog-asc">Dog Name A–Z</MenuItem>
-                  <MenuItem value="dog-desc">Dog Name Z–A</MenuItem>
-                </Select>
-              </FormControl>
-
-              <Button
-                color="success"
-                variant="contained"
-                onClick={handleSearch}
-                sx={{ height: "42px", px: 4 }}
-              >
+              <Button variant="contained" color="success" onClick={handleSearch}>
                 Search
               </Button>
             </Box>
           </Paper>
         </Box>
 
-        {loading && (
-          <Box display="flex" justifyContent="center" p={5}>
-            <CircularProgress />
-          </Box>
-        )}
-
-        {!loading && error && (
-          <Box sx={{ width: "80%", mt: 3 }}>
-            <Typography color="error">{error}</Typography>
-          </Box>
-        )}
+        {loading && <CircularProgress sx={{ mt: 4 }} />}
 
         {!loading && rows.length > 0 && (
           <TableContainer component={Paper} sx={{ maxWidth: "80%", mt: 4 }}>
-            <Table size="small" aria-label="titles earned table">
+            <Table size="small">
               <TableHead>
-                <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
-                  <TableCell><strong>Date</strong></TableCell>
-                  <TableCell><strong>Dog</strong></TableCell>
-                  <TableCell><strong>CWA #</strong></TableCell>
-                  <TableCell><strong>Title</strong></TableCell>
-                  <TableCell><strong>Owner</strong></TableCell>
-                  <TableCell><strong>Email</strong></TableCell>
+                <TableRow>
+                  {[
+                    ["titleDate", "Date"],
+                    ["dog", "Dog"],
+                    ["cwaNumber", "CWA #"],
+                    ["title", "Title"],
+                    ["ownerName", "Owner"],
+                    ["ownerEmail", "Email"],
+                  ].map(([key, label]) => (
+                    <TableCell
+                      key={key}
+                      onClick={() => handleSort(key as SortKey)}
+                      sx={{ cursor: "pointer" }}
+                    >
+                      <strong style={{ display: "flex", alignItems: "center" }}>
+                        {label} {sortIcon(key as SortKey)}
+                      </strong>
+                    </TableCell>
+                  ))}
                   <TableCell><strong>Links</strong></TableCell>
+                </TableRow>
+
+                <TableRow>
+                  {["date", "dog", "cwaNumber", "title", "owner", "email"].map((key) => (
+                    <TableCell key={key}>
+                      <input
+                        placeholder="filter"
+                        value={filters[key as keyof typeof filters]}
+                        onChange={(e) => updateFilter(key as any, e.target.value)}
+                        className="w-full border px-1 text-sm"
+                      />
+                    </TableCell>
+                  ))}
+                  <TableCell />
                 </TableRow>
               </TableHead>
 
               <TableBody>
-                {sortedRows.map((row, index) => (
-                  <TableRow
-                    key={`${row.cwaNumber}-${row.title}-${index}`}
-                    hover
-                  >
-                    <TableCell>{row.titleDate || "—"}</TableCell>
-                    <TableCell>{row.registeredName || "—"}</TableCell>
+                {displayRows.map((row, i) => (
+                  <TableRow key={i}>
+                    <TableCell>{row.titleDate}</TableCell>
+                    <TableCell>{row.registeredName || row.callName}</TableCell>
                     <TableCell>{row.cwaNumber}</TableCell>
                     <TableCell>{row.title}</TableCell>
-                    <TableCell>{row.ownerName || "—"}</TableCell>
-                    <TableCell>{row.ownerEmail || "—"}</TableCell>
+                    <TableCell>{row.ownerName}</TableCell>
+                    <TableCell>{row.ownerEmail}</TableCell>
                     <TableCell>
-                      <Box display="flex" gap={1}>
-                        <Link
-                          href={`/dog?id=${encodeURIComponent(row.cwaNumber)}`}
-                          className="text-[#2E6B3F] underline"
-                        >
-                          Dog
-                        </Link>
-
-                        {row.ownerPersonID && (
-                          <Link
-                            href={`/owner?id=${encodeURIComponent(row.ownerPersonID)}`}
-                            className="text-[#2E6B3F] underline"
-                          >
-                            Owner
-                          </Link>
-                        )}
-                      </Box>
+                      <Link href={`/dog?id=${row.cwaNumber}`} style={{ color: "blue" }}>Dog</Link>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </TableContainer>
-        )}
-
-        {!loading && !error && rows.length === 0 && (
-          <Box sx={{ width: "80%", mt: 4 }}>
-            <Paper sx={{ p: 3, borderRadius: 3, boxShadow: 1 }}>
-              <Typography sx={{ color: "rgba(18, 48, 29, 0.5)" }}>
-                No titles found for the selected date range.
-              </Typography>
-            </Paper>
-          </Box>
         )}
       </section>
     </main>
