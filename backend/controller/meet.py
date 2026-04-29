@@ -54,6 +54,8 @@ def register_meet():
 
     try:
         meet.save()
+        Meet.sync_completed_status_for_group(meet.club_abbreviation, meet.meet_date, meet.location)
+        refreshed = Meet.find_by_identifier(meet.meet_number)
 
         ChangeLog.log(
             changed_table="Meet",
@@ -62,7 +64,7 @@ def register_meet():
             changed_by=current_editor_id(),
             source="api/meet/register POST",
             before_obj=None,
-            after_obj=meet.to_dict(),
+            after_obj=refreshed.to_dict() if refreshed else meet.to_dict(),
         )
 
         return jsonify({"ok": True}), 201
@@ -110,6 +112,16 @@ def edit_meet():
 
     try:
         meet.update()
+        Meet.sync_completed_status_for_group(
+            existing.club_abbreviation,
+            existing.meet_date,
+            existing.location,
+        )
+        Meet.sync_completed_status_for_group(
+            meet.club_abbreviation,
+            meet.meet_date,
+            meet.location,
+        )
 
         refreshed = Meet.find_by_identifier(meet_number)
         after_snapshot = refreshed.to_dict() if refreshed else meet.to_dict()
@@ -157,8 +169,10 @@ def delete_meet():
             return jsonify({"ok": False, "error": "Not allowed to delete this meet"}), 403
 
         before_snapshot = meet.to_dict()
+        old_group = (meet.club_abbreviation, meet.meet_date, meet.location)
 
         meet.delete()
+        Meet.sync_completed_status_for_group(*old_group)
 
         ChangeLog.log(
             changed_table="Meet",
@@ -251,6 +265,8 @@ def search_meets():
                 "judgeName": d.get("JudgeName"),
                 "location": d.get("Location"),
                 "yards": d.get("Yards"),
+                "completed": bool(d.get("Completed")),
+                "eventMeetCount": d.get("EventMeetCount"),
                 "publicNotes": d.get("PublicNotes"),
             })
         return jsonify({"ok": True, "total": len(items), "items": items}), 200

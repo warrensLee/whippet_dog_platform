@@ -230,8 +230,8 @@ class DogTitle:
         missing_titles = qualified_titles - valid_titles
         for title in missing_titles:
             execute(
-                "INSERT IGNORE INTO TitleType (Title) VALUES (%s)",
-                (title,)
+                "INSERT IGNORE INTO TitleType (Title, TitleDescription) VALUES (%s, %s)",
+                (title, f"Auto-created title type for {title}")
             )
 
         for title in titles_to_add:

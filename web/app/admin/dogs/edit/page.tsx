@@ -64,7 +64,13 @@ type RawDogGetResponse = {
         arxPoints?: string | null;
         narxPoints?: string | null;
         showPoints?: string | null;
+        dpcPoints?: string | null;
         dpcLegs?: string | null;
+        manualMeetPointsAdjustment?: string | null;
+        manualArxPointsAdjustment?: string | null;
+        manualNarxPointsAdjustment?: string | null;
+        manualShowPointsAdjustment?: string | null;
+        manualDpcPointsAdjustment?: string | null;
         meetWins?: string | null;
         meetAppearences?: string | null;
         highCombinedWins?: string | null;
@@ -96,7 +102,13 @@ function buildFormFromDog(data: NonNullable<RawDogGetResponse["data"]>): DogForm
         arxPoints: normalizeText(data.arxPoints),
         narxPoints: normalizeText(data.narxPoints),
         showPoints: normalizeText(data.showPoints),
+        dpcPoints: normalizeText(data.dpcPoints),
         dpcLegs: normalizeText(data.dpcLegs),
+        manualMeetPointsAdjustment: normalizeText(data.manualMeetPointsAdjustment),
+        manualArxPointsAdjustment: normalizeText(data.manualArxPointsAdjustment),
+        manualNarxPointsAdjustment: normalizeText(data.manualNarxPointsAdjustment),
+        manualShowPointsAdjustment: normalizeText(data.manualShowPointsAdjustment),
+        manualDpcPointsAdjustment: normalizeText(data.manualDpcPointsAdjustment),
         kennelClubChampion: data.kennelClubChampion,
         meetWins: normalizeText(data.meetWins),
         meetAppearences: normalizeText(data.meetAppearences),
@@ -127,7 +139,13 @@ function buildEditPayload(form: DogFormValues): DogFormValues {
         arxPoints: form.arxPoints.trim(),
         narxPoints: form.narxPoints.trim(),
         showPoints: form.showPoints.trim(),
+        dpcPoints: form.dpcPoints.trim(),
         dpcLegs: form.dpcLegs.trim(),
+        manualMeetPointsAdjustment: form.manualMeetPointsAdjustment.trim(),
+        manualArxPointsAdjustment: form.manualArxPointsAdjustment.trim(),
+        manualNarxPointsAdjustment: form.manualNarxPointsAdjustment.trim(),
+        manualShowPointsAdjustment: form.manualShowPointsAdjustment.trim(),
+        manualDpcPointsAdjustment: form.manualDpcPointsAdjustment.trim(),
         kennelClubChampion: form.kennelClubChampion,
         meetWins: form.meetWins.trim(),
         meetAppearences: form.meetAppearences.trim(),

@@ -94,6 +94,8 @@ type RawEventGetResponse = {
         judgeName?: string | null;
         location?: string | null;
         yards?: string | null;
+        completed?: boolean | null;
+        eventMeetCount?: number | null;
         publicNotes?: string | null;
         privateNotes?: string | null;
     };
@@ -118,6 +120,8 @@ async function buildFormFromEvent(data: NonNullable<RawEventGetResponse["data"]>
         judge,
         location: normalizeText(data.location),
         yards: normalizeText(data.yards),
+        completed: Boolean(data.completed),
+        eventMeetCount: Number(data.eventMeetCount ?? 0),
         publicNotes: normalizeText(data.publicNotes),
         privateNotes: normalizeText(data.privateNotes),
     };

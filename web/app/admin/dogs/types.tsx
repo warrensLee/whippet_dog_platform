@@ -50,6 +50,12 @@ export type DogFormValues =
     meetWins: string;
     meetAppearences: string;
     highCombinedWins: string;
+    dpcPoints: string;
+    manualMeetPointsAdjustment: string;
+    manualArxPointsAdjustment: string;
+    manualNarxPointsAdjustment: string;
+    manualShowPointsAdjustment: string;
+    manualDpcPointsAdjustment: string;
   };
 
 export type DogListItem =
@@ -98,4 +104,10 @@ export const emptyDogFormValues: DogFormValues =
   meetWins: "0",
   meetAppearences: "0",
   highCombinedWins: "0",
+  dpcPoints: "0",
+  manualMeetPointsAdjustment: "0",
+  manualArxPointsAdjustment: "0",
+  manualNarxPointsAdjustment: "0",
+  manualShowPointsAdjustment: "0",
+  manualDpcPointsAdjustment: "0",
 };

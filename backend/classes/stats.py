@@ -258,12 +258,14 @@ class Stats:
                     CWANumber,
                     COALESCE(SUM(MeetPoints), 0) AS total_meet_points,
                     COALESCE(SUM(MatchPoints), 0) AS total_match_points,
-                    COALESCE(SUM(HCScore), 0) AS total_hc_score
-                FROM MeetResults
+                    COALESCE(SUM(HCScore), 0) AS total_hc_score,
+                    COALESCE(SUM(ShowPoints), 0) AS total_show_points,
+                    COALESCE(SUM(DPCPoints), 0) AS total_dpc_points
+                FROM MeetResults mr
         """
 
         if year:
-            meet_results_join += " WHERE YEAR(LastEditedAt) = %s"
+            meet_results_join += " JOIN Meet m ON m.MeetNumber = mr.MeetNumber WHERE YEAR(m.MeetDate) = %s"
             params.append(year)
 
         meet_results_join += """
@@ -271,14 +273,20 @@ class Stats:
             ) rr ON d.CWANumber = rr.CWANumber
         """
 
+        manual_meet_expr = "0" if year else "COALESCE(d.ManualMeetPointsAdjustment, 0)"
+        manual_show_expr = "0" if year else "COALESCE(d.ManualShowPointsAdjustment, 0)"
+        manual_dpc_expr = "0" if year else "COALESCE(d.ManualDPCPointsAdjustment, 0)"
+
         query = f"""
             SELECT 
                 d.*,
                 CONCAT(o.FirstName, ' ', o.LastName) AS owner_name,
                 o.PersonID AS owner_id,
-                COALESCE(rr.total_meet_points, 0) AS total_meet_points,
+                COALESCE(rr.total_meet_points, 0) + {manual_meet_expr} AS total_meet_points,
                 COALESCE(rr.total_match_points, 0) AS total_match_points,
-                COALESCE(rr.total_hc_score, 0) AS total_hc_score
+                COALESCE(rr.total_hc_score, 0) AS total_hc_score,
+                COALESCE(rr.total_show_points, 0) + {manual_show_expr} AS total_show_points,
+                COALESCE(rr.total_dpc_points, 0) + {manual_dpc_expr} AS total_dpc_points
             FROM Dog d
             LEFT JOIN DogOwner do ON d.CWANumber = do.CWAID
             LEFT JOIN Person o ON do.PersonID = o.ID

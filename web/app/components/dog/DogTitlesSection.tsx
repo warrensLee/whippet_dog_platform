@@ -44,7 +44,7 @@ function SectionCard({
 }
 
 export async function getTitlesInDateRange(start: string, end: string) {
-  const response = await axios.get("/api/dog_title/date-range", {
+  const response = await axios.get("/api/dog_title/earned", {
     params: { start, end },
   });
   return response.data;

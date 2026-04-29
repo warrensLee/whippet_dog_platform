@@ -5,6 +5,12 @@ from utils.validators import (s, require, int_field, float_field, fk_exists, enu
 from classes.meet_result import MeetResult
 from classes.race_result import RaceResult
 
+def _float_or_zero(value):
+    return float(value) if value not in (None, "") else 0.0
+
+def _int_or_zero(value):
+    return int(float(value)) if value not in (None, "") else 0
+
 class Dog:
 
     # Age thresholds in months 
@@ -18,7 +24,10 @@ class Dog:
     def __init__(self, cwa_number, registered_number, foreign_type, call_name,
                  registered_name, birthdate, pedigree_link, status, average, current_grade, meet_points, arx_points,
                  narx_points, show_points, dpc_legs, meet_wins, meet_appearences, high_combined_wins, aom_earned, public_notes, private_notes, 
-                 dna, sire_dna, dam_dna, kennel_club_champion=False, last_edited_by=None, last_edited_at=None):
+                 dna, sire_dna, dam_dna, kennel_club_champion=False, last_edited_by=None, last_edited_at=None,
+                 dpc_points=0, manual_meet_points_adjustment=0, manual_arx_points_adjustment=0,
+                 manual_narx_points_adjustment=0, manual_show_points_adjustment=0,
+                 manual_dpc_points_adjustment=0):
         self.cwa_number = cwa_number
         self.registered_number = registered_number
         self.foreign_type = foreign_type
@@ -38,6 +47,12 @@ class Dog:
         self.meet_appearences = meet_appearences
         self.high_combined_wins = high_combined_wins
         self.aom_earned = aom_earned
+        self.dpc_points = dpc_points
+        self.manual_meet_points_adjustment = manual_meet_points_adjustment
+        self.manual_arx_points_adjustment = manual_arx_points_adjustment
+        self.manual_narx_points_adjustment = manual_narx_points_adjustment
+        self.manual_show_points_adjustment = manual_show_points_adjustment
+        self.manual_dpc_points_adjustment = manual_dpc_points_adjustment
         self.public_notes = public_notes
         self.private_notes = private_notes
         self.dna = dna
@@ -47,16 +62,37 @@ class Dog:
         self.last_edited_by = last_edited_by
         self.last_edited_at = last_edited_at
 
-        self.meet_points = float(self.meet_points) if self.meet_points not in (None, "") else 0.0
-        self.arx_points = float(self.arx_points) if self.arx_points not in (None, "") else 0.0
-        self.narx_points = float(self.narx_points) if self.narx_points not in (None, "") else 0.0
+        self.meet_points = _float_or_zero(self.meet_points)
+        self.arx_points = _float_or_zero(self.arx_points)
+        self.narx_points = _float_or_zero(self.narx_points)
+        self.dpc_points = _float_or_zero(self.dpc_points)
+        self.manual_meet_points_adjustment = _float_or_zero(self.manual_meet_points_adjustment)
+        self.manual_arx_points_adjustment = _float_or_zero(self.manual_arx_points_adjustment)
+        self.manual_narx_points_adjustment = _float_or_zero(self.manual_narx_points_adjustment)
+        self.manual_show_points_adjustment = _float_or_zero(self.manual_show_points_adjustment)
+        self.manual_dpc_points_adjustment = _float_or_zero(self.manual_dpc_points_adjustment)
 
-        self.show_points = int(float(self.show_points)) if self.show_points not in (None, "") else 0
-        self.dpc_legs = int(float(self.dpc_legs)) if self.dpc_legs not in (None, "") else 0
-        self.meet_wins = float(self.meet_wins) if self.meet_wins not in (None, "") else 0.0
-        self.meet_appearences = int(float(self.meet_appearences)) if self.meet_appearences not in (None, "") else 0
-        self.high_combined_wins = int(float(self.high_combined_wins)) if self.high_combined_wins not in (None, "") else 0
-        self.aom_earned = int(float(self.aom_earned)) if self.aom_earned not in (None, "") else 0
+        self.show_points = _int_or_zero(self.show_points)
+        self.dpc_legs = _int_or_zero(self.dpc_legs)
+        self.meet_wins = _float_or_zero(self.meet_wins)
+        self.meet_appearences = _int_or_zero(self.meet_appearences)
+        self.high_combined_wins = _int_or_zero(self.high_combined_wins)
+        self.aom_earned = _int_or_zero(self.aom_earned)
+
+    def scored_meet_points(self):
+        return self.meet_points + self.manual_meet_points_adjustment
+
+    def scored_arx_points(self):
+        return self.arx_points + self.manual_arx_points_adjustment
+
+    def scored_narx_points(self):
+        return self.narx_points + self.manual_narx_points_adjustment
+
+    def scored_show_points(self):
+        return self.show_points + self.manual_show_points_adjustment
+
+    def scored_dpc_points(self):
+        return self.dpc_points + self.manual_dpc_points_adjustment
     
     def check_grade(self):
         '''Check grade of dog based on point average and status.'''
@@ -92,22 +128,23 @@ class Dog:
         return []
     
     def check_arx_titles(self):
-        if self.arx_points >= 15:
+        if self.scored_arx_points() >= 15:
             return ["ARX"]
         return []
 
     def check_pr_titles(self):
         '''Check if dog is eligible for Performance Racer (PR) titles.'''
         titles = []
-        if self.meet_points >= 50:
+        meet_points = self.scored_meet_points()
+        if meet_points >= 50:
             titles.append("PR")
-        if self.meet_points >= 150:
+        if meet_points >= 150:
             titles.append("PR2")
-        if self.meet_points >= 250:
+        if meet_points >= 250:
             titles.append("PR3")
-        if self.meet_points >= 350:
+        if meet_points >= 350:
             titles.append("PR4")
-        if self.meet_points >= 450:
+        if meet_points >= 450:
             titles.append("PRX")
         return titles
 
@@ -115,21 +152,22 @@ class Dog:
         '''Check if dog is eligible for National Racing Excellence (NRX)
         and Superior Racing Award (SRA) titles.'''
         titles = []
-        if self.narx_points >= 15:
+        narx_points = self.scored_narx_points()
+        if narx_points >= 15:
             titles.append("NARX")
-        if self.narx_points >= 30:
+        if narx_points >= 30:
             titles.append("NARX2")
-        if self.narx_points >= 45:
+        if narx_points >= 45:
             titles.append("NARX3")
-        if self.narx_points >= 60:
+        if narx_points >= 60:
             titles.append("NARX4")
-        if self.narx_points >= 75:
+        if narx_points >= 75:
             titles.append("SRA")
-        if self.narx_points >= 150:
+        if narx_points >= 150:
             titles.append("SRA2")
-        if self.narx_points >= 225:
+        if narx_points >= 225:
             titles.append("SRA3")
-        if self.narx_points >= 300:
+        if narx_points >= 300:
             titles.append("SRA4")
         return titles
     
@@ -140,7 +178,7 @@ class Dog:
 
         if self.meet_appearences >= 10 and (has_registry or self.dpc_legs >= 5):
             titles.append("DPC")
-            if self.arx_points >= 15:
+            if self.scored_arx_points() >= 15:
                 titles.append("DPCX")
 
         return titles
@@ -257,6 +295,12 @@ class Dog:
             meet_appearences=(data.get("meetAppearences") or "").strip() or "0",
             high_combined_wins=(data.get("highCombinedWins") or "").strip() or "0",
             aom_earned=(data.get("aomEarned") or "").strip() or "0",
+            dpc_points=(data.get("dpcPoints") or "").strip() or "0",
+            manual_meet_points_adjustment=(data.get("manualMeetPointsAdjustment") or "").strip() or "0",
+            manual_arx_points_adjustment=(data.get("manualArxPointsAdjustment") or "").strip() or "0",
+            manual_narx_points_adjustment=(data.get("manualNarxPointsAdjustment") or "").strip() or "0",
+            manual_show_points_adjustment=(data.get("manualShowPointsAdjustment") or "").strip() or "0",
+            manual_dpc_points_adjustment=(data.get("manualDpcPointsAdjustment") or "").strip() or "0",
             public_notes=(data.get("publicNotes") or "").strip() or None,
             private_notes=(data.get("privateNotes") or "").strip() or None,
             dna=(data.get("dna") or "").strip() or None,
@@ -292,6 +336,12 @@ class Dog:
             meet_appearences=row.get("MeetAppearences"),
             high_combined_wins=row.get("HighCombinedWins"),
             aom_earned=row.get("AOMEarned"),
+            dpc_points=row.get("DPCPoints"),
+            manual_meet_points_adjustment=row.get("ManualMeetPointsAdjustment"),
+            manual_arx_points_adjustment=row.get("ManualARXPointsAdjustment"),
+            manual_narx_points_adjustment=row.get("ManualNARXPointsAdjustment"),
+            manual_show_points_adjustment=row.get("ManualShowPointsAdjustment"),
+            manual_dpc_points_adjustment=row.get("ManualDPCPointsAdjustment"),
             public_notes=row.get("PublicNotes"),
             private_notes=row.get("PrivateNotes"),
             dna=row.get("DNA"),
@@ -311,7 +361,10 @@ class Dog:
                     CallName, RegisteredName, Birthdate, PedigreeLink,
                     Status, Average, CurrentGrade,
                     MeetPoints, ARXPoints, NARXPoints, ShowPoints,
-                    DPCLegs, MeetWins, MeetAppearences, HighCombinedWins, AOMEarned, PublicNotes, PrivateNotes,
+                    DPCLegs, MeetWins, MeetAppearences, HighCombinedWins, AOMEarned,
+                    DPCPoints, ManualMeetPointsAdjustment, ManualARXPointsAdjustment,
+                    ManualNARXPointsAdjustment, ManualShowPointsAdjustment,
+                    ManualDPCPointsAdjustment, PublicNotes, PrivateNotes,
                     DNA, SireDNA, DamDNA, KennelClubChampion, LastEditedBy, LastEditedAt
             FROM Dog
             WHERE CWANumber = %s
@@ -382,7 +435,15 @@ class Dog:
                 m.ClubAbbreviation,
                 m.Location,
                 m.RaceSecretary,
-                m.Judge
+                m.Judge,
+                m.Completed,
+                (
+                    SELECT COUNT(*)
+                    FROM Meet grouped
+                    WHERE grouped.ClubAbbreviation = m.ClubAbbreviation
+                      AND grouped.MeetDate = m.MeetDate
+                      AND grouped.Location = m.Location
+                ) AS EventMeetCount
             FROM Meet m
             LEFT JOIN MeetResults mr
             ON mr.MeetNumber = m.MeetNumber AND mr.CWANumber = %s
@@ -554,6 +615,12 @@ class Dog:
         float_field(errors, self.arx_points, "ARX Points", min_value=0, max_value=999.99)
         float_field(errors, self.narx_points, "NARX Points", min_value=0, max_value=999.99)
         float_field(errors, self.meet_wins, "Meet Wins", min_value=0, max_value=999.99)
+        float_field(errors, self.dpc_points, "DPC Points", min_value=0, max_value=999.99)
+        float_field(errors, self.manual_meet_points_adjustment, "Manual Meet Points Adjustment", min_value=-999.99, max_value=999.99)
+        float_field(errors, self.manual_arx_points_adjustment, "Manual ARX Points Adjustment", min_value=-999.99, max_value=999.99)
+        float_field(errors, self.manual_narx_points_adjustment, "Manual NARX Points Adjustment", min_value=-999.99, max_value=999.99)
+        float_field(errors, self.manual_show_points_adjustment, "Manual Show Points Adjustment", min_value=-999.99, max_value=999.99)
+        float_field(errors, self.manual_dpc_points_adjustment, "Manual DPC Points Adjustment", min_value=-999.99, max_value=999.99)
         
         int_field(errors, self.show_points, "Show Points", min_value=0, max_value=32767)
         int_field(errors, self.dpc_legs, "DPC Legs", min_value=0, max_value=32767)
@@ -574,12 +641,16 @@ class Dog:
                     CallName, RegisteredName, Birthdate, PedigreeLink,
                     Status, Average, CurrentGrade,
                     MeetPoints, ARXPoints, NARXPoints, ShowPoints,
-                    DPCLegs, MeetWins, MeetAppearences, HighCombinedWins, AOMEarned, PublicNotes, PrivateNotes,
+                    DPCLegs, MeetWins, MeetAppearences, HighCombinedWins, AOMEarned,
+                    DPCPoints, ManualMeetPointsAdjustment, ManualARXPointsAdjustment,
+                    ManualNARXPointsAdjustment, ManualShowPointsAdjustment,
+                    ManualDPCPointsAdjustment, PublicNotes, PrivateNotes,
                     DNA, SireDNA, DamDNA, KennelClubChampion, LastEditedBy, LastEditedAt
                 )
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,
                         %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                        %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                        %s, %s, %s, %s, %s, %s)
                 """,
                 (
                     self.cwa_number,
@@ -601,6 +672,12 @@ class Dog:
                     self.meet_appearences,
                     self.high_combined_wins,
                     self.aom_earned or 0,
+                    self.dpc_points or 0,
+                    self.manual_meet_points_adjustment,
+                    self.manual_arx_points_adjustment,
+                    self.manual_narx_points_adjustment,
+                    self.manual_show_points_adjustment,
+                    self.manual_dpc_points_adjustment,
                     self.public_notes or None,
                     self.private_notes or None,
                     self.dna,
@@ -639,6 +716,12 @@ class Dog:
                     MeetAppearences = %s,
                     HighCombinedWins = %s,
                     AOMEarned = %s,
+                    DPCPoints = %s,
+                    ManualMeetPointsAdjustment = %s,
+                    ManualARXPointsAdjustment = %s,
+                    ManualNARXPointsAdjustment = %s,
+                    ManualShowPointsAdjustment = %s,
+                    ManualDPCPointsAdjustment = %s,
                     PublicNotes = %s,
                     PrivateNotes = %s,
                     DNA = %s,
@@ -668,6 +751,12 @@ class Dog:
                     self.meet_appearences,
                     self.high_combined_wins,
                     self.aom_earned,
+                    self.dpc_points,
+                    self.manual_meet_points_adjustment,
+                    self.manual_arx_points_adjustment,
+                    self.manual_narx_points_adjustment,
+                    self.manual_show_points_adjustment,
+                    self.manual_dpc_points_adjustment,
                     self.public_notes or None,
                     self.private_notes or None,
                     self.dna,
@@ -812,7 +901,7 @@ class Dog:
             self.arx_points         = float(stats['total_arx'] or 0)
             self.narx_points        = float(stats['total_narx'] or 0)
             self.show_points        = int(stats['total_show_points'] or 0)
-            self.dpc_points        = int(stats['total_dpc_legs'] or 0) * 5  
+            self.dpc_points         = float(stats['total_dpc_points'] or 0)
             self.dpc_legs           = int(stats['total_dpc_legs'] or 0)
             self.meet_appearences   = int(stats['meet_appearances'] or 0)
             self.meet_wins          = int(stats['meet_wins'] or 0)
@@ -861,6 +950,17 @@ class Dog:
             "arxPoints": self.arx_points,
             "narxPoints": self.narx_points,
             "showPoints": self.show_points,
+            "dpcPoints": self.dpc_points,
+            "manualMeetPointsAdjustment": self.manual_meet_points_adjustment,
+            "manualArxPointsAdjustment": self.manual_arx_points_adjustment,
+            "manualNarxPointsAdjustment": self.manual_narx_points_adjustment,
+            "manualShowPointsAdjustment": self.manual_show_points_adjustment,
+            "manualDpcPointsAdjustment": self.manual_dpc_points_adjustment,
+            "adjustedMeetPoints": self.scored_meet_points(),
+            "adjustedArxPoints": self.scored_arx_points(),
+            "adjustedNarxPoints": self.scored_narx_points(),
+            "adjustedShowPoints": self.scored_show_points(),
+            "adjustedDpcPoints": self.scored_dpc_points(),
             "dpcLegs": self.dpc_legs,
             "meetWins": self.meet_wins,
             "meetAppearences": self.meet_appearences,

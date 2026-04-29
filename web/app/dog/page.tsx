@@ -54,6 +54,8 @@ function DogPage() {
     total_meet_points: number;
     total_match_points: number;
     total_hc_score: number;
+    total_show_points?: number;
+    total_dpc_points?: number;
   } | null>(null);
   const [statsLoading, setStatsLoading] = React.useState(false);
   const currentYear = new Date().getFullYear();
@@ -151,7 +153,8 @@ function DogPage() {
     dogStats?.total_meet_points ?? 0,
     dogStats?.total_match_points ?? 0,
     dogStats?.total_hc_score ?? 0,
-    dog?.showPoints ?? 0,
+    dogStats?.total_show_points ?? dog?.adjustedShowPoints ?? dog?.showPoints ?? 0,
+    dogStats?.total_dpc_points ?? dog?.adjustedDpcPoints ?? dog?.dpcPoints ?? 0,
     1
   );
 
@@ -209,6 +212,10 @@ function DogPage() {
                   <FieldRow label="Age" value={ageLabel(ageMonths)} />
                   <FieldRow label="Status" value={dog.status} />
                   <FieldRow label="Current Grade" value={dog.currentGrade} />
+                  <FieldRow label="Meet Points" value={dog.adjustedMeetPoints ?? dog.meetPoints} />
+                  <FieldRow label="ARX Points" value={dog.adjustedArxPoints ?? dog.arxPoints} />
+                  <FieldRow label="NARX Points" value={dog.adjustedNarxPoints ?? dog.narxPoints} />
+                  <FieldRow label="DPC Points" value={dog.adjustedDpcPoints ?? dog.dpcPoints} />
                   <FieldRow label="Registered #" value={dog.registeredNumber} />
                   <FieldRow label="Registry Type" value={dog.foreignType} />
                   <FieldRow label="AKC/CKC Champion" value={dog.kennelClubChampion ? "Yes" : "No"} />
@@ -281,11 +288,16 @@ function DogPage() {
                   />
 
                   <PointBar
-                    label="DPC Points"
-                    value={dog?.showPoints ?? 0}
+                    label={`Show Points (${statsMode === "ytd" ? `${currentYear} YTD` : "All Time"})`}
+                    value={dogStats?.total_show_points ?? dog?.adjustedShowPoints ?? dog?.showPoints ?? 0}
                     max={maxPoints}
                   />
-                  {/* Swap show points with DPC Points and Match Points */}
+
+                  <PointBar
+                    label={`DPC Points (${statsMode === "ytd" ? `${currentYear} YTD` : "All Time"})`}
+                    value={dogStats?.total_dpc_points ?? dog?.adjustedDpcPoints ?? dog?.dpcPoints ?? 0}
+                    max={maxPoints}
+                  />
 
                   <div className="mt-4 flex flex-wrap gap-3">
                     <span className={`rounded-full px-4 py-1 text-xs font-semibold ${statusColor}`}>
@@ -371,7 +383,7 @@ function DogPage() {
           {dog && (
             <Card title="DPC Progress">
               <FieldRow label="Historic DPC Legs" value={`${dog.dpcLegs ?? 0} / 5`} />
-              <FieldRow label="DPC Points" value={dog.showPoints ?? 0} />
+              <FieldRow label="DPC Points" value={dog.adjustedDpcPoints ?? dog.dpcPoints ?? 0} />
               <p className="mt-2 text-xs text-[#12301D]/60">
                 Historic dogs may qualify through DPC legs. Current progression also tracks DPC points.
               </p>

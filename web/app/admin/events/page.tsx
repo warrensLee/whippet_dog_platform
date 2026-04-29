@@ -238,6 +238,7 @@ function AdminEventsPage() {
     // updated to ouptput correct data and counts based on search results, not just total in DB
     const items = data?.data ?? [];
     const total = items.length;
+    const completedCount = items.filter((event) => Boolean(event.completed)).length;
     /*
         Sort the loaded Event records on the frontend based on the selected option.
         This keeps the admin page easy to work with for now without changing the API yet.
@@ -455,13 +456,13 @@ function AdminEventsPage() {
 
                         <div className="rounded-2xl border border-black/10 bg-white/90 p-5 shadow-sm">
                             <div className="text-sm font-medium text-[#12301D]/70">
-                                Events
+                                Completed
                             </div>
                             <div className="mt-2 text-sm text-[#12301D]/60">
-                                Visible in current page results
+                                Event groups with 3 meets
                             </div>
                             <div className="mt-2 text-3xl font-bold text-[#12301D]">
-                                {pagedItems.length}
+                                {completedCount}
                             </div>
                         </div>
 
@@ -649,8 +650,20 @@ function AdminEventsPage() {
                                                 </div>
 
                                                 {/* RIGHT SIDE */}
-                                                <div className="inline-flex rounded-full bg-[#2E6B3F]/10 px-3 py-1 text-xs font-semibold text-[#2E6B3F]">
-                                                    {e.clubAbbreviation || "No Club"}
+                                                <div className="flex flex-wrap justify-end gap-2">
+                                                    <div className="inline-flex rounded-full bg-[#2E6B3F]/10 px-3 py-1 text-xs font-semibold text-[#2E6B3F]">
+                                                        {e.clubAbbreviation || "No Club"}
+                                                    </div>
+                                                    <div
+                                                        className={[
+                                                            "inline-flex rounded-full px-3 py-1 text-xs font-semibold",
+                                                            e.completed
+                                                                ? "bg-emerald-100 text-emerald-700"
+                                                                : "bg-amber-100 text-amber-800",
+                                                        ].join(" ")}
+                                                    >
+                                                        {e.completed ? "Completed" : "In Progress"}
+                                                    </div>
                                                 </div>
                                             </div>
 
@@ -682,6 +695,13 @@ function AdminEventsPage() {
                                                         Judge
                                                     </span>
                                                     <span>{e.judgeName || "—"}</span>
+                                                </div>
+
+                                                <div className="rounded-xl bg-[#E7F0E9] px-3 py-2">
+                                                    <span className="block text-xs font-semibold uppercase tracking-wide text-[#12301D]/55">
+                                                        Event Meets
+                                                    </span>
+                                                    <span>{e.eventMeetCount ?? 0} / 3</span>
                                                 </div>
                                             </div>
 

@@ -13,6 +13,17 @@ export interface DogDetail {
   arxPoints?: number | null;
   narxPoints?: number | null;
   showPoints?: number | null;
+  dpcPoints?: number | null;
+  adjustedMeetPoints?: number | null;
+  adjustedArxPoints?: number | null;
+  adjustedNarxPoints?: number | null;
+  adjustedShowPoints?: number | null;
+  adjustedDpcPoints?: number | null;
+  manualMeetPointsAdjustment?: number | null;
+  manualArxPointsAdjustment?: number | null;
+  manualNarxPointsAdjustment?: number | null;
+  manualShowPointsAdjustment?: number | null;
+  manualDpcPointsAdjustment?: number | null;
   dpcLegs?: number | null;
   meetWins?: number | null;
   meetAppearences?: number | null;
@@ -66,6 +77,10 @@ export interface MeetEntry {
   Location?: string;
   RaceSecretary?: string;
   Judge?: string;
+  Completed?: boolean;
+  EventMeetCount?: number;
+  completed?: boolean;
+  eventMeetCount?: number;
   meetResults?: MeetResult[];
   raceResults?: RaceResult[];
 }

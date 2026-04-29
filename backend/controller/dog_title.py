@@ -230,8 +230,7 @@ def get_dog_title(cwa_number):
     data = [t.to_dict() for t in dog_titles]
     return jsonify({"ok": True, "data": data}), 200
 
-@dog_title_bp.get("/date-range")
-def get_titles_in_date_range():
+def _earned_titles_response():
     start = (request.args.get("start") or "").strip()
     end = (request.args.get("end") or "").strip()
 
@@ -265,6 +264,14 @@ def get_titles_in_date_range():
 
     except Error as e:
         return handle_error(e, "Database error")
+
+@dog_title_bp.get("/earned")
+def get_earned_titles():
+    return _earned_titles_response()
+
+@dog_title_bp.get("/date-range")
+def get_titles_in_date_range():
+    return _earned_titles_response()
     
 @dog_title_bp.get("/get")
 def get_all_dog_titles():

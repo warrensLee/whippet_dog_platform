@@ -28,6 +28,8 @@ interface EventDetail {
     judge?: string;
     location?: string;
     yards?: string | number;
+    completed?: boolean;
+    eventMeetCount?: number;
     requestFormLink?: string;
     resultsLink?: string;
     publicNotes?: string;
@@ -87,6 +89,8 @@ function normalizeEventDetail(e: Record<string, unknown>): EventDetail {
         judge: getString("judge"),
         location: getString("location"),
         yards: getStringOrNumber("yards"),
+        completed: Boolean(e.completed ?? e.Completed),
+        eventMeetCount: Number(e.eventMeetCount ?? e.EventMeetCount ?? 0),
         requestFormLink: getString("requestFormLink"),
         resultsLink: getString("resultsLink"),
         publicNotes: getString("publicNotes"),
@@ -293,6 +297,7 @@ function MeetPage() {
                         <StatPill label="Races" value={races.length} />
                         <StatPill label="Entries" value={totalEntries} />
                         <StatPill label="Yards" value={event?.yards ?? "—"} />
+                        <StatPill label="Event Meets" value={`${event?.eventMeetCount ?? 0}/3`} />
                     </div>
 
                     <Card title="Details">
@@ -307,6 +312,8 @@ function MeetPage() {
                                 <FieldRow label="Judge" value={event.judge} />
                                 <FieldRow label="Location" value={event.location} />
                                 <FieldRow label="Yards" value={event.yards ?? "—"} />
+                                <FieldRow label="Status" value={event.completed ? "Completed" : "In Progress"} />
+                                <FieldRow label="Meets in Event" value={`${event.eventMeetCount ?? 0} / 3`} />
 
                                 {event.requestFormLink ? (
                                     <div className="pt-3">

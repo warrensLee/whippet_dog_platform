@@ -114,6 +114,7 @@ def _apply_meet_stats_delta(dog: Dog, old: dict, new: dict, editor_id: str, now:
     dog.arx_points = float(dog.arx_points or 0) - old["arx_points"] + new["arx_points"]
     dog.narx_points = float(dog.narx_points or 0) - old["narx_points"] + new["narx_points"]
     dog.show_points = int(dog.show_points or 0) - int(old["show_points"]) + int(new["show_points"])
+    dog.dpc_points = float(getattr(dog, "dpc_points", 0) or 0) - old["dpc_points"] + new["dpc_points"]
     dog.dpc_legs = int(dog.dpc_legs or 0) - int(old["dpc_legs"]) + int(new["dpc_legs"])
     dog.meet_wins = int(dog.meet_wins or 0) - int(old["meet_wins"]) + int(new["meet_wins"])
     dog.meet_appearences = int(dog.meet_appearences or 0) - int(old["meet_appearences"]) + int(new["meet_appearences"])

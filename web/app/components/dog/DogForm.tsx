@@ -317,6 +317,11 @@ export default function DogForm
                 type: "number",
             },
             {
+                label: "DPC Points",
+                field: "dpcPoints",
+                type: "number",
+            },
+            {
                 label: "DPC Legs",
                 field: "dpcLegs",
                 type: "number",
@@ -339,6 +344,42 @@ export default function DogForm
             {
                 label: "Registry Type",
                 field: "foreignType",
+            },
+        ];
+
+    const manualAdjustmentFields:
+        Array<
+            {
+                label: string;
+                field: keyof DogFormValues;
+                type?: string;
+            }
+        > =
+        [
+            {
+                label: "Meet Points Adjustment",
+                field: "manualMeetPointsAdjustment",
+                type: "number",
+            },
+            {
+                label: "ARX Points Adjustment",
+                field: "manualArxPointsAdjustment",
+                type: "number",
+            },
+            {
+                label: "NARX Points Adjustment",
+                field: "manualNarxPointsAdjustment",
+                type: "number",
+            },
+            {
+                label: "Show Points Adjustment",
+                field: "manualShowPointsAdjustment",
+                type: "number",
+            },
+            {
+                label: "DPC Points Adjustment",
+                field: "manualDpcPointsAdjustment",
+                type: "number",
             },
         ];
 
@@ -430,6 +471,22 @@ export default function DogForm
                 </div>
             </div>
 
+            <div className="mt-8 rounded-2xl border border-black/10 bg-[#F8FBF9] p-5">
+                <h3 className="text-sm font-bold text-[#12301D]">Manual Point Adjustments</h3>
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {manualAdjustmentFields.map((fieldConfig) => (
+                        <InputField
+                            key={String(fieldConfig.field)}
+                            label={fieldConfig.label}
+                            field={fieldConfig.field}
+                            value={values[fieldConfig.field] as string}
+                            onChange={onChange}
+                            type={fieldConfig.type}
+                        />
+                    ))}
+                </div>
+            </div>
+
             {/* Public Notes section */}
             <div className="mt-5">
                 <label className="mb-2 block text-sm font-medium text-[#12301D]">
@@ -443,7 +500,7 @@ export default function DogForm
                 <label className="mb-2 block text-sm font-medium text-[#12301D]">
                     Private Notes
                 </label>
-                <RichTextEditor value={values.publicNotes} onChange={(value: string) => onChange("privateNotes", value)} style={{}} />
+                <RichTextEditor value={values.privateNotes} onChange={(value: string) => onChange("privateNotes", value)} style={{}} />
             </div>
 
             {/* Show either error or success message if present */}

@@ -7,10 +7,18 @@ TODO:
 from database import fetch_all, fetch_one, execute
 from mysql.connector import Error
 
+def _date_key(value):
+    if not value:
+        return value
+    if hasattr(value, "strftime"):
+        return value.strftime("%Y-%m-%d")
+    return str(value)[:10]
+
 class Meet:
 
     def __init__(self, meet_number, club_abbreviation, meet_date, race_secretary, judge,
-                 location, yards, public_notes, private_notes, last_edited_by, last_edited_at):
+                 location, yards, public_notes, private_notes, last_edited_by, last_edited_at,
+                 completed=False, event_meet_count=None):
         self.meet_number = meet_number
         self.club_abbreviation = club_abbreviation
         self.meet_date = meet_date
@@ -18,6 +26,8 @@ class Meet:
         self.judge = judge
         self.location = location
         self.yards = yards
+        self.completed = bool(completed)
+        self.event_meet_count = event_meet_count
         self.public_notes = public_notes
         self.private_notes = private_notes
         self.last_edited_by = last_edited_by
@@ -37,7 +47,8 @@ class Meet:
             public_notes=(data.get("publicNotes") or "").strip() or None,
             private_notes=(data.get("privateNotes") or "").strip() or None,
             last_edited_by=data.get("lastEditedBy"),
-            last_edited_at=data.get("lastEditedAt")
+            last_edited_at=data.get("lastEditedAt"),
+            completed=bool(data.get("completed", False)),
         )
     
     @classmethod
@@ -56,7 +67,9 @@ class Meet:
             public_notes=row.get("PublicNotes"),
             private_notes=row.get("PrivateNotes"),
             last_edited_by=row.get("LastEditedBy"),
-            last_edited_at=row.get("LastEditedAt")
+            last_edited_at=row.get("LastEditedAt"),
+            completed=row.get("Completed"),
+            event_meet_count=row.get("EventMeetCount"),
         )
 
     @classmethod
@@ -64,10 +77,19 @@ class Meet:
         """Find a meet by meet_number."""
         row = fetch_one(
             """
-            SELECT MeetNumber, ClubAbbreviation, MeetDate, RaceSecretary, Judge,
-                   Location, Yards, PublicNotes, PrivateNotes, LastEditedBy, LastEditedAt
-            FROM Meet
-            WHERE MeetNumber = %s
+            SELECT
+                m.MeetNumber, m.ClubAbbreviation, m.MeetDate, m.RaceSecretary, m.Judge,
+                m.Location, m.Yards, m.Completed, m.PublicNotes, m.PrivateNotes,
+                m.LastEditedBy, m.LastEditedAt,
+                (
+                    SELECT COUNT(*)
+                    FROM Meet grouped
+                    WHERE grouped.ClubAbbreviation = m.ClubAbbreviation
+                      AND grouped.MeetDate = m.MeetDate
+                      AND grouped.Location = m.Location
+                ) AS EventMeetCount
+            FROM Meet m
+            WHERE m.MeetNumber = %s
             LIMIT 1
             """,
             (identifier,),
@@ -122,9 +144,9 @@ class Meet:
                 """
                 INSERT INTO Meet (
                     MeetNumber, ClubAbbreviation, MeetDate, RaceSecretary, Judge,
-                    Location, Yards, PublicNotes, PrivateNotes, LastEditedBy, LastEditedAt
+                    Location, Yards, Completed, PublicNotes, PrivateNotes, LastEditedBy, LastEditedAt
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
                     self.meet_number,
@@ -134,6 +156,7 @@ class Meet:
                     self.judge,
                     self.location,
                     self.yards,
+                    self.completed,
                     self.public_notes or None,
                     self.private_notes or None,
                     self.last_edited_by,
@@ -156,6 +179,7 @@ class Meet:
                     Judge = %s,
                     Location = %s,
                     Yards = %s,
+                    Completed = %s,
                     PublicNotes = %s,
                     PrivateNotes = %s,
                     LastEditedBy = %s,
@@ -169,6 +193,7 @@ class Meet:
                     self.judge,
                     self.location,
                     self.yards,
+                    self.completed,
                     self.public_notes or None,
                     self.private_notes or None,
                     self.last_edited_by,
@@ -198,9 +223,18 @@ class Meet:
         """Retrieve all meets from the database."""
         rows = fetch_all(
             """
-            SELECT MeetNumber, ClubAbbreviation, MeetDate, RaceSecretary, Judge,
-                   Location, Yards, PublicNotes, PrivateNotes, LastEditedBy, LastEditedAt
-            FROM Meet
+            SELECT
+                m.MeetNumber, m.ClubAbbreviation, m.MeetDate, m.RaceSecretary, m.Judge,
+                m.Location, m.Yards, m.Completed, m.PublicNotes, m.PrivateNotes,
+                m.LastEditedBy, m.LastEditedAt,
+                (
+                    SELECT COUNT(*)
+                    FROM Meet grouped
+                    WHERE grouped.ClubAbbreviation = m.ClubAbbreviation
+                      AND grouped.MeetDate = m.MeetDate
+                      AND grouped.Location = m.Location
+                ) AS EventMeetCount
+            FROM Meet m
             """
         )
         return [Meet.from_db_row(row) for row in rows]
@@ -229,6 +263,8 @@ class Meet:
             "judgeName": judge_name,
             "location": self.location,
             "yards": self.yards,
+            "completed": self.completed,
+            "eventMeetCount": self.get_event_meet_count(),
             "publicNotes": self.public_notes,
             "lastEditedBy": self.last_edited_by,
             "lastEditedAt": self.last_edited_at.isoformat() if self.last_edited_at else None
@@ -250,6 +286,59 @@ class Meet:
         if row:
             return f"{row.get('FirstName')} {row.get('LastName')}".strip()
         return None
+
+    def get_event_meet_count(self):
+        if self.event_meet_count is not None:
+            return self.event_meet_count
+        if not self.club_abbreviation or not self.meet_date or not self.location:
+            return 0
+        row = fetch_one(
+            """
+            SELECT COUNT(*) AS EventMeetCount
+            FROM Meet
+            WHERE ClubAbbreviation = %s
+              AND MeetDate = %s
+              AND Location = %s
+            """,
+            (self.club_abbreviation, _date_key(self.meet_date), self.location),
+        ) or {}
+        self.event_meet_count = int(row.get("EventMeetCount") or 0)
+        return self.event_meet_count
+
+    @classmethod
+    def sync_completed_status_for_group(cls, club_abbreviation, meet_date, location):
+        if not club_abbreviation or not meet_date or not location:
+            return
+
+        date_key = _date_key(meet_date)
+        row = fetch_one(
+            """
+            SELECT COUNT(*) AS EventMeetCount
+            FROM Meet
+            WHERE ClubAbbreviation = %s
+              AND MeetDate = %s
+              AND Location = %s
+            """,
+            (club_abbreviation, date_key, location),
+        ) or {}
+
+        completed = 1 if int(row.get("EventMeetCount") or 0) >= 3 else 0
+        execute(
+            """
+            UPDATE Meet
+            SET Completed = %s
+            WHERE ClubAbbreviation = %s
+              AND MeetDate = %s
+              AND Location = %s
+            """,
+            (completed, club_abbreviation, date_key, location),
+        )
+
+    @classmethod
+    def sync_completed_status_for_meet_number(cls, meet_number):
+        meet = cls.find_by_identifier(meet_number)
+        if meet:
+            cls.sync_completed_status_for_group(meet.club_abbreviation, meet.meet_date, meet.location)
         
     @staticmethod
     def count():
@@ -270,7 +359,14 @@ class Meet:
                 m.MeetNumber, m.ClubAbbreviation, m.MeetDate, m.RaceSecretary,
                 CONCAT(pf.FirstName, ' ', pf.LastName) AS RaceSecretaryName,
                 m.Judge, CONCAT(jj.FirstName, ' ', jj.LastName) AS JudgeName,
-                m.Location, m.Yards, m.PublicNotes, m.PrivateNotes, m.LastEditedBy, m.LastEditedAt
+                m.Location, m.Yards, m.Completed, m.PublicNotes, m.PrivateNotes, m.LastEditedBy, m.LastEditedAt,
+                (
+                    SELECT COUNT(*)
+                    FROM Meet grouped
+                    WHERE grouped.ClubAbbreviation = m.ClubAbbreviation
+                      AND grouped.MeetDate = m.MeetDate
+                      AND grouped.Location = m.Location
+                ) AS EventMeetCount
             FROM Meet m
             LEFT JOIN Person pf ON m.RaceSecretary = pf.ID
             LEFT JOIN Person jj ON m.Judge = jj.ID

@@ -77,6 +77,8 @@ function SearchPage() {
                                         judge: String(item.judgeName ?? ""),
                                         location: String(item.location ?? ""),
                                         yards: String(item.yards ?? ""),
+                                        completed: Boolean(item.completed),
+                                        eventMeetCount: Number(item.eventMeetCount ?? 0),
                                         publicNotes: String(item.publicNotes ?? ""),
                                     };
                                 }
@@ -352,6 +354,16 @@ function SearchPage() {
                                                 <div className="shrink-0 rounded-full px-3 py-1 text-xs font-semibold bg-[#2E6B3F]/10 text-[#2E6B3F]">
                                                     {m.clubAbbreviation || "—"}
                                                 </div>
+                                                <div
+                                                    className={[
+                                                        "shrink-0 rounded-full px-3 py-1 text-xs font-semibold",
+                                                        m.completed
+                                                            ? "bg-emerald-100 text-emerald-700"
+                                                            : "bg-amber-100 text-amber-800",
+                                                    ].join(" ")}
+                                                >
+                                                    {m.completed ? "Completed" : "In Progress"}
+                                                </div>
                                             </div>
 
                                             <div className="mt-4 grid grid-cols-2 gap-y-2 text-sm text-[#12301D]/80">
@@ -388,6 +400,12 @@ function SearchPage() {
                                                         Yards
                                                     </span>
                                                     : {m.yards || "—"}
+                                                </div>
+                                                <div className="col-span-2">
+                                                    <span className="font-medium text-[#000000]">
+                                                        Event Meets
+                                                    </span>
+                                                    : {m.eventMeetCount ?? 0} / 3
                                                 </div>
                                             </div>
 

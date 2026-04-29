@@ -22,6 +22,8 @@ export default function MeetCard({
   const meetResult = meet.meetResults?.[0];
   const placement = meetResult?.meetPlacement;
   const points = meetResult?.meetPoints;
+  const completed = Boolean(meet.Completed ?? meet.completed);
+  const eventMeetCount = meet.EventMeetCount ?? meet.eventMeetCount ?? 0;
 
   return (
     <div className="overflow-hidden rounded-2xl border border-black/10 bg-white/70 shadow-sm transition-shadow hover:shadow-md">
@@ -57,6 +59,16 @@ export default function MeetCard({
               {points} pts
             </span>
           )}
+          <span
+            className={[
+              "rounded-full px-3 py-1 text-xs font-semibold",
+              completed
+                ? "bg-emerald-100 text-emerald-700"
+                : "bg-amber-100 text-amber-800",
+            ].join(" ")}
+          >
+            {eventMeetCount}/3
+          </span>
           {placement != null && (
             <span className="rounded-full bg-black/5 px-3 py-1 text-xs font-semibold text-[#12301D]/70">
               #{placement}

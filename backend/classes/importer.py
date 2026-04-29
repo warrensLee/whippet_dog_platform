@@ -84,7 +84,10 @@ class CsvImporter:
     PASSTHROUGH = {
         "dogs": ["akcNumber", "ckcNumber", "foreignNumber", "foreignType", "pedigreeLink",
                  "average", "meetPoints", "arxPoints", "narxPoints", "showPoints", "dpcLegs",
-                 "meetWins", "meetAppearences", "highCombinedWins", "notes"],
+                 "meetWins", "meetAppearences", "highCombinedWins", "dpcPoints",
+                 "manualMeetPointsAdjustment", "manualArxPointsAdjustment",
+                 "manualNarxPointsAdjustment", "manualShowPointsAdjustment",
+                 "manualDpcPointsAdjustment", "notes"],
         "meets": [],
         "meet_results": [],
         "race_results": [],

@@ -21,6 +21,8 @@ export type EventSearchResult = {
     judgeName?: string;
     location: string;
     yards: string;
+    completed?: boolean;
+    eventMeetCount?: number;
     publicNotes?: string;
     privateNotes?: string;
 };
@@ -33,6 +35,8 @@ export type EventFormValues = {
     judge: PersonSearchResult | null | undefined;
     location: string;
     yards: string;
+    completed?: boolean;
+    eventMeetCount?: number;
     publicNotes: string;
     privateNotes: string;
 };
@@ -47,6 +51,8 @@ export type EventListItem = {
     judgeName?: string;
     location: string;
     yards: string;
+    completed?: boolean;
+    eventMeetCount?: number;
     publicNotes?: string;
     privateNotes?: string;
 };
@@ -79,6 +85,8 @@ export type MeetSearchResult = {
     judgeName?: string;
     location: string;
     yards: string;
+    completed?: boolean;
+    eventMeetCount?: number;
     publicNotes: string;
 };
 
