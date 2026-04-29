@@ -1,8 +1,6 @@
 # Whippet Dog Platform
 
-> **This project is currently in development.** APIs, database schemas, and features are subject to change.
-
-A full-stack web platform designed to support the management of whippet dog racing clubs and competitions. The system provides tools for managing dog records, meet results, titles, standings, and club administration. It is built using a RESTful API backend, a React frontend, and a flexible role-based access control system that allows administrators to manage user permissions.
+A full-stack web platform designed to support the management of whippet dog racing and competitions. The system provides tools for managing dog records, meet results, titles, standings, and administration abilites. It is built using a RESTful API backend, a React frontend, and a role-based access control system that allows administrators to manage user permissions.
 
 ---
 
@@ -24,9 +22,8 @@ A full-stack web platform designed to support the management of whippet dog raci
 - **Dog Management** — Register dogs, track grades, points, titles, and race history
 - **Meet & Race Results** — Record meet and individual race results; stats and titles update automatically
 - **Title Tracking** — Auto-assign titles (ARX, NARX, TRP, PR, DPC, HC) based on a dog's stats
-- **Club Management** — Create and manage clubs with board members and race secretaries
 - **Person Accounts** — User registration, login, and session-based authentication
-- **Role-Based Permissions** — Granular scope system (NONE / SELF / ALL) across all resources
+- **Role-Based Permissions** —  Uses a scope system (NONE / SELF / ALL) to control what users can do with dogs, titles, and meets. Admins have full access, while other users are limited based on their role.
 - **Statistics** — All-time and yearly leaderboards, filterable by dog, owner, and year
 - **CSV Importer** — Bulk import dogs, meets, meet results, and race results
 - **Database Dump & Restore** — Download and restore the full database via API
@@ -54,7 +51,7 @@ whippet_dog_platform/
 ├── backend/                     # Flask REST API backend
 │   ├── classes/                 # Python classes representing database entities
 │   ├── controller/              # API controllers / endpoint logic
-│   ├── test/                    # Test files and CSV import testing
+│   ├── CSVs/                    # CSV import testing
 │   ├── utils/                   # Shared helper utilities
 │   ├── venv/                    # Python virtual environment
 │   ├── config.py                # Application configuration
@@ -133,78 +130,86 @@ Only **Docker** and **Docker Compose** are required. No local Python, Node, or M
 
 ## Configuration
 
-Before starting the stack, configure the email settings used by the contact and newsletter endpoints. The database credentials are pre-set in `docker-compose.yml` for local development — change them for any non-local deployment.
+Before running the application, make sure your environment is set up correctly.
 
-In `docker-compose.yml`, update the backend environment variables:
+### Port Requirements
 
-```yaml
-environment:
-  - CONTACT_TO_EMAIL=your_email@example.com      # Where contact form submissions are sent
-  - SMTP_HOST=smtp.gmail.com
-  - SMTP_PORT=587
-  - SMTP_USER=your_email@example.com
-  - SMTP_PASS=your_google_app_password           # Use a Google App Password, not your account password
-  - FROM_EMAIL=your_email@example.com
-```
-
-> **Gmail setup:** Go to your Google Account → Security → 2-Step Verification → App Passwords. Generate a password for "Mail" and use that as `SMTP_PASS`.
-
-### Default Database Credentials (local dev)
-
-| Setting | Value |
-|---|---|
-| Host | `db` (internal Docker network) |
-| Port | `3306` (mapped to host) |
-| Database | `cwa_db` |
-| User | `root` |
-| Password | `dogs` |
+Make sure port `3306` is available on your system (or update the Docker port mapping if needed). This is required for the MySQL database.
 
 ---
+
+### Environment Files
+
+Rename the example environment files:
+
+```bash
+cp example-.env.database .env.database
+cp example-.env.backend .env.backend
+cp example-.env.cloudflared .env.cloudflared
+
+
+---
+
+Then update each file:
+
+- **.env.database**
+  - Set your database password and MySQL configuration
+
+- **.env.backend**
+  - Seed account information  
+  - Resend API key  
+  - Application secret keys  
+
+- **.env.cloudflared**
+  - Add your Cloudflare tunnel token  
+  - If you are not using Cloudflare locally, follow the instructions in `docker-compose.yml` to disable this service
 
 ## Running the App
 
 ### Start the full stack
 
-```bash
 docker compose up --build
-```
+
+This runs the default (production-style) setup.  
+For development, use:
+
+docker compose -f docker-compose-dev.yml up --build
 
 This starts five services:
-- **db** — MySQL 8.0 on internal port 3306 
-- **backend** — Flask/Gunicorn API on internal port 8000
-- **frontend** — Next.js dev server on internal port 3000
-- **nginx** — Reverse proxy on `http://localhost:80` (routes `/api/*` → backend, everything else → frontend)
-- **backup** — Runs `backup.sh` once on start, then every 24 hours; outputs to `./backups/`
+- db — MySQL 8.0 on internal port 3306
+- backend — Flask/Gunicorn API
+- frontend — Next.js app
+- nginx — Reverse proxy on site (routes /api/* → backend, everything else → frontend)
+- backup — Runs backup.sh once on start, then every 24 hours, outputs to ./backups/
+- cloudflared — Cloudflare Tunnel service
+
+---
 
 ### Access the app
 
-| Service | URL |
-|---|---|
-| Web app | `http://localhost` |
-| API | `http://localhost/api` |
-| Frontend (direct) | `http://localhost:3000` |
-| Backend (direct) | `http://localhost:8000` |
-| MySQL (host) | `127.0.0.1:3306` |
+Service | URL
+--- | ---
+Web app | http://localhost
+API | http://localhost/api
+Frontend (direct) | http://localhost:3000
+Backend (direct) | http://localhost:8000
+MySQL (host) | 127.0.0.1:3306
+
+---
 
 ### Stop the stack
 
-```bash
-docker compose down
-```
+docker compose down 
 
 To also remove volumes (wipes the database):
 
-```bash
 docker compose down -v
-```
+
+---
 
 ### Rebuild a single service
 
-```bash
 docker compose up --build backend
-```
-
----
 
 ## API Reference
 
@@ -223,13 +228,10 @@ Full API documentation (all endpoints, request bodies, permission requirements, 
 | Dog | `/api/dog` |
 | Dog Owner | `/api/dog_owner` |
 | Dog Title | `/api/dog_title` |
-| Club | `/api/club` |
 | Meet | `/api/meet` |
 | Meet Result | `/api/meet_result` |
 | Race Result | `/api/race_result` |
 | Stats | `/api/stats` |
-| News | `/api/news` |
-| Officer Role | `/api/officer_role` |
 | User Role | `/api/user_role` |
 | Title Type | `/api/title_type` |
 | Importer | `/api/import` |
