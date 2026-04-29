@@ -720,3 +720,28 @@ def get_dog_stats(cwa_number):
 
     except Error as e:
         return handle_error(e, "Database error")
+
+
+@dog_bp.get("/high-combined-wins/<cwa_number>")
+def get_high_combined_wins(cwa_number):
+    try:
+        data = Dog.get_high_combined_wins(cwa_number)
+        return jsonify({"ok": True, "data": data}), 200
+    except Error as e:
+        return handle_error(e, "Database error")
+    except Exception as e:
+        print("HC WINS ERROR:", e)
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@dog_bp.get("/ytd-high-combined-wins/<cwa_number>")
+def get_ytd_high_combined_wins(cwa_number):
+    try:
+        year = request.args.get("year", type=int)
+        data = Dog.get_ytd_high_combined_wins(cwa_number, year)
+        return jsonify({"ok": True, "data": data}), 200
+    except Error as e:
+        return handle_error(e, "Database error")
+    except Exception as e:
+        print("YTD HC WINS ERROR:", e)
+        return jsonify({"ok": False, "error": str(e)}), 500

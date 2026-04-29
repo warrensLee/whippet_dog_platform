@@ -703,7 +703,7 @@ function AdminEventsPage() {
                                                     </Link>
 
                                                     <Link
-                                                        href={`/search?q=${encodeURIComponent(e.meetNumber)}`}
+                                                        href={`/search/meets/?q=${encodeURIComponent(e.meetNumber)}`}
                                                         className="rounded-full border border-[#12301D]/15 bg-white px-4 py-2 text-sm font-semibold text-[#12301D] hover:bg-[#12301D]/5 transition"
                                                     >
                                                         View in Search

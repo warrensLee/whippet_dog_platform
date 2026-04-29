@@ -289,3 +289,151 @@ class Stats:
         params.append(cwa_number)
 
         return fetch_one(query, tuple(params))
+    
+    # this will apply ranking that matches Krista's order requests:
+    #   1) tied values receive the same rank
+    #   2) next rank(s) #'s are skipped based on number of ties
+    #      (example: 1, 2, 2, 4)
+    def apply_competition_ranking(self, rows, value_key="value"):
+        prev_value = None
+        prev_rank = 0
+
+        for idx, row in enumerate(rows, 1):
+            current_value = row.get(value_key, 0) or 0
+
+            if prev_value is not None and current_value == prev_value:
+                row['rank'] = prev_rank
+            else:
+                row['rank'] = idx
+                prev_rank = idx
+
+            prev_value = current_value
+
+        return rows
+
+
+    def get_ytd_hc_wins(self, year):
+        query = """
+            WITH eligible AS (
+                SELECT
+                    mr.MeetNumber,
+                    mr.CWANumber,
+                    mr.MeetPlacement,
+                    mr.ConformationPlacement,
+                    (mr.MeetPlacement + mr.ConformationPlacement) AS combined_score
+                FROM MeetResults mr
+                JOIN Meet m ON m.MeetNumber = mr.MeetNumber
+                WHERE YEAR(m.MeetDate) = %s
+                AND mr.MeetPlacement IS NOT NULL
+                AND mr.ConformationPlacement IS NOT NULL
+                AND mr.MeetPlacement < (
+                    SELECT MAX(x.MeetPlacement)
+                    FROM MeetResults x
+                    WHERE x.MeetNumber = mr.MeetNumber
+                    AND x.MeetPlacement IS NOT NULL
+                )
+                AND mr.ConformationPlacement < (
+                    SELECT MAX(y.ConformationPlacement)
+                    FROM MeetResults y
+                    WHERE y.MeetNumber = mr.MeetNumber
+                    AND y.ConformationPlacement IS NOT NULL
+                )
+            ),
+            winners AS (
+                SELECT e.*
+                FROM eligible e
+                WHERE e.combined_score = (
+                    SELECT MIN(e2.combined_score)
+                    FROM eligible e2
+                    WHERE e2.MeetNumber = e.MeetNumber
+                )
+                AND e.MeetPlacement = (
+                    SELECT MIN(e3.MeetPlacement)
+                    FROM eligible e3
+                    WHERE e3.MeetNumber = e.MeetNumber
+                    AND e3.combined_score = e.combined_score
+                )
+            )
+            SELECT
+                d.ID as dog_id,
+                d.CallName as call_name,
+                d.RegisteredName as dog_name,
+                d.CWANumber as cwanumber,
+                o.PersonID as owner_id,
+                CONCAT(o.FirstName, ' ', o.LastName) as owner_name,
+                COUNT(*) as value
+            FROM winners w
+            LEFT JOIN Dog d ON w.CWANumber = d.CWANumber
+            LEFT JOIN DogOwner do ON d.CWANumber = do.CWAID
+            LEFT JOIN Person o ON do.PersonID = o.PersonID
+            GROUP BY
+                d.ID,
+                d.CallName,
+                d.RegisteredName,
+                d.CWANumber,
+                o.PersonID,
+                o.FirstName,
+                o.LastName
+            HAVING COUNT(*) > 0
+            ORDER BY value DESC, d.RegisteredName ASC
+        """
+
+        results = fetch_all(query, (year,))
+        return self.apply_competition_ranking(results, 'value')
+
+    # returns the YTD standings for a specific stat
+    def get_ytd_standings(self, stat_type, year):
+        # if the year is not valid, return empty list
+        if year not in self.get_available_years():
+            return []
+        
+        if stat_type == 'hc_wins':
+            return self.get_ytd_hc_wins(year)
+
+        # map stat type to the correct DB column name
+        stat_map = {
+            'meet_points': 'MeetPoints',
+            'match_points': 'ShowPoints',
+            'hc_wins': 'HighCombinedWins',
+            'narx': 'NARXEarned'
+        }
+
+        # if the stat type is not valid, return empty list
+        if stat_type not in stat_map:
+            return []
+        
+        stat_column = stat_map[stat_type]
+
+        query = f"""
+            SELECT
+                d.ID as dog_id,
+                d.CallName as call_name,
+                d.RegisteredName as dog_name,
+                d.CWANumber as cwanumber,
+                o.PersonID as owner_id,
+                CONCAT(o.FirstName, ' ', o.LastName) as owner_name,
+                COALESCE(SUM(mr.{stat_column}), 0) as value
+            FROM Dog d
+            LEFT JOIN DogOwner do ON d.CWANumber = do.CWAID
+            LEFT JOIN Person o ON do.PersonID = o.PersonID
+            LEFT JOIN MeetResults mr ON d.CWANumber = mr.CWANumber
+            LEFT JOIN Meet m ON mr.MeetNumber = m.MeetNumber
+            WHERE YEAR(m.MeetDate) = %s
+            GROUP BY
+                d.ID,
+                d.CallName,
+                d.RegisteredName,
+                d.CWANumber,
+                o.PersonID,
+                o.FirstName,
+                o.LastName
+            HAVING COALESCE(SUM(mr.{stat_column}), 0) > 0
+            ORDER BY value DESC, d.RegisteredName ASC
+        """
+
+        results = fetch_all(query, (year,))
+
+        return self.apply_competition_ranking(results, 'value')
+        
+
+

@@ -280,6 +280,12 @@ function DogPage() {
                     max={maxPoints}
                   />
 
+                  {/* <PointBar
+                    label={`High Combined Wins (${statsMode === "ytd" ? `${currentYear} YTD` : "All Time"})`}
+                    value={dogStats?.total_hc_wins ?? 0}
+                    max={maxPoints}
+                  /> */}
+
                   <PointBar
                     label="DPC Points"
                     value={dog?.showPoints ?? 0}

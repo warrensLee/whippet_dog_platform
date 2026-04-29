@@ -915,40 +915,54 @@ class Dog:
     @classmethod
     def get_high_combined_wins(cls, cwa_number: str):
         row = fetch_one("""
-            SELECT COUNT(*) as hc_wins
-            FROM MeetResults mr
-            WHERE mr.CWANumber = %s
-            AND mr.MeetPlacement IS NOT NULL
-            AND mr.ConformationPlacement IS NOT NULL
-            AND mr.MeetPlacement + mr.ConformationPlacement = (
-                SELECT MIN(inner_mr.MeetPlacement + inner_mr.ConformationPlacement)
-                FROM MeetResults inner_mr
-                WHERE inner_mr.MeetNumber = mr.MeetNumber
-                    AND inner_mr.MeetPlacement IS NOT NULL
-                    AND inner_mr.ConformationPlacement IS NOT NULL
+            WITH eligible AS (
+                SELECT
+                    mr.MeetNumber,
+                    mr.CWANumber,
+                    mr.MeetPlacement,
+                    mr.ConformationPlacement,
+                    (mr.MeetPlacement + mr.ConformationPlacement) AS combined_score
+                FROM MeetResults mr
+                WHERE mr.MeetPlacement IS NOT NULL
+                AND mr.ConformationPlacement IS NOT NULL
+                AND mr.MeetPlacement < (
+                    SELECT MAX(x.MeetPlacement)
+                    FROM MeetResults x
+                    WHERE x.MeetNumber = mr.MeetNumber
+                    AND x.MeetPlacement IS NOT NULL
+                )
+                AND mr.ConformationPlacement < (
+                    SELECT MAX(y.ConformationPlacement)
+                    FROM MeetResults y
+                    WHERE y.MeetNumber = mr.MeetNumber
+                    AND y.ConformationPlacement IS NOT NULL
+                )
+            ),
+            winners AS (
+                SELECT e.*
+                FROM eligible e
+                WHERE e.combined_score = (
+                    SELECT MIN(e2.combined_score)
+                    FROM eligible e2
+                    WHERE e2.MeetNumber = e.MeetNumber
+                )
+                AND e.MeetPlacement = (
+                    SELECT MIN(e3.MeetPlacement)
+                    FROM eligible e3
+                    WHERE e3.MeetNumber = e.MeetNumber
+                    AND e3.combined_score = e.combined_score
+                )
             )
-            AND mr.MeetPlacement = (
-                SELECT MIN(inner_mr.MeetPlacement)
-                FROM MeetResults inner_mr
-                WHERE inner_mr.MeetNumber = mr.MeetNumber
-                    AND inner_mr.MeetPlacement IS NOT NULL
-                    AND inner_mr.ConformationPlacement IS NOT NULL
-                    AND inner_mr.MeetPlacement + inner_mr.ConformationPlacement = (
-                        SELECT MIN(inner2.MeetPlacement + inner2.ConformationPlacement)
-                        FROM MeetResults inner2
-                        WHERE inner2.MeetNumber = mr.MeetNumber
-                        AND inner2.MeetPlacement IS NOT NULL
-                        AND inner2.ConformationPlacement IS NOT NULL
-                    )
-            )
+            SELECT COUNT(*) AS hc_wins
+            FROM winners
+            WHERE CWANumber = %s
         """, (cwa_number,)) or {}
 
         return {
             "cwaNumber": cwa_number,
             "highCombinedWins": int(row.get("hc_wins") or 0)
         }
-
-
+    
     @classmethod
     def get_ytd_high_combined_wins(cls, cwa_number: str, year: int | None = None):
         if year is None:
@@ -956,35 +970,50 @@ class Dog:
             year = datetime.now().year
 
         row = fetch_one("""
-            SELECT COUNT(*) as ytd_hc_wins
-            FROM MeetResults mr
-            JOIN Meet m ON m.MeetNumber = mr.MeetNumber
-            WHERE mr.CWANumber = %s
-            AND YEAR(m.MeetDate) = %s
-            AND mr.MeetPlacement IS NOT NULL
-            AND mr.ConformationPlacement IS NOT NULL
-            AND mr.MeetPlacement + mr.ConformationPlacement = (
-                SELECT MIN(inner_mr.MeetPlacement + inner_mr.ConformationPlacement)
-                FROM MeetResults inner_mr
-                WHERE inner_mr.MeetNumber = mr.MeetNumber
-                    AND inner_mr.MeetPlacement IS NOT NULL
-                    AND inner_mr.ConformationPlacement IS NOT NULL
+            WITH eligible AS (
+                SELECT
+                    mr.MeetNumber,
+                    mr.CWANumber,
+                    mr.MeetPlacement,
+                    mr.ConformationPlacement,
+                    (mr.MeetPlacement + mr.ConformationPlacement) AS combined_score
+                FROM MeetResults mr
+                JOIN Meet m ON m.MeetNumber = mr.MeetNumber
+                WHERE YEAR(m.MeetDate) = %s
+                AND mr.MeetPlacement IS NOT NULL
+                AND mr.ConformationPlacement IS NOT NULL
+                AND mr.MeetPlacement < (
+                    SELECT MAX(x.MeetPlacement)
+                    FROM MeetResults x
+                    WHERE x.MeetNumber = mr.MeetNumber
+                    AND x.MeetPlacement IS NOT NULL
+                )
+                AND mr.ConformationPlacement < (
+                    SELECT MAX(y.ConformationPlacement)
+                    FROM MeetResults y
+                    WHERE y.MeetNumber = mr.MeetNumber
+                    AND y.ConformationPlacement IS NOT NULL
+                )
+            ),
+            winners AS (
+                SELECT e.*
+                FROM eligible e
+                WHERE e.combined_score = (
+                    SELECT MIN(e2.combined_score)
+                    FROM eligible e2
+                    WHERE e2.MeetNumber = e.MeetNumber
+                )
+                AND e.MeetPlacement = (
+                    SELECT MIN(e3.MeetPlacement)
+                    FROM eligible e3
+                    WHERE e3.MeetNumber = e.MeetNumber
+                    AND e3.combined_score = e.combined_score
+                )
             )
-            AND mr.MeetPlacement = (
-                SELECT MIN(inner_mr.MeetPlacement)
-                FROM MeetResults inner_mr
-                WHERE inner_mr.MeetNumber = mr.MeetNumber
-                    AND inner_mr.MeetPlacement IS NOT NULL
-                    AND inner_mr.ConformationPlacement IS NOT NULL
-                    AND inner_mr.MeetPlacement + inner_mr.ConformationPlacement = (
-                        SELECT MIN(inner2.MeetPlacement + inner2.ConformationPlacement)
-                        FROM MeetResults inner2
-                        WHERE inner2.MeetNumber = mr.MeetNumber
-                        AND inner2.MeetPlacement IS NOT NULL
-                        AND inner2.ConformationPlacement IS NOT NULL
-                    )
-            )
-        """, (cwa_number, year)) or {}
+            SELECT COUNT(*) AS ytd_hc_wins
+            FROM winners
+            WHERE CWANumber = %s
+        """, (year, cwa_number)) or {}
 
         return {
             "cwaNumber": cwa_number,

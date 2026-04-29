@@ -187,6 +187,10 @@ export default function AddDogPage() {
                                     New Dog Information
                                 </h2>
                                 <div className="mt-1 h-1 w-14 rounded-full bg-[#2E6B3F]/70" />
+
+                                <p className="mt-2 text-sm font-medium text-[#12301D]/70">
+                                    <span className="font-bold text-red-600">*</span> Required field
+                                </p>
                             </div>
 
                             <div className="flex flex-wrap gap-3">

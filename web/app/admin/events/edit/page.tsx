@@ -604,12 +604,16 @@ function EditEventPage() {
             <section className="bg-[#E7F0E9] pt-12 pb-24">
                 <div className="max-w-5xl mx-auto px-4">
                     <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                        <div>
-                            <h2 className="text-2xl font-bold text-[#12301D]">
-                                Event Information
-                            </h2>
-                            <div className="mt-1 h-1 w-14 rounded-full bg-[#2E6B3F]/70" />
-                        </div>
+                            <div>
+                                <h2 className="text-2xl font-bold text-[#12301D]">
+                                    Event Information
+                                </h2>
+                                <div className="mt-1 h-1 w-14 rounded-full bg-[#2E6B3F]/70" />
+
+                                <p className="mt-2 text-sm font-medium text-[#12301D]/70">
+                                    <span className="font-bold text-red-600">*</span> Required field
+                                </p>
+                            </div>
                         <div className="flex flex-wrap gap-3">
                             <button
                                 type="button"
