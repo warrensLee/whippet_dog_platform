@@ -670,11 +670,14 @@ def search_dogs():
             items.append({
                 "id": d.get("CWANumber"),
                 "name": d.get("RegisteredName"),
+                "callName": d.get("CallName"),
                 "regNo": d.get("CWANumber"),
                 "year": bd.year if bd else None,
                 "active": d.get("Status"),
                 "ownerName": d.get("ownerName"),
                 "title": d.get("titles"), 
+                "grade": d.get("CurrentGrade"), 
+                "average": d.get("Average"), 
             })
         return jsonify({"ok": True, "total": len(items), "items": items}), 200
 
