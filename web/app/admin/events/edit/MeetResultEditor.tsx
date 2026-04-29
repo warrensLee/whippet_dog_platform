@@ -151,7 +151,7 @@ function DogSearchDialog({
     );
 }
 
-function validateRace(race: DogRace, allRaces: DogRace[]): boolean {
+function validateRace(race: DogRace, allRaces?: DogRace[]): boolean {
     if (!allRaces) {
         return race.program.trim() !== "" &&
             race.race.trim() !== "" &&
@@ -163,7 +163,7 @@ function validateRace(race: DogRace, allRaces: DogRace[]): boolean {
     }
     const raceIndex = allRaces.indexOf(race);
     const otherRaces = allRaces.filter((_, i) => i !== raceIndex);
-    const hasDuplicate = otherRaces.some(otherRace => 
+    const hasDuplicate = otherRaces.some(otherRace =>
         otherRace.program === race.program && otherRace.race === race.race
     );
     if (hasDuplicate) {
