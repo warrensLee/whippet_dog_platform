@@ -7,9 +7,10 @@ from classes.dog import Dog
 from classes.dog_title import DogTitle
 from classes.change_log import ChangeLog
 from classes.user_role import UserRole
+from classes.race_result import RaceResult
 from utils.auth_helpers import current_editor_id, current_role, require_scope
 from utils.error_handler import handle_error
-from database import fetch_one
+from database import fetch_one, fetch_all, execute
 
 meet_result_bp = Blueprint("meet_result", __name__, url_prefix="/api/meet_result")
 
@@ -358,3 +359,190 @@ def list_final_meet_results_for_meet(meet_number):
         return jsonify({"ok": True, "data": data}), 200
     except Error as e:
         return handle_error(e, "Database error")
+
+
+@meet_result_bp.get("/edit_result_view/<meet_number>")
+def edit_result_view(meet_number):
+    try:
+        combined_rows = fetch_all(
+            """
+            SELECT 
+                rr.Program,
+                rr.RaceNumber,
+                rr.EntryType,
+                rr.Box,
+                rr.Placement,
+                rr.Incident,
+                rr.CWANumber,
+                mr.Shown,
+                mr.ShowPoints,
+                mr.ShowPlacement,
+                mr.Grade,
+                mr.Average,
+                dd.RegisteredName,
+                dd.CallName
+            FROM RaceResults rr
+            LEFT JOIN MeetResults mr 
+                ON rr.CWANumber = mr.CWANumber 
+                AND rr.MeetNumber = mr.MeetNumber
+            LEFT JOIN Dog dd
+                ON dd.CWANumber = mr.CWANumber
+            WHERE rr.MeetNumber = %s
+            ORDER BY rr.CWANumber ASC, rr.Program ASC, rr.RaceNumber ASC
+            """,
+            (meet_number,),
+        ) or []
+
+        if not combined_rows:
+            return jsonify({"ok": True, "entries": []}), 200
+
+        dog_data = {}
+        
+        for row in combined_rows:
+            cwa_number = row.get("CWANumber")
+            
+            if cwa_number not in dog_data:
+                dog_data[cwa_number] = {
+                    "cwaNumber": cwa_number,
+                    "registeredName": row.get("RegisteredName") or "",
+                    "callName": row.get("CallName") or "",
+                    "shown": bool(row.get("Shown") == "1"),
+                    "showPoints": int(row.get("ShowPoints") or 0),
+                    "showPlace": int(row.get("ShowPlacement") or 0),
+                    "grade": row.get("Grade") or "",
+                    "average": int(row.get("Average") or 0),
+                    "races": []
+                }
+            
+            dog_data[cwa_number]["races"].append({
+                "program": row.get("Program") or "",
+                "race": row.get("RaceNumber") or "",
+                "entryType": row.get("EntryType") or "",
+                "box": row.get("Box") or "",
+                "placement": row.get("Placement") or "",
+                "incident": row.get("Incident") or ""
+            })
+
+        dog_entries = list(dog_data.values())
+
+        return jsonify({"ok": True, "entries": dog_entries}), 200
+
+    except Error as e:
+        return handle_error(e, "Database error")
+
+
+@meet_result_bp.post("/edit_result_view/<meet_number>")
+def bulk_update_edit_result_view(meet_number):
+    role = current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+    deny = require_scope(role.edit_meet_scope, "edit meet results")
+    if deny:
+        return deny
+
+    data = request.get_json(silent=True) or {}
+    entries = data.get("entries", []) or []
+
+    editor_id = current_editor_id()
+    now = datetime.now(timezone.utc)
+
+    try:
+        cwa_numbers = [entry.get("cwaNumber") for entry in entries if entry.get("cwaNumber")]
+
+        old_stats = {}
+        if cwa_numbers:
+            cwa_placeholders = ",".join(["%s"] * len(cwa_numbers))
+            existing_rows = fetch_all(
+                f"""
+                SELECT CWANumber, Shown, ShowPoints, ShowPlacement
+                FROM MeetResults
+                WHERE MeetNumber = %s AND CWANumber IN ({cwa_placeholders})
+                """,
+                [meet_number] + cwa_numbers
+            ) or []
+            
+            for row in existing_rows:
+                cwa = row["CWANumber"]
+                if cwa not in old_stats:
+                    old_stats[cwa] = _meet_stats(cwa)
+
+        execute("DELETE FROM RaceResults WHERE MeetNumber = %s", (meet_number,))
+        execute("DELETE FROM MeetResults WHERE MeetNumber = %s", (meet_number,))
+
+        for entry in entries:
+            cwa_number = entry.get("cwaNumber")
+            if not cwa_number:
+                continue
+                
+            shown = 1 if entry.get("shown") else 0
+            show_points = int(entry.get("showPoints") or 0)
+            show_placement = int(entry.get("showPlace") or 0)
+            grade = entry.get("grade")
+            average = float(entry.get("average") or 0)
+            
+            races = entry.get("races") or []
+            for race in races:
+                program = race.get("program")
+                race_number = race.get("race")
+                entry_type = race.get("entryType")
+                box = race.get("box") or ""
+                placement = race.get("placement")
+                incident = race.get("incident") or ""
+                
+                if not program or not race_number:
+                    continue
+
+                placement_str = str(placement).strip() if placement else ""
+                
+                try:
+                    placement_num = int(placement_str) if placement_str.isdigit() else 0
+                except (ValueError, TypeError):
+                    placement_num = 0
+                
+                if placement_num > 0:
+                    rr = RaceResult("", "", "", "", "", "", placement_str, "", "", "", "", None, None)
+                    meet_points = rr.get_placement_points(placement_str)
+                elif placement_str.upper() == "AOM":
+                    meet_points = 0.5
+                else:
+                    meet_points = 0
+
+                execute(
+                    """
+                    INSERT INTO RaceResults (
+                        MeetNumber, CWANumber, Program, RaceNumber, EntryType, Box,
+                        Placement, MeetPoints, AOMEarned, DPCPoints, Incident,
+                        LastEditedBy, LastEditedAt
+                    )
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    """,
+                    (meet_number, cwa_number, program, race_number, entry_type, box,
+                     placement_str, meet_points, 0, 0, incident, editor_id, now),
+                )
+
+            new_result = MeetResult(meet_number, cwa_number, average, grade, 0, 0, 0, 0, 0, 0, shown, show_placement, show_points, 0, 0, 0, 0, 0, editor_id, now)
+            new_result.save()
+            new_result.update_from_race_results()
+        
+        default_old = {
+            "meet_points": 0, "arx_points": 0, "narx_points": 0,
+            "show_points": 0, "dpc_legs": 0, "meet_wins": 0,
+            "meet_appearences": 0, "dpc_points": 0, "high_combined_wins": 0
+        }
+        if cwa_numbers:
+            for cwa in cwa_numbers:
+                dog = Dog.find_by_identifier(cwa)
+                if dog:
+                    new_stats = _meet_stats(cwa)
+                    old = old_stats.get(cwa, default_old)
+                    _apply_meet_stats_delta(dog, old, new_stats, editor_id, now)
+
+        RaceResult.calculate_dpc_leg_for_meet(meet_number)
+        RaceResult.calculate_hc_leg_for_meet(meet_number)
+
+        return jsonify({"ok": True}), 200
+
+    except Error as e:
+        return handle_error(e, "Database error")
+

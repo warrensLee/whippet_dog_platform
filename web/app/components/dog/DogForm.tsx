@@ -74,6 +74,18 @@ type SelectFieldProps =
         placeholder?: string;
         className?: string;
     };
+    
+function FieldLabel({ label }: { label: string }) {
+    const required = label.endsWith(" *");
+    const cleanLabel = required ? label.slice(0, -2) : label;
+
+    return (
+        <>
+            {cleanLabel}
+            {required && <span className="text-red-600 font-bold"> *</span>}
+        </>
+    );
+}
 
 /*
     Reusable single-line input field.
@@ -96,7 +108,7 @@ function InputField
     return (
         <div className={className}>
             <label className="mb-2 block text-sm font-medium text-[#12301D]">
-                {label}
+                <FieldLabel label={label} />
             </label>
 
             <input
@@ -139,7 +151,7 @@ function TextAreaField
     return (
         <div className={className}>
             <label className="mb-2 block text-sm font-medium text-[#12301D]">
-                {label}
+                <FieldLabel label={label} />
             </label>
 
             <textarea
@@ -178,7 +190,7 @@ function SelectField
     return (
         <div className={className}>
             <label className="mb-2 block text-sm font-medium text-[#12301D]">
-                {label}
+                <FieldLabel label={label} />
             </label>
 
             <select
@@ -267,16 +279,17 @@ export default function DogForm
         > =
         [
             {
-                label: "Registered Name",
+
+                label: "Registered Name *",
                 field: "registeredName",
             },
             {
-                label: "Call Name",
+                label: "Call Name *",
                 field: "callName",
                 placeholder: "One name like Bob, Sally, etc.",
             },
             {
-                label: "Birthdate",
+                label: "Birthdate *",
                 field: "birthdate",
                 type: "date",
             },
@@ -302,12 +315,12 @@ export default function DogForm
                 type: "number",
             },
             {
-                label: "Arx Points",
+                label: "ARX Points",
                 field: "arxPoints",
                 type: "number",
             },
             {
-                label: "Narx Points",
+                label: "NARX Points",
                 field: "narxPoints",
                 type: "number",
             },
@@ -398,7 +411,7 @@ export default function DogForm
                     so it stays as its own field outside the mapped list.
                 */}
                 <InputField
-                    label="CWA Number"
+                    label="CWA Number *"
                     field="cwaNumber"
                     value={values.cwaNumber}
                     onChange={onChange}
@@ -428,7 +441,7 @@ export default function DogForm
 
                 {/* Grade dropdown */}
                 <SelectField
-                    label="Grade"
+                    label="Grade *"
                     field="currentGrade"
                     value={values.currentGrade}
                     onChange={onChange}
@@ -438,7 +451,7 @@ export default function DogForm
 
                 {/* Status dropdown */}
                 <SelectField
-                    label="Status"
+                    label="Status *"
                     field="status"
                     value={values.status}
                     onChange={onChange}
@@ -520,29 +533,6 @@ export default function DogForm
                     </div>
                 )
             }
-
-            {/* Action buttons */}
-            <div className="mt-8 flex flex-col sm:flex-row gap-3">
-                <button
-                    type="submit"
-                    disabled={saving}
-                    className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60"
-                >
-                    {
-                        saving
-                            ? "Saving..."
-                            : submitLabel
-                    }
-                </button>
-
-                <button
-                    type="button"
-                    onClick={onCancel}
-                    className="rounded-full border border-[#12301D]/15 bg-white px-6 py-3 font-semibold text-[#12301D] hover:bg-[#12301D]/5 transition"
-                >
-                    Cancel
-                </button>
-            </div>
         </form>
     );
 }

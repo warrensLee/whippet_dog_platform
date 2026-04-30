@@ -4,6 +4,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import EditTitleTypeDialog from './editTitleDialog';
 import TitleType from './types';
+import Link from "next/link";
 import {
   Table,
   TableBody,
@@ -104,7 +105,15 @@ export default function TitleTypesPage() {
   return (
     <AuthGuard permissions={["editAllTitleTypes"]}>
       <main className="pt-24 bg-[#1F4D2E]">
-        <HeroSection title="Edit Title Types" />
+        <HeroSection title="Edit Title Types" subtitle="Manage the title types available in the system." 
+        topContent={
+          <Link
+              href="/admin"
+              className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
+          >
+              Back to Admin Dashboard
+          </Link>
+          }/>
         <section
           className="bg-[#E7F0E9] pt-12 pb-24 flex-center"
           style={{

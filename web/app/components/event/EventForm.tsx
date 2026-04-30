@@ -79,7 +79,7 @@ function InputField({
     return (
         <div className={className}>
             <label className="mb-2 block text-sm font-medium text-[#12301D]">
-                {label}
+                <FieldLabel label={label} />
             </label>
 
             <input
@@ -95,6 +95,18 @@ function InputField({
                 }
             />
         </div>
+    );
+}
+
+function FieldLabel({ label }: { label: string }) {
+    const required = label.endsWith(" *");
+    const cleanLabel = required ? label.slice(0, -2) : label;
+
+    return (
+        <>
+            {cleanLabel}
+            {required && <span className="text-red-600 font-bold"> *</span>}
+        </>
     );
 }
 
@@ -118,21 +130,21 @@ export default function EventForm({
         type?: string;
     }> = [
             {
-                label: "Club Abbreviation",
+                label: "Club Abbreviation *",
                 field: "clubAbbreviation",
                 placeholder: "AAWC, BWA, CMANYWHIPS, DWC, WINE, SMART, etc.",
             },
             {
-                label: "Location",
+                label: "Location *",
                 field: "location",
             },
             {
-                label: "Meet Date",
+                label: "Meet Date *",
                 field: "meetDate",
                 type: "date",
             },
             {
-                label: "Yards",
+                label: "Yards *",
                 field: "yards",
                 type: "text",
             },
@@ -145,7 +157,7 @@ export default function EventForm({
         >
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                 <InputField
-                    label="Meet Number"
+                    label="Meet Number *"
                     field="meetNumber"
                     value={values.meetNumber}
                     onChange={onChange}
@@ -168,13 +180,13 @@ export default function EventForm({
 
             <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
                 <PersonSelectField
-                    label="Race Secretary"
+                    label="Race Secretary *"
                     value={values.raceSecretary}
                     onChange={(result) => onChange("raceSecretary", result)}
                     loading={personLoading}
                 />
                 <PersonSelectField
-                    label="Judge"
+                    label="Judge *"
                     value={values.judge}
                     onChange={(result) => onChange("judge", result)}
                     loading={personLoading}

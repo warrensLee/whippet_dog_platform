@@ -1,3 +1,4 @@
+import os
 from flask import Blueprint, jsonify
 from database import fetch_all
 from controller.authentication import auth_bp
@@ -24,7 +25,7 @@ main_bp = Blueprint("main", __name__)
 
 @api_bp.get("/turnstile")
 def turnstile():
-    return os.environ["CF_TURNSTILE_SITEKEY"], 200
+    return os.environ["CF_TURNSTILE_SITE_KEY"], 200
 
 @api_bp.get("/health")
 def health():

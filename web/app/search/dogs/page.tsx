@@ -236,7 +236,7 @@ function SearchPage() {
             */}
             <HeroSection
                 title="Search Dogs"
-                subtitle="Search by CWA number, registered name, owner, or title."
+                subtitle="Enter a CWA number, registered name, call name, owner name, or title."
             >
                 {/* 
                     Now for searching we will use the SearchBar component.
@@ -249,7 +249,7 @@ function SearchPage() {
                         action="/search/dogs"
                         query={q}
                         sort={sort}
-                        placeholder="Search by CWA number, AKC number, registered name, owner, or title."
+                        placeholder="Search by CWA number, AKC number, registered name, call name, owner name, or title."
                         roundedLeft={true}
                     />
                     {/* 
@@ -263,6 +263,14 @@ function SearchPage() {
                                     ? `Error: ${error}`
                                     : `${total} result(s) found`
                         }
+                    </div>
+                    <div className="mt-4 flex justify-center">
+                        <Link
+                            href="/standings"
+                            className="rounded-full bg-[#2E6B3F] px-5 py-2 text-sm font-semibold text-white hover:bg-[#255733] transition"
+                        >
+                            View Standings
+                        </Link>
                     </div>
                 </div>
             </HeroSection>

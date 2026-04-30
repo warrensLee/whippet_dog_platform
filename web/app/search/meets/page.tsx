@@ -200,6 +200,14 @@ function SearchPage() {
                                     : `${total} result(s) found`
                         }
                     </div>
+                    <div className="mt-4 flex justify-center">
+                        <Link
+                            href="/standings"
+                            className="rounded-full bg-[#2E6B3F] px-5 py-2 text-sm font-semibold text-white hover:bg-[#255733] transition"
+                        >
+                            View Standings
+                        </Link>
+                    </div>
                 </div>
             </HeroSection>
 
