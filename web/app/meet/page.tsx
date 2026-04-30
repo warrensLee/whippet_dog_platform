@@ -85,8 +85,8 @@ function normalizeEventDetail(e: Record<string, unknown>): EventDetail {
         meetNumber: getString("meetNumber"),
         meetDate: getString("meetDate"),
         clubAbbreviation: getString("clubAbbreviation"),
-        raceSecretary: getString("raceSecretary"),
-        judge: getString("judge"),
+        raceSecretary: getString("raceSecretary") || getString("raceSecretaryName") || getString("secretaryName") || getString("RaceSecretaryName"),
+        judge: getString("judge") || getString("judgeName") || getString("JudgeName"),
         location: getString("location"),
         yards: getStringOrNumber("yards"),
         completed: Boolean(e.completed ?? e.Completed),
@@ -248,7 +248,19 @@ function MeetPage() {
         };
     }, [meetNumber, encodedMeetNumber]);
 
-    const totalEntries = races.reduce((sum, race) => sum + (race.entryCount ?? 0), 0);
+    // Counters to be displayed above details section
+    // last minute request by Krista
+    const getType = (row: FinalMeetResult) => String(row.entryType ?? "").trim().toLowerCase();
+
+    const puppyDogCount = finalMeetResults.filter((row) => 
+    {
+        const type = getType(row);
+        return type === "puppy" || type === "p";
+    }).length;
+
+    const adultDogCount = finalMeetResults.length - puppyDogCount;
+
+    const totalEntries = adultDogCount + puppyDogCount;
 
     const heroTitle = loading
         ? "Loading Event..."
@@ -293,9 +305,9 @@ function MeetPage() {
             <section className="bg-[#E7F0E9] pt-10 pb-24">
                 <div className="mx-auto max-w-4xl space-y-6 px-6">
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                        <StatPill label="Programs" value={programGroups.length} accent />
-                        <StatPill label="Races" value={races.length} />
-                        <StatPill label="Entries" value={totalEntries} />
+                        <StatPill label="Adult Dogs" value={adultDogCount} accent />
+                        <StatPill label="Puppy Dogs" value={puppyDogCount} />
+                        <StatPill label="Total Dogs" value={totalEntries} />
                         <StatPill label="Yards" value={event?.yards ?? "—"} />
                         <StatPill label="Event Meets" value={`${event?.eventMeetCount ?? 0}/3`} />
                     </div>

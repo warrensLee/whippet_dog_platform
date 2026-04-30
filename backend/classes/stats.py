@@ -367,19 +367,19 @@ class Stats:
                 d.CallName as call_name,
                 d.RegisteredName as dog_name,
                 d.CWANumber as cwanumber,
-                o.PersonID as owner_id,
+                o.ID as owner_id,
                 CONCAT(o.FirstName, ' ', o.LastName) as owner_name,
                 COUNT(*) as value
             FROM winners w
             LEFT JOIN Dog d ON w.CWANumber = d.CWANumber
             LEFT JOIN DogOwner do ON d.CWANumber = do.CWAID
-            LEFT JOIN Person o ON do.PersonID = o.PersonID
+            LEFT JOIN Person o ON do.PersonID = o.ID
             GROUP BY
                 d.ID,
                 d.CallName,
                 d.RegisteredName,
                 d.CWANumber,
-                o.PersonID,
+                o.ID,
                 o.FirstName,
                 o.LastName
             HAVING COUNT(*) > 0
@@ -418,12 +418,12 @@ class Stats:
                 d.CallName as call_name,
                 d.RegisteredName as dog_name,
                 d.CWANumber as cwanumber,
-                o.PersonID as owner_id,
+                o.ID as owner_id,
                 CONCAT(o.FirstName, ' ', o.LastName) as owner_name,
                 COALESCE(SUM(mr.{stat_column}), 0) as value
             FROM Dog d
             LEFT JOIN DogOwner do ON d.CWANumber = do.CWAID
-            LEFT JOIN Person o ON do.PersonID = o.PersonID
+            LEFT JOIN Person o ON do.PersonID = o.ID
             LEFT JOIN MeetResults mr ON d.CWANumber = mr.CWANumber
             LEFT JOIN Meet m ON mr.MeetNumber = m.MeetNumber
             WHERE YEAR(m.MeetDate) = %s
@@ -432,7 +432,7 @@ class Stats:
                 d.CallName,
                 d.RegisteredName,
                 d.CWANumber,
-                o.PersonID,
+                o.ID,
                 o.FirstName,
                 o.LastName
             HAVING COALESCE(SUM(mr.{stat_column}), 0) > 0

@@ -494,6 +494,36 @@ class MeetResult:
     def list_final_results_for_meet(cls, meet_number):
         rows = fetch_all(
             """
+                WITH ranked_races AS (
+                    SELECT
+                        rr.*,
+                        ROW_NUMBER() OVER (
+                            PARTITION BY rr.CWANumber
+                            ORDER BY
+                                CASE
+                                    WHEN rr.Program REGEXP '^[0-9]+$'
+                                    THEN CAST(rr.Program AS UNSIGNED)
+                                    ELSE 0
+                                END DESC,
+                                CASE
+                                    WHEN rr.RaceNumber REGEXP '^[0-9]+$'
+                                    THEN CAST(rr.RaceNumber AS UNSIGNED)
+                                    ELSE 0
+                                END DESC
+                        ) AS last_race_rank
+                    FROM RaceResults rr
+                    WHERE rr.MeetNumber = %s
+                ),
+                last_race AS (
+                    SELECT
+                        CWANumber,
+                        Program AS LastProgram,
+                        RaceNumber AS LastRaceNumber,
+                        Placement AS LastRacePlacement,
+                        Incident AS LastIncident
+                    FROM ranked_races
+                    WHERE last_race_rank = 1
+                )
                 SELECT
                     mr.CWANumber,
                     mr.MeetPlacement,
@@ -533,7 +563,9 @@ class MeetResult:
                 LEFT JOIN Person p ON p.ID = do.PersonID
                 LEFT JOIN RaceResults rr
                     ON rr.CWANumber = mr.CWANumber
-                AND rr.MeetNumber = mr.MeetNumber
+                    AND rr.MeetNumber = mr.MeetNumber
+                LEFT JOIN last_race lr
+                    ON lr.CWANumber = mr.CWANumber
                 WHERE mr.MeetNumber = %s
                 GROUP BY
                     mr.CWANumber,
@@ -543,19 +575,41 @@ class MeetResult:
                     mr.ARXEarned,
                     mr.NARXEarned,
                     mr.HCScore,
+                    mr.MatchPoints,
                     mr.DPCPoints,
                     d.CallName,
-                    d.RegisteredName
+                    d.RegisteredName,
+                    lr.LastProgram,
+                    lr.LastRaceNumber,
+                    lr.LastRacePlacement,
+                    lr.LastIncident
                 ORDER BY
                     CASE
-                        WHEN UPPER(COALESCE(MAX(rr.EntryType), '')) = 'PUPPY' THEN 1
+                        WHEN LOWER(TRIM(COALESCE(MAX(rr.EntryType), ''))) IN ('p', 'puppy') THEN 1
                         ELSE 0
                     END,
-                    (mr.MeetPlacement IS NULL OR mr.MeetPlacement = '') ASC,
-                    LENGTH(mr.MeetPlacement) ASC,
-                    mr.MeetPlacement ASC,
+                    mr.MeetPoints DESC,
+                    CASE
+                        WHEN lr.LastProgram REGEXP '^[0-9]+$'
+                        THEN CAST(lr.LastProgram AS UNSIGNED)
+                        ELSE 0
+                    END DESC,
+                    CASE
+                        WHEN lr.LastRaceNumber REGEXP '^[0-9]+$'
+                        THEN CAST(lr.LastRaceNumber AS UNSIGNED)
+                        ELSE 0
+                    END DESC,
+                    CASE
+                        WHEN lr.LastRacePlacement REGEXP '^[0-9]+$'
+                        THEN CAST(lr.LastRacePlacement AS UNSIGNED)
+                        ELSE 999
+                    END ASC,
+                    CASE
+                        WHEN COALESCE(lr.LastIncident, '') = '' THEN 0
+                        ELSE 1
+                    END ASC,
                     d.CallName ASC
             """,
-            (meet_number,),
+            (meet_number, meet_number),
         )
         return rows
