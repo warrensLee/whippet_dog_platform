@@ -114,21 +114,22 @@ class Dog:
     
     def check_titles(self):
         titles = []
-        titles.extend(self.check_arx_titles())
-        titles.extend(self.check_trp_titles())
-        titles.extend(self.check_pr_titles())
-        titles.extend(self.check_narx_titles())
+        if(not self.is_puppy()):
+            titles.extend(self.check_arx_titles())
+            titles.extend(self.check_trp_titles())
+            titles.extend(self.check_pr_titles())
+            titles.extend(self.check_narx_titles())
+            titles.extend(self.check_hc_titles())
         titles.extend(self.check_dpc_titles())
-        titles.extend(self.check_hc_titles())
         return titles
 
     def check_trp_titles(self):
-        if self.meet_appearences >= 10:
+        if self.meet_appearences >= 10 and not self.is_puppy():
             return ["TRP"]
         return []
     
     def check_arx_titles(self):
-        if self.scored_arx_points() >= 15:
+        if self.scored_arx_points() >= 15 and not self.is_puppy():
             return ["ARX"]
         return []
 
@@ -136,40 +137,42 @@ class Dog:
         '''Check if dog is eligible for Performance Racer (PR) titles.'''
         titles = []
         meet_points = self.scored_meet_points()
-        if meet_points >= 50:
-            titles.append("PR")
-        if meet_points >= 150:
-            titles.append("PR2")
-        if meet_points >= 250:
-            titles.append("PR3")
-        if meet_points >= 350:
-            titles.append("PR4")
-        if meet_points >= 450:
-            titles.append("PRX")
+        if not self.is_puppy():
+            if meet_points >= 50:
+                titles.append("PR")
+            if meet_points >= 150:
+                titles.append("PR2")
+            if meet_points >= 250:
+                titles.append("PR3")
+            if meet_points >= 350:
+                titles.append("PR4")
+            if meet_points >= 450:
+                titles.append("PRX")
         return titles
 
     def check_narx_titles(self):
         '''Check if dog is eligible for National Racing Excellence (NRX)
         and Superior Racing Award (SRA) titles.'''
         titles = []
-        narx_points = self.scored_narx_points()
-        if narx_points >= 15:
-            titles.append("NARX")
-        if narx_points >= 30:
-            titles.append("NARX2")
-        if narx_points >= 45:
-            titles.append("NARX3")
-        if narx_points >= 60:
-            titles.append("NARX4")
-        if narx_points >= 75:
-            titles.append("SRA")
-        if narx_points >= 150:
-            titles.append("SRA2")
-        if narx_points >= 225:
-            titles.append("SRA3")
-        if narx_points >= 300:
-            titles.append("SRA4")
-        return titles
+        if not self.is_puppy():
+            narx_points = self.scored_narx_points()
+            if narx_points >= 15:
+                titles.append("NARX")
+            if narx_points >= 30:
+                titles.append("NARX2")
+            if narx_points >= 45:
+                titles.append("NARX3")
+            if narx_points >= 60:
+                titles.append("NARX4")
+            if narx_points >= 75:
+                titles.append("SRA")
+            if narx_points >= 150:
+                titles.append("SRA2")
+            if narx_points >= 225:
+                titles.append("SRA3")
+            if narx_points >= 300:
+                titles.append("SRA4")
+            return titles
     
     def check_dpc_titles(self):
         '''Check if dog is eligible for Dual Purpose Championship (DPC) titles.'''
@@ -200,19 +203,18 @@ class Dog:
     def check_hc_titles(self):
         '''Check if dog is eligible for High Combined (HC) titles.'''
         titles = []
-        if not self.is_adult():
-            return titles
 
-        if self.high_combined_wins >= 5:
-            titles.append("HC")
-        if self.high_combined_wins >= 10:
-            titles.append("HCX")
-        if self.high_combined_wins >= 15:
-            titles.append("HCX2")
-        if self.high_combined_wins >= 20:
-            titles.append("HCX3")
-        if self.high_combined_wins >= 25:
-            titles.append("HCX4")
+        if not self.is_puppy():
+            if self.high_combined_wins >= 5:
+                titles.append("HC")
+            if self.high_combined_wins >= 10:
+                titles.append("HCX")
+            if self.high_combined_wins >= 15:
+                titles.append("HCX2")
+            if self.high_combined_wins >= 20:
+                titles.append("HCX3")
+            if self.high_combined_wins >= 25:
+                titles.append("HCX4")
         return titles
     
     def is_dpc(self):
