@@ -29,3 +29,9 @@ def export_db_to_csv(db_path, query, csv_path):
     finally:
         if 'conn' in locals():
             conn.close()
+
+def get_current_grading_guide_CSV():
+    db_path = "database.sql"
+    query = "SELECT Dog.CWANumber, Dog.CallName, Dog.RegisteredName, Dog.CurrentGrade, Dog.Average, Dog.DPCPoints, Dog.HighCombinedWins, Dog.ARXPoints, Dog.NARXPoints FROM Dog"
+    csv_path = "grading_guide.csv"
+    export_db_to_csv(db_path, query, csv_path)
