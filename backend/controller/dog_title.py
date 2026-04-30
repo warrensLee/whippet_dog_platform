@@ -118,7 +118,7 @@ def edit_dog_title():
     if not fetch_one("SELECT 1 FROM TitleType WHERE Title = %s LIMIT 1", (title,)):
         return jsonify({"ok": False, "error": "Title type does not exist"}), 404
 
-    existing = DogTitle.find_by_identifier(cwa_number)
+    existing = DogTitle.find_by_identifier(cwa_number, title)
     if not existing:
         return jsonify({"ok": False, "error": "Dog title does not exist"}), 404
 
@@ -136,7 +136,7 @@ def edit_dog_title():
 
     try:
         dog_title.update()
-        refreshed = DogTitle.find_by_identifier(cwa_number)
+        refreshed = DogTitle.find_by_identifier(cwa_number, title)
         after_snapshot = refreshed.to_dict() if refreshed else dog_title.to_dict()
 
         ChangeLog.log(
@@ -185,7 +185,7 @@ def delete_dog_title():
             }), 403
 
     try:
-        dog_title = DogTitle.find_by_identifier(cwa_number)
+        dog_title = DogTitle.find_by_identifier(cwa_number, title)
         if not dog_title:
             return jsonify({"ok": False, "error": "Dog title does not exist"}), 404
 

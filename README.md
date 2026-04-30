@@ -172,12 +172,16 @@ Then update each file:
 
 ### Start the full stack
 
+```bash
 docker compose up --build
+```
 
 This runs the default (production-style) setup.  
 For development, use:
 
+```bash
 docker compose -f docker-compose-dev.yml up --build
+```
 
 This starts five services:
 - db — MySQL 8.0 on internal port 3306
@@ -203,17 +207,23 @@ MySQL (host) | 127.0.0.1:3306
 
 ### Stop the stack
 
+```bash
 docker compose down 
+```
 
 To also remove volumes (wipes the database):
 
+```bash
 docker compose down -v
+```
 
 ---
 
 ### Rebuild a single service
 
+```bash
 docker compose up --build backend
+```
 
 ## API Reference
 

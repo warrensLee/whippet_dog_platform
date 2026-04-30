@@ -53,16 +53,15 @@ class DogTitle:
         )
 
     @classmethod
-    def find_by_identifier(cls, cwa_number):
-        """Find a person by cwa_number and title."""
+    def find_by_identifier(cls, cwa_number, title):
         row = fetch_one(
             """
             SELECT CWANumber, Title, TitleNumber, TitleDate, NamePrefix, NameSuffix, LastEditedBy, LastEditedAt
             FROM DogTitles
-            WHERE CWANumber = %s
+            WHERE CWANumber = %s AND Title = %s
             LIMIT 1
             """,
-            (cwa_number,),
+            (cwa_number, title),
         )
         return cls.from_db_row(row)
 
@@ -316,15 +315,13 @@ class DogTitle:
         }
 
     def to_dict(self):
-        """Convert to dictionary for JSON responses."""
-        data = {
+        return {
             "cwaNumber": self.cwa_number,
             "title": self.title,
             "titleNumber": self.title_number,
-            "titleDate": self.title_date,
+            "titleDate": self.title_date.isoformat() if hasattr(self.title_date, 'isoformat') else self.title_date,
             "namePrefix": self.name_prefix,
             "nameSuffix": self.name_suffix,
             "lastEditedBy": self.last_edited_by,
-            "lastEditedAt": self.last_edited_at.isoformat() if self.last_edited_at else None
+            "lastEditedAt": self.last_edited_at.isoformat() if hasattr(self.last_edited_at, 'isoformat') else self.last_edited_at
         }
-        return data
