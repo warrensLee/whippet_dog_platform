@@ -339,6 +339,7 @@ def calculate_meet_rankings(meet_number):
 
     except Error as e:
         return handle_error(e, "Database error")
+    return jsonify({"ok": True, "data": entries}), 200
 
 @meet_bp.get("/<meet_number>/dogs.csv")
 def download_dogs_csv(meet_number):
