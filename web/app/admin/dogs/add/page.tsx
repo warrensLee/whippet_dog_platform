@@ -237,6 +237,27 @@ export default function AddDogPage() {
                             setForm={setForm}
                             isEditMode={false}
                         />
+                        
+                        {/* Action buttons */}
+                        <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-end">
+                            <button
+                                type="submit"
+                                form="dog-form"
+                                disabled={saving}
+                                className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60"
+                            >
+                                {saving ? "Creating..." : "Create Dog"}
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => router.push("/admin/dogs")}
+                                disabled={saving}
+                                className="rounded-full border border-[#12301D]/15 bg-white px-6 py-3 font-semibold text-[#12301D] hover:bg-[#12301D]/5 transition disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                        </div>
                     </div>
                 </section>
 

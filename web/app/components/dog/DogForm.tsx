@@ -397,10 +397,11 @@ export default function DogForm
         ];
 
     return (
-        <form
-            onSubmit={onSubmit}
-            className="rounded-3xl border border-black/10 bg-white/90 backdrop-blur p-6 md:p-8 shadow-sm"
-        >
+            <form
+                id="dog-form"
+                onSubmit={onSubmit}
+                className="rounded-3xl border border-black/10 bg-white/90 backdrop-blur p-6 md:p-8 shadow-sm"
+            >
             {/* 
                 Main grid for the form.
                 One column on smaller screens, two columns on medium+.

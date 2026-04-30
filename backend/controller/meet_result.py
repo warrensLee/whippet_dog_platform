@@ -335,10 +335,12 @@ def list_final_meet_results_for_meet(meet_number):
     try:
         rows = MeetResult.list_final_results_for_meet(meet_number)
 
-        data = [
-            {
+        data = []
+
+        for index, row in enumerate(rows, 1):
+            data.append({
                 "cwaNumber": row.get("CWANumber"),
-                "place": row.get("MeetPlacement"),
+                "place": index,
                 "grade": row.get("Grade"),
                 "callName": row.get("CallName"),
                 "registeredName": row.get("RegisteredName"),
@@ -352,9 +354,7 @@ def list_final_meet_results_for_meet(meet_number):
                 "matchPoints": row.get("MatchPoints"),
                 "dpcPoints": row.get("DPCPoints"),
                 "entryType": row.get("EntryType"),
-            }
-            for row in rows
-        ]
+            })
 
         return jsonify({"ok": True, "data": data}), 200
     except Error as e:
