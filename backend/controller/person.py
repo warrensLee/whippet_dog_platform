@@ -130,6 +130,7 @@ def edit_person():
     person.id = existing.id
     person.person_id = existing.person_id
     person.password_hash = existing.password_hash
+    person.system_role = data.get("systemRole") or existing.system_role
     person.last_edited_by = current_editor_id()
     person.last_edited_at = datetime.now(timezone.utc)
 

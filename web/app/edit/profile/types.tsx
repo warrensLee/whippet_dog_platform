@@ -1,5 +1,6 @@
 // backend/classes/person.ts
 export class Person {
+    id?: number;
     personId: number;
     firstName: string;
     lastName: string;
@@ -12,6 +13,7 @@ export class Person {
     primaryPhone: string;
     secondaryPhone: string;
     constructor(object: Partial<Person>) {
+        this.id = object.id;
         this.personId = object.personId!;
         this.firstName = object.firstName || "";
         this.lastName = object.lastName || "";
