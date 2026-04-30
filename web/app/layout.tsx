@@ -37,23 +37,23 @@ export default function RootLayout({
           </main>
 
           {/* Footer */}
-          <footer className="bg-[#DCE7DF] pt-4 pb-2">
-            <hr className="h-px bg-black/25 border-0 mb-4" />
-            <p className="text-[#12301D] text-sm text-center leading-relaxed">
-              <span className="block">
-                Questions? Email{" "}
-                <a
-                  href="mailto:cwawhippetracing@gmail.com"
-                  className="underline hover:text-[#2E6B3F] transition"
-                >
-                  cwawhippetracing@gmail.com
-                </a>
-              </span>
+          <footer className="bg-[#DCE7DF] pb-3">
+            <div className="h-[1px] bg-black w-full" />
+              <p className="text-[#12301D] text-sm text-center leading-relaxed mt-3">
+                <span className="block">
+                  Questions? Email{" "}
+                  <a
+                    href="mailto:cwawhippetracing@gmail.com"
+                    className="underline hover:text-[#2E6B3F] transition"
+                  >
+                    cwawhippetracing@gmail.com
+                  </a>
+                </span>
 
-              <span className="block mt-1">
-                © 2026 Continental Whippet Alliance. All rights reserved.
-              </span>
-            </p>
+                <span className="block mt-1">
+                  © 2026 Continental Whippet Alliance. All rights reserved.
+                </span>
+              </p>
           </footer>
         </body>
       </html>

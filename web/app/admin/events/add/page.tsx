@@ -17,18 +17,17 @@ import AuthGuard from "@/lib/auth/authGuard";
     This keeps trimming and formatting logic in one place instead of
     stuffing it all directly into the submit handler.
 */
-function buildCreatePayload(form: EventFormValues): EventFormValues {
+function buildCreatePayload(form: EventFormValues): Record<string, unknown> {
     return {
         meetNumber: form.meetNumber.trim(),
         clubAbbreviation: form.clubAbbreviation.trim(),
         meetDate: form.meetDate,
-        raceSecretary: form.raceSecretary.trim(),
-        judge: form.judge.trim(),
+        raceSecretary: form.raceSecretary?.personId || "",
+        judge: form.judge?.personId || "",
         location: form.location.trim(),
         yards: form.yards.trim(),
         publicNotes: form.publicNotes.trim(),
         privateNotes: form.privateNotes.trim(),
-
     };
 }
 
@@ -126,7 +125,7 @@ export default function AddEventPage() {
 
             setSuccess("Event created successfully.");
 
-            router.push(`/admin/events/edit?meetNumber=${encodeURIComponent(payload.meetNumber)}`);
+            router.push(`/admin/events/edit?meetNumber=${encodeURIComponent(payload.meetNumber as string)}`);
         }
         catch (e) {
             setError(
@@ -173,6 +172,10 @@ export default function AddEventPage() {
                                     New Event Information
                                 </h2>
                                 <div className="mt-1 h-1 w-14 rounded-full bg-[#2E6B3F]/70" />
+
+                                <p className="mt-2 text-sm font-medium text-[#12301D]/70">
+                                    <span className="font-bold text-red-600">*</span> Required field
+                                </p>
                             </div>
 
                             <div className="flex flex-wrap gap-3">
@@ -200,7 +203,8 @@ export default function AddEventPage() {
                             values={form}
                             onChange={updateField}
                             onSubmit={handleSubmit}
-                            saving={saving || authLoading}
+                            saving={saving}
+                            personLoading={authLoading}
                             submitLabel="Create Event"
                             error={error}
                             success={success}
@@ -210,7 +214,7 @@ export default function AddEventPage() {
                                 }
                             }
                             isEditMode={false}
-                            canEditPrivateNotes={isAdmin} 
+                            canEditPrivateNotes={isAdmin}
                         />
                     </div>
                 </section>

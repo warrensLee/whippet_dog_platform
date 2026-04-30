@@ -548,6 +548,14 @@ export default function AdminUsersPage() {
         <HeroSection
           title="User Admin"
           subtitle="Search, review, and edit user accounts"
+          topContent={
+            <Link
+                href="/admin"
+                className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
+            >
+                Back to Admin Dashboard
+            </Link>
+          }
         />
 
         <section

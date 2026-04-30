@@ -117,7 +117,10 @@ export default function Admin() {
           <AuthGuard permissions={["editOwnMeet"]} redirect={false}>
             <Paper sx={panelStyle}>
               <Typography variant="h4">{meetCount} Events</Typography>
-              <Link href="/admin/events" className="block rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Manage Events</Link>
+              <div className="flex flex-column">
+                <Link href="/admin/events" className="block rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Manage Events</Link>
+                <Link href="/standings" className="block rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">View Standings</Link>
+              </div>
             </Paper>
           </AuthGuard>
           <AdminGuard redirect={false}>

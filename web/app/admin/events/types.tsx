@@ -2,6 +2,9 @@
 // What will be a result from a search? What does a user search for?
 // This will be where we define parameters that will be used in searching and filtering!
 
+import { PersonSearchResult } from "@/app/components/ui/PersonField";
+
+
 export type EventSearchRequest = {
     q?: string;
     page?: number;
@@ -12,10 +15,14 @@ export type EventSearchResult = {
     meetNumber: string;
     clubAbbreviation: string;
     meetDate: string;
-    raceSecretary: string;
-    judge: string;
+    raceSecretary?: string;
+    raceSecretaryName?: string;
+    judge?: string;
+    judgeName?: string;
     location: string;
     yards: string;
+    completed?: boolean;
+    eventMeetCount?: number;
     publicNotes?: string;
     privateNotes?: string;
 };
@@ -24,10 +31,12 @@ export type EventFormValues = {
     meetNumber: string;
     clubAbbreviation: string;
     meetDate: string;
-    raceSecretary: string;
-    judge: string;
+    raceSecretary: PersonSearchResult | null | undefined;
+    judge: PersonSearchResult | null | undefined;
     location: string;
     yards: string;
+    completed?: boolean;
+    eventMeetCount?: number;
     publicNotes: string;
     privateNotes: string;
 };
@@ -36,10 +45,14 @@ export type EventListItem = {
     meetNumber: string;
     clubAbbreviation: string;
     meetDate: string;
-    raceSecretary?: string;
-    judge?: string;
+    raceSecretaryId?: string;
+    raceSecretaryName?: string;
+    judgeId?: string;
+    judgeName?: string;
     location: string;
     yards: string;
+    completed?: boolean;
+    eventMeetCount?: number;
     publicNotes?: string;
     privateNotes?: string;
 };
@@ -53,8 +66,8 @@ export const emptyEventFormValues: EventFormValues = {
     meetNumber: "",
     clubAbbreviation: "",
     meetDate: "",
-    raceSecretary: "",
-    judge: "",
+    raceSecretary: null,
+    judge: null,
     location: "",
     yards: "",
     publicNotes: "",
@@ -66,10 +79,14 @@ export type MeetSearchResult = {
     meetNumber: string;
     clubAbbreviation: string;
     meetDate: string;
-    raceSecretary: string;
-    judge: string;
+    raceSecretaryId?: string;
+    raceSecretaryName?: string;
+    judgeId?: string;
+    judgeName?: string;
     location: string;
     yards: string;
+    completed?: boolean;
+    eventMeetCount?: number;
     publicNotes: string;
 };
 

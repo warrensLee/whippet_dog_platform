@@ -130,6 +130,7 @@ def edit_person():
     person.id = existing.id
     person.person_id = existing.person_id
     person.password_hash = existing.password_hash
+    person.system_role = data.get("systemRole") or existing.system_role
     person.last_edited_by = current_editor_id()
     person.last_edited_at = datetime.now(timezone.utc)
 
@@ -315,9 +316,9 @@ def get_person(person_id: str):
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    if role.title != "ADMIN":
-        return jsonify({"ok": False, "error": "Not authorized to view people"}), 403
-
+    #if role.title != "ADMIN":
+    #    return jsonify({"ok": False, "error": "Not authorized to view people"}), 403
+    #TODO: check for correct permissions
     person = Person.find_by_identifier(person_id)
     if not person:
         return jsonify({"ok": False, "error": "Person does not exist"}), 404

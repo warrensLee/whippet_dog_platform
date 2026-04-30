@@ -1,0 +1,84 @@
+= Deployment Instructions
+
+== Resources
+This site requires the following
+
+* a domain or subdomain with Full access to the Domain Hosting Panel
+* A server with at least 2GB of ram
+* Cloudflare Account
+* A Resend Account
+* A linux build and setup PC
+
+This guide assumes the Free tier of both Resend and Cloudflare. The server is assumed to be debian but this can be deployed to other distros or OS's with modification of this guide.
+
+This software uses cloudflare tunnel, cloudflare tunnel on the free tier requires that your domain be using cloudflare through the full setup. instructions are given for this bellow
+
+NOTE: Transfering the DNS records may take up to 48 hours
+
+
+== Domain 
+To use Cloudflare tunnel we need to change your domain's DNS to cloudflare.
+
+1. Go to Cloudflare's domain page and click "Add Domain" 
+2. Select the free plan, disable proxying for all records, and continue with activation
+3. Then go to your original domain registrar and configure the DNS servers to be the DNS servers set by cloudflare
+
+
+
+== Container Building
+NOTE: Images can not be build on a server with 2GB of RAM, This guide assumes you will be building them on another computer and transfering them over
+
+1. In the project directory run `docker compose build` to build the production docker containers
+2. Run the command `docker image save whippetbackend:latest whippetdb:latest whippetfrontend:latest -o CWAImages.tar` this will export the custom container images into a tar file
+3. Copy the images over using the following command `scp CWAImages.tar example-.env.* docker-compose.yml [username]@[server ip]:~` this will copy those files to that users home directory
+
+
+
+
+
+== Server Setup
+1. Log in to your server as root
+2. Install the neccesary software by running  `apt install docker docker-compose vim`, vim is optional but highly recomened
+3. Copy all of the files moved over in the last section to a new folder for running the app
+4. Run `docker image load -i CWAImages.tar` to import the image, you can now delete the CWAImages.tar
+5. Copy all of the example-.env.X files to .env.X and modify their variables as described in the comments, for Cloudflare and Resend, review to the below sections
+
+WARNING: The content of the .env files is very sensitive and should be kept secret.
+
+== Resend Setup
+Resend is used as the email provider for registration and password reset emails
+
+1. Create an account at resend.
+2. Click the domains button and enter your domain name
+3. Enter the domain records provided by resend into the domain
+4. Copy the API key and other details into the .env.backend file
+
+== Turnstile setup
+This website uses Cloudflare Turnstile to prevent botting, These instructions will allow you to setup turnstile and get the neccesary token and site key
+
+1. Go to the turnstile section in Cloudflare
+2. Add a new widget, set the hosts to the domain you are using for the site, and leave the type as "Managed"
+3. Copy the turnstile site keys and secret keys into there respective places in the .env.backend file
+
+== Cloudflare tunnel setup
+This website uses Cloudflare Tunnel to secure and provide access without revealing the origin server
+
+1. Go to the Tunnel section in cloudflare and create a new tunnel
+2. Give the tunnel a name
+3. Copy the given tunnel command to a plain text editor like notepad and extract the tunnel token
+4. Place the tunnel token in .env.cloudflared
+5. Add in ingress route for the site domain that routes to "frontend:80"
+
+
+== Running the site
+
+To start the site after all setup is complete run `docker compose up -d` in the server's app directory. The site should now be running
+
+
+
+
+
+
+
+
+

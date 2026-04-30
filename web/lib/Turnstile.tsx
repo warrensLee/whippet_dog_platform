@@ -1,5 +1,5 @@
 import Script from "next/script";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 declare global {
     interface Turnstile {
@@ -13,10 +13,25 @@ declare global {
 }
 
 export default function Turnstile({ onSuccess }: { onSuccess: (token: string) => void }) {
+    const [sitekey, setSitekey] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchSitekey = async () => {
+            try {
+                const res = await fetch("/api/turnstile");
+                const text = await res.text();
+                setSitekey(text);
+            } catch (err) {
+                console.error("Failed to fetch Turnstile sitekey", err);
+            }
+        };
+        fetchSitekey();
+    }, []);
+
     useEffect(() => {
         window.handleTurnstileSuccess = (token: string) => {
             if (onSuccess) {
-                onSuccess(token); // call your React callback
+                onSuccess(token);
             }
         };
 
@@ -24,6 +39,12 @@ export default function Turnstile({ onSuccess }: { onSuccess: (token: string) =>
             delete window.handleTurnstileSuccess;
         };
     }, [onSuccess]);
+
+
+    if (!sitekey) {
+        return null;
+    }
+
     return (
         <div>
             <Script
@@ -31,7 +52,7 @@ export default function Turnstile({ onSuccess }: { onSuccess: (token: string) =>
                 async
                 defer
             ></Script>
-            <div className="cf-turnstile" data-sitekey={"1x00000000000000000000AA"} data-theme="light"
+            <div className="cf-turnstile" data-theme="light" data-sitekey={sitekey}
                 data-size="normal"
                 data-callback="handleTurnstileSuccess"></div>
         </div>

@@ -11,7 +11,8 @@ EXPOSE 8000
 ENV FLASK_APP=app.py
 ENV FLASK_RUN_HOST=0.0.0.0
 
-RUN useradd backend --system &&  chown -R backend:backend /app
+RUN useradd backend --system --create-home && \
+    chown -R backend:backend /app /home/backend
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
   curl \

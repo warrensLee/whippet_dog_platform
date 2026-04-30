@@ -60,7 +60,7 @@ export const TITLE_FAMILIES: TitleFamily[] = [
     family: "PR",
     description: "Performance Racer — earn race points by completing meets",
     unit: "meet pts",
-    getValue: (dog: DogDetail) => dog.meetPoints ?? 0,
+    getValue: (dog: DogDetail) => dog.adjustedMeetPoints ?? dog.meetPoints ?? 0,
     tiers: [
       { name: "PR", threshold: 50, color: "yellow" },
       { name: "PR2", threshold: 150, color: "blue" },
@@ -73,14 +73,14 @@ export const TITLE_FAMILIES: TitleFamily[] = [
     family: "ARX",
     description: "Award of Racing Excellence — place in top 50% of adult finishers",
     unit: "ARX pts",
-    getValue: (dog: DogDetail) => dog.arxPoints ?? 0,
+    getValue: (dog: DogDetail) => dog.adjustedArxPoints ?? dog.arxPoints ?? 0,
     tiers: [{ name: "ARX", threshold: 15, color: "green" }],
   },
   {
     family: "NARX/SRA",
     description: "National Racing Excellence — earned through NARX points",
     unit: "NARX pts",
-    getValue: (dog: DogDetail) => dog.narxPoints ?? 0,
+    getValue: (dog: DogDetail) => dog.adjustedNarxPoints ?? dog.narxPoints ?? 0,
     tiers: [
       { name: "NARX", threshold: 15, color: "yellow" },
       { name: "NARX2", threshold: 30, color: "blue" },

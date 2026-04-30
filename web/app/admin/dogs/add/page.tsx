@@ -36,7 +36,13 @@ function buildCreatePayload(form: DogFormValues): DogFormValues {
         arxPoints: form.arxPoints.trim(),
         narxPoints: form.narxPoints.trim(),
         showPoints: form.showPoints.trim(),
+        dpcPoints: form.dpcPoints.trim(),
         dpcLegs: form.dpcLegs.trim(),
+        manualMeetPointsAdjustment: form.manualMeetPointsAdjustment.trim(),
+        manualArxPointsAdjustment: form.manualArxPointsAdjustment.trim(),
+        manualNarxPointsAdjustment: form.manualNarxPointsAdjustment.trim(),
+        manualShowPointsAdjustment: form.manualShowPointsAdjustment.trim(),
+        manualDpcPointsAdjustment: form.manualDpcPointsAdjustment.trim(),
         meetWins: form.meetWins.trim(),
         meetAppearences: form.meetAppearences.trim(),
         highCombinedWins: form.highCombinedWins.trim(),
@@ -187,6 +193,10 @@ export default function AddDogPage() {
                                     New Dog Information
                                 </h2>
                                 <div className="mt-1 h-1 w-14 rounded-full bg-[#2E6B3F]/70" />
+
+                                <p className="mt-2 text-sm font-medium text-[#12301D]/70">
+                                    <span className="font-bold text-red-600">*</span> Required field
+                                </p>
                             </div>
 
                             <div className="flex flex-wrap gap-3">

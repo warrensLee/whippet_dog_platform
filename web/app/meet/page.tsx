@@ -11,7 +11,6 @@ import { fetchJson } from "../../lib/ui/fetchJson";
 import { formatDate } from "../../lib/ui/formatDate";
 import RaceLineup from "../components/event/RaceLineup";
 import FinalMeetResults from "../components/event/FinalMeetResults";
-import MeetSpecialWinners from "../components/event/MeetSpecialWinners";
 import authContext from "@/lib/auth/auth";
 import Loading from "@/lib/loading";
 import RichTextViewer from "@/lib/richtext/RichTextViewer";
@@ -29,6 +28,8 @@ interface EventDetail {
     judge?: string;
     location?: string;
     yards?: string | number;
+    completed?: boolean;
+    eventMeetCount?: number;
     requestFormLink?: string;
     resultsLink?: string;
     publicNotes?: string;
@@ -59,6 +60,7 @@ interface FinalMeetResult {
     hcScore?: number | string | null;
     dpcPoints?: number | string | null;
     entryType?: string | null;
+    matchPoints?: string;
 }
 
 function normalizeEventDetail(e: Record<string, unknown>): EventDetail {
@@ -87,6 +89,8 @@ function normalizeEventDetail(e: Record<string, unknown>): EventDetail {
         judge: getString("judge"),
         location: getString("location"),
         yards: getStringOrNumber("yards"),
+        completed: Boolean(e.completed ?? e.Completed),
+        eventMeetCount: Number(e.eventMeetCount ?? e.EventMeetCount ?? 0),
         requestFormLink: getString("requestFormLink"),
         resultsLink: getString("resultsLink"),
         publicNotes: getString("publicNotes"),
@@ -293,6 +297,7 @@ function MeetPage() {
                         <StatPill label="Races" value={races.length} />
                         <StatPill label="Entries" value={totalEntries} />
                         <StatPill label="Yards" value={event?.yards ?? "—"} />
+                        <StatPill label="Event Meets" value={`${event?.eventMeetCount ?? 0}/3`} />
                     </div>
 
                     <Card title="Details">
@@ -307,6 +312,8 @@ function MeetPage() {
                                 <FieldRow label="Judge" value={event.judge} />
                                 <FieldRow label="Location" value={event.location} />
                                 <FieldRow label="Yards" value={event.yards ?? "—"} />
+                                <FieldRow label="Status" value={event.completed ? "Completed" : "In Progress"} />
+                                <FieldRow label="Meets in Event" value={`${event.eventMeetCount ?? 0} / 3`} />
 
                                 {event.requestFormLink ? (
                                     <div className="pt-3">
@@ -375,19 +382,10 @@ function MeetPage() {
                             NARX: row.narxEarned,
                             Incident: row.incident,
                             EntryType: row.entryType,
+                            HCScore: row.hcScore,
+                            MatchPoints: row.matchPoints,
+                            DPCPoints: row.dpcPoints
                         }))}
-                    />
-
-                    <MeetSpecialWinners
-                        results={finalMeetResults
-                            .filter((row) => String(row.entryType ?? "").trim().toUpperCase() !== "PUPPY")
-                            .map((row) => ({
-                                cwaNumber: row.cwaNumber,
-                                callName: row.callName,
-                                registeredName: row.registeredName,
-                                hcScore: row.hcScore,
-                                dpcPoints: row.dpcPoints,
-                            }))}
                     />
 
                     <Card title="Programs & Races">

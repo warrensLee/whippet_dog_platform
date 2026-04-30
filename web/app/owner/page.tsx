@@ -11,11 +11,13 @@ import authContext from "@/lib/auth/auth";
 import RichTextEditor from "@/lib/richtext/RichTextEditor";
 class ownedDog {
     name: string
+    registeredName?: string
     id: number
     grade: string
     titles: Array<string>
-    constructor(name: string, id: number, grade: string, titles: Array<string>) {
+    constructor(name: string, registeredName: string | undefined, id: number, grade: string, titles: Array<string>) {
         this.name = name;
+        this.registeredName = registeredName;
         this.id = id;
         this.grade = grade;
         this.titles = titles;
@@ -24,24 +26,70 @@ class ownedDog {
 
 function DogCard({ dog }: { dog: ownedDog }) {
     return (
-
         <Paper
             sx={{
                 display: 'flex',
-                alignItems: 'center',
-                p: 2,
+                flexDirection: 'column',
+                p: 3,
                 m: 2,
-                justifyContent: "space-between",
-                flexWrap: 'wrap',
-            }}>
-            <Box sx={{ display: "flex", alignItems: "center" }}>
-                <Typography variant="h4" noWrap sx={{ display: "inline", verticalAlign: "center", marginRight: "20px" }}>{dog.name} </Typography>
-                <Typography noWrap variant="h6" sx={{ display: "inline", verticalAlign: "center", marginRight: "20px" }}> Grade: {dog.grade} </Typography>
-                <div style={{ display: "inline" }}>
-                    {dog.titles.map((title: string) => <Chip sx={{ m: 1, p: 1 }} key={title} label={title} />)}
-                </div>
+                borderRadius: 3,
+                boxShadow: 3,
+            }}
+        >
+            {/* TOP ROW */}
+            <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 2 }}>
+                <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                    {dog.name}
+                </Typography>
+
+                <Typography variant="h6" sx={{ color: "#555" }}>
+                    Grade: <span style={{ fontWeight: 600 }}>{dog.grade}</span>
+                </Typography>
+
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                    {dog.titles.map((title: string) => (
+                        <Chip
+                            key={title}
+                            label={title}
+                            sx={{
+                                backgroundColor: "#2E6B3F",
+                                color: "white",
+                                fontWeight: 600,
+                                fontSize: "0.9rem",
+                                px: 1,
+                            }}
+                        />
+                    ))}
+                </Box>
             </Box>
-            <Link href={"/dog?id=" + dog.id} className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition">View Dog</Link>
+
+            {/* BOTTOM ROW */}
+            <Box
+                sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    mt: 2,
+                }}
+            >
+                <Typography
+                    variant="h6"
+                    sx={{
+                        fontStyle: "italic",
+                        color: "#2E6B3F",
+                        fontWeight: 500,
+                    }}
+                >
+                    {dog.registeredName}
+                </Typography>
+
+                <Link
+                    href={"/dog?id=" + dog.id}
+                    className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition"
+                >
+                    View Dog
+                </Link>
+            </Box>
         </Paper>
     )
 }
@@ -81,15 +129,16 @@ function Owner() {
                     setOwnerName("Failed to get Dogs");
                     return;
                 }
-                const dogName = dogResponse.data.data.registeredName;
+                const dogName = dogResponse.data.data.callName;
                 const dogGrade = dogResponse.data.data.currentGrade;
-                const dogTitleResponse = await axios.get("/api/dog/title_descriptions/" + dogID)
+                const dogRegisteredName = dogResponse.data.data.registeredName;
+                const dogTitleResponse = await axios.get("/api/dog/titles/" + dogID)
                 if (!dogTitleResponse.data.ok) {
                     setOwnerName("Failed to get Dogs");
                     return;
                 }
                 const dogTitles = dogTitleResponse.data.data;
-                newDogs.push(new ownedDog(dogName, dogID, dogGrade, dogTitles))
+                newDogs.push(new ownedDog(dogName, dogRegisteredName, dogID, dogGrade, dogTitles))
             }
             setDogs(newDogs);
 
@@ -109,11 +158,19 @@ function Owner() {
 
             <section className="bg-[#E7F0E9] pt-12 pb-24 flex-center" style={{ display: "flex", justifyContent: "center", flexDirection: "column", alignItems: "center" }}>
                 {
-                    dogs.length != 0 && <div><Typography sx={{ display: "inline" }} noWrap variant="h2">Owned Dogs</Typography>
-                        <div style={{ display: "flex", width: "50%", minWidth: "fit-content", maxWidth: "750px", flexDirection: "column" }}>
-                            {dogs.map((dog) => <DogCard key={dog.id} dog={dog} />)}
-                        </div>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                    <Typography variant="h2">Owned Dogs</Typography>
+
+                    <div style={{
+                        display: "flex",
+                        width: "50%",
+                        minWidth: "fit-content",
+                        maxWidth: "750px",
+                        flexDirection: "column"
+                    }}>
+                        {dogs.map((dog) => <DogCard key={dog.id} dog={dog} />)}
                     </div>
+                </div>
                 }
                 <Typography sx={{ display: "inline" }} noWrap variant="h2">Profile</Typography>
                 <div style={{ display: "flex", width: "50%", minWidth: "fit-content", maxWidth: "750px", flexDirection: "column" }} >

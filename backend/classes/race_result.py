@@ -278,6 +278,9 @@ class RaceResult:
 
     def get_placement_points(self, placement):
         '''Add points for a single placement'''
+        if self.incident:
+            return 0
+
         if placement == "1":
             return 5
         elif placement == "2":

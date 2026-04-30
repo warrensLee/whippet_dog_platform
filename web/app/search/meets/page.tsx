@@ -73,10 +73,12 @@ function SearchPage() {
                                         meetNumber: String(item.meetNumber ?? item.id ?? ""),
                                         clubAbbreviation: String(item.clubAbbreviation ?? ""),
                                         meetDate: String(item.meetDate ?? ""),
-                                        raceSecretary: String(item.raceSecretary ?? ""),
-                                        judge: String(item.judge ?? ""),
+                                        raceSecretary: String(item.raceSecretaryName ?? ""),
+                                        judge: String(item.judgeName ?? ""),
                                         location: String(item.location ?? ""),
                                         yards: String(item.yards ?? ""),
+                                        completed: Boolean(item.completed),
+                                        eventMeetCount: Number(item.eventMeetCount ?? 0),
                                         publicNotes: String(item.publicNotes ?? ""),
                                     };
                                 }
@@ -197,6 +199,14 @@ function SearchPage() {
                                     ? `Error: ${error}`
                                     : `${total} result(s) found`
                         }
+                    </div>
+                    <div className="mt-4 flex justify-center">
+                        <Link
+                            href="/standings"
+                            className="rounded-full bg-[#2E6B3F] px-5 py-2 text-sm font-semibold text-white hover:bg-[#255733] transition"
+                        >
+                            View Standings
+                        </Link>
                     </div>
                 </div>
             </HeroSection>
@@ -352,6 +362,16 @@ function SearchPage() {
                                                 <div className="shrink-0 rounded-full px-3 py-1 text-xs font-semibold bg-[#2E6B3F]/10 text-[#2E6B3F]">
                                                     {m.clubAbbreviation || "—"}
                                                 </div>
+                                                <div
+                                                    className={[
+                                                        "shrink-0 rounded-full px-3 py-1 text-xs font-semibold",
+                                                        m.completed
+                                                            ? "bg-emerald-100 text-emerald-700"
+                                                            : "bg-amber-100 text-amber-800",
+                                                    ].join(" ")}
+                                                >
+                                                    {m.completed ? "Completed" : "In Progress"}
+                                                </div>
                                             </div>
 
                                             <div className="mt-4 grid grid-cols-2 gap-y-2 text-sm text-[#12301D]/80">
@@ -373,14 +393,14 @@ function SearchPage() {
                                                     <span className="font-medium text-[#000000]">
                                                         Judge
                                                     </span>
-                                                    : {m.judge || "—"}
+                                                    : {m.judgeName || "—"}
                                                 </div>
 
                                                 <div>
                                                     <span className="font-medium text-[#000000]">
                                                         Race Secretary
                                                     </span>
-                                                    : {m.raceSecretary || "—"}
+                                                    : {m.raceSecretaryName || "—"}
                                                 </div>
 
                                                 <div className="col-span-2">
@@ -388,6 +408,12 @@ function SearchPage() {
                                                         Yards
                                                     </span>
                                                     : {m.yards || "—"}
+                                                </div>
+                                                <div className="col-span-2">
+                                                    <span className="font-medium text-[#000000]">
+                                                        Event Meets
+                                                    </span>
+                                                    : {m.eventMeetCount ?? 0} / 3
                                                 </div>
                                             </div>
 

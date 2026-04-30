@@ -65,6 +65,20 @@ def get_years():
     except Exception as e:
         return handle_error(e, "Server error")
 
+@stats_bp.get('/standings/ytd/<stat_type>/<int:year>')
+def get_ytd_standings(stat_type, year):
+    try:
+        results = stats_controller.get_ytd_standings(stat_type, year)
+        return jsonify({
+            'success': True,
+            'data': results,
+            'stat_type': stat_type,
+            'year': year,
+            'count': len(results)
+        }), 200
+    except Exception as e:
+        return handle_error(e, "Server error")
+
 # Define multiple routes is so cool
 @stats_bp.get('/<cwa_number>')
 @stats_bp.get('/<cwa_number>/year/<int:year>')
@@ -76,3 +90,4 @@ def get_dog_info(cwa_number, year=None):
         return jsonify({'success': True, 'data': result}), 200
     except Exception as e:
         return handle_error(e, "Server error")
+    
