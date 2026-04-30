@@ -13,6 +13,7 @@ services:
     ports:
       - 127.0.0.1:3306:3306
     volumes:
+      - ./backups:/backups
       - data:/var/lib/mysql
 
   frontend:
@@ -37,15 +38,14 @@ services:
       - 127.0.0.1:8000:80
     env_file: ".env.backend"
     restart: unless-stopped
-
   # If running locally you must comment this out
-  cloudflared:
-    image: cloudflare/cloudflared:latest
-    container_name: cloudflared
-    restart: unless-stopped
-    env_file:
-      - .env.cloudflared
-    command: tunnel run
+  #cloudflared:
+  #  image: cloudflare/cloudflared:latest
+  #  container_name: cloudflared
+  #  restart: unless-stopped
+  #  env_file:
+  #    - .env.cloudflared
+  #  command: tunnel run
 
 volumes:
   data:

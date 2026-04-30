@@ -37,22 +37,21 @@ services:
     volumes:
       - ./backend:/app
       - ./mysql/migrations:/app/mysql/migrations:ro
-    command: /bin/bash -c "python -m venv venv && source venv/bin/activate && pip install -r requirements.txt &&  sleep 30 && gunicorn -b 0.0.0.0:8000 --reload --timeout 500 main:app"
-    depends_on: [db]
+    command: /bin/bash -c "python -m venv venv && source venv/bin/activate && pip
+      install -r requirements.txt &&  sleep 30 && gunicorn -b 0.0.0.0:8000
+      --reload --timeout 500 main:app"
+    depends_on: [ db ]
     env_file: ".env.backend"
 
   backup:
     image: mysql:8.0.44
     container_name: cwa-backup
-    depends_on: [db]
+    depends_on: [ db ]
     volumes:
       - ./backups:/backups
-      - ./backup.sh:/backup.sh
+      - ./mysql/backup.sh:/backup.sh
     entrypoint: >
-      sh -c "
-      chmod +x /backup.sh &&
-      sleep 30 &&
-      while true; do
+      sh -c " chmod +x /backup.sh && sleep 30 && while true; do
         /backup.sh;
         sleep 86400;
       done"
