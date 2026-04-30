@@ -170,12 +170,6 @@ export default function DogTitlesSection({ cwaNumber }: { cwaNumber: string }) {
         }
     }
 
-    function openEdit(title: DogTitle) {
-        setEditingTitle(title.title);
-        setEditForm({ ...title });
-        setEditError("");
-        setActionError("");
-    }
 
     async function handleSaveEdit() {
         setSaving(true);
@@ -371,13 +365,6 @@ export default function DogTitlesSection({ cwaNumber }: { cwaNumber: string }) {
                                     </div>
 
                                     <div className="flex gap-2">
-                                        <button
-                                            type="button"
-                                            onClick={() => openEdit(t)}
-                                            className="rounded-full border border-black/10 bg-white px-3 py-1 text-xs font-semibold text-[#12301D]"
-                                        >
-                                            Edit
-                                        </button>
                                         <button
                                             type="button"
                                             onClick={() => handleDelete(t.title)}
