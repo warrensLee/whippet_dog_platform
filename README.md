@@ -119,6 +119,10 @@ whippet_dog_platform/
 
 ## Getting Started
 
+### Environment
+
+This project is intended to be deployed and run in a Linux environment.
+
 ### Prerequisites
 
 Only **Docker** and **Docker Compose** are required. No local Python, Node, or MySQL installation needed.
@@ -147,7 +151,7 @@ cp example-.env.database .env.database
 cp example-.env.backend .env.backend
 cp example-.env.cloudflared .env.cloudflared
 
-
+```
 ---
 
 Then update each file:
