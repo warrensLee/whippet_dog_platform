@@ -136,12 +136,25 @@ class Dog:
     def check_dpc_titles(self):
         '''Check if dog is eligible for Dual Purpose Championship (DPC) titles.'''
         titles = []
+
+        if self.dpc_points >= 15:
+            if self.arx_points >= 15:
+                titles.append("DPCX")
+            else:
+                titles.append("DPC")
+
+        return titles
+    
+    def check_dpc_titles_old(self):
+        '''Check if dog is eligible for Dual Purpose Championship (DPC) titles.'''
+        titles = []
         has_registry = bool((self.registered_number or "").strip())
 
         if self.meet_appearences >= 10 and (has_registry or self.dpc_legs >= 5):
-            titles.append("DPC")
             if self.arx_points >= 15:
                 titles.append("DPCX")
+            else:
+                titles.append("DPC")
 
         return titles
     

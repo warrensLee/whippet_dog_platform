@@ -611,6 +611,39 @@ def check_dpc_title(cwa_number):
         return handle_error(e, "Database error")
     except Exception as e:
         return handle_error(e, "Server error")
+    
+@dog_bp.get("/dpc/<cwa_number>")
+def check_dpc_title_old(cwa_number):
+    # role = current_role()
+    # if not role:
+    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+    # deny = require_scope(role.view_dog_scope, "view dogs")
+    # if deny:
+    #     return deny
+    
+    # if role.view_dog_scope == UserRole.SELF and not _is_owner(cwa_number):
+    #     return jsonify({"ok": False, "error": "Not allowed to view this dog"}), 403
+    
+    try:
+        dog = Dog.find_by_identifier(cwa_number)
+        if not dog:
+            return jsonify({"ok": False, "error": "Dog does not exist"}), 404
+        
+        dpc = dog.check_dpc_titles_old()
+        return jsonify(
+            {
+                "ok": True,
+                "data": {
+                    "cwaNumber": dog.cwa_number,
+                    "dpcTitle": dpc,
+                },
+            }
+        ), 200
+    except Error as e:
+        return handle_error(e, "Database error")
+    except Exception as e:
+        return handle_error(e, "Server error")
 
 @dog_bp.get("/hc/<cwa_number>")
 def check_hc_title(cwa_number):
