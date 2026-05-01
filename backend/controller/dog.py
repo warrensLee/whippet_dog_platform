@@ -1,4 +1,6 @@
-from flask import Blueprint, jsonify, request
+from backend.database import fetch_all
+from flask import Blueprint, jsonify, request, Response
+import io
 from mysql.connector import Error
 from datetime import datetime, timezone
 from classes.dog import Dog
@@ -11,6 +13,7 @@ from classes.user_role import UserRole
 from utils.auth_helpers import current_editor_id, current_role, require_scope
 from utils.error_handler import handle_error
 from classes.title_type import TitleType 
+from csv_export import get_current_grading_guide_CSV
 
 
 dog_bp = Blueprint("dog", __name__, url_prefix="/api/dog")
