@@ -12,8 +12,9 @@ import {
     Typography,
     Box,
 } from '@mui/material';
-import UserRole, { SCOPE_FIELDS } from './types';
+import UserRole, { SCOPE_FIELDS, ScopeValue } from './types';
 import axios, { AxiosError } from 'axios';
+import { title } from 'process';
 
 const SCOPE_OPTIONS = [
     { value: 0, label: 'None' },
@@ -27,6 +28,7 @@ const EditRoleDialog = ({ open, onClose, roleData, onSave }: { open: boolean, on
     const [formData, setFormData] = useState<Partial<UserRole>>({});
     const [titleError, setTitleError] = useState<string | null>(null);
     const isEditMode = Boolean(roleData && roleData.id);
+
     useEffect(() => {
         if (roleData) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -74,9 +76,9 @@ const EditRoleDialog = ({ open, onClose, roleData, onSave }: { open: boolean, on
             }
         }
     };
-
+    const error = !formData.title || formData.title.trim().length == 0 || !formData.editDogScope || !formData.editMeetScope || !formData.editTitleTypeScope
     return (
-        <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
+        <Dialog open={open} onClose={onClose} maxWidth="lg" sx={{ minWidth: "fit-content" }}>
             <DialogTitle>Edit User Role</DialogTitle>
             <DialogContent dividers>
                 <TextField
@@ -88,48 +90,42 @@ const EditRoleDialog = ({ open, onClose, roleData, onSave }: { open: boolean, on
                     value={formData.title}
                     onChange={(e) => handleChange('title', e.target.value)}
                 />
-                <Grid container spacing={2} sx={{ display: "flex" }} columns={2}>
-                    {SCOPE_FIELDS.map((field) => (
-                        <Grid size={1} key={field.key} sx={{ flexGrow: 1 }} >
-                            <Box
-                                sx={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    py: 1,
-                                    px: 1,
-                                    borderRadius: 1,
-                                    '&:hover': { bgcolor: 'action.hover' }
-                                }}
-                            >
-                                <Typography variant="body2" sx={{ fontWeight: 500, pr: 2 }}>
-                                    {field.label}
-                                </Typography>
-
-                                <FormControl size="small" sx={{ minWidth: 120 }}>
-                                    <Select
-                                        value={formData[field.key]}
-                                        onChange={(e) => handleChange(field.key, String(e.target.value))}
-                                    >
-                                        {SCOPE_OPTIONS.map(opt => (
-                                            <MenuItem key={opt.value} value={opt.value}>
-                                                {opt.label}
-                                            </MenuItem>
-                                        ))}
-                                    </Select>
-                                </FormControl>
-                            </Box>
-                        </Grid>
-                    ))}
-                </Grid>
+                <div className='flex flex-col align-center justify-middle'>
+                    <p className='mt-6'>Edit Title Types: </p>
+                    <Select
+                        value={formData["editTitleTypeScope"]}
+                        onChange={(e) => handleChange("editTitleTypeScope", String(e.target.value))}
+                    >
+                        <MenuItem key="NONE" value={ScopeValue.NONE}>None</MenuItem>
+                        <MenuItem key="ALL" value={ScopeValue.ANY}>All</MenuItem>
+                    </Select>
+                    <p className='mt-6'>Edit Meets: </p>
+                    <Select
+                        value={formData["editMeetScope"]}
+                        onChange={(e) => handleChange("editMeetScope", String(e.target.value))}
+                    >
+                        <MenuItem key="NONE" value={ScopeValue.NONE}>None</MenuItem>
+                        <MenuItem key="SELF" value={ScopeValue.SELF}>Only Own Events</MenuItem>
+                        <MenuItem key="ALL" value={ScopeValue.ANY}>All</MenuItem>
+                    </Select>
+                    <p className='mt-6'>Edit Dogs: </p>
+                    <Select
+                        value={formData["editDogScope"]}
+                        onChange={(e) => handleChange("editDogScope", String(e.target.value))}
+                    >
+                        <MenuItem key="NONE" value={ScopeValue.NONE}>None</MenuItem>
+                        <MenuItem key="SELF" value={ScopeValue.SELF}>Only Owned Dogs</MenuItem>
+                        <MenuItem key="ALL" value={ScopeValue.ANY}>All</MenuItem>
+                    </Select>
+                </div>
             </DialogContent>
             <DialogActions>
-                <button type="button" onClick={onClose} className="rounded-full border border-[#12301D]/15 bg-white px-6 py-3 font-semibold text-[#12301D] hover:bg-[#12301D]/5 transition">Cancel</button>
-                <button type="button" onClick={handleSave} className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition">
+                <button type="button" onClick={onClose} className="rounded-full border border-[#12301D]/15 bg-white px-6 py-3 font-semibold text-[#12301D] hover:bg-[#12301D]/5 transition disabled:opacity-50">Cancel</button>
+                <button type="button" onClick={handleSave} disabled={error} className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-50">
                     Save Changes
                 </button>
             </DialogActions>
-        </Dialog>
+        </Dialog >
     );
 };
 
