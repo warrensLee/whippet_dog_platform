@@ -1,6 +1,4 @@
-from backend.database import fetch_all
-from flask import Blueprint, jsonify, request, Response
-import io
+from flask import Blueprint, jsonify, request
 from mysql.connector import Error
 from datetime import datetime, timezone
 from classes.dog import Dog

@@ -6,7 +6,6 @@ from datetime import datetime, timezone
 from classes.meet import Meet
 from classes.change_log import ChangeLog
 from classes.user_role import UserRole
-from classes.dog_title import DogTitle
 from utils.auth_helpers import current_editor_id, current_role, require_scope
 from utils.error_handler import handle_error
 from database import fetch_all
@@ -287,35 +286,6 @@ def download_dogs_csv(meet_number):
         writer = csv.DictWriter(output, fieldnames=data[0].keys())
         writer.writeheader()
         writer.writerows(data)
-        
-        response = Response(output.getvalue(), mimetype="text/csv")
-        response.headers["Content-Disposition"] = f'attachment; filename="meet_{meet_number}_dogs.csv"'
-        return response
-    except Error as e:        
-        return handle_error(e, "Database error")
-
-@meet_bp.get("/<meet_number>/grading_guide.csv")
-def get_grading_guide(meet_number):
-    try:
-        rows = fetch_all(
-            """
-            SELECT Dog.CWANumber, Dog.CallName, Dog.RegisteredName, Dog.CurrentGrade,
-            Dog.Average, Dog.MeetPoints, DogTitle.*, (MeetResults.MeetPoints LIMIT 3), (RaceResults.Yards LIMIT 1) 
-            FROM Dog
-            JOIN DogTitle ON Dog.CWANumber = DogTitle.CWANumber
-            JOIN MeetResults ON Dog.CWANumber = MeetResults.CWANumber
-            JOIN RaceResults ON Dog.CWANumber = RaceResults.CWANumber
-            WHERE MeetResults.MeetNumber = %s
-            """
-        )
-
-        if not rows:
-            return Response("", mimetype="text/csv")
-        
-        output = io.StringIO()
-        writer = csv.DictWriter(output, fieldnames=rows[0].keys())
-        writer.writeheader()
-        writer.writerows(rows)
         
         response = Response(output.getvalue(), mimetype="text/csv")
         response.headers["Content-Disposition"] = f'attachment; filename="meet_{meet_number}_dogs.csv"'
