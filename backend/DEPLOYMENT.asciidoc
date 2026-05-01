@@ -57,7 +57,7 @@ Resend is used as the email provider for registration and password reset emails
 This website uses Cloudflare Turnstile to prevent botting, These instructions will allow you to setup turnstile and get the neccesary token and site key
 
 1. Go to the turnstile section in Cloudflare
-2. Add a new widget, set the hosts to the domain you are using for the site, and leave the type as "Managed"
+2. Add a new widget, add the website domain to the hosts list, and leave the type as "Managed"
 3. Copy the turnstile site keys and secret keys into there respective places in the .env.backend file
 
 == Cloudflare tunnel setup

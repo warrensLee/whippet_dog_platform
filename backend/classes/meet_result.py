@@ -289,28 +289,22 @@ class MeetResult:
 
     def update_from_race_results(self):
         """Recalculate meet result totals from RaceResults for this meet+dog."""
-        if not self.meet_number or not self.cwa_number: 
+        if not self.meet_number or not self.cwa_number:
             return
-        
-        from classes.race_result import RaceResult
-        from classes.dog import Dog
 
+        from classes.race_result import RaceResult
 
         race_rows = fetch_all("""
-            SELECT Placement, MeetPoints, AOMEarned, DPCPoints, Incident
+            SELECT Placement, AOMEarned, Incident
             FROM RaceResults
             WHERE MeetNumber = %s AND CWANumber = %s
         """, (self.meet_number, self.cwa_number)) or []
 
-        valid_race_rows = [r for r in race_rows  if not str(r.get("Incident") or "").strip()]
-
+        valid_race_rows = [r for r in race_rows if not str(r.get("Incident") or "").strip()]
         placements = [str(r.get("Placement") or "").strip().upper() for r in valid_race_rows]
 
-        had_incident = len(valid_race_rows) != len(race_rows)
-
         rr = RaceResult(
-            meet_number=self.meet_number,
-            cwa_number=self.cwa_number,
+            meet_number=self.meet_number, cwa_number=self.cwa_number,
             program=None, race_number=None, entry_type=None,
             box=None, placement=None, meet_points=None,
             aom_earned=None, dpc_points=None, incident=None,
@@ -320,109 +314,182 @@ class MeetResult:
         self.meet_points = sum(rr.get_placement_points(p) for p in placements)
         self.aom_earned = sum(float(r.get("AOMEarned") or 0) for r in valid_race_rows)
 
-        placement_row = fetch_one("""
-            SELECT placement
-            FROM (
-                SELECT
-                    ranked.CWANumber,
-                    ranked.EntryType,
-                    ROW_NUMBER() OVER (
-                        PARTITION BY ranked.EntryType
-                        ORDER BY
-                            ranked.TotalMeetPoints DESC,
-                            ranked.LastProgramNum DESC,
-                            ranked.LastRaceNum DESC,
-                            ranked.LastRacePlacementNum ASC,
-                            ranked.CWANumber ASC
-                    ) AS placement
-                FROM (
-                    SELECT
-                        rr.CWANumber,
-                        MAX(rr.EntryType) AS EntryType,
-                        SUM(
-                            CASE
-                                WHEN rr.Incident IS NULL OR rr.Incident = ''
-                                THEN COALESCE(rr.MeetPoints, 0)
-                                ELSE 0
-                            END
-                        ) AS TotalMeetPoints,
-                        MAX(CASE
-                            WHEN rr.Program REGEXP '^[0-9]+$' THEN CAST(rr.Program AS UNSIGNED)
-                            ELSE NULL
-                        END) AS LastProgramNum,
-                        MAX(CASE
-                            WHEN rr.Program = (
-                                SELECT MAX(CASE
-                                    WHEN rr2.Program REGEXP '^[0-9]+$' THEN CAST(rr2.Program AS UNSIGNED)
-                                    ELSE NULL
-                                END)
-                                FROM RaceResults rr2
-                                WHERE rr2.MeetNumber = rr.MeetNumber
-                                AND rr2.CWANumber = rr.CWANumber
-                            )
-                            AND rr.RaceNumber REGEXP '^[0-9]+$'
-                            THEN CAST(rr.RaceNumber AS UNSIGNED)
-                            ELSE NULL
-                        END) AS LastRaceNum,
-                        MIN(CASE
-                            WHEN rr.Program = (
-                                SELECT MAX(CASE
-                                    WHEN rr3.Program REGEXP '^[0-9]+$' THEN CAST(rr3.Program AS UNSIGNED)
-                                    ELSE NULL
-                                END)
-                                FROM RaceResults rr3
-                                WHERE rr3.MeetNumber = rr.MeetNumber
-                                AND rr3.CWANumber = rr.CWANumber
-                            )
-                            AND rr.RaceNumber = (
-                                SELECT MAX(rr4.RaceNumber)
-                                FROM RaceResults rr4
-                                WHERE rr4.MeetNumber = rr.MeetNumber
-                                AND rr4.CWANumber = rr.CWANumber
-                                AND rr4.Program = rr.Program
-                            )
-                            AND rr.Placement REGEXP '^[0-9]+$'
-                            THEN CAST(rr.Placement AS UNSIGNED)
-                            ELSE NULL
-                        END) AS LastRacePlacementNum
-                    FROM RaceResults rr
-                    WHERE rr.MeetNumber = %s
-                    GROUP BY rr.CWANumber
-                ) ranked
-            ) placed
-            WHERE placed.CWANumber = %s
-        """, (self.meet_number, self.cwa_number)) or {}
-
-        self.meet_placement = int(placement_row.get("placement") or 0)
-
-        cwa_rows = fetch_all("""
-            SELECT DISTINCT CWANumber
-            FROM RaceResults
-            WHERE MeetNumber = %s
-        """, (self.meet_number,)) or []
-
-        cwa_numbers = [r.get("CWANumber") for r in cwa_rows if r.get("CWANumber")]
-        adult_count = rr.count_num_adult_whippets(cwa_numbers)
-        dpc_distribution = rr.get_dpc_point_distribution(adult_count)
-
-        dog = Dog.find_by_identifier(self.cwa_number)
-        if dog and dog.is_adult() and self.meet_placement > 0 and not had_incident:
-            idx = self.meet_placement - 1
-            self.dpc_points = dpc_distribution[idx] if 0 <= idx < len(dpc_distribution) else 0
-        else:
-            self.dpc_points = 0
-
-        rr.meet_number = self.meet_number
-        rr.cwa_number = self.cwa_number
-        self.arx_earned = rr.calculate_arx_earned(self.meet_placement)
-        self.narx_earned = rr.calculate_narx_earned(self.meet_placement)
-        self.hc_score = rr.calculate_hc_score(self.meet_placement, self.conformation_placement)
-        
         self.last_edited_at = datetime.now(timezone.utc)
         self.update()
 
+        MeetResult.recalculate_all_placements_for_meet(self.meet_number)
         RaceResult.calculate_dpc_leg_for_meet(self.meet_number)
         RaceResult.calculate_hc_leg_for_meet(self.meet_number)
+        MeetResult.recalculate_derived_fields_for_meet(self.meet_number)
+
+
+    @classmethod
+    def recalculate_derived_fields_for_meet(cls, meet_number):
+        """Recalculate ARX/NARX/DPC/HC for every dog in a meet using final placements, then roll up to Dog."""
+        from classes.race_result import RaceResult
+        from classes.dog import Dog
+
+        rows = fetch_all("""
+            SELECT CWANumber, MeetPlacement, ConformationPlacement
+            FROM MeetResults WHERE MeetNumber = %s
+        """, [meet_number]) or []
+
+        cwa_rows = fetch_all("""
+            SELECT DISTINCT CWANumber FROM RaceResults WHERE MeetNumber = %s
+        """, [meet_number]) or []
+        cwa_numbers = [r.get("CWANumber") for r in cwa_rows if r.get("CWANumber")]
+
+        rr = RaceResult(
+            meet_number=meet_number, cwa_number=None,
+            program=None, race_number=None, entry_type=None,
+            box=None, placement=None, meet_points=None,
+            aom_earned=None, dpc_points=None, incident=None,
+            last_edited_by=None, last_edited_at=None,
+        )
+
+        adult_count = rr.count_num_adult_whippets(cwa_numbers)
+        dpc_distribution = rr.get_dpc_point_distribution(adult_count)
+
+        for row in rows:
+            cwa = row.get("CWANumber")
+            meet_placement = row.get("MeetPlacement")
+            conformation_placement = row.get("ConformationPlacement")
+
+            race_rows = fetch_all("""
+                SELECT Incident FROM RaceResults
+                WHERE MeetNumber = %s AND CWANumber = %s
+            """, [meet_number, cwa]) or []
+            had_incident = any(str(r.get("Incident") or "").strip() for r in race_rows)
+
+            rr.cwa_number = cwa
+            rr.meet_number = meet_number
+
+            dog = Dog.find_by_identifier(cwa)
+            if dog and dog.is_adult() and meet_placement and meet_placement > 0 and not had_incident:
+                idx = meet_placement - 1
+                dpc_points = dpc_distribution[idx] if 0 <= idx < len(dpc_distribution) else 0
+            else:
+                dpc_points = 0
+
+            execute("""
+                UPDATE MeetResults
+                SET DPCPoints = %s,
+                    ARXEarned = %s,
+                    NARXEarned = %s,
+                    HCScore = %s,
+                    LastEditedAt = %s
+                WHERE MeetNumber = %s AND CWANumber = %s
+            """, [
+                dpc_points,
+                rr.calculate_arx_earned(meet_placement),
+                rr.calculate_narx_earned(meet_placement),
+                rr.calculate_hc_score(meet_placement, conformation_placement),
+                datetime.now(timezone.utc),
+                meet_number, cwa
+            ])
+
+            if dog:
+                dog.update_from_meet_results()
+
+    @classmethod
+    def calculate_meet_rankings(cls, meet_number):
+        rows = cls._get_meet_results(meet_number)
+
+        if not rows:
+            return {} 
+
+        entries = [
+            {"cwaNumber": row.get("CWANumber"), "meetPoints": row.get("MeetPoints"), "placement": None}
+            for row in rows
+        ]
+
+        entries.sort(key=lambda x: x["meetPoints"], reverse=True)
+
+        i = 0
+        while i < len(entries):
+            j = i + 1
+            while j < len(entries) and entries[j]["meetPoints"] == entries[i]["meetPoints"]:
+                j += 1
+
+            tied_entries = entries[i:j]
+
+            if len(tied_entries) > 1:
+                last_program_placement_rows = cls._get_most_recent_race_result_from_meet(meet_number)
+                placement_lookup = {row.get("CWANumber"): row.get("Placement") for row in last_program_placement_rows}
+                for entry in tied_entries:
+                    entry["placement"] = placement_lookup.get(entry["cwaNumber"])
+                tied_entries.sort(key=lambda x: (x["placement"] if x["placement"] is not None else float('inf')))
+
+            for k, entry in enumerate(tied_entries):
+                entry["placement"] = i + k + 1
+
+            i = j
+
+        return {e["cwaNumber"]: e["placement"] for e in entries}
+
+    @staticmethod
+    def _get_meet_results(meet_number):
+        return fetch_all(
+            """
+            SELECT CWANumber, MeetPoints
+            FROM MeetResults
+            WHERE MeetNumber = %s
+            AND CWANumber NOT IN (
+                SELECT DISTINCT CWANumber
+                FROM RaceResults
+                WHERE MeetNumber = %s
+                AND Incident IS NOT NULL
+                AND TRIM(Incident) != ''
+            )
+            """,
+            [meet_number, meet_number]
+        ) or []
+
+    @staticmethod
+    def _get_most_recent_race_result_from_meet(meet_number):
+        return fetch_all(
+            """
+            SELECT CWANumber, Placement
+            FROM RaceResults
+            WHERE MeetNumber = %s
+            AND Program = (
+                SELECT MAX(Program)
+                FROM RaceResults
+                WHERE MeetNumber = %s
+            )
+            AND RaceNumber = (
+                SELECT MAX(RaceNumber)
+                FROM RaceResults
+                WHERE MeetNumber = %s
+            )
+            """,
+            [meet_number, meet_number, meet_number]
+        ) or []
+
+    @classmethod
+    def recalculate_all_placements_for_meet(cls, meet_number):
+        calculated = cls.calculate_meet_rankings(meet_number)
+        
+        all_rows = fetch_all("""
+            SELECT CWANumber FROM MeetResults WHERE MeetNumber = %s
+        """, [meet_number]) or []
+        
+        ranked_count = len(calculated)
+        next_incident_placement = ranked_count + 1  
+        
+        for row in all_rows:
+            cwa = row.get("CWANumber")
+            if cwa in calculated:
+                placement = calculated[cwa]
+            else:
+                placement = next_incident_placement
+                next_incident_placement += 1 
+            
+            execute("""
+                UPDATE MeetResults
+                SET MeetPlacement = %s
+                WHERE MeetNumber = %s AND CWANumber = %s
+            """, [placement, meet_number, cwa])
 
     @classmethod
     def list_meets_with_results_for_dog(cls, cwa_number):
