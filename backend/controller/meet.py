@@ -193,11 +193,14 @@ def delete_meet():
 @meet_bp.get("/get/<meet_number>")
 def get_meet(meet_number):
     role = current_role()
-    include_private = role is not None and role.edit_meet_scope == UserRole.ALL
-
+    
     meet = Meet.find_by_identifier(meet_number)
     if not meet:
         return jsonify({"ok": False, "error": "Meet does not exist"}), 404
+
+    include_private = role is not None and role.edit_meet_scope == UserRole.ALL
+    if not include_private and role is not None and role.edit_meet_scope == UserRole.SELF:
+        include_private = _is_meet_owner(meet)
 
     return jsonify({"ok": True, "data": meet.to_dict(include_private=include_private)}), 200
 
@@ -205,13 +208,16 @@ def get_meet(meet_number):
 @meet_bp.get("/get")
 def list_all_meets():
     role = current_role()
-    include_private = role is not None and role.edit_meet_scope == UserRole.ALL
+    include_private_all = role is not None and role.edit_meet_scope == UserRole.ALL
 
     try:
         meets = Meet.list_all_meets()
         meets_data = []
 
         for m in meets:
+            include_private = include_private_all
+            if not include_private and role is not None and role.edit_meet_scope == UserRole.SELF:
+                include_private = _is_meet_owner(m)
             meets_data.append(m.to_dict(include_private=include_private))
 
         return jsonify({"ok": True, "data": meets_data}), 200

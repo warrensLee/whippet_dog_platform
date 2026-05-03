@@ -3,20 +3,25 @@ from mysql.connector import Error
 from datetime import datetime, timezone
 from classes.race_result import RaceResult
 from classes.meet_result import MeetResult
-from classes.dog_owner import DogOwner
 from classes.dog import Dog
 from classes.dog_title import DogTitle
 from classes.change_log import ChangeLog
 from classes.user_role import UserRole
+from classes.meet import Meet
 from utils.auth_helpers import current_editor_id, current_role, require_scope
 from utils.error_handler import handle_error
 from database import fetch_one, fetch_all
 
 race_result_bp = Blueprint("race_result", __name__, url_prefix="/api/race_result")
 
-def _is_owner(cwa_number: str) -> bool:
+def _is_judge_or_secretary(meet_number: str) -> bool:
+    meet = Meet.find_by_identifier(meet_number)
+    if not meet:
+        return False
     pid = current_editor_id()
-    return DogOwner.exists(cwa_number, pid) if pid else False
+    if not pid:
+        return False
+    return meet.judge == pid or meet.race_secretary == pid
 
 def _meet_stats(cwa_number: str) -> dict:
     row = fetch_one(
@@ -100,8 +105,8 @@ def register_race_result():
     data = request.get_json(silent=True) or {}
     race_result = RaceResult.from_request_data(data)
 
-    if role.edit_meet_scope == UserRole.SELF and not _is_owner(race_result.cwa_number):
-        return jsonify({"ok": False, "error": "You can only add race results for dogs you own"}), 403
+    if role.edit_meet_scope == UserRole.SELF and not _is_judge_or_secretary(race_result.meet_number):
+        return jsonify({"ok": False, "error": "You can only add race results for meets where you are a judge or race secretary"}), 403
 
     editor_id = current_editor_id()
     now = datetime.now(timezone.utc)
@@ -203,8 +208,8 @@ def edit_race_result():
     if not existing:
         return jsonify({"ok": False, "error": "Race result does not exist"}), 404
 
-    if role.edit_meet_scope == UserRole.SELF and not _is_owner(cwa_number):
-        return jsonify({"ok": False, "error": "You can only edit race results for dogs you own"}), 403
+    if role.edit_meet_scope == UserRole.SELF and not _is_judge_or_secretary(meet_number):
+        return jsonify({"ok": False, "error": "You can only edit race results for meets where you are a judge or race secretary"}), 403
 
     editor_id = current_editor_id()
     now = datetime.now(timezone.utc)
@@ -310,8 +315,8 @@ def delete_race_result():
     if not race_result:
         return jsonify({"ok": False, "error": "Race result does not exist"}), 404
 
-    if role.edit_meet_scope == UserRole.SELF and not _is_owner(cwa_number):
-        return jsonify({"ok": False, "error": "You can only delete race results for dogs you own"}), 403
+    if role.edit_meet_scope == UserRole.SELF and not _is_judge_or_secretary(meet_number):
+        return jsonify({"ok": False, "error": "You can only delete race results for meets where you are a judge or race secretary"}), 403
 
     editor_id = current_editor_id()
     now = datetime.now(timezone.utc)
