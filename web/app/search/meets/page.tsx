@@ -362,7 +362,7 @@ function SearchPage() {
                                                 <div className="shrink-0 rounded-full px-3 py-1 text-xs font-semibold bg-[#2E6B3F]/10 text-[#2E6B3F]">
                                                     {m.clubAbbreviation || "—"}
                                                 </div>
-                                                <div
+                                                {/* <div
                                                     className={[
                                                         "shrink-0 rounded-full px-3 py-1 text-xs font-semibold",
                                                         m.completed
@@ -371,7 +371,7 @@ function SearchPage() {
                                                     ].join(" ")}
                                                 >
                                                     {m.completed ? "Completed" : "In Progress"}
-                                                </div>
+                                                </div> */}
                                             </div>
 
                                             <div className="mt-4 grid grid-cols-2 gap-y-2 text-sm text-[#12301D]/80">

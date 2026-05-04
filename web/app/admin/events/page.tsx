@@ -654,7 +654,7 @@ function AdminEventsPage() {
                                                     <div className="inline-flex rounded-full bg-[#2E6B3F]/10 px-3 py-1 text-xs font-semibold text-[#2E6B3F]">
                                                         {e.clubAbbreviation || "No Club"}
                                                     </div>
-                                                    <div
+                                                    {/* <div
                                                         className={[
                                                             "inline-flex rounded-full px-3 py-1 text-xs font-semibold",
                                                             e.completed
@@ -663,7 +663,7 @@ function AdminEventsPage() {
                                                         ].join(" ")}
                                                     >
                                                         {e.completed ? "Completed" : "In Progress"}
-                                                    </div>
+                                                    </div> */}
                                                 </div>
                                             </div>
 

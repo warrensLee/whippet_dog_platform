@@ -4,16 +4,67 @@ import * as React from "react";
 import type { DogDetail, TitleFamily } from "../../../lib/dog/types";
 import { TIER_STYLES } from "../../../lib/dog/constants";
 
+type DogTitle = {
+  title: string;
+  titleNumber?: string | number | null;
+};
+
 export default function TitleFamilyCard({
   family,
   dog,
+  titles,
 }: {
   family: TitleFamily;
   dog: DogDetail;
+  titles: DogTitle[];
 }) {
   const value = family.getValue(dog);
-  const locked = family.extraCheck ? family.extraCheck(dog) : null;
-  const earnedTiers = family.tiers.filter((tier) => !locked && value >= tier.threshold);
+
+  function normalizeTitle(title: string | null | undefined) {
+    return String(title ?? "")
+      .trim()
+      .toUpperCase()
+      .replace(/\s+/g, " ");
+  }
+
+  function hasTitle(name: string) {
+    const target = normalizeTitle(name);
+
+    return titles.some((titleItem) => {
+      const actual = normalizeTitle(titleItem.title);
+
+      return actual === target || actual.startsWith(`${target} `);
+    });
+  }
+
+  const dpcProgress = Math.max(
+    dog.dpcLegs ?? 0,
+    dog.adjustedDpcPoints ?? dog.dpcPoints ?? 0
+  );
+
+  const hasDpc = dpcProgress >= 5 || hasTitle("DPC");
+  const hasArx = (dog.adjustedArxPoints ?? dog.arxPoints ?? 0) >= 15 || hasTitle("ARX");
+  const hasDpcx = hasTitle("DPCX") || (hasDpc && hasArx);
+
+  const baseLocked = family.extraCheck ? family.extraCheck(dog) : null;
+
+  const locked =
+    family.family === "DPC" && hasDpc && !hasArx
+      ? "Requires ARX"
+      : family.family === "DPC" && hasDpc
+        ? null
+        : baseLocked;
+
+  const earnedTiers = family.tiers.filter((tier) => {
+    if (hasTitle(tier.name)) return true;
+
+    if (family.family === "DPC") {
+      return value >= tier.threshold;
+    }
+
+    return !locked && value >= tier.threshold;
+  });
+
   const highestEarned = earnedTiers[earnedTiers.length - 1] ?? null;
   const nextTier = family.tiers.find((tier) => value < tier.threshold) ?? null;
   const hasAnyEarned = earnedTiers.length > 0;
@@ -47,7 +98,9 @@ export default function TitleFamilyCard({
 
           <div>
             <p className={`text-sm font-semibold ${hasAnyEarned ? currentStyle.text : "text-[#12301D]/70"}`}>
-              {family.family} Titles
+              {family.family === "TRP" || family.family === "ARX"
+                ? family.family
+                : `${family.family} Titles`}
             </p>
 
             <p className="mt-0.5 text-[11px] text-[#12301D]/45">
@@ -118,7 +171,11 @@ export default function TitleFamilyCard({
 
           <div className="space-y-2">
             {family.tiers.map((tier) => {
-              const earned = !locked && value >= tier.threshold;
+              const earned =
+                hasTitle(tier.name) ||
+                (family.family === "DPC"
+                  ? value >= tier.threshold
+                  : !locked && value >= tier.threshold);
               const isCurrent = tier === highestEarned;
               const style = TIER_STYLES[tier.color];
 
@@ -164,6 +221,38 @@ export default function TitleFamilyCard({
               );
             })}
           </div>
+
+          {family.family === "DPC" && (
+            <div
+              className={`flex items-center gap-3 rounded-xl border px-4 py-2.5 transition-all ${
+                hasDpcx
+                  ? `${TIER_STYLES.green.bg} ${TIER_STYLES.green.border} shadow-sm`
+                  : "border-black/8 bg-black/[0.03] opacity-50"
+              }`}
+            >
+              <div
+                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
+                  hasDpcx ? TIER_STYLES.green.badge : "bg-black/10"
+                }`}
+              >
+                {hasDpcx ? (
+                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  <div className="h-1.5 w-1.5 rounded-full bg-black/20" />
+                )}
+              </div>
+
+              <span className={`text-sm font-bold ${hasDpcx ? TIER_STYLES.green.text : "text-[#12301D]/35"}`}>
+                DPCX
+              </span>
+
+              <span className="ml-auto text-xs text-[#12301D]/40">
+                Requires DPC + ARX
+              </span>
+            </div>
+          )}
 
           {family.family === "DPC" && (
             <div className="mt-4 border-t border-black/8 pt-3">

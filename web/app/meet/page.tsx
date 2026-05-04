@@ -309,7 +309,6 @@ function MeetPage() {
                         <StatPill label="Puppy Dogs" value={puppyDogCount} />
                         <StatPill label="Total Dogs" value={totalEntries} />
                         <StatPill label="Yards" value={event?.yards ?? "—"} />
-                        <StatPill label="Event Meets" value={`${event?.eventMeetCount ?? 0}/3`} />
                     </div>
 
                     <Card title="Details">
@@ -324,8 +323,6 @@ function MeetPage() {
                                 <FieldRow label="Judge" value={event.judge} />
                                 <FieldRow label="Location" value={event.location} />
                                 <FieldRow label="Yards" value={event.yards ?? "—"} />
-                                <FieldRow label="Status" value={event.completed ? "Completed" : "In Progress"} />
-                                <FieldRow label="Meets in Event" value={`${event.eventMeetCount ?? 0} / 3`} />
 
                                 {event.requestFormLink ? (
                                     <div className="pt-3">

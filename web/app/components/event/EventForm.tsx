@@ -193,7 +193,9 @@ export default function EventForm({
                 />
             </div>
 
-            {isEditMode && (
+            {/* Current Disfunctional  */}
+            
+            {/* {isEditMode && (
                 <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
                     <div className="rounded-2xl border border-black/10 bg-[#F8FBF9] px-4 py-3">
                         <div className="text-xs font-semibold uppercase tracking-wide text-[#12301D]/55">
@@ -213,7 +215,7 @@ export default function EventForm({
                         </div>
                     </div>
                 </div>
-            )}
+            )} */}
 
             <div className="mt-6 space-y-5">
                 <label className="mb-2 block text-sm font-medium text-[#12301D]">

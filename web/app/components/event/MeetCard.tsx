@@ -59,7 +59,9 @@ export default function MeetCard({
               {points} pts
             </span>
           )}
-          <span
+          {/* Current Disfunctional */}
+          
+          {/* <span
             className={[
               "rounded-full px-3 py-1 text-xs font-semibold",
               completed
@@ -68,7 +70,7 @@ export default function MeetCard({
             ].join(" ")}
           >
             {eventMeetCount}/3
-          </span>
+          </span> */}
           {placement != null && (
             <span className="rounded-full bg-black/5 px-3 py-1 text-xs font-semibold text-[#12301D]/70">
               #{placement}
@@ -207,14 +209,6 @@ export default function MeetCard({
                         </span>
                       )}
 
-                      {r.dpcPoints != null && (
-                        <span className="text-[#12301D]/70">
-                          DPC Pts:{" "}
-                          <span className="font-semibold text-[#12301D]">
-                            {r.dpcPoints}
-                          </span>
-                        </span>
-                      )}
                     </div>
 
                     <div className="flex items-center gap-3">

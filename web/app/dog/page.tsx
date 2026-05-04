@@ -380,7 +380,12 @@ function DogPage() {
 
               <div className="space-y-3">
                 {TITLE_FAMILIES.map((family) => (
-                  <TitleFamilyCard key={family.family} family={family} dog={dog} />
+                  <TitleFamilyCard
+                    key={family.family}
+                    family={family}
+                    dog={dog}
+                    titles={titles}
+                  />
                 ))}
               </div>
             </div>
@@ -388,6 +393,18 @@ function DogPage() {
                     
           {dog && (
             <Card title="DPC Progress">
+              <FieldRow
+                label="Completed"
+                value={
+                  Math.max(
+                    dog.dpcLegs ?? 0,
+                    dog.adjustedDpcPoints ?? dog.dpcPoints ?? 0
+                  ) >= 5 || titles.some((t) => String(t.title).toUpperCase().startsWith("DPC"))
+                    ? "Yes"
+                    : "No"
+                }
+              />
+
               <FieldRow label="Historic DPC Legs" value={`${dog.dpcLegs ?? 0} / 5`} />
               <FieldRow label="DPC Points" value={dog.adjustedDpcPoints ?? dog.dpcPoints ?? 0} />
               <p className="mt-2 text-xs text-[#12301D]/60">

@@ -94,12 +94,15 @@ export const TITLE_FAMILIES: TitleFamily[] = [
   },
   {
     family: "DPC",
-    description: "Dual Purpose Championship — requires TRP + AKC/CKC bench championship OR 5 DPC legs",
-    unit: "DPC legs",
-    getValue: (dog: DogDetail) => dog.dpcLegs ?? 0,
-    tiers: [
+    description: "Dual Purpose Championship — requires TRP + AKC/CKC bench championship OR 5 DPC legs/points",
+    unit: "DPC",
+    getValue: (dog: DogDetail) =>
+      Math.max(
+        dog.dpcLegs ?? 0,
+        dog.adjustedDpcPoints ?? dog.dpcPoints ?? 0
+      ),
+        tiers: [
       { name: "DPC", threshold: 5, color: "blue" },
-      { name: "DPCX", threshold: 5, color: "green" },
     ],
     extraCheck: (dog: DogDetail) =>
       (dog.meetAppearences ?? 0) >= 10 ? null : "Requires TRP first",
