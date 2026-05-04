@@ -9,6 +9,9 @@ change_log_bp = Blueprint("change_log", __name__, url_prefix="/api/change_log")
 
 @change_log_bp.get("/get/<int:id>")
 def get_change_log(id):
+    role = current_role()
+    if not role or role.title != "ADMIN":
+        return jsonify({"ok": False, "error": "Not authorized"}), 403
     # role = current_role()
     # if not role:
     #     return jsonify({"ok": False, "error": "Not signed in"}), 401
@@ -33,7 +36,9 @@ def get_change_log(id):
 
 @change_log_bp.get("/get")
 def list_all_change_logs():
-    # role = current_role()
+    role = current_role()
+    if not role or role.title != "ADMIN":
+        return jsonify({"ok": False, "error": "Not authorized"}), 403    # role = current_role()
     # if not role:
     #     return jsonify({"ok": False, "error": "Not signed in"}), 401
 

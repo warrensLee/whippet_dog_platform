@@ -269,38 +269,40 @@ def _earned_titles_response():
 def get_earned_titles():
     return _earned_titles_response()
 
-@dog_title_bp.get("/date-range")
-def get_titles_in_date_range():
-    return _earned_titles_response()
-    
-@dog_title_bp.get("/get")
-def get_all_dog_titles():
-    """Get all dog titles."""
-    # role = current_role()
-    # if not role:
-    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
+# UNUSED - no frontend calls
+# @dog_title_bp.get("/date-range")
+# def get_titles_in_date_range():
+#     return _earned_titles_response()
 
-    # deny = require_scope(role.view_dog_titles_scope, "view dog titles")
-    # if deny:
-    #     return deny
+# UNUSED - no frontend calls
+# @dog_title_bp.get("/get")
+# def get_all_dog_titles():
+#     """Get all dog titles."""
+#     # role = current_role()
+#     # if not role:
+#     #     return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    try:
-        # if role.view_dog_titles_scope == UserRole.ALL:
-        titles = DogTitle.list_all_dog_titles()
-        data = [t.to_dict() for t in titles]
-        return jsonify({"ok": True, "data": data}), 200
-        
-        # elif role.view_dog_titles_scope == UserRole.SELF:
-        #     pid = current_editor_id()
-        #     if not pid:
-        #         return jsonify({"ok": False, "error": "Not signed in"}), 401
-            
-        #     titles = DogTitle.list_titles_for_owner(pid)
-        #     data = [t.to_dict() for t in titles]
-        #     return jsonify({"ok": True, "data": data}), 200
-        
-        # else:
-        #     return jsonify({"ok": False, "error": "Not allowed to view dog titles"}), 403
-            
-    except Error as e:
-        return handle_error(e, "Database error")
+#     # deny = require_scope(role.view_dog_titles_scope, "view dog titles")
+#     # if deny:
+#     #     return deny
+
+#     try:
+#         # if role.view_dog_titles_scope == UserRole.ALL:
+#         titles = DogTitle.list_all_dog_titles()
+#         data = [t.to_dict() for t in titles]
+#         return jsonify({"ok": True, "data": data}), 200
+
+#         # elif role.view_dog_titles_scope == UserRole.SELF:
+#         #     pid = current_editor_id()
+#         #     if not pid:
+#         #         return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+#         #     titles = DogTitle.list_titles_for_owner(pid)
+#         #     data = [t.to_dict() for t in titles]
+#         #     return jsonify({"ok": True, "data": data}), 200
+
+#         # else:
+#         #     return jsonify({"ok": False, "error": "Not allowed to view dog titles"}), 403
+
+#     except Error as e:
+#         return handle_error(e, "Database error")

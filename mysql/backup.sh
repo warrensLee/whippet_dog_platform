@@ -8,7 +8,7 @@ echo "Starting backup at $TIMESTAMP"
 mysqldump \
   -h db \
   -u root \
-  -pdogs \
+  -p${MYSQL_ROOT_PASSWORD} \
   cwa_db | zstd -10 > "$BACKUP_FILE"
 
 if [ $? -eq 0 ]; then

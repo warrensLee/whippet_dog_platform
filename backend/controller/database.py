@@ -82,7 +82,7 @@ def zstd_wrapper(text_stream):
 def dump_database():
     try:
         role = current_role()
-        if role.title != "ADMIN":
+        if not role or role.title != "ADMIN":
             return jsonify({"ok": False, "error": "Not authorized to dump the database"}), 403
 
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
@@ -152,7 +152,7 @@ def restore_database():
             yield chunk
     try:
         role = current_role()
-        if role.title != "ADMIN":
+        if not role or role.title != "ADMIN":
             return jsonify({"ok": False, "error": "Not authorized to restore the database"}), 403
         restore_from_commands(iter_commands(zstd_decompression_wrapper(chunked_reader())))
         return jsonify({"ok": True}), 200 

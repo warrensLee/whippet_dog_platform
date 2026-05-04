@@ -64,11 +64,17 @@ def str_field(errors, value, name, *, max_length=None, required=False):
         errors.append(f"{name} must be {max_length} characters or less")
     return val
 
+def _escape_id(identifier):
+    """Escape a SQL identifier (table/column name) by wrapping in backticks"""
+    return "`" + str(identifier).replace("`", "``") + "`"
+
 def fk_exists(errors, value, name, table, column):
     """Check if foreign key exists"""
     if is_blank(value):
         return True
-    if not fetch_one(f"SELECT {column} FROM {table} WHERE {column} = %s", (s(value),)):
+    safe_table = _escape_id(table)
+    safe_column = _escape_id(column)
+    if not fetch_one(f"SELECT {safe_column} FROM {safe_table} WHERE {safe_column} = %s", (s(value),)):
         errors.append(f"{name} '{s(value)}' does not exist")
         return False
     return True

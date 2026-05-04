@@ -164,78 +164,79 @@ def remove_owner():
         return jsonify({"ok": False, "error": f"Database error: {e}"}), 500
 
 
-@dog_owner_bp.post("/transfer")
-def transfer_primary_ownership():
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
+# UNUSED - no frontend calls
+# @dog_owner_bp.post("/transfer")
+# def transfer_primary_ownership():
+#     role = current_role()
+#     if not role:
+#         return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.edit_dog_scope, "edit dog owners")
-    if deny:
-        return deny
+#     deny = require_scope(role.edit_dog_scope, "edit dog owners")
+#     if deny:
+#         return deny
 
-    data = request.get_json(silent=True) or {}
-    cwa_id = (data.get("cwaId") or "").strip()
-    new_owner_person_id = (data.get("newOwnerPersonId") or "").strip()
+#     data = request.get_json(silent=True) or {}
+#     cwa_id = (data.get("cwaId") or "").strip()
+#     new_owner_person_id = (data.get("newOwnerPersonId") or "").strip()
 
-    if not cwa_id or not new_owner_person_id:
-        return jsonify({"ok": False, "error": "cwaId and newOwnerPersonId are required"}), 400
+#     if not cwa_id or not new_owner_person_id:
+#         return jsonify({"ok": False, "error": "cwaId and newOwnerPersonId are required"}), 400
 
-    if role.edit_dog_scope == UserRole.SELF:
-        return jsonify({
-            "ok": False,
-            "error": "Transfer requires ALL permissions. You can only manage your own ownership."
-        }), 403
+#     if role.edit_dog_scope == UserRole.SELF:
+#         return jsonify({
+#             "ok": False,
+#             "error": "Transfer requires ALL permissions. You can only manage your own ownership."
+#         }), 403
 
-    if not fetch_one("SELECT 1 FROM Dog WHERE CWANumber = %s LIMIT 1", (cwa_id,)):
-        return jsonify({"ok": False, "error": "Dog does not exist"}), 404
+#     if not fetch_one("SELECT 1 FROM Dog WHERE CWANumber = %s LIMIT 1", (cwa_id,)):
+#         return jsonify({"ok": False, "error": "Dog does not exist"}), 404
 
-    if not fetch_one("SELECT 1 FROM Person WHERE ID = %s LIMIT 1", (new_owner_person_id,)):
-        return jsonify({"ok": False, "error": "Person does not exist"}), 404
+#     if not fetch_one("SELECT 1 FROM Person WHERE ID = %s LIMIT 1", (new_owner_person_id,)):
+#         return jsonify({"ok": False, "error": "Person does not exist"}), 404
 
-    try:
-        old_owners = DogOwner.list_for_dog(cwa_id)
-        before_owners = [{"cwaId": o.cwa_id, "personId": o.person_id} for o in old_owners if o]
+#     try:
+#         old_owners = DogOwner.list_for_dog(cwa_id)
+#         before_owners = [{"cwaId": o.cwa_id, "personId": o.person_id} for o in old_owners if o]
 
-        for old_owner in old_owners:
-            if old_owner:
-                ChangeLog.log(
-                    changed_table="DogOwner",
-                    record_pk=f"{old_owner.cwa_id}:{old_owner.person_id}",
-                    operation="DELETE",
-                    changed_by=current_editor_id(),
-                    source="api/dog_owner/transfer POST",
-                    before_obj=old_owner.to_dict(),
-                    after_obj=None,
-                )
+#         for old_owner in old_owners:
+#             if old_owner:
+#                 ChangeLog.log(
+#                     changed_table="DogOwner",
+#                     record_pk=f"{old_owner.cwa_id}:{old_owner.person_id}",
+#                     operation="DELETE",
+#                     changed_by=current_editor_id(),
+#                     source="api/dog_owner/transfer POST",
+#                     before_obj=old_owner.to_dict(),
+#                     after_obj=None,
+#                 )
 
-        DogOwner.delete_all_for_dog(cwa_id)
+#         DogOwner.delete_all_for_dog(cwa_id)
 
-        owner = DogOwner(
-            cwa_id=cwa_id,
-            person_id=new_owner_person_id,
-            last_edited_by=current_editor_id(),
-            last_edited_at=datetime.now(timezone.utc),
-        )
+#         owner = DogOwner(
+#             cwa_id=cwa_id,
+#             person_id=new_owner_person_id,
+#             last_edited_by=current_editor_id(),
+#             last_edited_at=datetime.now(timezone.utc),
+#         )
 
-        errors = owner.validate()
-        if errors:
-            return jsonify({"ok": False, "error": ", ".join(errors)}), 400
+#         errors = owner.validate()
+#         if errors:
+#             return jsonify({"ok": False, "error": ", ".join(errors)}), 400
 
-        owner.save()
+#         owner.save()
 
-        ChangeLog.log(
-            changed_table="DogOwner",
-            record_pk=cwa_id,
-            operation="TRANSFER",
-            changed_by=current_editor_id(),
-            source="api/dog_owner/transfer POST",
-            before_obj={"owners": before_owners},
-            after_obj={"owners": [{"cwaId": cwa_id, "personId": new_owner_person_id}]},
-        )
+#         ChangeLog.log(
+#             changed_table="DogOwner",
+#             record_pk=cwa_id,
+#             operation="TRANSFER",
+#             changed_by=current_editor_id(),
+#             source="api/dog_owner/transfer POST",
+#             before_obj={"owners": before_owners},
+#             after_obj={"owners": [{"cwaId": cwa_id, "personId": new_owner_person_id}]},
+#         )
 
-        owners = list_owner_people_for_dog(cwa_id)
-        return jsonify({"ok": True, "data": {"cwaId": cwa_id, "owners": owners}}), 200
+#         owners = list_owner_people_for_dog(cwa_id)
+#         return jsonify({"ok": True, "data": {"cwaId": cwa_id, "owners": owners}}), 200
 
-    except Error as e:
-        return jsonify({"ok": False, "error": f"Database error: {e}"}), 500
+#     except Error as e:
+#         return jsonify({"ok": False, "error": f"Database error: {e}"}), 500
