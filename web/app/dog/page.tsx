@@ -202,7 +202,7 @@ function DogPage() {
           </div>
 
           <div className="grid grid-cols-1 gap-6">
-            <Card title="Details" className="h-full lg:col-span-2">
+            <Card title="Details" className="h-full lg:col-span-3">
               {loading ? (
                 <p className="text-sm text-[#12301D]/40">Loading…</p>
               ) : dog ? (

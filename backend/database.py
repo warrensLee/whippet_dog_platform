@@ -1,20 +1,24 @@
 import os
 import time
-import mysql.connector 
+import mysql.connector
+import mysql.connector.pooling
 from mysql.connector import Error
 
-connection = mysql.connector.connect(
-        host=os.getenv("DB_HOST", "db"),
-        user=os.getenv("DB_USER", "root"),
-        password=os.getenv("DB_PASSWORD", "dogs"),
-        database=os.getenv("DB_NAME", "cwa_db"),
-        autocommit=True,
-        connect_timeout=10,
-        use_pure=True,
-    )
+connection_pool = mysql.connector.pooling.MySQLConnectionPool(
+    pool_name="whippet_pool",
+    pool_size=10,
+    pool_reset_session=True,
+    host=os.getenv("DB_HOST", "db"),
+    user=os.getenv("DB_USER", "root"),
+    password=os.getenv("DB_PASSWORD", "dogs"),
+    database=os.getenv("DB_NAME", "cwa_db"),
+    autocommit=True,
+    connect_timeout=10,
+    use_pure=True,
+)
 
 def get_conn():
-    return connection
+    return connection_pool.get_connection()
 
 def fetch_all(sql: str, params=()):
     start = time.time()
@@ -29,6 +33,7 @@ def fetch_all(sql: str, params=()):
         return result
     finally:
         cur.close()
+        conn.close()
 
 def fetch_one(sql: str, params=()):
     start = time.time()
@@ -43,6 +48,7 @@ def fetch_one(sql: str, params=()):
         return result
     finally:
         cur.close()
+        conn.close()
 
 
 def execute(sql: str, params=(), *, return_lastrowid: bool = False):
@@ -61,6 +67,7 @@ def execute(sql: str, params=(), *, return_lastrowid: bool = False):
         return cur.rowcount
     finally:
         cur.close()
+        conn.close()
 
 
 def execute_many(sql: str, param_list):
@@ -71,3 +78,4 @@ def execute_many(sql: str, param_list):
         return cur.rowcount
     finally:
         cur.close()
+        conn.close()
