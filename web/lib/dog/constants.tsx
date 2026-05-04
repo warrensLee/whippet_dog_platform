@@ -53,7 +53,7 @@ export const TITLE_FAMILIES: TitleFamily[] = [
     family: "TRP",
     description: "Title of Racing Proficiency — complete all 4 heats at 10 meets",
     unit: "meets",
-    getValue: (dog: DogDetail) => dog.meetAppearences ?? 0,
+    getValue: (dog: DogDetail) => dog.adjustedMeetAppearances ?? dog.meetAppearences ?? 0,
     tiers: [{ name: "TRP", threshold: 10, color: "blue" }],
   },
   {
@@ -101,17 +101,17 @@ export const TITLE_FAMILIES: TitleFamily[] = [
         dog.dpcLegs ?? 0,
         dog.adjustedDpcPoints ?? dog.dpcPoints ?? 0
       ),
-        tiers: [
+    tiers: [
       { name: "DPC", threshold: 5, color: "blue" },
     ],
     extraCheck: (dog: DogDetail) =>
-      (dog.meetAppearences ?? 0) >= 10 ? null : "Requires TRP first",
+      (dog.adjustedMeetAppearances ?? dog.meetAppearences ?? 0) >= 10 ? null : "Requires TRP first",
   },
   {
     family: "HC",
     description: "High Combined — wins High Combined at meets (adult dogs only)",
     unit: "HC wins",
-    getValue: (dog: DogDetail) => dog.highCombinedWins ?? 0,
+    getValue: (dog: DogDetail) => dog.adjustedHighCombinedWins ?? dog.highCombinedWins ?? 0,
     tiers: [
       { name: "HC", threshold: 5, color: "yellow" },
       { name: "HCX", threshold: 10, color: "blue" },

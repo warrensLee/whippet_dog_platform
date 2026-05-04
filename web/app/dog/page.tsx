@@ -195,10 +195,10 @@ function DogPage() {
       <section className="bg-[#E7F0E9] pb-24 pt-10">
         <div className="mx-auto max-w-4xl space-y-6 px-6">
           <div className="flex flex-wrap gap-6">
-            <StatPill label="Completed Meets" value={dog?.meetAppearences ?? "—"} />
-            <StatPill label="Meet Wins" value={dog?.meetWins ?? "—"} />
+            <StatPill label="Completed Meets" value={dog?.adjustedMeetAppearances ?? dog?.meetAppearences ?? "—"} />
+            <StatPill label="Meet Wins" value={dog?.adjustedMeetWins ?? dog?.meetWins ?? "—"} />
             <StatPill label="YTD Match Points" value={dog?.ytdMatchPoints ?? "—"} accent />
-            <StatPill label="High Combined Wins" value={dog?.highCombinedWins ?? "—"} />
+            <StatPill label="High Combined Wins" value={dog?.adjustedHighCombinedWins ?? dog?.highCombinedWins ?? "—"} />
           </div>
 
           <div className="grid grid-cols-1 gap-6">
@@ -390,22 +390,10 @@ function DogPage() {
               </div>
             </div>
           )}
-                    
+
           {dog && (
             <Card title="DPC Progress">
-              <FieldRow
-                label="Completed"
-                value={
-                  Math.max(
-                    dog.dpcLegs ?? 0,
-                    dog.adjustedDpcPoints ?? dog.dpcPoints ?? 0
-                  ) >= 5 || titles.some((t) => String(t.title).toUpperCase().startsWith("DPC"))
-                    ? "Yes"
-                    : "No"
-                }
-              />
-
-              <FieldRow label="Historic DPC Legs" value={`${dog.dpcLegs ?? 0} / 5`} />
+              <FieldRow label="Historic DPC Legs" value={`${dog.adjustedDPCLegs ?? dog.dpcLegs ?? 0} / 5`} />
               <FieldRow label="DPC Points" value={dog.adjustedDpcPoints ?? dog.dpcPoints ?? 0} />
               <p className="mt-2 text-xs text-[#12301D]/60">
                 Historic dogs may qualify through DPC legs. Current progression also tracks DPC points.

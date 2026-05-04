@@ -257,7 +257,7 @@ export default function TitleFamilyCard({
           {family.family === "DPC" && (
             <div className="mt-4 border-t border-black/8 pt-3">
               <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-[#12301D]/40">
-                Conformation Legs ({dog.dpcLegs ?? 0} / 5)
+                Conformation Legs ({dog.adjustedDPCLegs ?? dog.dpcLegs ?? 0} / 5)
               </p>
 
               <div className="flex gap-1.5">
@@ -265,7 +265,7 @@ export default function TitleFamilyCard({
                   <div
                     key={leg}
                     className={`h-2.5 flex-1 rounded-full ${
-                      (dog.dpcLegs ?? 0) >= leg ? "bg-[#2E6B3F]" : "bg-black/10"
+                      (dog.adjustedDPCLegs ?? dog.dpcLegs ?? 0) >= leg ? "bg-[#2E6B3F]" : "bg-black/10"
                     }`}
                   />
                 ))}

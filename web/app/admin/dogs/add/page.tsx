@@ -13,10 +13,19 @@ import AuthGuard from "@/lib/auth/authGuard";
     Builds a clean payload from the current form state before sending
     the create request to the backend.
 
-    This keeps trimming and formatting logic in one place instead of
-    stuffing it all directly into the submit handler.
+    Manual adjustments are auto-calculated as the difference between
+    the user-entered value and the original base value (0 for new dogs).
 */
 function buildCreatePayload(form: DogFormValues): DogFormValues {
+    function num(v: string): number {
+        const n = parseFloat(v);
+        return isNaN(n) ? 0 : n;
+    }
+
+    function adj(current: string): string {
+        return String(num(current));
+    }
+
     return {
         cwaNumber: form.cwaNumber.trim(),
         currentGrade: form.currentGrade.trim(),
@@ -38,15 +47,19 @@ function buildCreatePayload(form: DogFormValues): DogFormValues {
         showPoints: form.showPoints.trim(),
         dpcPoints: form.dpcPoints.trim(),
         dpcLegs: form.dpcLegs.trim(),
-        manualMeetPointsAdjustment: form.manualMeetPointsAdjustment.trim(),
-        manualArxPointsAdjustment: form.manualArxPointsAdjustment.trim(),
-        manualNarxPointsAdjustment: form.manualNarxPointsAdjustment.trim(),
-        manualShowPointsAdjustment: form.manualShowPointsAdjustment.trim(),
-        manualDpcPointsAdjustment: form.manualDpcPointsAdjustment.trim(),
+        manualMeetPointsAdjustment: adj(form.meetPoints),
+        manualArxPointsAdjustment: adj(form.arxPoints),
+        manualNarxPointsAdjustment: adj(form.narxPoints),
+        manualShowPointsAdjustment: adj(form.showPoints),
+        manualDpcPointsAdjustment: adj(form.dpcPoints),
+        manualMeetAppearancesAdjustment: adj(form.meetAppearences),
+        manualMeetWinsAdjustment: adj(form.meetWins),
+        manualDPCLegsAdjustment: adj(form.dpcLegs),
+        manualHighCombinedWinsAdjustment: adj(form.highCombinedWins),
+        kennelClubChampion: form.kennelClubChampion,
         meetWins: form.meetWins.trim(),
         meetAppearences: form.meetAppearences.trim(),
         highCombinedWins: form.highCombinedWins.trim(),
-        kennelClubChampion: form.kennelClubChampion
     };
 }
 

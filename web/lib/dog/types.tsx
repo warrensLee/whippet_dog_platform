@@ -24,6 +24,14 @@ export interface DogDetail {
   manualNarxPointsAdjustment?: number | null;
   manualShowPointsAdjustment?: number | null;
   manualDpcPointsAdjustment?: number | null;
+  manualMeetAppearancesAdjustment?: number | null;
+  manualMeetWinsAdjustment?: number | null;
+  manualDPCLegsAdjustment?: number | null;
+  manualHighCombinedWinsAdjustment?: number | null;
+  adjustedMeetAppearances?: number | null;
+  adjustedMeetWins?: number | null;
+  adjustedDPCLegs?: number | null;
+  adjustedHighCombinedWins?: number | null;
   dpcLegs?: number | null;
   meetWins?: number | null;
   meetAppearences?: number | null;

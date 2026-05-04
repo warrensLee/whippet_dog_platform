@@ -74,7 +74,7 @@ type SelectFieldProps =
         placeholder?: string;
         className?: string;
     };
-    
+
 function FieldLabel({ label }: { label: string }) {
     const required = label.endsWith(" *");
     const cleanLabel = required ? label.slice(0, -2) : label;
@@ -310,98 +310,77 @@ export default function DogForm
                 field: "damDna",
             },
             {
-                label: "Meet Points",
-                field: "meetPoints",
-                type: "number",
-            },
-            {
-                label: "ARX Points",
-                field: "arxPoints",
-                type: "number",
-            },
-            {
-                label: "NARX Points",
-                field: "narxPoints",
-                type: "number",
-            },
-            {
-                label: "Show Points",
-                field: "showPoints",
-                type: "number",
-            },
-            {
-                label: "DPC Points",
-                field: "dpcPoints",
-                type: "number",
-            },
-            {
-                label: "DPC Legs",
-                field: "dpcLegs",
-                type: "number",
-            },
-            {
-                label: "Meet Wins",
-                field: "meetWins",
-                type: "number",
-            },
-            {
-                label: "Meet Appearences",
-                field: "meetAppearences",
-                type: "number",
-            },
-            {
-                label: "High Combined Wins",
-                field: "highCombinedWins",
-                type: "number",
-            },
-            {
                 label: "Registry Type",
                 field: "foreignType",
             },
         ];
 
-    const manualAdjustmentFields:
+    /*
+        Score fields that support manual adjustments. Each entry maps to its
+        corresponding manual*Adjustment field for display.
+    */
+    const scoreFields:
         Array<
             {
                 label: string;
                 field: keyof DogFormValues;
-                type?: string;
+                adjustmentField: keyof DogFormValues;
             }
         > =
         [
             {
-                label: "Meet Points Adjustment",
-                field: "manualMeetPointsAdjustment",
-                type: "number",
+                label: "Meet Points",
+                field: "meetPoints",
+                adjustmentField: "manualMeetPointsAdjustment",
             },
             {
-                label: "ARX Points Adjustment",
-                field: "manualArxPointsAdjustment",
-                type: "number",
+                label: "ARX Points",
+                field: "arxPoints",
+                adjustmentField: "manualArxPointsAdjustment",
             },
             {
-                label: "NARX Points Adjustment",
-                field: "manualNarxPointsAdjustment",
-                type: "number",
+                label: "NARX Points",
+                field: "narxPoints",
+                adjustmentField: "manualNarxPointsAdjustment",
             },
             {
-                label: "Show Points Adjustment",
-                field: "manualShowPointsAdjustment",
-                type: "number",
+                label: "Show Points",
+                field: "showPoints",
+                adjustmentField: "manualShowPointsAdjustment",
             },
             {
-                label: "DPC Points Adjustment",
-                field: "manualDpcPointsAdjustment",
-                type: "number",
+                label: "DPC Points",
+                field: "dpcPoints",
+                adjustmentField: "manualDpcPointsAdjustment",
+            },
+            {
+                label: "DPC Legs",
+                field: "dpcLegs",
+                adjustmentField: "manualDPCLegsAdjustment",
+            },
+            {
+                label: "Meet Wins",
+                field: "meetWins",
+                adjustmentField: "manualMeetWinsAdjustment",
+            },
+            {
+                label: "Meet Appearences",
+                field: "meetAppearences",
+                adjustmentField: "manualMeetAppearancesAdjustment",
+            },
+            {
+                label: "High Combined Wins",
+                field: "highCombinedWins",
+                adjustmentField: "manualHighCombinedWinsAdjustment",
             },
         ];
 
     return (
-            <form
-                id="dog-form"
-                onSubmit={onSubmit}
-                className="rounded-3xl border border-black/10 bg-white/90 backdrop-blur p-6 md:p-8 shadow-sm"
-            >
+        <form
+            id="dog-form"
+            onSubmit={onSubmit}
+            className="rounded-3xl border border-black/10 bg-white/90 backdrop-blur p-6 md:p-8 shadow-sm"
+        >
             {/* 
                 Main grid for the form.
                 One column on smaller screens, two columns on medium+.
@@ -435,6 +414,30 @@ export default function DogForm
                                         placeholder={fieldConfig.placeholder}
                                         type={fieldConfig.type}
                                     />
+                                );
+                            }
+                        )
+                }
+
+                {/* Render score/adjustable fields with manual adjustment shown below */}
+                {
+                    scoreFields.map
+                        (
+                            (fieldConfig) => {
+                                const adjustmentValue = values[fieldConfig.adjustmentField] as unknown as number;
+                                return (
+                                    <div key={String(fieldConfig.field)}>
+                                        <InputField
+                                            label={fieldConfig.label}
+                                            field={fieldConfig.field}
+                                            value={values[fieldConfig.field] as string}
+                                            onChange={onChange}
+                                            type="number"
+                                        />
+                                        <div className="mt-1.5 text-xs text-gray-500">
+                                            Manual adjustment: {values[fieldConfig.field] as unknown as number - adjustmentValue}
+                                        </div>
+                                    </div>
                                 );
                             }
                         )
@@ -482,22 +485,6 @@ export default function DogForm
                             Kennel Club Champion
                         </span>
                     </div>
-                </div>
-            </div>
-
-            <div className="mt-8 rounded-2xl border border-black/10 bg-[#F8FBF9] p-5">
-                <h3 className="text-sm font-bold text-[#12301D]">Manual Point Adjustments</h3>
-                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-5">
-                    {manualAdjustmentFields.map((fieldConfig) => (
-                        <InputField
-                            key={String(fieldConfig.field)}
-                            label={fieldConfig.label}
-                            field={fieldConfig.field}
-                            value={values[fieldConfig.field] as string}
-                            onChange={onChange}
-                            type={fieldConfig.type}
-                        />
-                    ))}
                 </div>
             </div>
 

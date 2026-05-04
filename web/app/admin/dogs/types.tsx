@@ -56,6 +56,10 @@ export type DogFormValues =
     manualNarxPointsAdjustment: string;
     manualShowPointsAdjustment: string;
     manualDpcPointsAdjustment: string;
+    manualMeetAppearancesAdjustment: string;
+    manualMeetWinsAdjustment: string;
+    manualDPCLegsAdjustment: string;
+    manualHighCombinedWinsAdjustment: string;
   };
 
 export type DogListItem =
@@ -110,4 +114,8 @@ export const emptyDogFormValues: DogFormValues =
   manualNarxPointsAdjustment: "0",
   manualShowPointsAdjustment: "0",
   manualDpcPointsAdjustment: "0",
+  manualMeetAppearancesAdjustment: "0",
+  manualMeetWinsAdjustment: "0",
+  manualDPCLegsAdjustment: "0",
+  manualHighCombinedWinsAdjustment: "0",
 };

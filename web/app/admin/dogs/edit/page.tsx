@@ -71,9 +71,22 @@ type RawDogGetResponse = {
         manualNarxPointsAdjustment?: string | null;
         manualShowPointsAdjustment?: string | null;
         manualDpcPointsAdjustment?: string | null;
+        manualMeetAppearancesAdjustment?: string | null;
+        manualMeetWinsAdjustment?: string | null;
+        manualDPCLegsAdjustment?: string | null;
+        manualHighCombinedWinsAdjustment?: string | null;
         meetWins?: string | null;
         meetAppearences?: string | null;
         highCombinedWins?: string | null;
+        adjustedArxPoints?: string | null;
+        adjustedDPCLegs?: string | null;
+        adjustedDpcPoints?: string | null;
+        adjustedHighCombinedWins?: string | null;
+        adjustedMeetAppearances?: string | null;
+        adjustedMeetPoints?: string | null;
+        adjustedMeetWins?: string | null;
+        adjustedNarxPoints?: string | null;
+        adjustedShowPoints?: string | null;
     };
     error?: string;
 };
@@ -98,28 +111,45 @@ function buildFormFromDog(data: NonNullable<RawDogGetResponse["data"]>): DogForm
         dna: normalizeText(data.dna),
         sireDna: normalizeText(data.sireDna),
         damDna: normalizeText(data.damDna),
-        meetPoints: normalizeText(data.meetPoints),
-        arxPoints: normalizeText(data.arxPoints),
-        narxPoints: normalizeText(data.narxPoints),
-        showPoints: normalizeText(data.showPoints),
+        meetPoints: normalizeText(data.adjustedMeetPoints),
+        arxPoints: normalizeText(data.adjustedArxPoints),
+        narxPoints: normalizeText(data.adjustedNarxPoints),
+        showPoints: normalizeText(data.adjustedShowPoints),
         dpcPoints: normalizeText(data.dpcPoints),
-        dpcLegs: normalizeText(data.dpcLegs),
-        manualMeetPointsAdjustment: normalizeText(data.manualMeetPointsAdjustment),
-        manualArxPointsAdjustment: normalizeText(data.manualArxPointsAdjustment),
-        manualNarxPointsAdjustment: normalizeText(data.manualNarxPointsAdjustment),
-        manualShowPointsAdjustment: normalizeText(data.manualShowPointsAdjustment),
-        manualDpcPointsAdjustment: normalizeText(data.manualDpcPointsAdjustment),
+        dpcLegs: normalizeText(data.adjustedDPCLegs),
+        manualMeetPointsAdjustment: normalizeText(data.meetPoints),
+        manualArxPointsAdjustment: normalizeText(data.arxPoints),
+        manualNarxPointsAdjustment: normalizeText(data.narxPoints),
+        manualShowPointsAdjustment: normalizeText(data.showPoints),
+        manualDpcPointsAdjustment: normalizeText(data.dpcPoints),
+        manualMeetAppearancesAdjustment: normalizeText(data.meetAppearences),
+        manualMeetWinsAdjustment: normalizeText(data.meetWins),
+        manualDPCLegsAdjustment: normalizeText(data.dpcLegs),
+        manualHighCombinedWinsAdjustment: normalizeText(data.highCombinedWins),
         kennelClubChampion: data.kennelClubChampion,
-        meetWins: normalizeText(data.meetWins),
-        meetAppearences: normalizeText(data.meetAppearences),
-        highCombinedWins: normalizeText(data.highCombinedWins),
+        meetWins: normalizeText(data.adjustedMeetWins),
+        meetAppearences: normalizeText(data.adjustedMeetAppearances),
+        highCombinedWins: normalizeText(data.adjustedHighCombinedWins),
     };
 }
 
 /*
-    Cleans form state before sending it to the backend.
+    Cleans form state and computes manual adjustments before
+    sending the update payload to the backend.
+
+    Adjustments are calculated as the difference between the
+    current form value and the original database value.
 */
 function buildEditPayload(form: DogFormValues): DogFormValues {
+    function num(v: string): number {
+        const n = parseFloat(v);
+        return isNaN(n) ? 0 : n;
+    }
+
+    function adj(current: string, original: string): string {
+        return String(num(current) - num(original));
+    }
+
     return {
         cwaNumber: form.cwaNumber.trim(),
         currentGrade: form.currentGrade.trim(),
@@ -135,21 +165,25 @@ function buildEditPayload(form: DogFormValues): DogFormValues {
         dna: form.dna.trim(),
         sireDna: form.sireDna.trim(),
         damDna: form.damDna.trim(),
-        meetPoints: form.meetPoints.trim(),
-        arxPoints: form.arxPoints.trim(),
-        narxPoints: form.narxPoints.trim(),
-        showPoints: form.showPoints.trim(),
-        dpcPoints: form.dpcPoints.trim(),
-        dpcLegs: form.dpcLegs.trim(),
-        manualMeetPointsAdjustment: form.manualMeetPointsAdjustment.trim(),
-        manualArxPointsAdjustment: form.manualArxPointsAdjustment.trim(),
-        manualNarxPointsAdjustment: form.manualNarxPointsAdjustment.trim(),
-        manualShowPointsAdjustment: form.manualShowPointsAdjustment.trim(),
-        manualDpcPointsAdjustment: form.manualDpcPointsAdjustment.trim(),
+        meetPoints: form.manualMeetPointsAdjustment.trim(),
+        arxPoints: form.manualArxPointsAdjustment.trim(),
+        narxPoints: form.manualNarxPointsAdjustment.trim(),
+        showPoints: form.manualShowPointsAdjustment.trim(),
+        dpcPoints: form.manualDpcPointsAdjustment.trim(),
+        dpcLegs: form.manualDPCLegsAdjustment.trim(),
+        manualMeetPointsAdjustment: adj(form.meetPoints, form.manualMeetPointsAdjustment),
+        manualArxPointsAdjustment: adj(form.arxPoints, form.manualArxPointsAdjustment),
+        manualNarxPointsAdjustment: adj(form.narxPoints, form.manualNarxPointsAdjustment),
+        manualShowPointsAdjustment: adj(form.showPoints, form.manualShowPointsAdjustment),
+        manualDpcPointsAdjustment: adj(form.dpcPoints, form.manualDpcPointsAdjustment),
+        manualMeetAppearancesAdjustment: adj(form.meetAppearences, form.manualMeetAppearancesAdjustment),
+        manualMeetWinsAdjustment: adj(form.meetWins, form.manualMeetWinsAdjustment),
+        manualDPCLegsAdjustment: adj(form.dpcLegs, form.manualDPCLegsAdjustment),
+        manualHighCombinedWinsAdjustment: adj(form.highCombinedWins, form.manualHighCombinedWinsAdjustment),
         kennelClubChampion: form.kennelClubChampion,
-        meetWins: form.meetWins.trim(),
-        meetAppearences: form.meetAppearences.trim(),
-        highCombinedWins: form.highCombinedWins.trim(),
+        meetWins: form.manualMeetWinsAdjustment.trim(),
+        meetAppearences: form.manualMeetAppearancesAdjustment.trim(),
+        highCombinedWins: form.manualHighCombinedWinsAdjustment.trim(),
     };
 }
 
@@ -178,7 +212,6 @@ function EditDogPage() {
     const [error, setError] = React.useState("");
     const [success, setSuccess] = React.useState("");
     const [form, setForm] = React.useState<DogFormValues>(emptyDogFormValues);
-    const [initialForm, setInitialForm] = React.useState<DogFormValues>(emptyDogFormValues);
 
     /*
         After authorization succeeds, load the dog record that matches
@@ -219,7 +252,6 @@ function EditDogPage() {
                 const nextForm = buildFormFromDog(json.data);
 
                 setForm(nextForm);
-                setInitialForm(nextForm);
             } catch (e) {
                 if (!cancelled) {
                     setError(
@@ -256,11 +288,7 @@ function EditDogPage() {
         }
     }
 
-    function handleResetForm() {
-        setForm(initialForm);
-        setError("");
-        setSuccess("");
-    }
+
 
     /*
         Handles form submission and sends the cleaned payload
@@ -293,7 +321,6 @@ function EditDogPage() {
             const cleanedForm = buildEditPayload(form);
 
             setForm(cleanedForm);
-            setInitialForm(cleanedForm);
             setSuccess("Dog information updated successfully.");
         } catch (e) {
             setError(
@@ -379,15 +406,6 @@ function EditDogPage() {
                             </div>
 
                             <div className="flex flex-wrap gap-3">
-                                <button
-                                    type="button"
-                                    onClick={handleResetForm}
-                                    disabled={loading || saving}
-                                    className="rounded-full border border-[#12301D]/15 bg-white px-5 py-2.5 text-sm font-semibold text-[#12301D] transition hover:bg-[#12301D]/5 disabled:opacity-50"
-                                >
-                                    Reset Changes
-                                </button>
-
                                 <button
                                     type="button"
                                     onClick={() => router.back()}
