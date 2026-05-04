@@ -298,3 +298,44 @@ def download_dogs_csv(meet_number):
         return response
     except Error as e:        
         return handle_error(e, "Database error")
+
+@meet_bp.get("/grading_guide.csv")
+def get_grading_guide():
+    try:
+        rows = fetch_all(
+            """
+            SELECT DISTINCT
+                Dog.CWANumber,
+                Dog.CallName,
+                Dog.RegisteredName,
+                Dog.CurrentGrade,
+                COALESCE(Dog.Average, 0) AS Average,
+                COALESCE(Dog.MeetPoints, 0) AS MeetPoints,
+                COALESCE(Dog.ARXPoints, 0) AS ARXPoints,
+                COALESCE(Dog.NARXPoints, 0) AS NARXPoints,
+                COALESCE(Dog.DPCPoints, 0) AS DPCPoints,
+                COALESCE(Dog.HighCombinedWins, 0) AS HighCombinedWins,
+                GROUP_CONCAT(DogTitles.Title ORDER BY DogTitles.Title SEPARATOR ', ') AS Titles
+            FROM Dog
+            INNER JOIN MeetResults ON Dog.CWANumber = MeetResults.CWANumber
+            LEFT JOIN DogTitles ON Dog.CWANumber = DogTitles.CWANumber
+            GROUP BY Dog.CWANumber, Dog.CallName, Dog.RegisteredName, Dog.CurrentGrade,
+                     Dog.Average, Dog.MeetPoints, Dog.ARXPoints, Dog.NARXPoints,
+                     Dog.DPCPoints, Dog.HighCombinedWins
+            ORDER BY Dog.CWANumber
+            """
+        )
+
+        if not rows:
+            return Response("", mimetype="text/csv")
+        
+        output = io.StringIO()
+        writer = csv.DictWriter(output, fieldnames=rows[0].keys())
+        writer.writeheader()
+        writer.writerows(rows)
+        
+        response = Response(output.getvalue(), mimetype="text/csv")
+        response.headers["Content-Disposition"] = f'attachment; filename="grading_guide.csv"'
+        return response
+    except Error as e:        
+        return handle_error(e, "Database error")

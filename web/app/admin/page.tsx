@@ -102,6 +102,29 @@ export default function Admin() {
               <div className="flex flex-column">
                 <Link href="/admin/titles" className="block rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">View Earned Titles</Link>
                 <Link href="/admin/dogs" className="block rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Manage Dogs</Link>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      const res = await fetch("/api/meet/grading_guide.csv", { credentials: "include" });
+                      if (!res.ok) throw new Error(`Request failed (${res.status})`);
+                      const blob = await res.blob();
+                      const url = window.URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = "grading_guide.csv";
+                      document.body.appendChild(a);
+                      a.click();
+                      window.URL.revokeObjectURL(url);
+                      document.body.removeChild(a);
+                    } catch (e: unknown) {
+                      alert(e instanceof Error ? e.message : "Failed to download grading guide.");
+                    }
+                  }}
+                  className="block rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1"
+                >
+                  Download Grading Guide
+                </button>
               </div>
             </Paper>
           </AuthGuard>
