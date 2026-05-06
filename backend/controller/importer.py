@@ -27,6 +27,7 @@ def import_csv():
 
     import_type = (request.args.get("type") or "dogs").strip().lower()
     mode = (request.args.get("mode") or "insert").strip().lower()
+    use_adjustment = request.args.get("useAdjustment", "false").strip().lower() == "true"
 
     #TODO: the below if statement can be refactored to be better 
     if import_type == "dogs":
@@ -73,6 +74,7 @@ def import_csv():
             f,
             import_type=import_type,
             mode=mode,
+            use_adjustment=use_adjustment,
         )
         return jsonify({"ok": True, "report": report}), 200
 

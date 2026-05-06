@@ -315,14 +315,13 @@ def get_person(person_id: str):
     role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    #if role.title != "ADMIN":
-    #    return jsonify({"ok": False, "error": "Not authorized to view people"}), 403
-    #TODO: check for correct permissions
     person = Person.find_by_identifier(person_id)
     if not person:
         return jsonify({"ok": False, "error": "Person does not exist"}), 404
 
+    if role.title != "ADMIN" and not _is_self(person):
+        return jsonify({"ok": False, "error": "Not authorized "}), 403
+    
     return jsonify({"ok": True, "data": person.to_dict()}), 200
 
 @person_bp.get("/public/<person_id>")

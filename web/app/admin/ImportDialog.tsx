@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Paper,
@@ -13,6 +13,8 @@ import {
   CircularProgress,
   Divider,
   IconButton,
+  Switch,
+  FormControlLabel,
 } from "@mui/material";
 
 import { Close } from "@mui/icons-material"
@@ -28,6 +30,7 @@ type ImportReport = {
   skipped: number;
   failed: number;
   mode: string;
+  useAdjustment?: boolean;
   rowErrors: RowError[];
 };
 
@@ -48,11 +51,16 @@ export default function ImportCSV({ onSuccess, onFail, onCancel }: { onSuccess: 
   const [file, setFile] = useState<File | null>(null);
   const [type, setType] = useState(TYPE_OPTIONS[0]);
   const [mode, setMode] = useState<"insert" | "update">("insert");
+  const [useAdjustment, setUseAdjustment] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<ImportReport | null>(null);
 
   const canSubmit = useMemo(() => !!file && !loading, [file, loading]);
+
+  useEffect(() => {
+    setUseAdjustment(false);
+  }, [type]);
 
   const onSubmit = async () => {
     setError(null);
@@ -66,7 +74,7 @@ export default function ImportCSV({ onSuccess, onFail, onCancel }: { onSuccess: 
     const form = new FormData();
     form.append("file", file);
 
-    const qs = new URLSearchParams({ type, mode });
+    const qs = new URLSearchParams({ type, mode, useAdjustment: String(useAdjustment) });
 
     setLoading(true);
     try {
@@ -153,6 +161,18 @@ export default function ImportCSV({ onSuccess, onFail, onCancel }: { onSuccess: 
           </FormControl>
         </Box>
 
+        {type === "dogs" && (
+          <FormControlLabel
+            control={
+              <Switch
+                checked={useAdjustment}
+                onChange={(e) => setUseAdjustment(e.target.checked)}
+              />
+            }
+            label="Import scores as adjustments"
+          />
+        )}
+
         <Box>
           <button type="button" disabled={!canSubmit} onClick={onSubmit} className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60 w-full">
             {loading ? "Importing..." : "Upload & Import"}
@@ -167,7 +187,7 @@ export default function ImportCSV({ onSuccess, onFail, onCancel }: { onSuccess: 
         <Paper sx={{ p: 2 }}>
           <Typography variant="h6">Result</Typography>
           <Typography variant="body2" sx={{ mt: 1 }}>
-            File: {report.file} | Type: {report.type} | Mode: {report.mode}
+            File: {report.file} | Type: {report.type} | Mode: {report.mode}{report.useAdjustment ? " | Scores as adjustments: Yes" : ""}
           </Typography>
 
           <Divider sx={{ my: 2 }} />

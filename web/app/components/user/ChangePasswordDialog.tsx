@@ -96,7 +96,7 @@ export default function ChangePasswordDialog({
         <button
           type="button"
           onClick={handleSave}
-          disabled={saving && !passwordRequirementsMet}
+          disabled={saving || !passwordRequirementsMet}
           className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60"
         >
           {saving ? 'Resetting...' : 'Reset Password'}

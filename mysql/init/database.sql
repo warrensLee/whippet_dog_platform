@@ -203,6 +203,42 @@ CREATE TABLE RegistrationInvite (
 );
 
 -- =========================
+-- INDEXES
+-- =========================
+
+-- High-frequency query filters on large tables
+CREATE INDEX idx_meetresults_cwanumber ON MeetResults(CWANumber);
+CREATE INDEX idx_raceresults_cwanumber ON RaceResults(CWANumber);
+CREATE INDEX idx_raceresults_meetnumber ON RaceResults(MeetNumber);
+
+-- Composite indexes for common lookups
+CREATE INDEX idx_meetresults_meetnumber_cwanumber ON MeetResults(MeetNumber, CWANumber);
+CREATE INDEX idx_raceresults_program_race ON RaceResults(MeetNumber, CWANumber, Program, RaceNumber);
+CREATE INDEX idx_dogtitles_cwanumber ON DogTitles(CWANumber);
+
+-- Dog search and owner lookups
+CREATE INDEX idx_dogowner_cwanumber ON DogOwner(CWAID);
+CREATE INDEX idx_dogowner_personid ON DogOwner(PersonID);
+CREATE INDEX idx_person_email ON Person(EmailAddress);
+CREATE INDEX idx_person_role ON Person(SystemRole);
+
+-- Meet filtering
+CREATE INDEX idx_meet_club_date_location ON Meet(ClubAbbreviation, MeetDate, Location);
+CREATE INDEX idx_meetdate ON Meet(MeetDate);
+CREATE INDEX idx_meet_completed ON Meet(Completed);
+
+-- HC wins and placement calculations
+CREATE INDEX idx_meetresults_placement ON MeetResults(MeetPlacement);
+CREATE INDEX idx_meetresults_meet_placement_conf ON MeetResults(MeetNumber, MeetPlacement, ConformationPlacement);
+CREATE INDEX idx_raceresults_placement ON RaceResults(MeetNumber, CWANumber, Placement);
+
+-- Audit and auth
+CREATE INDEX idx_changelog_changedby ON ChangeLog(ChangedBy);
+CREATE INDEX idx_changelog_changedat ON ChangeLog(ChangedAt DESC);
+CREATE INDEX idx_passwordreset_token ON PasswordResetToken(Token, Used, ExpiresAt);
+CREATE INDEX idx_reginvite_token ON RegistrationInvite(Token, Used, ExpiresAt);
+
+-- =========================
 -- FOREIGN KEYS
 -- =========================
 

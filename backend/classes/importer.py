@@ -15,6 +15,18 @@ from database import fetch_one
 
 
 class CsvImporter:
+    SCORE_ADJUSTMENT_PAIRS = {
+        "meetPoints": "manualMeetPointsAdjustment",
+        "arxPoints": "manualArxPointsAdjustment",
+        "narxPoints": "manualNarxPointsAdjustment",
+        "showPoints": "manualShowPointsAdjustment",
+        "dpcPoints": "manualDpcPointsAdjustment",
+        "dpcLegs": "manualDPCLegsAdjustment",
+        "meetWins": "manualMeetWinsAdjustment",
+        "meetAppearences": "manualMeetAppearancesAdjustment",
+        "highCombinedWins": "manualHighCombinedWinsAdjustment",
+    }
+
     ALIASES = {
         "dogs": {
             "cwaNumber": ("cwaNumber", "CWANumber", "CWA NO", "CWA No", "CWA No.", "CWA #"),
@@ -162,11 +174,17 @@ class CsvImporter:
                 return str(row[n]).strip()
         return None
 
-    def row_to_payload(self, row, import_type):
+    def row_to_payload(self, row, import_type, use_adjustment=False):
         payload = {key: self.get_field(row, *names) for key, names in self.ALIASES[import_type].items()}
         for key in self.PASSTHROUGH[import_type]:
             if key in row and row[key] is not None and str(row[key]).strip():
                 payload[key] = str(row[key]).strip()
+
+        if import_type == "dogs" and use_adjustment:
+            for score_field, adjustment_field in self.SCORE_ADJUSTMENT_PAIRS.items():
+                if score_field in payload:
+                    payload[adjustment_field] = payload[score_field]
+                    del payload[score_field]
 
         if import_type == "meet_results":
             yn = lambda v: "1" if (v or "").strip().upper() in ("1", "YES", "Y", "TRUE") else "0"
@@ -177,13 +195,13 @@ class CsvImporter:
                 payload["showPoints"] = payload.get("showPoints") or "0"
         return payload
 
-    def import_rows(self, import_type, filename, rows, *, mode):
+    def import_rows(self, import_type, filename, rows, *, mode, use_adjustment=False):
         if import_type not in self.ENTITIES:
             raise ValueError(f"Unknown CSV type: {import_type}")
-        result = self._import_entity(rows, mode=mode, import_type=import_type, **self.ENTITIES[import_type])
-        return {"file": filename, "type": import_type, "rows": len(rows), "mode": mode, **result}
+        result = self._import_entity(rows, mode=mode, import_type=import_type, use_adjustment=use_adjustment, **self.ENTITIES[import_type])
+        return {"file": filename, "type": import_type, "rows": len(rows), "mode": mode, "useAdjustment": use_adjustment, **result}
 
-    def _import_entity(self, rows, *, mode, import_type, model, table_name, pk_fields, exists, find):
+    def _import_entity(self, rows, *, mode, import_type, model, table_name, pk_fields, exists, find, use_adjustment=False):
         inserted = updated = skipped = failed = 0
         row_errors = []
         editor_id = current_editor_id()
@@ -196,7 +214,7 @@ class CsvImporter:
             if not any(str(v).strip() for v in (row or {}).values() if v is not None):
                 continue
 
-            payload = self.row_to_payload(row, import_type)
+            payload = self.row_to_payload(row, import_type, use_adjustment=use_adjustment)
             pk = {}
             missing = []
             for field in pk_fields:
@@ -374,7 +392,7 @@ class CsvImporter:
     def _pk_string(self, pk):
         return "|".join(f"{k}={pk[k]}" for k in sorted(pk.keys()))
 
-    def run(self, file_storage, *, import_type=None, mode="update"):
+    def run(self, file_storage, *, import_type=None, mode="update", use_adjustment=False):
         filename = getattr(file_storage, "filename", "") or "upload.csv"
         if not import_type:
             import_type = self.detect_type(filename)
@@ -389,7 +407,7 @@ class CsvImporter:
             text = raw.decode("utf-8", errors="replace")
 
         rows = list(csv.DictReader(io.StringIO(text)))
-        return self.import_rows(import_type=import_type, filename=filename, rows=rows, mode=mode)
+        return self.import_rows(import_type=import_type, filename=filename, rows=rows, mode=mode, use_adjustment=use_adjustment)
 
 
 def _sync_titles_from_dog(dog_obj, editor_id, now):
