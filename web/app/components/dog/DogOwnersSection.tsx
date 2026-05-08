@@ -252,7 +252,7 @@ export default function DogOwnersSection({ cwaNumber }: { cwaNumber: string }) {
     );
 
     return (
-        <div className="relative z-30">
+        <div className="relative">
             <SectionCard title="Owners">
                 {loadingOwners ? (
                     <p className="mb-4 text-sm text-[#12301D]/50">Loading owners...</p>

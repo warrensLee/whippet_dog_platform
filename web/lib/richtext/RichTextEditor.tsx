@@ -26,7 +26,7 @@ export default function RichTextEditor({ value, onChange, style = {} }: Props) {
             const parsed = JSON.parse(value);
             return Array.isArray(parsed) ? parsed : [{ "type": "paragraph", "children": [{ "text": "" }] }];
         } catch {
-            return [{ "type": "paragraph", "children": [{ "text": "" }] }];
+            return [{ "type": "paragraph", "children": [{ "text": value }] }];
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -35,43 +35,43 @@ export default function RichTextEditor({ value, onChange, style = {} }: Props) {
         <div className="bg-white rounded-2xl border border-black/10" style={{ ...style, minHeight: "200px", display: "flex", flexDirection: "column" }}>
             <Slate key={"slate"} editor={editor} initialValue={initialValue} onChange={(e) => onChange(JSON.stringify(e))}>
                 <div className="bg-gray-200 rounded-t-2xl flex">
-                    <Tooltip title="Bold">
+                    <Tooltip title="Bold" placement="top">
                         <span><ElementSelector mark="bold"><FormatBold /></ElementSelector></span>
                     </Tooltip>
 
-                    <Tooltip title="Italic">
+                    <Tooltip title="Italic" placement="top">
                         <span><ElementSelector mark="italic"><FormatItalic /></ElementSelector></span>
                     </Tooltip>
 
-                    <Tooltip title="Underline">
+                    <Tooltip title="Underline" placement="top">
                         <span><ElementSelector mark="underline"><FormatUnderlined /></ElementSelector></span>
                     </Tooltip>
 
-                    <Tooltip title="Strikethrough">
+                    <Tooltip title="Strikethrough" placement="top">
                         <span><ElementSelector mark="strikethrough"><FormatStrikethrough /></ElementSelector></span>
                     </Tooltip>
 
-                    <Tooltip title="Bulleted List">
+                    <Tooltip title="Bulleted List" placement="top">
                         <span><BlockButton format="bulleted-list" blockType="type"><FormatListBulleted /></BlockButton></span>
                     </Tooltip>
 
-                    <Tooltip title="Numbered List">
+                    <Tooltip title="Numbered List" placement="top">
                         <span><BlockButton format="numbered-list" blockType="type"><FormatListNumbered /></BlockButton></span>
                     </Tooltip>
 
-                    <Tooltip title="Heading">
+                    <Tooltip title="Heading" placement="top">
                         <span><HeadingSelector /></span>
                     </Tooltip>
 
-                    <Tooltip title="Align Left">
+                    <Tooltip title="Align Left" placement="top">
                         <span><BlockButton format="left" blockType="align"><FormatAlignLeft /></BlockButton></span>
                     </Tooltip>
 
-                    <Tooltip title="Align Center">
+                    <Tooltip title="Align Center" placement="top">
                         <span><BlockButton format="center" blockType="align"><FormatAlignCenter /></BlockButton></span>
                     </Tooltip>
 
-                    <Tooltip title="Align Right">
+                    <Tooltip title="Align Right" placement="top">
                         <span><BlockButton format="right" blockType="align"><FormatAlignRight /></BlockButton></span>
                     </Tooltip>
 
@@ -153,7 +153,7 @@ function HeadingSelector() {
         <div className="relative">
             <button type="button"
                 className={"bg-gray-100 hover:bg-gray-700 flex items-center" + SELECTOR_CLASSNAME}
-                onClick={(e) => {
+                onMouseDown={(e) => {
                     e.preventDefault();
                     setIsOpen(!isOpen);
                 }}
@@ -167,7 +167,7 @@ function HeadingSelector() {
                     {types.map((t) => (
                         <button type="button"
                             key={t.type}
-                            onClick={(event) => {
+                            onMouseDown={(event) => {
                                 event.preventDefault();
                                 toggleHeading(t.type as CustomElementType);
                             }}
@@ -243,7 +243,7 @@ function BlockButton({ format, blockType = 'type', children }: { format: CustomE
         <button type="button"
             className={(isBlockActive() ? "bg-gray-500" : "bg-gray-100") + " " + SELECTOR_CLASSNAME}
 
-            onClick={(event) => {
+            onMouseDown={(event) => {
                 event.preventDefault()
                 toggleBlock()
             }
@@ -281,7 +281,7 @@ function ColorPicker({ type }: { type: "foreground" | "background" }) {
         <div>
             <button type="button"
                 className={"bg-gray-100 hover:bg-gray-700 flex" + SELECTOR_CLASSNAME}
-                onClick={(e) => {
+                onMouseDown={(e) => {
                     e.preventDefault();
                     setIsOpen(!isOpen);
                 }}
@@ -294,20 +294,22 @@ function ColorPicker({ type }: { type: "foreground" | "background" }) {
 
             {
                 isOpen && (
-                    <div className="absolute bg-white border border-gray-300 rounded shadow-lg p-2 z-50 ml-2 mr-2">
-                        <div className="grid grid-rows-3">
-                            {colors.map((color) => (
-                                <button type="button"
-                                    key={color}
-                                    onClick={(event) => {
-                                        event.preventDefault()
-                                        handleColorChange(color)
-                                    }}
-                                    className={`w-6 h-6 rounded border ${currentColor === color ? 'border-2 border-blue-500' : 'border-gray-300'}`}
-                                    style={{ backgroundColor: color }}
-                                    title={color}
-                                />
-                            ))}
+                    <div className="relative">
+                        <div className="absolute bg-white border border-gray-300 rounded shadow-lg p-2 z-50 ml-2 mr-2 overflow-clip">
+                            <div className="grid grid-rows-3 grid-cols-auto z-50">
+                                {colors.map((color) => (
+                                    <button type="button"
+                                        key={color}
+                                        onMouseDown={(event) => {
+                                            event.preventDefault()
+                                            handleColorChange(color)
+                                        }}
+                                        className={`w-6 h-6 rounded border ${currentColor === color ? 'border-2 border-blue-500' : 'border-gray-300'}`}
+                                        style={{ backgroundColor: color }}
+                                        title={color}
+                                    />
+                                ))}
+                            </div>
                         </div>
                     </div>
                 )
