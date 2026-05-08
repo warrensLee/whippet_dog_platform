@@ -17,6 +17,7 @@ connection_pool = mysql.connector.pooling.MySQLConnectionPool(
     use_pure=True,
 )
 
+#TODO: make this a context manager
 def get_conn():
     return connection_pool.get_connection()
 

@@ -30,16 +30,17 @@ def turnstile():
 @api_bp.get("/health")
 def health():
     """Health check endpoint"""
+    conn = get_conn()
+    cur = conn.cursor(dictionary=True)
     try:
-        conn = get_conn()
-        cur = conn.cursor(dictionary=True)
         cur.execute("SELECT 1;")
         cur.fetchall()
-        cur.close()
         return "OK", 200
     except Exception as e:
         return handle_error(e, "Database error")
-
+    finally:
+        conn.close()
+        cur.close()
 
 
 def register_routes(app):
