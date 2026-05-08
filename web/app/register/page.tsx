@@ -163,7 +163,6 @@ function RegisterPage() {
             autoComplete="new-password"
             required
           />
-          <PasswordRequirements confirmPassword={confirmPassword} password={password} setRequirementsMet={(met) => setPasswordRequirementsMet(met)} />
           <TextField
             label="Confirm Password"
             variant="outlined"
@@ -175,6 +174,7 @@ function RegisterPage() {
             autoComplete="new-password"
             required
           />
+          <PasswordRequirements confirmPassword={confirmPassword} password={password} setRequirementsMet={(met) => setPasswordRequirementsMet(met)} />
           {message && (
             <Typography
               color={status === "success" ? "success.main" : "error.main"}

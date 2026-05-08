@@ -50,7 +50,7 @@ class Person:
             country=(data.get("country") or "").strip() or None,
             primary_phone=(data.get("primaryPhone") or "").strip() or None,
             secondary_phone=(data.get("secondaryPhone") or "").strip() or None,
-            system_role=data.get("systemRole", "Public"),
+            system_role=data.get("systemRole", "PUBLIC"),
             password_hash=None,
             notes=(data.get("notes") or "").strip() or None,
             public_notes=(data.get("publicNotes") or "").strip() or None,

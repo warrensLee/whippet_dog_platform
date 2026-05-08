@@ -301,8 +301,9 @@ export default function DogTitlesSection({ cwaNumber }: { cwaNumber: string }) {
                                             <input
                                                 value={editForm.namePrefix || ""}
                                                 onChange={(e) =>
-                                                    setEditForm((p) => ({ ...p, namePrefix: e.target.value }))
+                                                    setEditForm((p) => ({ ...p, namePrefix: e.target.value.charAt(0) }))
                                                 }
+                                                maxlength={1}
                                                 className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[#12301D]"
                                             />
                                         </div>
@@ -314,8 +315,9 @@ export default function DogTitlesSection({ cwaNumber }: { cwaNumber: string }) {
                                             <input
                                                 value={editForm.nameSuffix || ""}
                                                 onChange={(e) =>
-                                                    setEditForm((p) => ({ ...p, nameSuffix: e.target.value }))
+                                                    setEditForm((p) => ({ ...p, nameSuffix: e.target.value.charAt(0) }))
                                                 }
+                                                maxlength={1}
                                                 className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[#12301D]"
                                             />
                                         </div>
@@ -437,7 +439,7 @@ export default function DogTitlesSection({ cwaNumber }: { cwaNumber: string }) {
                             </label>
                             <input
                                 value={addForm.namePrefix || ""}
-                                onChange={(e) => setAddForm((p) => ({ ...p, namePrefix: e.target.value }))}
+                                onChange={(e) => setAddForm((p) => ({ ...p, namePrefix: e.target.value.charAt(0) }))}
                                 placeholder="Prefix"
                                 className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[#12301D]"
                             />
@@ -449,7 +451,7 @@ export default function DogTitlesSection({ cwaNumber }: { cwaNumber: string }) {
                             </label>
                             <input
                                 value={addForm.nameSuffix || ""}
-                                onChange={(e) => setAddForm((p) => ({ ...p, nameSuffix: e.target.value }))}
+                                onChange={(e) => setAddForm((p) => ({ ...p, nameSuffix: e.target.value.charAt(0) }))}
                                 placeholder="Suffix"
                                 className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[#12301D]"
                             />
