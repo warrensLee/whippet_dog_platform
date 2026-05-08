@@ -44,10 +44,10 @@ function SectionCard({
 }
 
 export async function getTitlesInDateRange(start: string, end: string) {
-  const response = await axios.get("/api/dog_title/earned", {
-    params: { start, end },
-  });
-  return response.data;
+    const response = await axios.get("/api/dog_title/earned", {
+        params: { start, end },
+    });
+    return response.data;
 }
 
 export default function DogTitlesSection({ cwaNumber }: { cwaNumber: string }) {
@@ -303,7 +303,6 @@ export default function DogTitlesSection({ cwaNumber }: { cwaNumber: string }) {
                                                 onChange={(e) =>
                                                     setEditForm((p) => ({ ...p, namePrefix: e.target.value.charAt(0) }))
                                                 }
-                                                maxlength={1}
                                                 className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[#12301D]"
                                             />
                                         </div>
@@ -317,7 +316,6 @@ export default function DogTitlesSection({ cwaNumber }: { cwaNumber: string }) {
                                                 onChange={(e) =>
                                                     setEditForm((p) => ({ ...p, nameSuffix: e.target.value.charAt(0) }))
                                                 }
-                                                maxlength={1}
                                                 className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[#12301D]"
                                             />
                                         </div>
