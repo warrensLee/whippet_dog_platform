@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from classes.dog_owner import DogOwner
 from classes.dog import Dog
 from classes.meet import Meet
+from classes.person import Person
 from classes.meet_result import MeetResult
 from classes.race_result import RaceResult
 from classes.change_log import ChangeLog
@@ -93,6 +94,7 @@ class CsvImporter:
             "namePrefix": ("namePrefix", "NamePrefix", "NAME PREFIX", "Name Prefix"),
             "nameSuffix": ("nameSuffix", "NameSuffix", "NAME SUFFIX", "Name Suffix"),
         },
+        "people": {}
     }
 
     PASSTHROUGH = {
@@ -101,12 +103,13 @@ class CsvImporter:
                  "meetWins", "meetAppearences", "highCombinedWins", "dpcPoints",
                  "manualMeetPointsAdjustment", "manualArxPointsAdjustment",
                  "manualNarxPointsAdjustment", "manualShowPointsAdjustment",
-                 "manualDpcPointsAdjustment", "notes"],
+                 "manualDpcPointsAdjustment", "notes", "dna", "sireDna", "damDna"],
         "meets": [],
         "meet_results": [],
         "race_results": [],
         "dog_owners": [],
         "dog_titles": [],
+        "people": ["firstName", "lastName", "email"],
     }
 
     ENTITIES = {
@@ -124,6 +127,12 @@ class CsvImporter:
             "model": MeetResult, "table_name": "MeetResults", "pk_fields": ["meetNumber", "cwaNumber"],
             "exists": lambda pk: MeetResult.exists(pk["meetNumber"], pk["cwaNumber"]),
             "find": lambda pk: MeetResult.find_by_identifier(pk["meetNumber"], pk["cwaNumber"]),
+        },
+        "people": {
+            "model" : Person, "table_name": "Person",
+            "pk_fields" :["firstName", "lastName", "email"],
+            "exists": lambda pk: Person.find_by_email(pk["email"]) is not None,
+            "find": lambda pk: Person.find_by_email(pk["email"]),
         },
         "race_results": {
             "model": RaceResult, "table_name": "RaceResults",

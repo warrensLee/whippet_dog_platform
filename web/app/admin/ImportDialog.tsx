@@ -45,6 +45,7 @@ const TYPE_OPTIONS = [
   "race_results",
   "dog_owners",
   "dog_titles",
+  "people"
 ];
 
 export default function ImportCSV({ onSuccess, onFail, onCancel }: { onSuccess: (message: string) => void, onFail: (message: string) => void, onCancel: () => void }) {
@@ -124,7 +125,7 @@ export default function ImportCSV({ onSuccess, onFail, onCancel }: { onSuccess: 
               accept=".csv,text/csv"
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             />
-          </label>            
+          </label>
           <Typography variant="body2" sx={{ mt: 1 }}>
             {file ? `Selected: ${file.name}` : "No file selected"}
           </Typography>

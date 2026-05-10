@@ -134,7 +134,9 @@ class Person:
             """,
             (identifier,),
         )
-        return cls.from_db_row(row)
+        if row is not None:
+            return cls.from_db_row(row)
+        return None
     @classmethod
     def exists(cls, person_id):
         """Check if a person with given ID already exists."""
