@@ -27,7 +27,8 @@ export type Person = {
   locked: boolean;
   lastEditedBy?: string | null;
   lastEditedAt?: string | null;
-  publicNotes?: string | null
+  publicNotes?: string | null;
+  dummy: boolean
 };
 
 export type EditForm = {

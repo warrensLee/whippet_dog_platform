@@ -376,6 +376,7 @@ def search_people():
             p.ID,
             p.PersonID,
             p.FirstName,
+            p.PasswordHash,
             p.LastName,
             p.EmailAddress,
             p.SystemRole,

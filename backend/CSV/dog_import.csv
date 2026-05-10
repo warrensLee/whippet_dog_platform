@@ -1,4 +1,4 @@
-cwaNumber,registeredName,callName,birthdate,status,currentGrade,registeredNumber,KennelClub,pedigreeLink,average,meetPoints,arxPoints,narxPoints,showPoints,dpcLegs,meetWins,meetAppearences,highCombinedWins,aomEarned,notes,kennelClub
+cwaNumber,registeredName,callName,birthdate,status,currentGrade,registeredNumber,KennelClub,pedigreeLink,average,meetPoints,arxPoints,narxPoints,showPoints,dpcLegs,meetWins,meetAppearences,highCombinedWins,aomEarned,notes,kennelClubChampion
 T90005,CSV SPEED KING,BOLT,2017-05-12,Active,D,1,AKC,akc,6,7,8,5,5,5,5,5,5,5,Imported via CSV," 1"
 T90006,CSV NIGHT DASHER,LUNA,2019-11-03,Active,B,2,AKC,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV," 0"
 T90007,CSV TRACK STAR,FLASH,2020-02-18,Active,A,3,AKC,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV," 1"
