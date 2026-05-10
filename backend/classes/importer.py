@@ -27,10 +27,12 @@ class CsvImporter:
         "highCombinedWins": "manualHighCombinedWinsAdjustment",
     }
 
+    #TODO: allow aliases to be any case
     ALIASES = {
         "dogs": {
             "cwaNumber": ("cwaNumber", "CWANumber", "CWA NO", "CWA No", "CWA No.", "CWA #"),
             "registeredName": ("registeredName", "RegisteredName", "REGISTERED NAME", "Registered Name"),
+            "foreignType": {"KennelClub", "foreignType"},
             "callName": ("callName", "CallName", "CALL NAME", "Call Name", "NAME"),
             "birthdate": ("birthdate", "Birthdate", "BIRTHDATE", "Birth Date"),
             "status": ("status", "Status"),
@@ -41,8 +43,8 @@ class CsvImporter:
             "meetNumber": ("meetNumber", "MeetNumber", "MEET NUMBER", "Meet #"),
             "clubAbbreviation": ("clubAbbreviation", "ClubAbbreviation", "club", "Club", "CLUB"),
             "meetDate": ("meetDate", "MeetDate", "MEET DATE", "Date"),
-            "raceSecretary": ("raceSecretary", "RaceSecretary", "RACE SECRETARY"),
-            "judge": ("judge", "Judge"),
+            #"raceSecretary": ("raceSecretary", "RaceSecretary", "RACE SECRETARY"),
+            #"judge": ("judge", "Judge"),
             "location": ("location", "Location", "LOCATION"),
             "yards": ("yards", "Yards", "YARD", "YARDS"),
         },
@@ -94,7 +96,7 @@ class CsvImporter:
     }
 
     PASSTHROUGH = {
-        "dogs": ["akcNumber", "ckcNumber", "foreignNumber", "foreignType", "pedigreeLink",
+        "dogs": ["registeredNumber", "foreignType", "pedigreeLink",
                  "average", "meetPoints", "arxPoints", "narxPoints", "showPoints", "dpcLegs",
                  "meetWins", "meetAppearences", "highCombinedWins", "dpcPoints",
                  "manualMeetPointsAdjustment", "manualArxPointsAdjustment",
