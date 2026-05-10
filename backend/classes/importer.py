@@ -372,7 +372,7 @@ class CsvImporter:
                 )
 
                 dog.update_from_meet_results()
-                DogTitle.sync_titles_for_dog(dog, editor_id, now)
+                DogTitle.sync_titles_for_dog(dog, editor_id, now, send_email=False)
 
             else:
                 affected_dogs.add(item)
@@ -381,7 +381,7 @@ class CsvImporter:
             dog = Dog.find_by_identifier(cwa)
             if dog:
                 dog.update_from_meet_results()
-                DogTitle.sync_titles_for_dog(dog, editor_id, now)
+                DogTitle.sync_titles_for_dog(dog, editor_id, now, send_email=False)
 
         return {
             "inserted": inserted,
@@ -414,7 +414,7 @@ class CsvImporter:
 
 def _sync_titles_from_dog(dog_obj, editor_id, now):
     """Sync titles when dog is updated"""
-    DogTitle.sync_titles_for_dog(dog_obj, editor_id, now)
+    DogTitle.sync_titles_for_dog(dog_obj, editor_id, now, send_email=False)
 
 
 def _sync_from_meet_result(meet_result_obj, editor_id, now):
@@ -425,7 +425,7 @@ def _sync_from_meet_result(meet_result_obj, editor_id, now):
     dog = Dog.find_by_identifier(cwa_number)
     if dog:
         dog.update_from_meet_results()
-        DogTitle.sync_titles_for_dog(dog, editor_id, now)
+        DogTitle.sync_titles_for_dog(dog, editor_id, now, send_email=False)
 
 
 def _sync_from_race_result(race_result_obj, editor_id, now):
@@ -443,4 +443,4 @@ def _sync_from_race_result(race_result_obj, editor_id, now):
     dog = Dog.find_by_identifier(cwa_number)
     if dog:
         dog.update_from_meet_results()
-        DogTitle.sync_titles_for_dog(dog, editor_id, now)
+        DogTitle.sync_titles_for_dog(dog, editor_id, now, send_email=False)

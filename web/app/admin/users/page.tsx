@@ -803,7 +803,7 @@ export default function AdminUsersPage() {
                                   </button>
                                 </span>
                               </Tooltip>
-                              {user.dummy && (
+                              {user.dummy && user.email != "" && (
                                 <IconButton
                                   onClick={() => inviteDummyUser(user)}
                                   color="secondary"
