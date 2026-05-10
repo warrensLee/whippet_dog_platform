@@ -30,7 +30,10 @@ def import_csv():
     use_adjustment = request.args.get("useAdjustment", "false").strip().lower() == "true"
 
     #TODO: the below if statement can be refactored to be better 
-    if import_type == "dogs":
+
+    if import_type == "people":
+        deny = None
+    elif import_type == "dogs":
         deny = require_scope(role.edit_dog_scope, "import dogs")
 
     elif import_type == "meets":

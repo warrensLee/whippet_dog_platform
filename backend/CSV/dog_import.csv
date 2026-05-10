@@ -1,11 +1,12 @@
-cwaNumber,registeredName,callName,birthdate,status,currentGrade,registeredNumber,KennelClub,pedigreeLink,average,meetPoints,arxPoints,narxPoints,showPoints,dpcLegs,meetWins,meetAppearences,highCombinedWins,aomEarned,notes,kennelClubChampion
-T90005,CSV SPEED KING,BOLT,2017-05-12,Active,D,1,AKC,akc,6,7,8,5,5,5,5,5,5,5,Imported via CSV," 1"
-T90006,CSV NIGHT DASHER,LUNA,2019-11-03,Active,B,2,AKC,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV," 0"
-T90007,CSV TRACK STAR,FLASH,2020-02-18,Active,A,3,AKC,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV," 1"
-T90008,CSV SILVER STRIDE,COMET,2016-08-27,Inactive,B,4,AKC,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV," 0"
-T90009,CSV GOLDEN ROCKET,BLAZE,2018-01-14,Active,A,5,AKC,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV," 1"
-T90010,CSV RIVER RUNNER,STREAM,2021-06-09,Active,C,6,AKC,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV," 0 "
-T90011,CSV DUSTY TRAIL,EMBER,2019-04-22,Active,B,7,AKC,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV," 1"
-T90012,CSV WIND CHASER,STORM,2015-12-30,Inactive,A,8,AKC,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV," 0"
-T90013,CSV FAST FURY,NOVA,2022-03-11,Active,D,9,AKC,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV," 1"
-T90014,CSV STEEL SHADOW,PHANTOM,2018-09-19,Active,B,10,AKC,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV," 0"
+cwaNumber,registeredName,callName,birthdate,status,currentGrade,registeredNumber,KennelClub,pedigreeLink,average,meetPoints,arxPoints,narxPoints,showPoints,dpcLegs,meetWins,meetAppearences,highCombinedWins,aomEarned,notes,dna,sireDna,damDna,kennelClubChampion
+T90005,CSV SPEED KING,BOLT,2017-05-12,Active,D,1,AKC,akc,6,7,8,5,5,5,5,5,5,5,Imported via CSV,1,9,11," 1"
+T90006,CSV NIGHT DASHER,LUNA,2019-11-03,Active,B,2,AKC,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV,2,8,12," 0"
+T90007,CSV TRACK STAR,FLASH,2020-02-18,Active,A,3,AKC,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV,3,7,13," 1"
+T90008,CSV SILVER STRIDE,COMET,2016-08-27,Inactive,B,4,AKC,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV,4,6,14," 0"
+T90009,CSV GOLDEN ROCKET,BLAZE,2018-01-14,Active,A,5,AKC,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV,5,5,15," 1"
+T90010,CSV RIVER RUNNER,STREAM,2021-06-09,Active,C,6,AKC,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV,6,4,16," 0 "
+T90011,CSV DUSTY TRAIL,EMBER,2019-04-22,Active,B,7,AKC,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV,7,3,17," 1"
+T90012,CSV WIND CHASER,STORM,2015-12-30,Inactive,A,8,AKC,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV,8,2,18," 0"
+T90013,CSV FAST FURY,NOVA,2022-03-11,Active,D,9,AKC,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV,9,1,19," 1"
+T90014,CSV STEEL SHADOW,PHANTOM,2018-09-19,Active,B,10,AKC,0,0,0,0,0,0,0,0,0,0,0,Imported via CSV,19,12,20," 0"
+,,,,,,,,,,,,,,,,,,,,,,
