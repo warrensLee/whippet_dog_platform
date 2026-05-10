@@ -260,7 +260,7 @@ class CsvImporter:
                 continue
 
             record_exists = exists(pk)
-            if mode == "insert" and record_exists:
+            if (mode == "insert" or (mode == "update" and import_type == "people")) and record_exists:
                 skipped += 1
                 continue
 
