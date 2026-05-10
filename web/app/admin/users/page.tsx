@@ -36,6 +36,7 @@ import {
   Tooltip,
 } from '@mui/material';
 
+import EmailIcon from '@mui/icons-material/Email';
 import EditIcon from '@mui/icons-material/Edit';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import MailOutlineIcon from '@mui/icons-material/MailOutline';
@@ -404,6 +405,21 @@ export default function AdminUsersPage() {
     setUserToResetPassword(null);
   };
 
+  const inviteDummyUser = async (user: Person) => {
+    setSuccess("");
+    try {
+      await axios.post("/api/auth/invite-claim-dummy", {
+        email: user.email,
+        id: user.id
+      }).then(() => {
+        setSuccess("User Invited Successfully");
+      })
+    } catch {
+      setSuccess("")
+      setError("Internal Server Error")
+    }
+  }
+
   const handleResetPassword = async (newPassword: string) => {
     if (!userToResetPassword)
       return;
@@ -550,10 +566,10 @@ export default function AdminUsersPage() {
           subtitle="Search, review, and edit user accounts"
           topContent={
             <Link
-                href="/admin"
-                className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
+              href="/admin"
+              className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
             >
-                Back to Admin Dashboard
+              Back to Admin Dashboard
             </Link>
           }
         />
@@ -787,6 +803,16 @@ export default function AdminUsersPage() {
                                   </button>
                                 </span>
                               </Tooltip>
+                              {user.dummy && (
+                                <IconButton
+                                  onClick={() => inviteDummyUser(user)}
+                                  color="secondary"
+                                  disabled={saving}
+                                  title="Invite User"
+                                >
+                                  <EmailIcon />
+                                </IconButton>
+                              )}
                             </Stack>
                           </TableCell>
                         </TableRow>

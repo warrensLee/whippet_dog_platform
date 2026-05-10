@@ -269,6 +269,7 @@ class Person:
             """
             SELECT 
                 p.PersonID, 
+                p.PasswordHash,
                 p.FirstName, 
                 p.LastName, 
                 p.EmailAddress, 
@@ -313,6 +314,7 @@ class Person:
             "lastName": self.last_name,
             "email": self.email,
             "addressLineOne": self.address_line_one,
+            "dummy": self.password_hash is None,
             "addressLineTwo": self.address_line_two,
             "city": self.city,
             "stateProvince": self.state_province,
