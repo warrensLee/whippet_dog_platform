@@ -25,7 +25,7 @@ def _is_owner(cwa_number):
 
 
 @dog_title_bp.post("/add")
-def add_dog_title():
+def add_dog_title(send_email=True):
     """Add a new title to a dog."""
     role = current_role()
     if not role:
@@ -64,7 +64,7 @@ def add_dog_title():
     try:
         dog_title.save()
         dog = Dog.find_by_identifier(dog_title.cwa_number)
-        if dog:
+        if dog and send_email:
             pdf_bytes = generate_title_pdf(dog, dog_title.title)
             for email in dog.get_owner_emails():
                 send_titles_email(email, pdf_bytes, f"{dog.registered_name}_titles.pdf")
