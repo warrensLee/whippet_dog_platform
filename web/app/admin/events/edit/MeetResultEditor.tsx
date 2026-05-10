@@ -284,7 +284,7 @@ function RaceEditor({ value, onChange, validate, onRemove, races }: { value: Dog
 function DogEditor({ value, onChange, validate, onRemove }: { value: DogEntry, onChange: (value: DogEntry) => void, validate?: (isValid: boolean) => void, onRemove: () => void }) {
     const [expanded, setExpanded] = useState(true)
     const racesValid = value.races.length === 0 || value.races.every(race => validateRace(race, value.races));
-    const shownValidation = !value.shown || (value.showPlace !== undefined && Number(value.showPlace) > 0 && value.showPoints !== undefined && Number(value.showPoints) >= 0);
+    const shownValidation = !value.shown || (value.showPlace !== undefined && Number(value.showPlace) >= 0 && value.showPoints !== undefined && Number(value.showPoints) >= 0);
     const borderColor = (!racesValid || (!shownValidation && value.shown)) ? "border-red-500" : "border-black/10";
 
     function handlePropertyChange<K extends keyof DogEntry>(key: K, new_value: DogEntry[K]) {

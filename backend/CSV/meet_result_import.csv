@@ -1,5 +1,5 @@
-MeetNumber,CWANumber,Average,Grade,MeetPlacement,Shown,ConformationPlacement,MatchPoints,MeetPoints,ARXEarned,NARXEarned,ShowPoints,DPCLeg,HCScore,HCLegEarned,AOMEarned,DPCPoints,LastEditedBy,LastEditedAt
-2026-01,T90005,0.00,A,1,1,2,4,20,1,1,0,0,0,0,0,0,1,2026-04-20 00:33:25
-2026-01,T90006,0.00,B,2,1,1,5,12,1,1,0,0,0,0,0,0,1,2026-04-20 00:33:25
-2026-01,T90007,0.00,A,3,1,4,2,8,0,0,0,0,0,0,0,0,1,2026-04-20 00:33:25
-2026-01,T90008,0.00,B,4,1,3,3,4,0,0,0,0,0,0,0,0,1,2026-04-20 00:33:25
+MeetNumber,CWANumber,Average,Grade,MeetPlacement,Shown,ConformationPlacement,MatchPoints,MeetPoints,ARXEarned,NARXEarned,ShowPoints,DPCLeg,HCScore,HCLegEarned,AOMEarned,DPCPoints
+2026-01,T90005,0.00,A,1,1,2,4,20,1,1,1,0,0,0,0,0
+2026-01,T90006,0.00,B,2,1,1,5,12,1,1,0,0,0,0,0,0
+2026-01,T90007,0.00,A,3,1,4,2,8,0,0,0,0,0,0,0,0
+2026-01,T90008,0.00,B,4,1,3,3,4,0,0,1,0,0,0,0,0
