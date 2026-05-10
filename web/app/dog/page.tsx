@@ -362,7 +362,7 @@ function DogPage() {
                         </p>
                       </div>
                       <div className="max-w-fit">
-                        <a className="mt-2 rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60 w-full" href={"/owner?id=" + owner.userID}>View Owner</a>
+                        <a className="mt-2 rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60 w-full" href={"/owner?id=" + owner.PersonID}>View Owner</a>
                       </div>
                     </div>
                   );

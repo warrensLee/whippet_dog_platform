@@ -10,9 +10,17 @@ class DogOwner:
 
     @classmethod
     def from_request_data(cls, data):
+        from classes.person import Person
+        cwa_id = (data.get("cwaId") or "").strip()
+        email = (data.get("email") or "").strip()
+        person_id = (data.get("personId") or "").strip()
+        if email:
+            person = Person.find_by_email(email)
+            if person:
+                person_id = str(person.id)
         return cls(
-            cwa_id=(data.get("cwaId") or "").strip(),
-            person_id=(data.get("personId") or "").strip(),
+            cwa_id=cwa_id,
+            person_id=person_id,
             last_edited_by=data.get("lastEditedBy"),
             last_edited_at=data.get("lastEditedAt"),
         )
@@ -42,6 +50,20 @@ class DogOwner:
         return cls.from_db_row(row)
 
     @classmethod
+    def find_by_email(cls, cwa_id, email):
+        row = fetch_one(
+            """
+            SELECT CWAID, do.PersonID, do.LastEditedBy, do.LastEditedAt
+            FROM DogOwner do
+            INNER JOIN Person p ON p.ID = do.PersonID
+            WHERE do.CWAID = %s AND LOWER(p.EmailAddress) = LOWER(%s)
+            LIMIT 1
+            """,
+            (cwa_id, email),
+        )
+        return cls.from_db_row(row)
+
+    @classmethod
     def exists(cls, cwa_id, person_id):
         existing = fetch_one(
             """
@@ -51,6 +73,20 @@ class DogOwner:
             LIMIT 1
             """,
             (cwa_id, person_id),
+        )
+        return existing is not None
+
+    @classmethod
+    def exists_by_email(cls, cwa_id, email):
+        existing = fetch_one(
+            """
+            SELECT 1
+            FROM DogOwner do
+            INNER JOIN Person p ON p.ID = do.PersonID
+            WHERE do.CWAID = %s AND LOWER(p.EmailAddress) = LOWER(%s)
+            LIMIT 1
+            """,
+            (cwa_id, email),
         )
         return existing is not None
 

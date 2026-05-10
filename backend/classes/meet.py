@@ -36,12 +36,29 @@ class Meet:
     @classmethod
     def from_request_data(cls, data):
         """Create a Meet instance from request JSON data."""
+        from classes.person import Person
+        race_secretary_raw = (data.get("raceSecretary") or "").strip()
+        judge_raw = (data.get("judge") or "").strip()
+        race_secretary_id = ""
+        if race_secretary_raw:
+            p = Person.find_by_email(race_secretary_raw)
+            if p:
+                race_secretary_id = str(p.id)
+            else:
+                race_secretary_id = race_secretary_raw
+        judge_id = ""
+        if judge_raw:
+            p = Person.find_by_email(judge_raw)
+            if p:
+                judge_id = str(p.id)
+            else:
+                judge_id = judge_raw
         return cls(
             meet_number=(data.get("meetNumber") or "").strip(),
             club_abbreviation=(data.get("clubAbbreviation") or "").strip(),
             meet_date=data.get("meetDate"),
-            race_secretary=(data.get("raceSecretary")).strip() or None,
-            judge=(data.get("judge")).strip() or None,
+            race_secretary=race_secretary_id or None,
+            judge=judge_id or None,
             location=(data.get("location") or "").strip(),
             yards=(data.get("yards") or "").strip(),
             public_notes=(data.get("publicNotes") or "").strip() or None,

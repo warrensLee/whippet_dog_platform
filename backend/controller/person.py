@@ -329,7 +329,7 @@ def get_person_name(person_id: str):
     """
     Return the person's first and last name along with public notes.
     """
-    person = Person.find_by_identifier(person_id)
+    person = Person.find_by_id(person_id)
     if not person:
         return jsonify({"ok": False, "error": "Person does not exist"}), 404
 
