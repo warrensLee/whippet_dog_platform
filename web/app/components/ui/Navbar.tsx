@@ -29,7 +29,7 @@ function UserMenu() {
             <MenuItem onClick={() => axios.post("/api/auth/logout").then(() => window.location.href = "/")}>Logout</MenuItem>
             <MenuItem onClick={() => window.location.href = "/edit/profile"}>Edit Information</MenuItem>
             <MenuItem onClick={() => window.location.href = "/change-password"}>Change Password</MenuItem>
-            <MenuItem onClick={() => window.location.href = "/owner/?id=" + user.PersonID}>View My Profile</MenuItem>
+            <MenuItem onClick={() => window.location.href = "/owner/?id=" + user.ID}>View My Profile</MenuItem>
             {user.SystemRole === "ADMIN" && <MenuItem onClick={() => window.location.href = "/admin"}>Admin Dashboard</MenuItem>}
         </Menu>
     </div>

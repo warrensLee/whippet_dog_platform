@@ -44,8 +44,8 @@ class CsvImporter:
             "meetNumber": ("meetNumber", "MeetNumber", "MEET NUMBER", "Meet #"),
             "clubAbbreviation": ("clubAbbreviation", "ClubAbbreviation", "club", "Club", "CLUB"),
             "meetDate": ("meetDate", "MeetDate", "MEET DATE", "Date"),
-            #"raceSecretary": ("raceSecretary", "RaceSecretary", "RACE SECRETARY"),
-            #"judge": ("judge", "Judge"),
+            "raceSecretary": ("raceSecretary", "RaceSecretary", "RACE SECRETARY", "race_secre"),
+            "judge": ("judge", "Judge"),
             "location": ("location", "Location", "LOCATION"),
             "yards": ("yards", "Yards", "YARD", "YARDS"),
         },
@@ -84,7 +84,7 @@ class CsvImporter:
         },
         "dog_owners": {
             "cwaId": ("cwaId", "CWAID", "CWA ID", "cwa_id", "cwaid"),
-            "personId": ("personId", "PersonID", "PERSON ID", "person_id", "personid", "Person", "PERSON", "person"),
+            "email": ("email", "Email", "EMAIL", "EmailAddress", "emailAddress"),
         },
         "dog_titles": {
             "cwaNumber": ("cwaNumber", "CWANumber", "CWA NO", "CWA No", "CWA No.", "CWA #"),
@@ -142,9 +142,9 @@ class CsvImporter:
         },
         "dog_owners": {
             "model": DogOwner, "table_name": "DogOwners",
-            "pk_fields": ["cwaId", "personId"],
-            "exists": lambda pk: DogOwner.exists(pk["cwaId"], pk["personId"]),
-            "find": lambda pk: DogOwner.find_by_identifier(pk["cwaId"], pk["personId"]),
+            "pk_fields": ["cwaId", "email"],
+            "exists": lambda pk: DogOwner.exists_by_email(pk["cwaId"], pk["email"]),
+            "find": lambda pk: DogOwner.find_by_email(pk["cwaId"], pk["email"]),
         },
         "dog_titles": {
             "model": DogTitle, "table_name": "DogTitles",

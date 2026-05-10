@@ -50,7 +50,7 @@ def list_dog_owner_links():
             # rows = DogOwner.list_all(cwa_id=cwa_id, person_id=current_editor_id())
 
         # else:
-        person = Person.find_by_identifier(person_id)
+        person = Person.find_by_id(person_id)
         if not person:
             return jsonify({"ok": False, "error": "invalid Person"})
         rows = DogOwner.list_for_person(person.id)

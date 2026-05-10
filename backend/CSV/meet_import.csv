@@ -1,3 +1,4 @@
-meetNumber,clubAbbreviation,meetDate,location,yards
-2026-01,TCLUB,2026-02-10,Fayetteville AR,300
-2026-02,TCLUB,2026-02-24,Springdale AR,325
+meetNumber,clubAbbreviation,meetDate,location,judge,raceSecretary,yards
+2026-01,TCLUB,2026-02-10,Fayetteville AR,James@example.com,James@example.com,300
+2026-02,TCLUB,2026-02-24,Springdale AR,James@example.com,James@example.com,325
+,,,,,
