@@ -1,5 +1,6 @@
 'use client';
 
+//TODO: Clean up this page and Refactor it  so that API logic and errors appear inside of the individual dialog components
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import axios, { AxiosError } from 'axios';
@@ -16,7 +17,6 @@ import {
   Alert,
   Box,
   Chip,
-  CircularProgress,
   FormControl,
   IconButton,
   InputLabel,
@@ -41,7 +41,6 @@ import EditIcon from '@mui/icons-material/Edit';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import MailOutlineIcon from '@mui/icons-material/MailOutline';
 import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined';
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import EditUserDialog from '../../components/user/EditUserDialog';
 import DummyUserDialog from '../../components/user/DummyUserDialog';
 import InviteUserDialog from '../../components/user/InviteUserDialog';
@@ -324,6 +323,7 @@ export default function AdminUsersPage() {
 
   const handleSave = async () => {
     try {
+      setOpen(false);
       setSaving(true);
       setError('');
       setSuccess('');
@@ -338,7 +338,6 @@ export default function AdminUsersPage() {
       await fetchUsers();
 
       setSuccess('User updated successfully');
-      setOpen(false);
     }
     catch (err: unknown) {
       if (err instanceof AxiosError && err.response) {
@@ -357,6 +356,7 @@ export default function AdminUsersPage() {
   };
 
   const handleDeleteUser = async () => {
+    closeDelete();
     if (!userToDelete)
       return;
 
@@ -374,7 +374,6 @@ export default function AdminUsersPage() {
 
       await fetchUsers();
       setSuccess('User deleted successfully');
-      closeDelete();
     }
     catch (err: unknown) {
       if (err instanceof AxiosError && err.response) {
@@ -421,6 +420,7 @@ export default function AdminUsersPage() {
   }
 
   const handleResetPassword = async (newPassword: string) => {
+    closeResetPassword();
     if (!userToResetPassword)
       return;
 
@@ -437,7 +437,6 @@ export default function AdminUsersPage() {
       }
 
       setSuccess('Password reset successfully');
-      closeResetPassword();
     }
     catch (err: unknown) {
       if (err instanceof AxiosError && err.response) {
@@ -503,6 +502,7 @@ export default function AdminUsersPage() {
 
   const handleAddUser = async () => {
     try {
+      setAddOpen(false);
       setSaving(true);
       setAddError('');
 
@@ -534,7 +534,6 @@ export default function AdminUsersPage() {
 
       await fetchUsers();
       setSuccess('User created successfully');
-      setAddOpen(false);
     }
     catch (err: unknown) {
       if (err instanceof AxiosError && err.response) {
@@ -623,7 +622,7 @@ export default function AdminUsersPage() {
                 </MenuItem>
               </Menu>
             </Box>
-            {error && (
+            {error && !open && (
               <Alert severity="error" sx={{ mb: 2 }}>
                 {error}
               </Alert>
@@ -833,6 +832,7 @@ export default function AdminUsersPage() {
             onClose={closeEdit}
             onSave={handleSave}
             updateForm={updateForm}
+            error={error}
           />
 
           <AddUserDialog

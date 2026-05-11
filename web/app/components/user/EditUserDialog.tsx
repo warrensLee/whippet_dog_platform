@@ -2,6 +2,7 @@
 
 import React from 'react';
 import {
+  Alert,
   Dialog,
   DialogActions,
   DialogContent,
@@ -25,6 +26,7 @@ type Props = {
   onClose: () => void;
   onSave: () => void;
   updateForm: <K extends keyof EditForm>(key: K, value: EditForm[K]) => void;
+  error: string;
 };
 
 export default function EditUserDialog({
@@ -35,11 +37,17 @@ export default function EditUserDialog({
   onClose,
   onSave,
   updateForm,
+  error,
 }: Props) {
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
       <DialogTitle>Edit User</DialogTitle>
       <DialogContent>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
         <Stack spacing={2} sx={{ mt: 1 }}>
           <Typography variant="subtitle2">Basic Info</Typography>
 
