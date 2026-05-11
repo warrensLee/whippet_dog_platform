@@ -158,22 +158,21 @@ function Owner() {
 
             <section className="bg-[#E7F0E9] pt-12 pb-24 flex-center" style={{ display: "flex", justifyContent: "center", flexDirection: "column", alignItems: "center" }}>
                 {
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                    <Typography variant="h2">Owned Dogs</Typography>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "75%" }}>
+                        <Typography variant="h2">Owned Dogs</Typography>
 
-                    <div style={{
-                        display: "flex",
-                        width: "50%",
-                        minWidth: "fit-content",
-                        maxWidth: "750px",
-                        flexDirection: "column"
-                    }}>
-                        {dogs.map((dog) => <DogCard key={dog.id} dog={dog} />)}
+                        <div style={{
+                            display: "flex",
+                            width: "100%",
+                            minWidth: "fit-content",
+                            flexDirection: "column"
+                        }}>
+                            {dogs.map((dog) => <DogCard key={dog.id} dog={dog} />)}
+                        </div>
                     </div>
-                </div>
                 }
                 <Typography sx={{ display: "inline" }} noWrap variant="h2">Profile</Typography>
-                <div style={{ display: "flex", width: "50%", minWidth: "fit-content", maxWidth: "750px", flexDirection: "column" }} >
+                <div style={{ display: "flex", width: "100%", minWidth: "fit-content", maxWidth: "750px", flexDirection: "column" }} >
                     {!editingProfile && <RichTextViewer text={publicNotes} />}
                     {editingProfile && <RichTextEditor style={{}} onChange={setPublicNotes} value={publicNotes} />}
                     {editingProfile && <button type="button" onClick={handleSaveNotes} className="mt-2 rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60 w-full">Save </button>}

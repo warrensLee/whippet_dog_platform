@@ -336,7 +336,7 @@ def list_dog_titles(cwa_number):
     #     return jsonify({"ok": False, "error": "Not allowed to view titles for this dog"}), 403
 
     try:
-        dog_titles = dog.check_titles()
+        dog_titles = [x.title for x in DogTitle.list_for_dog(cwa_number)]
         return jsonify({"ok": True, "data": dog_titles}), 200
     except Error as e:
         return handle_error(e, "Database error")
@@ -726,25 +726,24 @@ def search_dogs():
         return handle_error(e, "Database error")
 
 
-# UNUSED - no frontend calls
-# @dog_bp.get("/meets/<cwa_number>")
-# def list_meets_for_dog(cwa_number):
-#     # role = current_role()
-#     # if not role:
-#     #     return jsonify({"ok": False, "error": "Not signed in"}), 401
+@dog_bp.get("/meets/<cwa_number>")
+def list_meets_for_dog(cwa_number):
+     # role = current_role()
+     # if not role:
+     #     return jsonify({"ok": False, "error": "Not signed in"}), 401
 
-#     # deny = require_scope(role.view_meet_scope, "view meets")
-#     # if deny:
-#     #     return deny
+     # deny = require_scope(role.view_meet_scope, "view meets")
+     # if deny:
+     #     return deny
 
-#     # if role.view_meet_scope == UserRole.SELF and not _is_owner(cwa_number):
-#     #     return jsonify({"ok": False, "error": "Not allowed to view meets for this dog"}), 403
+     # if role.view_meet_scope == UserRole.SELF and not _is_owner(cwa_number):
+     #     return jsonify({"ok": False, "error": "Not allowed to view meets for this dog"}), 403
 
-#     try:
-#         meets = Dog.list_meets_with_results_for_dog(cwa_number)  
-#         return jsonify({"ok": True, "data": meets}), 200
-#     except Error as e:
-#         return handle_error(e, "Database error")
+     try:
+         meets = Dog.list_meets_with_results_for_dog(cwa_number)  
+         return jsonify({"ok": True, "data": meets}), 200
+     except Error as e:
+         return handle_error(e, "Database error")
 
 # UNUSED - no frontend calls
 # @dog_bp.get("/wins/<cwa_number>")
