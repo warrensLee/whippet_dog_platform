@@ -23,4 +23,4 @@ HEALTHCHECK --interval=30s --timeout=10s --retries=3 CMD curl -f http://localhos
 
 
 # Run the application
-CMD ["gunicorn", "-b","0.0.0.0:8000", "--timeout", "500", "main:app"]
+CMD ["gunicorn", "-b","0.0.0.0:8000", "--timeout", "500", "wsgi:app"]

@@ -5,13 +5,13 @@ from utils.seed_user import seed_user
 
 def create_app(config_name='development'):
     """Application factory pattern"""
+    seed_user()
     app = Flask(__name__)
     app.config.from_object(get_config())
     register_routes(app)
     return app
 
-seed_user()
-app = create_app()
 
 if __name__ == "__main__":
+    app = create_app()
     app.run(host="0.0.0.0", port=8000, debug=True)

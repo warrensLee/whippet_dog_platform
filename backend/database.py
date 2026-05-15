@@ -4,21 +4,28 @@ import mysql.connector
 import mysql.connector.pooling
 from mysql.connector import Error
 
-connection_pool = mysql.connector.pooling.MySQLConnectionPool(
-    pool_name="whippet_pool",
-    pool_size=10,
-    pool_reset_session=True,
-    host=os.getenv("DB_HOST", "db"),
-    user=os.getenv("DB_USER", "root"),
-    password=os.getenv("DB_PASSWORD", "dogs"),
-    database=os.getenv("DB_NAME", "cwa_db"),
-    autocommit=True,
-    connect_timeout=10,
-    use_pure=True,
-)
+connection_pool = None
 
-#TODO: make this a context manager
+def init_connection_pool():
+    global connection_pool
+    connection_pool = mysql.connector.pooling.MySQLConnectionPool(
+        pool_name="whippet_pool",
+        pool_size=10,
+        pool_reset_session=True,
+        host=os.getenv("DB_HOST", "db"),
+        port=os.getenv("DB_PORT", "3306"),
+        user=os.getenv("DB_USER", "root"),
+        password=os.getenv("DB_PASSWORD", "dogs"),
+        database=os.getenv("DB_NAME", "cwa_db"),
+        autocommit=True,
+        connect_timeout=10,
+        use_pure=True,
+    )
+
 def get_conn():
+    global connection_pool
+    if connection_pool is None:
+        init_connection_pool()
     return connection_pool.get_connection()
 
 def fetch_all(sql: str, params=()):

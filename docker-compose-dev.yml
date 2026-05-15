@@ -39,7 +39,7 @@ services:
       - ./mysql/migrations:/app/mysql/migrations:ro
     command: /bin/bash -c "python -m venv venv && source venv/bin/activate && pip
       install -r requirements.txt &&  sleep 30 && gunicorn -b 0.0.0.0:8000
-      --reload --timeout 500 main:app"
+      --reload --timeout 500 wsgi:app"
     depends_on: [ db ]
     env_file: ".env.backend"
 
