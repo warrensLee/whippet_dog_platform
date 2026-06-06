@@ -158,6 +158,10 @@ class Person:
             errors.append("First name is required")
         if not self.last_name:
             errors.append("Last name is required")
+        if len(str(self.first_name)) > 50:
+            errors.append("First name must be 50 characters or less")
+        if len(str(self.last_name)) > 50:
+            errors.append("Last name must be 50 characters or less")
         if self.person_id is not None and len(str(self.person_id)) > 20:
             errors.append("PersonID must be 20 characters or less")
         return errors

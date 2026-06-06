@@ -104,7 +104,7 @@ def register():
                 record_pk=person.id,
                 operation="UPDATE",
                 changed_by=person.id,
-                source="api/auth/register POST (claim dummy)",
+                source="api/auth/register POST",
                 before_obj=before_snapshot,
                 after_obj=refreshed.to_dict() if refreshed else person.to_dict(),
             )
@@ -289,9 +289,9 @@ def forgot_password():
 
     if not identifier:
         return jsonify({
-            "ok": True,
-            "message": "If an account exists, a password reset email has been sent."
-        }), 200
+            "ok": False,
+            "message": "No Account Specified"
+        }), 400
 
     person = Person.find_by_identifier(identifier)
     if not person:
