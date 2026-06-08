@@ -2,7 +2,7 @@ export function formatDate(raw?: string | null): string | null
 {
     if (!raw) return null;
 
-    const date = new Date(raw);
+    const date = new Date(raw + "T00:00:00");
 
     if (Number.isNaN(date.getTime())) {
         return raw;

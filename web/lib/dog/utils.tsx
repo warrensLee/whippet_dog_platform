@@ -1,7 +1,7 @@
 export function calcAgeMonths(birthdate?: string | null): number | null {
   if (!birthdate) return null;
 
-  const birth = new Date(birthdate);
+  const birth = new Date(birthdate + "T00:00:00");
   if (Number.isNaN(birth.getTime())) return null;
 
   const now = new Date();

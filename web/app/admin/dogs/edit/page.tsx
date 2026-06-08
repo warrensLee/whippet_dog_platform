@@ -31,6 +31,9 @@ function normalizeText(value: unknown): string {
 
 /*
     Normalizes a date-like value into YYYY-MM-DD for form usage.
+
+    Appends "T00:00:00" so that new Date() interprets it as local
+    midnight (avoids the UTC→local date-shift bug).
 */
 function normalizeDateInput(value: unknown): string {
     const text = normalizeText(value).trim();
@@ -40,6 +43,47 @@ function normalizeDateInput(value: unknown): string {
     }
 
     return text.slice(0, 10);
+}
+
+/*
+    Converts a YYYY-MM-DD string to a timezone-safe YYYY-MM-DD value
+    suitable for <input type="date">.
+
+    Without this, new Date("YYYY-MM-DD") is parsed as UTC midnight,
+    which shifts the local date by one day for users in negative-UTC
+    timezones.
+*/
+function normalizeDateInputForInput(value: unknown): string {
+    const text = normalizeText(value).trim();
+
+    if (!text) {
+        return "";
+    }
+
+    const parts = text.slice(0, 10).split("-");
+    if (parts.length !== 3) {
+        return text.slice(0, 10);
+    }
+
+    const [yearStr, monthStr, dayStr] = parts;
+    const year = parseInt(yearStr, 10);
+    const month = parseInt(monthStr, 10);
+    const day = parseInt(dayStr, 10);
+
+    if (isNaN(year) || isNaN(month) || isNaN(day)) {
+        return text.slice(0, 10);
+    }
+
+    const localDate = new Date(year, month - 1, day);
+    if (isNaN(localDate.getTime())) {
+        return text.slice(0, 10);
+    }
+
+    const y = localDate.getFullYear();
+    const m = String(localDate.getMonth() + 1).padStart(2, "0");
+    const d = String(localDate.getDate()).padStart(2, "0");
+
+    return `${y}-${m}-${d}`;
 }
 
 type RawDogGetResponse = {
@@ -103,7 +147,7 @@ function buildFormFromDog(data: NonNullable<RawDogGetResponse["data"]>): DogForm
         foreignType: normalizeText(data.foreignType),
         callName: normalizeText(data.callName),
         registeredName: normalizeText(data.registeredName),
-        birthdate: normalizeDateInput(data.birthdate),
+        birthdate: normalizeDateInputForInput(data.birthdate),
         pedigreeLink: normalizeText(data.pedigreeLink),
         status: normalizeText(data.status) || "Active",
         publicNotes: normalizeText(data.publicNotes),

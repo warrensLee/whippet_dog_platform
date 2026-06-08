@@ -1,0 +1,21 @@
+
+ALTER TABLE Dog
+    MODIFY COLUMN Average DECIMAL(9,2),
+    MODIFY COLUMN MeetPoints DECIMAL(9,2),
+    MODIFY COLUMN ARXPoints DECIMAL(9,2),
+    MODIFY COLUMN NARXPoints DECIMAL(9,2),
+    MODIFY COLUMN MeetWins DECIMAL(9,2),
+    MODIFY COLUMN MeetAppearences DECIMAL(9,2),
+    MODIFY COLUMN HighCombinedWins DECIMAL(9,2),
+    MODIFY COLUMN AOMEarned DECIMAL(9,2),
+    MODIFY COLUMN DPCPoints DECIMAL(9,2),
+    MODIFY COLUMN ManualMeetPointsAdjustment DECIMAL(9,2),
+    MODIFY COLUMN ManualARXPointsAdjustment DECIMAL(9,2),
+    MODIFY COLUMN ManualNARXPointsAdjustment DECIMAL(9,2),
+    MODIFY COLUMN ManualShowPointsAdjustment DECIMAL(9,2),
+    MODIFY COLUMN ManualDPCPointsAdjustment DECIMAL(9,2),
+    MODIFY COLUMN ManualMeetAppearancesAdjustment DECIMAL(9,2),
+    MODIFY COLUMN ManualMeetWinsAdjustment DECIMAL(9,2),
+    MODIFY COLUMN ManualDPCLegsAdjustment DECIMAL(9,2),
+    MODIFY COLUMN ManualHighCombinedWinsAdjustment DECIMAL(9,2),
+    MODIFY COLUMN RegisteredNumber VARCHAR(200);

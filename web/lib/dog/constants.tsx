@@ -121,7 +121,7 @@ export const TITLE_FAMILIES: TitleFamily[] = [
     ],
     extraCheck: (dog: DogDetail) => {
       if (!dog.birthdate) return "Birthdate required to verify age";
-      const birth = new Date(dog.birthdate);
+      const birth = new Date(dog.birthdate + "T00:00:00");
       const now = new Date();
       const ageMonths =
         (now.getFullYear() - birth.getFullYear()) * 12 +

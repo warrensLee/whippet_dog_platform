@@ -271,7 +271,7 @@ function DogPage() {
                   </button>
                   <PointBar
                     label={`Meet Points (${statsMode === "ytd" ? `${currentYear} YTD` : "All Time"})`}
-                    value={dogStats?.total_meet_points ?? 0}
+                    value={dog?.adjustedMeetPoints ?? 0}
                     max={maxPoints}
                   />
 
@@ -283,7 +283,7 @@ function DogPage() {
 
                   <PointBar
                     label={`High Combined Points (${statsMode === "ytd" ? `${currentYear} YTD` : "All Time"})`}
-                    value={dogStats?.total_hc_score ?? 0}
+                    value={dog.adjustedHighCombinedWins ?? 0}
                     max={maxPoints}
                   />
 
@@ -295,13 +295,13 @@ function DogPage() {
 
                   <PointBar
                     label={`Show Points (${statsMode === "ytd" ? `${currentYear} YTD` : "All Time"})`}
-                    value={dogStats?.total_show_points ?? dog?.adjustedShowPoints ?? dog?.showPoints ?? 0}
+                    value={dog.adjustedShowPoints ?? 0}
                     max={maxPoints}
                   />
 
                   <PointBar
                     label={`DPC Points (${statsMode === "ytd" ? `${currentYear} YTD` : "All Time"})`}
-                    value={dogStats?.total_dpc_points ?? dog?.adjustedDpcPoints ?? dog?.dpcPoints ?? 0}
+                    value={dog.adjustedDpcPoints ?? 0}
                     max={maxPoints}
                   />
 
