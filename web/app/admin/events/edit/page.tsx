@@ -365,7 +365,7 @@ function EditEventPage() {
         }
 
         if (!resultsValid) {
-            setResultsError("Please fill in all required fields (Program, Race, Entry Type, Box) before saving.");
+            setResultsError("Please fill in all required fields (Program, Race, Entry Type) before saving.");
             return;
         }
 

@@ -2,7 +2,7 @@ export type DogRace = {
     program: string,
     race: string,
     entryType: string,
-    box: string,
+    box: string | undefined,
     placement: string,
     incident: string
 }

@@ -71,7 +71,7 @@ export const TITLE_FAMILIES: TitleFamily[] = [
   },
   {
     family: "ARX",
-    description: "Award of Racing Excellence — place in top 50% of adult finishers",
+    description: "Award of Racing Excellence — place in top 50% of adult starters",
     unit: "ARX pts",
     getValue: (dog: DogDetail) => dog.adjustedArxPoints ?? dog.arxPoints ?? 0,
     tiers: [{ name: "ARX", threshold: 15, color: "green" }],

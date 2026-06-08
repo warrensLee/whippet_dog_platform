@@ -131,7 +131,7 @@ CREATE TABLE `RaceResults` (
     `Program` VARCHAR(1) NOT NULL,
     `RaceNumber` VARCHAR(10) NOT NULL,
     `EntryType` VARCHAR(5),
-    `Box` INT NOT NULL,
+    `Box` INT,
     `Placement` INT NOT NULL,
     `MeetPoints` DECIMAL(3,2) NOT NULL,
     `AOMEarned` DECIMAL(3,2) NOT NULL,

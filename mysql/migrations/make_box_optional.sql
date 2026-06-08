@@ -1,0 +1,2 @@
+ALTER TABLE RaceResults
+    MODIFY COLUMN Box INT;

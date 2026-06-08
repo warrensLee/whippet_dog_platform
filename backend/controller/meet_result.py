@@ -494,7 +494,7 @@ def bulk_update_edit_result_view(meet_number):
                 program = race.get("program")
                 race_number = race.get("race")
                 entry_type = race.get("entryType")
-                box = race.get("box") or ""
+                box = race.get("box") or None
                 placement = race.get("placement")
                 incident = race.get("incident") or ""
                 

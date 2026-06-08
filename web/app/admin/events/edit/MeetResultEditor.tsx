@@ -156,10 +156,8 @@ function validateRace(race: DogRace, allRaces?: DogRace[]): boolean {
         return race.program.trim() !== "" &&
             race.race.trim() !== "" &&
             race.placement !== "" &&
-            race.box !== "" &&
             race.entryType !== "" &&
-            Number(race.placement) !== 0 &&
-            Number(race.box) !== 0;
+            Number(race.placement) !== 0;
     }
     const raceIndex = allRaces.indexOf(race);
     const otherRaces = allRaces.filter((_, i) => i !== raceIndex);
@@ -172,10 +170,8 @@ function validateRace(race: DogRace, allRaces?: DogRace[]): boolean {
     return race.program.trim() !== "" &&
         race.race.trim() !== "" &&
         race.placement !== "" &&
-        race.box !== "" &&
         race.entryType !== "" &&
-        Number(race.placement) !== 0 &&
-        Number(race.box) !== 0;
+        Number(race.placement) !== 0;
 }
 
 function RaceEditor({ value, onChange, validate, onRemove, races }: { value: DogRace, onChange: (value: DogRace) => void, validate?: (isValid: boolean) => void, onRemove: () => void, races: DogRace[] }) {
@@ -221,12 +217,22 @@ function RaceEditor({ value, onChange, validate, onRemove, races }: { value: Dog
             </div>
 
             <div>
-                <label className="mb-2 block text-sm font-medium text-[#12301D]">Box<span className="text-red-500">*</span></label>
+                <label className="mb-2 block text-sm font-medium text-[#12301D]">Box</label>
                 <input
-                    type="number"
-                    value={value.box}
-                    required
-                    onChange={(e) => handleFieldChange("box", e.target.value)}
+                    inputMode="numeric"
+                    value={value.box ?? ""}
+                    onChange={(e) => {
+                        const val = e.target.value;
+
+                        if (val === "") {
+                            handleFieldChange("box", undefined);
+                            return;
+                        }
+
+                        if (/^\d+$/.test(val)) {
+                            handleFieldChange("box", val);
+                        }
+                    }}
                     className={`w-full rounded-2xl border ${borderColor} bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 ${ringColor}`}
                 />
             </div>
