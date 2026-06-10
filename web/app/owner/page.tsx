@@ -151,6 +151,7 @@ function Owner() {
         fetch("/api/person/update-profile", { method: "POST", "body": publicNotes })
         setEditingProfile(false)
     }
+    console.log("editingProfile:" + editingProfile);
     return (
 
         <main className="pt-24 bg-[#1F4D2E]">
@@ -176,7 +177,8 @@ function Owner() {
                     {!editingProfile && <RichTextViewer text={publicNotes} />}
                     {editingProfile && <RichTextEditor style={{}} onChange={setPublicNotes} value={publicNotes} />}
                     {editingProfile && <button type="button" onClick={handleSaveNotes} className="mt-2 rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60 w-full">Save </button>}
-                    {!editingProfile && user != undefined && user != "NotAuthenticated" && user.PersonID == params.get("id") && <button type="button" onClick={() => setEditingProfile(true)} className="mt-2 rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60 w-full">Edit Profile</button>}
+                    {!editingProfile && user != undefined && user != "NotAuthenticated" && user.ID == +params.get("id")! && <button type="button" onClick={() => setEditingProfile(true)} className="mt-2 rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60 w-full">Edit Profile</button>}
+
                 </div>
             </section>
         </main >
