@@ -5,9 +5,9 @@ class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY")
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
-    RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
-    FROM_EMAIL = os.environ.get("FROM_EMAIL", "noreply@example.com")
-    CONTACT_TO_EMAIL = os.environ.get("CONTACT_TO_EMAIL", "")
+    RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
+    FROM_EMAIL = os.environ.get("FROM_EMAIL")
+    CONTACT_TO_EMAIL = os.environ.get("CONTACT_TO_EMAIL")
 
 class DevelopmentConfig(Config):
     """Development configuration"""

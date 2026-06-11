@@ -3,15 +3,15 @@ import time
 import mysql.connector
 import mysql.connector.pooling
 from mysql.connector import Error
-
+import traceback
 connection_pool = mysql.connector.pooling.MySQLConnectionPool(
     pool_name="whippet_pool",
     pool_size=10,
     pool_reset_session=True,
-    host=os.getenv("DB_HOST", "db"),
-    user=os.getenv("DB_USER", "root"),
-    password=os.getenv("DB_PASSWORD", "dogs"),
-    database=os.getenv("DB_NAME", "cwa_db"),
+    host=os.getenv("DB_HOST"),
+    user=os.getenv("DB_USER"),
+    password=os.getenv("DB_PASSWORD"),
+    database=os.getenv("DB_NAME"),
     autocommit=True,
     connect_timeout=10,
     use_pure=True,
@@ -30,7 +30,8 @@ def fetch_all(sql: str, params=()):
         result = cur.fetchall()
         elapsed = time.time() - start
         if elapsed > 1.0:
-            print(f"[SLOW QUERY] {elapsed:.2f}s - {sql[:100]}")
+            print(f"[SLOW QUERY] {elapsed:.2f}s")
+            traceback.print_stack()
         return result
     finally:
         cur.close()
