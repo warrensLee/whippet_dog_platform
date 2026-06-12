@@ -1,4 +1,4 @@
-FROM mysql:8.0.44
+FROM mysql:8.0.44@sha256:9c3380eac945af0736031b200027f581925927c81e010056214a4bd6b6693714
 
 RUN microdnf install -y \
     cronie \

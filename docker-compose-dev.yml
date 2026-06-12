@@ -1,6 +1,6 @@
 services:
   db:
-    image: mysql:8.0.44
+    image: mysql:8.0.44@sha256:9c3380eac945af0736031b200027f581925927c81e010056214a4bd6b6693714
     restart: always
     environment:
       user: 1000:1000
@@ -11,7 +11,7 @@ services:
       - data:/var/lib/mysql
       - ./mysql/init:/docker-entrypoint-initdb.d
   frontend:
-    image: node:20-alpine
+    image: node:24-alpine@sha256:a1db41e58b58674705e9c5f886ab62fd906562087ee797632d3a30ed87219c4c
     container_name: nextjs-dev
     working_dir: /app
     # user: 1000:1000
@@ -29,7 +29,7 @@ services:
       - next_next:/app/.next
 
   backend:
-    image: python:3.14
+    image: python:3.14@sha256:d7a925f9eb9639a93e455b9f12c167569358818c0f62b51b88edbc8fcf34c421
     user: 1000:1000
     working_dir: /app
     ports:
@@ -37,16 +37,17 @@ services:
     volumes:
       - ./backend:/app
       - ./mysql/migrations:/app/mysql/migrations:ro
-    command: /bin/bash -c "python -m venv venv && source venv/bin/activate && pip
+    command:
+      /bin/bash -c "python -m venv venv && source venv/bin/activate && pip
       install -r requirements.txt &&  sleep 30 && gunicorn -b 0.0.0.0:8000
       --reload --timeout 500 main:app"
-    depends_on: [ db ]
+    depends_on: [db]
     env_file: ".env.backend"
 
   backup:
     image: mysql:8.0.44
     container_name: cwa-backup
-    depends_on: [ db ]
+    depends_on: [db]
     volumes:
       - ./backups:/backups
       - ./mysql/backup.sh:/backup.sh

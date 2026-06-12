@@ -1,8 +1,8 @@
-flask 
-gunicorn
-mysql-connector-python
-email-validator
-resend
-pypdf
-werkzeug
-reportlab
+flask==3.1.3
+gunicorn==26.0.0
+mysql-connector-python==9.7.0
+email-validator==2.3.0
+resend==2.30.1
+pypdf==6.13.2
+werkzeug==3.1.8
+reportlab==4.5.1
