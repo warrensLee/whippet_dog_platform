@@ -290,7 +290,8 @@ function RaceEditor({ value, onChange, validate, onRemove, races }: { value: Dog
 function DogEditor({ value, onChange, validate, onRemove }: { value: DogEntry, onChange: (value: DogEntry) => void, validate?: (isValid: boolean) => void, onRemove: () => void }) {
     const [expanded, setExpanded] = useState(true)
     const racesValid = value.races.length === 0 || value.races.every(race => validateRace(race, value.races));
-    const shownValidation = !value.shown || (value.showPlace !== undefined && Number(value.showPlace) >= 0 && value.showPoints !== undefined && Number(value.showPoints) >= 0);
+    const shownValidation = !value.shown || ((value.showPlace == "" || (Number(value.showPlace) >= 0 && /^\d+$/.test(value.showPlace))) && (value.showPoints == "" || (Number(value.showPoints) >= 0 && /^\d+$/.test(value.showPoints))));
+    console.log("shownValidation: " + shownValidation)
     const borderColor = (!racesValid || (!shownValidation && value.shown)) ? "border-red-500" : "border-black/10";
 
     function handlePropertyChange<K extends keyof DogEntry>(key: K, new_value: DogEntry[K]) {
@@ -342,18 +343,16 @@ function DogEditor({ value, onChange, validate, onRemove }: { value: DogEntry, o
                 {value.shown && (
                     <div className="flex gap-4">
                         <div>
-                            <label className="mb-1 block text-sm font-medium text-[#12301D]">Show Place <span className="text-red-500">*</span></label>
+                            <label className="mb-1 block text-sm font-medium text-[#12301D]">Show Place</label>
                             <input
-                                type="number"
                                 value={value.showPlace}
                                 onChange={(e) => handlePropertyChange("showPlace", e.target.value)}
                                 className={`w-full rounded-2xl border ${value.shown && !shownValidation ? 'border-red-500' : 'border-black/10'} bg-white px-4 py-2 text-[#12301D] outline-none focus:ring-4 ${value.shown && !shownValidation ? 'focus:ring-red-200' : 'focus:ring-[#2E6B3F]/20'}`}
                             />
                         </div>
                         <div>
-                            <label className="mb-1 block text-sm font-medium text-[#12301D]">Show Points <span className="text-red-500">*</span></label>
+                            <label className="mb-1 block text-sm font-medium text-[#12301D]">Show Points</label>
                             <input
-                                type="number"
                                 value={value.showPoints}
                                 onChange={(e) => handlePropertyChange("showPoints", e.target.value)}
                                 className={`w-full rounded-2xl border ${value.shown && !shownValidation ? 'border-red-500' : 'border-black/10'} bg-white px-4 py-2 text-[#12301D] outline-none focus:ring-4 ${value.shown && !shownValidation ? 'focus:ring-red-200' : 'focus:ring-[#2E6B3F]/20'}`}
