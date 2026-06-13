@@ -10,7 +10,7 @@ import StatPill from "../components/ui/StatPill";
 import { fetchJson } from "../../lib/ui/fetchJson";
 import { formatDate } from "../../lib/ui/formatDate";
 import RaceLineup from "../components/event/RaceLineup";
-import FinalMeetResults from "../components/event/FinalMeetResults";
+import FinalMeetResults from "./FinalMeetResults";
 import authContext from "@/lib/auth/auth";
 import Loading from "@/lib/loading";
 import RichTextViewer from "@/lib/richtext/RichTextViewer";
@@ -252,8 +252,7 @@ function MeetPage() {
     // last minute request by Krista
     const getType = (row: FinalMeetResult) => String(row.entryType ?? "").trim().toLowerCase();
 
-    const puppyDogCount = finalMeetResults.filter((row) => 
-    {
+    const puppyDogCount = finalMeetResults.filter((row) => {
         const type = getType(row);
         return type === "puppy" || type === "p";
     }).length;

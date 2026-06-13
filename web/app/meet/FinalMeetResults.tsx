@@ -49,9 +49,8 @@ function ResultsTable({
                 <th className="px-1.5 py-[2px] text-left whitespace-nowrap">Dog</th>
                 <th className="px-1.5 py-[2px] text-left whitespace-nowrap">ARX</th>
                 <th className="px-1.5 py-[2px] text-left whitespace-nowrap">NARX</th>
-                <th className="px-1.5 py-[2px] text-left whitespace-nowrap">Match Points</th>
+                <th className="px-1.5 py-[2px] text-left whitespace-nowrap">Meet Points</th>
                 <th className="px-1.5 py-[2px] text-left whitespace-nowrap">DPC Points</th>
-                <th className="px-1.5 py-[2px] text-left whitespace-nowrap">HC Score</th>
                 <th className="px-1.5 py-[2px] text-left whitespace-nowrap">Incident</th>
               </tr>
             </thead>
@@ -85,13 +84,10 @@ function ResultsTable({
                     {formatValue(dog.NARX)}
                   </td>
                   <td className="px-2 py-1 whitespace-nowrap text-[13px]">
-                    {formatValue(dog.MatchPoints)}
+                    {formatValue(dog.MeetPoints)}
                   </td>
                   <td className="px-2 py-1 whitespace-nowrap text-[13px]">
                     {formatValue(dog.DPCPoints)}
-                  </td>
-                  <td className="px-2 py-1 whitespace-nowrap text-[13px]">
-                    {formatValue(dog.HCScore)}
                   </td>
                   <td className="px-2 py-1 max-w-[140px] text-[13px]">
                     {formatValue(dog.Incident ?? dog.ScratchDQInfo)}
