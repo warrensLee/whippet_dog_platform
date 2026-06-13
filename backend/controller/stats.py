@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, jsonify
 from classes.stats import Stats
 from utils.error_handler import handle_error
 

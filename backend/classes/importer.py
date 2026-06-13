@@ -12,7 +12,6 @@ from classes.race_result import RaceResult
 from classes.change_log import ChangeLog
 from classes.dog_title import DogTitle
 from utils.auth_helpers import current_editor_id
-from database import fetch_one
 
 
 class CsvImporter:
@@ -55,6 +54,7 @@ class CsvImporter:
             "average": ("average", "Average", "AVG"),
             "conformationPlacement": ("conformationPlacement", "ConformationPlacement", "CONFORMATION PLACEMENT", "Conformation Placement", "Conformation Place"),
             "matchPoints": ("matchPoints", "MatchPoints", "MATCH POINTS", "Match Points"),
+            "entryType": ("entryType", "EntryType", "ENTRY TYPE", "Entry"),
             "grade": ("grade", "Grade"),
             "meetPlacement": ("meetPlacement", "MeetPlacement", "MEET PLACEMENT", "Meet Place", "Place"),
             "meetPoints": ("meetPoints", "MeetPoints", "MEET POINTS", "Points"),
@@ -74,7 +74,6 @@ class CsvImporter:
             "cwaNumber": ("cwaNumber", "CWANumber", "CWA NO", "CWA No", "CWA #"),
             "program": ("program", "Program", "PROGRAM"),
             "raceNumber": ("raceNumber", "RaceNumber", "RACE", "Race #", "Race No", "Race No."),
-            "entryType": ("entryType", "EntryType", "ENTRY TYPE", "Entry"),
             "box": ("box", "Box", "BOX"),
             "placement": ("placement", "Placement", "PLACE", "Place"),
             "meetPoints": ("meetPoints", "MeetPoints", "MEET POINTS", "Points"),
@@ -198,7 +197,8 @@ class CsvImporter:
                     del payload[score_field]
 
         if import_type == "meet_results":
-            yn = lambda v: "1" if (v or "").strip().upper() in ("1", "YES", "Y", "TRUE") else "0"
+            def yn(v):
+                return "1" if (v or "").strip().upper() in ("1", "YES", "Y", "TRUE") else "0"
             for field in ["shown", "dpcLeg", "hcLegEarned"]:
                 payload[field] = yn(payload.get(field))
             if payload.get("shown") == "0":

@@ -1,4 +1,3 @@
-from mysql.connector import Error
 from database import fetch_all, fetch_one
 
 class Stats:

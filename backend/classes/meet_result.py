@@ -7,7 +7,7 @@ class MeetResult:
 
     def __init__(self, meet_number, cwa_number, average, grade, meet_placement, conformation_placement,
                  match_points, meet_points, arx_earned, narx_earned, shown, show_placement, show_points,
-                 dpc_leg, hc_score, hc_leg_earned, aom_earned, dpc_points, last_edited_by=None, last_edited_at=None):
+                 dpc_leg, hc_score, hc_leg_earned, aom_earned, dpc_points, entry_type, last_edited_by=None, last_edited_at=None):
         self.meet_number = meet_number
         self.cwa_number = cwa_number
         self.average = average
@@ -28,6 +28,7 @@ class MeetResult:
         self.dpc_points = dpc_points
         self.last_edited_by = last_edited_by
         self.last_edited_at = last_edited_at
+        self.entry_type = entry_type
 
     @classmethod
     def from_request_data(cls, data):
@@ -52,8 +53,9 @@ class MeetResult:
             hc_leg_earned=(data.get("hcLegEarned") or "").strip(),
             aom_earned=(data.get("aomEarned") or "").strip(),
             dpc_points=(data.get("dpcPoints") or "").strip(),
+            entry_type=data.get("entryType"),
             last_edited_by=data.get("lastEditedBy"),
-            last_edited_at=data.get("lastEditedAt")
+            last_edited_at=data.get("lastEditedAt"),
         )
 
     @classmethod
@@ -80,8 +82,9 @@ class MeetResult:
             hc_leg_earned=row.get("HCLegEarned"),
             aom_earned=row.get("AOMEarned"),
             dpc_points=row.get("DPCPoints"),
+            entry_type=row.get("EntryType"),
             last_edited_by=row.get("LastEditedBy"),
-            last_edited_at=row.get("LastEditedAt")
+            last_edited_at=row.get("LastEditedAt"),
         )
 
     @classmethod
@@ -91,7 +94,7 @@ class MeetResult:
             """
             SELECT MeetNumber, CWANumber, Average, Grade, MeetPlacement, ConformationPlacement,
                     MatchPoints, MeetPoints, ARXEarned, NARXEarned, Shown, ShowPlacement, ShowPoints, DPCLeg,
-                    HCScore, HCLegEarned, AOMEarned, DPCPoints, LastEditedBy, LastEditedAt
+                    HCScore, HCLegEarned, AOMEarned, DPCPoints, EntryType, LastEditedBy, LastEditedAt
             FROM MeetResults
             WHERE MeetNumber = %s AND CWANumber = %s
             LIMIT 1
@@ -141,6 +144,8 @@ class MeetResult:
             errors.append("Meet number must be 20 characters or less")
         if len(self.cwa_number) > 10:
             errors.append("CWA number must be 10 characters or less")
+        if self.entry_type != "REG" and self.entry_type != "PUPPY":
+            errors.append("invalid entry type")
 
         meet_exists = None
         if self.meet_number:
@@ -177,9 +182,9 @@ class MeetResult:
                 INSERT INTO MeetResults (
                     MeetNumber, CWANumber, Average, Grade, MeetPlacement, ConformationPlacement,
                     MatchPoints, MeetPoints, ARXEarned, NARXEarned, Shown, ShowPlacement, ShowPoints, DPCLeg,
-                    HCScore, HCLegEarned, AOMEarned, DPCPoints, LastEditedBy, LastEditedAt
+                    HCScore, HCLegEarned, AOMEarned, DPCPoints, EntryType, LastEditedBy, LastEditedAt
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
                     self.meet_number,
@@ -200,6 +205,7 @@ class MeetResult:
                     self.hc_leg_earned,
                     self.aom_earned,
                     self.dpc_points,
+                    self.entry_type,
                     self.last_edited_by,
                     self.last_edited_at,
                 ),
@@ -230,6 +236,7 @@ class MeetResult:
                     HCLegEarned = %s,
                     AOMEarned = %s,
                     DPCPoints = %s,
+                    EntryType = %s,
                     LastEditedBy = %s,
                     LastEditedAt = %s
                 WHERE MeetNumber = %s AND CWANumber = %s
@@ -251,6 +258,7 @@ class MeetResult:
                     self.hc_leg_earned,
                     self.aom_earned,
                     self.dpc_points,
+                    self.entry_type,
                     self.last_edited_by,
                     self.last_edited_at,
                     self.meet_number,
@@ -281,12 +289,13 @@ class MeetResult:
             """
             SELECT MeetNumber, CWANumber, Average, Grade, MeetPlacement, ConformationPlacement,
                     MatchPoints, MeetPoints, ARXEarned, NARXEarned, Shown, ShowPlacement, ShowPoints, DPCLeg,
-                    HCScore, HCLegEarned, AOMEarned, DPCPoints, LastEditedBy, LastEditedAt
+                    HCScore, HCLegEarned, AOMEarned, DPCPoints, EntryType, LastEditedBy, LastEditedAt
             FROM MeetResults
             """
         )
         return [MeetResult.from_db_row(row) for row in rows]
 
+    ''' we no longer do this at the backend level
     def update_from_race_results(self):
         """Recalculate meet result totals from RaceResults for this meet+dog."""
         if not self.meet_number or not self.cwa_number:
@@ -305,7 +314,7 @@ class MeetResult:
 
         rr = RaceResult(
             meet_number=self.meet_number, cwa_number=self.cwa_number,
-            program=None, race_number=None, entry_type=None,
+            program=None, race_number=None,
             box=None, placement=None, meet_points=None,
             aom_earned=None, dpc_points=None, incident=None,
             last_edited_by=None, last_edited_at=None,
@@ -322,7 +331,7 @@ class MeetResult:
         RaceResult.calculate_hc_leg_for_meet(self.meet_number)
         MeetResult.recalculate_derived_fields_for_meet(self.meet_number)
 
-
+    '''
     @classmethod
     def recalculate_derived_fields_for_meet(cls, meet_number):
         """Recalculate ARX/NARX/DPC/HC for every dog in a meet using final placements, then roll up to Dog."""
@@ -341,7 +350,7 @@ class MeetResult:
 
         rr = RaceResult(
             meet_number=meet_number, cwa_number=None,
-            program=None, race_number=None, entry_type=None,
+            program=None, race_number=None,
             box=None, placement=None, meet_points=None,
             aom_earned=None, dpc_points=None, incident=None,
             last_edited_by=None, last_edited_at=None,
@@ -538,7 +547,8 @@ class MeetResult:
             "aomEarned": self.aom_earned,
             "dpcPoints": self.dpc_points,
             "lastEditedBy": self.last_edited_by,
-            "lastEditedAt": self.last_edited_at.isoformat() if self.last_edited_at else None
+            "lastEditedAt": self.last_edited_at.isoformat() if self.last_edited_at else None,
+            "EntryType": self.entry_type
         }
         return data
 
@@ -548,7 +558,7 @@ class MeetResult:
             """
             SELECT MeetNumber, CWANumber, Average, Grade, MeetPlacement, ConformationPlacement,
                 MatchPoints, MeetPoints, ARXEarned, NARXEarned, Shown, ShowPlacement, ShowPoints,
-                DPCLeg, HCScore, HCLegEarned, AOMEarned, DPCPoints, LastEditedBy, LastEditedAt
+                DPCLeg, HCScore, HCLegEarned, AOMEarned, EntryType, DPCPoints, LastEditedBy, LastEditedAt
             FROM MeetResults
             WHERE MeetNumber = %s
             ORDER BY CWANumber ASC
@@ -603,8 +613,7 @@ class MeetResult:
                     mr.DPCPoints,
                     d.CallName,
                     d.RegisteredName,
-
-                    MAX(rr.EntryType) AS EntryType,
+                    mr.EntryType AS EntryType,
 
                     GROUP_CONCAT(
                         DISTINCT CONCAT_WS(' ', p.FirstName, p.LastName)
@@ -652,7 +661,7 @@ class MeetResult:
                     lr.LastIncident
                 ORDER BY
                     CASE
-                        WHEN LOWER(TRIM(COALESCE(MAX(rr.EntryType), ''))) IN ('p', 'puppy') THEN 1
+                        WHEN LOWER(TRIM(COALESCE(MAX(mr.EntryType), ''))) IN ('p', 'puppy') THEN 1
                         ELSE 0
                     END,
                     mr.MeetPoints DESC,

@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import timezone
 from database import execute, fetch_one
 
 

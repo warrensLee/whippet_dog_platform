@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, session, Response
+from flask import Blueprint, jsonify, request, Response
 import csv
 import io
 from mysql.connector import Error
@@ -252,7 +252,6 @@ def get_meet_races(meet_number):
 @meet_bp.get("/search")
 def search_meets():
     q = (request.args.get("q") or "").strip()
-    owner = request.args.get("owner", None)
 
     try:
         rows = Meet.search(q)
@@ -335,7 +334,7 @@ def get_grading_guide():
         writer.writerows(rows)
         
         response = Response(output.getvalue().encode("utf-8-sig"), mimetype="text/csv")
-        response.headers["Content-Disposition"] = f'attachment; filename="grading_guide.csv"'
+        response.headers["Content-Disposition"] = 'attachment; filename="grading_guide.csv"'
         return response
     except Error as e:        
         return handle_error(e, "Database error")

@@ -48,7 +48,3 @@ def seed_user():
     person.set_password(PASSWORD)
     person.save()
     print(f"Created admin account: {PERSON_ID} / {EMAIL}")
-
-
-if __name__ == "__main__":
-    main()

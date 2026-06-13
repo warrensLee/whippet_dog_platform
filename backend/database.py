@@ -2,7 +2,6 @@ import os
 import time
 import mysql.connector
 import mysql.connector.pooling
-from mysql.connector import Error
 import traceback
 connection_pool = mysql.connector.pooling.MySQLConnectionPool(
     pool_name="whippet_pool",

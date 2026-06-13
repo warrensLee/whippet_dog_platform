@@ -1,12 +1,4 @@
 from io import BytesIO
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter, landscape
-from reportlab.lib.styles import ParagraphStyle
-from reportlab.lib.units import inch
-from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, HRFlowable,
-    Table, TableStyle
-)
 
 from reportlab.pdfgen import canvas
 from pypdf import PdfReader, PdfWriter
@@ -14,7 +6,6 @@ from reportlab.lib.colors import HexColor
 
 
 def generate_title_pdf(dog, title):
-    from classes.dog_title import DogTitle
     from classes.title_type import TitleType
     
     template_pdf = PdfReader("certificate_template.pdf")
@@ -23,7 +14,6 @@ def generate_title_pdf(dog, title):
     width = float(template_page.mediabox.width)
     height = float(template_page.mediabox.height)
 
-    packet = BytesIO()
     overlay_buffer = BytesIO()
     c = canvas.Canvas(overlay_buffer, pagesize=(width, height))
     

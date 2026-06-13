@@ -7,8 +7,6 @@ TODO:
 from database import fetch_all, fetch_one, execute
 from mysql.connector import Error
 import math
-from database import fetch_one, fetch_all
-from datetime import datetime, timezone
 
 def _text(value):
     if value is None:
@@ -22,13 +20,12 @@ def _get_dog_class():
 
 class RaceResult:
 
-    def __init__(self, meet_number, cwa_number, program, race_number, entry_type, box,
+    def __init__(self, meet_number, cwa_number, program, race_number, box,
                  placement, meet_points, aom_earned, dpc_points, incident, last_edited_by, last_edited_at):
         self.meet_number = meet_number
         self.cwa_number = cwa_number
         self.program = program
         self.race_number = race_number
-        self.entry_type = entry_type
         self.box = box
         self.placement = placement
         self.meet_points = meet_points
@@ -46,7 +43,6 @@ class RaceResult:
             cwa_number=(data.get("cwaNumber") or "").strip(),
             program=(data.get("program") or "").strip(),
             race_number=(data.get("raceNumber") or "").strip(),
-            entry_type=(data.get("entryType") or "").strip(),
             box=_text(data.get("box")),
             placement=_text(data.get("placement")),
             aom_earned=(data.get("aomEarned") or "").strip() or "0.00",
@@ -67,7 +63,6 @@ class RaceResult:
             cwa_number=row.get("CWANumber"),
             program=row.get("Program"),
             race_number=row.get("RaceNumber"),
-            entry_type=row.get("EntryType"),
             box=row.get("Box"),
             placement=row.get("Placement"),
             meet_points=row.get("MeetPoints"),
@@ -83,7 +78,7 @@ class RaceResult:
         """Find a race result by meet_number, cwa_number, program, and race number."""
         row = fetch_one(
             """
-            SELECT MeetNumber, CWANumber, Program, RaceNumber, EntryType, Box,
+            SELECT MeetNumber, CWANumber, Program, RaceNumber, Box,
                    Placement, MeetPoints, AOMEarned, DPCPoints, Incident,
                    LastEditedBy, LastEditedAt
             FROM RaceResults
@@ -137,7 +132,7 @@ class RaceResult:
             execute(
                 """
                 INSERT INTO RaceResults (
-                    MeetNumber, CWANumber, Program, RaceNumber, EntryType, Box,
+                    MeetNumber, CWANumber, Program, RaceNumber, Box,
                     Placement, MeetPoints, AOMEarned, DPCPoints, Incident,
                     LastEditedBy, LastEditedAt
                 )
@@ -148,7 +143,6 @@ class RaceResult:
                     self.cwa_number,
                     self.program,
                     self.race_number,
-                    self.entry_type,
                     self.box,
                     self.placement,
                     self.meet_points,
@@ -169,7 +163,6 @@ class RaceResult:
             execute(
                 """
                 UPDATE RaceResults
-                SET EntryType = %s,
                     Box = %s,
                     Placement = %s,
                     MeetPoints = %s,
@@ -181,7 +174,7 @@ class RaceResult:
                 WHERE MeetNumber = %s AND CWANumber = %s AND Program = %s AND RaceNumber = %s
                 """,
                 (
-                    self.entry_type, self.box, self.placement, self.meet_points, self.aom_earned, self.dpc_points,
+                    self.box, self.placement, self.meet_points, self.aom_earned, self.dpc_points,
                     self.incident, self.last_edited_by, self.last_edited_at,
                     self.meet_number, self.cwa_number, self.program , self.race_number
                 ),      
@@ -208,7 +201,7 @@ class RaceResult:
         """Retrieve all race results from the database."""
         rows = fetch_all(
             """
-            SELECT MeetNumber, CWANumber, Program, RaceNumber, EntryType, Box,
+            SELECT MeetNumber, CWANumber, Program, RaceNumber, Box,
                    Placement, MeetPoints, AOMEarned, DPCPoints, Incident,
                    LastEditedBy, LastEditedAt
             FROM RaceResults
@@ -408,7 +401,7 @@ class RaceResult:
             r.dpc_leg = 1 if r.cwa_number == winner_cwa else 0
             r.update()
 
-    def calculate_hc_score(self):
+    def calculate_hc_score_from_self(self):
         """
         HC score = sum of numeric race placements for this dog in this meet.
         Dog must be adult, complete all 4 programs, and have no incident.
@@ -442,7 +435,7 @@ class RaceResult:
 
         return score if count == 4 else 0
     
-    def calculate_hc_score(self, meet_placement, show_placement):
+    def calculate_hc_score(self, meet_placement = None, show_placement = None):
         meet_placement = int(meet_placement or 0)
         show_placement = int(show_placement or 0)
 
@@ -474,7 +467,7 @@ class RaceResult:
             rr = cls(
                 meet_number=mr.meet_number,
                 cwa_number=mr.cwa_number,
-                program=None, race_number=None, entry_type=None,
+                program=None, race_number=None,
                 box=None, placement=None, meet_points=None,
                 aom_earned=None, dpc_points=None, incident=None,
                 last_edited_by=None, last_edited_at=None,
@@ -519,7 +512,6 @@ class RaceResult:
             "cwaNumber": self.cwa_number,
             "program": self.program,
             "raceNumber": self.race_number,
-            "entryType": self.entry_type,
             "box": self.box,
             "placement": self.placement,
             "meetPoints": self.meet_points,

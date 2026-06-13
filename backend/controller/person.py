@@ -4,8 +4,7 @@ from datetime import datetime, timezone
 from database import fetch_all, fetch_one
 from classes.person import Person
 from classes.change_log import ChangeLog
-from classes.user_role import UserRole
-from utils.auth_helpers import current_editor_id, current_role, require_scope
+from utils.auth_helpers import current_editor_id, current_role
 from utils.error_handler import handle_error
 
 person_bp = Blueprint("person", __name__, url_prefix="/api/person")
@@ -369,7 +368,6 @@ def search_people():
         return jsonify({"ok": False, "error": "Not authorized to search people"}), 403
 
     q = (request.args.get("q") or "").strip()
-    active_only = (request.args.get("activeOnly") or "true").strip().lower() != "false"
 
     sql = """
         SELECT

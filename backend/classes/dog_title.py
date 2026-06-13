@@ -5,7 +5,6 @@ TODO:
 '''
 from database import fetch_all, fetch_one, execute
 from mysql.connector import Error
-from classes.dog import Dog
 from classes.change_log import ChangeLog
 from utils.email_service import send_titles_email
 from utils.generate_pdf import generate_title_pdf

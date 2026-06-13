@@ -369,7 +369,6 @@ def _get_race_entries(meet_number: str, program: str, race_number: str):
             rr.MeetPoints AS MeetPoints,
             rr.AOMEarned AS AOMEarned,
             rr.DPCPoints AS DPCPoints,
-            rr.EntryType AS EntryType,
             rr.Box AS Box,
             rr.Incident AS Incident,
             d.CallName AS CallName,
@@ -414,7 +413,6 @@ def get_race_entries(meet_number, program, race_number):
                 "meetPoints": row.get("MeetPoints"),
                 "aomEarned": row.get("AOMEarned"),
                 "dpcPoints": row.get("DPCPoints"),
-                "entryType": row.get("EntryType"),
                 "box": row.get("Box"),
                 "incident": row.get("Incident"),
             })

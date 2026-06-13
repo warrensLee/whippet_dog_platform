@@ -1,7 +1,6 @@
 export type DogRace = {
     program: string,
     race: string,
-    entryType: string,
     box: string | undefined,
     placement: string,
     incident: string
@@ -16,8 +15,12 @@ export type DogEntry = {
     cwaNumber: string,
     registeredName: string
     showPoints: string
+    entryType: string,
     showPlace: string
     races: DogRace[]
+    dpcPoints: string,
+    NARXEarned: string,
+    ARXEarned: string
 }
 
 export type MeetResults = DogEntry[]

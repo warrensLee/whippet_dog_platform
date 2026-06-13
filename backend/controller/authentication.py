@@ -45,8 +45,8 @@ def register():
                 check_deliverability=False
             )
             incoming.email = valid.normalized
-        except email_validator.EmailNotValidError as e:
-            return jsonify({"ok": False, "error": f"Invalid email address"}), 400
+        except email_validator.EmailNotValidError:
+            return jsonify({"ok": False, "error": "Invalid email address"}), 400
     else:
         return jsonify({"ok": False, "error": "Email is required"}), 400
 

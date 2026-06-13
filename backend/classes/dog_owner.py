@@ -1,5 +1,4 @@
 from database import fetch_all, fetch_one, execute
-from mysql.connector import Error
 
 class DogOwner:
     def __init__(self, cwa_id, person_id, last_edited_by=None, last_edited_at=None):

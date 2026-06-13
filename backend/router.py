@@ -1,6 +1,5 @@
 import os
-from flask import Blueprint, jsonify
-from database import fetch_all
+from flask import Blueprint
 from controller.authentication import auth_bp
 from controller.change_log import change_log_bp
 from controller.dog_owner import dog_owner_bp

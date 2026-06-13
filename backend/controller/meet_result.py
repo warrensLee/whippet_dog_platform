@@ -358,7 +358,6 @@ def list_final_meet_results_for_meet(meet_number):
                 "hcScore": row.get("HCScore"),
                 "matchPoints": row.get("MatchPoints"),
                 "dpcPoints": row.get("DPCPoints"),
-                "entryType": row.get("EntryType"),
             })
 
         return jsonify({"ok": True, "data": data}), 200
@@ -374,11 +373,15 @@ def edit_result_view(meet_number):
             SELECT 
                 rr.Program,
                 rr.RaceNumber,
-                rr.EntryType,
                 rr.Box,
                 rr.Placement,
                 rr.Incident,
                 rr.CWANumber,
+                mr.EntryType,
+                mr.ARXEarned,
+                mr.NARXEarned,
+                mr.DPCPoints,
+                mr.HCLegEarned,
                 mr.Shown,
                 mr.ShowPoints,
                 mr.ShowPlacement,
@@ -416,13 +419,16 @@ def edit_result_view(meet_number):
                     "showPlace": int(row.get("ShowPlacement") or 0),
                     "grade": row.get("Grade") or "",
                     "average": int(row.get("Average") or 0),
-                    "races": []
+                    "dpcPoints": int(row.get("DPCPoints") or 0),
+                    "NARXEarned": int(row.get("NARXEarned") or 0),
+                    "ARXEarned": int(row.get("ARXEarned") or 0),
+                    "races": [],
+                    "entryType": row.get("EntryType") or "",
                 }
             
             dog_data[cwa_number]["races"].append({
                 "program": row.get("Program") or "",
                 "race": row.get("RaceNumber") or "",
-                "entryType": row.get("EntryType") or "",
                 "box": row.get("Box") or "",
                 "placement": row.get("Placement") or "",
                 "incident": row.get("Incident") or ""
@@ -486,14 +492,17 @@ def bulk_update_edit_result_view(meet_number):
             shown = 1 if entry.get("shown") else 0
             show_points = int(entry.get("showPoints") or 0)
             show_placement = int(entry.get("showPlace") or 0)
+            arx_earned = int(entry.get("ARXEarned") or 0)
+            narx_earned = int(entry.get("NARXEarned") or 0)
+            dpc_points = int(entry.get("dpcPoints") or 0)
             grade = entry.get("grade")
+            entry_type = entry.get("entryType")
             average = float(entry.get("average") or 0)
             
             races = entry.get("races") or []
             for race in races:
                 program = race.get("program")
                 race_number = race.get("race")
-                entry_type = race.get("entryType")
                 box = race.get("box") or None
                 placement = race.get("placement")
                 incident = race.get("incident") or ""
@@ -509,7 +518,7 @@ def bulk_update_edit_result_view(meet_number):
                     placement_num = 0
                 
                 if placement_num > 0:
-                    rr = RaceResult("", "", "", "", "", "", placement_str, "", "", "", "", None, None)
+                    rr = RaceResult("", "", "", "", "", placement_str, "", "", "", "", None, None)
                     meet_points = rr.get_placement_points(placement_str)
                 elif placement_str.upper() == "AOM":
                     meet_points = 0.5
@@ -519,19 +528,19 @@ def bulk_update_edit_result_view(meet_number):
                 execute(
                     """
                     INSERT INTO RaceResults (
-                        MeetNumber, CWANumber, Program, RaceNumber, EntryType, Box,
+                        MeetNumber, CWANumber, Program, RaceNumber, Box,
                         Placement, MeetPoints, AOMEarned, DPCPoints, Incident,
                         LastEditedBy, LastEditedAt
                     )
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """,
-                    (meet_number, cwa_number, program, race_number, entry_type, box,
+                    (meet_number, cwa_number, program, race_number, box,
                      placement_str, meet_points, 0, 0, incident, editor_id, now),
                 )
 
-            new_result = MeetResult(meet_number, cwa_number, average, grade, 0, 0, 0, 0, 0, 0, shown, show_placement, show_points, 0, 0, 0, 0, 0, editor_id, now)
+            new_result = MeetResult(meet_number, cwa_number, average, grade, 0, 0, 0, 0, arx_earned, narx_earned, shown, show_placement, show_points, 0, 0, 0, 0, dpc_points, entry_type, editor_id, now)
             new_result.save()
-            new_result.update_from_race_results()
+            #new_result.update_from_race_results()
         
         default_old = {
             "meet_points": 0, "arx_points": 0, "narx_points": 0,

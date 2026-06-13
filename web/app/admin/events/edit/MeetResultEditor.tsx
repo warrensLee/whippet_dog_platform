@@ -156,7 +156,6 @@ function validateRace(race: DogRace, allRaces?: DogRace[]): boolean {
         return race.program.trim() !== "" &&
             race.race.trim() !== "" &&
             race.placement !== "" &&
-            race.entryType !== "" &&
             Number(race.placement) !== 0;
     }
     const raceIndex = allRaces.indexOf(race);
@@ -170,7 +169,6 @@ function validateRace(race: DogRace, allRaces?: DogRace[]): boolean {
     return race.program.trim() !== "" &&
         race.race.trim() !== "" &&
         race.placement !== "" &&
-        race.entryType !== "" &&
         Number(race.placement) !== 0;
 }
 
@@ -248,25 +246,7 @@ function RaceEditor({ value, onChange, validate, onRemove, races }: { value: Dog
             </div>
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 mt-4">
-            <div>
-                <label className="mb-2 block ${borderColor} text-sm font-medium text-[#12301D]">Entry Type<span className="text-red-500">*</span></label>
-                <Select
-                    value={value.entryType}
-                    onChange={(e) => handleFieldChange("entryType", e.target.value)}
-                    sx={{
-                        width: '100%',
-                        height: '48px',
-                        borderRadius: '14px',
-                        '& .MuiOutlinedInput-notchedOutline': { borderColor: !isValid ? 'red' : 'black' },
-                        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: !isValid ? 'red' : 'black' },
-                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: !isValid ? 'red' : '#2E6B3F', borderWidth: '2px' },
-                    }}
-                    inputProps={{ className: 'px-4 py-3 text-[#12301D]' }}
-                >
-                    <MenuItem value="PUPPY">PUPPY</MenuItem>
-                    <MenuItem value="REG">REG</MenuItem>
-                </Select>
-            </div>
+
 
             <div>
                 <label className="mb-2 block text-sm font-medium text-[#12301D]">Incident</label>
@@ -290,7 +270,7 @@ function RaceEditor({ value, onChange, validate, onRemove, races }: { value: Dog
 function DogEditor({ value, onChange, validate, onRemove }: { value: DogEntry, onChange: (value: DogEntry) => void, validate?: (isValid: boolean) => void, onRemove: () => void }) {
     const [expanded, setExpanded] = useState(true)
     const racesValid = value.races.length === 0 || value.races.every(race => validateRace(race, value.races));
-    const shownValidation = !value.shown || ((value.showPlace == "" || (Number(value.showPlace) >= 0 && /^\d+$/.test(value.showPlace))) && (value.showPoints == "" || (Number(value.showPoints) >= 0 && /^\d+$/.test(value.showPoints))));
+    const shownValidation = !value.shown || ((value.showPlace == "" || (Number(value.showPlace) >= 0 && /^\d+$/.test(value.showPlace))) && (value.showPoints == "" || (Number(value.showPoints) >= 0 && /^\d+$/.test(value.showPoints))) && (value.dpcPoints == "" || (Number(value.dpcPoints) >= 0 && /^\d+$/.test(value.dpcPoints))));
     console.log("shownValidation: " + shownValidation)
     const borderColor = (!racesValid || (!shownValidation && value.shown)) ? "border-red-500" : "border-black/10";
 
@@ -336,6 +316,25 @@ function DogEditor({ value, onChange, validate, onRemove }: { value: DogEntry, o
                 </div>
             </div>
             <div className="flex items-center gap-2">
+                <div>
+                    <label className="mb-2 block ${borderColor} text-sm font-medium text-[#12301D]">Entry Type<span className="text-red-500">*</span></label>
+                    <Select
+                        value={value.entryType}
+                        onChange={(e) => handlePropertyChange("entryType", e.target.value)}
+                        sx={{
+                            width: '100%',
+                            height: '48px',
+                            borderRadius: '14px',
+                            '& .MuiOutlinedInput-notchedOutline': { borderColor: !racesValid ? 'red' : 'black' },
+                            '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: !racesValid ? 'red' : 'black' },
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: !racesValid ? 'red' : '#2E6B3F', borderWidth: '2px' },
+                        }}
+                        inputProps={{ className: 'px-4 py-3 text-[#12301D]' }}
+                    >
+                        <MenuItem value="PUPPY">PUPPY</MenuItem>
+                        <MenuItem value="REG">REG</MenuItem>
+                    </Select>
+                </div>
                 <span className="text-sm text-[#12301D]">Shown:</span>
                 <Checkbox checked={value.shown} onChange={() => {
                     handlePropertyChange("shown", !value.shown)
@@ -358,8 +357,32 @@ function DogEditor({ value, onChange, validate, onRemove }: { value: DogEntry, o
                                 className={`w-full rounded-2xl border ${value.shown && !shownValidation ? 'border-red-500' : 'border-black/10'} bg-white px-4 py-2 text-[#12301D] outline-none focus:ring-4 ${value.shown && !shownValidation ? 'focus:ring-red-200' : 'focus:ring-[#2E6B3F]/20'}`}
                             />
                         </div>
+                        <div>
+                            <label className="mb-1 block text-sm font-medium text-[#12301D]">DPC Points</label>
+                            <input
+                                value={value.dpcPoints}
+                                onChange={(e) => handlePropertyChange("dpcPoints", e.target.value)}
+                                className={`w-full rounded-2xl border ${value.shown && !shownValidation ? 'border-red-500' : 'border-black/10'} bg-white px-4 py-2 text-[#12301D] outline-none focus:ring-4 ${value.shown && !shownValidation ? 'focus:ring-red-200' : 'focus:ring-[#2E6B3F]/20'}`}
+                            />
+                        </div>
                     </div>
                 )}
+                <div>
+                    <label className="mb-1 block text-sm font-medium text-[#12301D]">NARX points</label>
+                    <input
+                        value={value.NARXEarned}
+                        onChange={(e) => handlePropertyChange("NARXEarned", e.target.value)}
+                        className={`w-full rounded-2xl border ${value.shown && !shownValidation ? 'border-red-500' : 'border-black/10'} bg-white px-4 py-2 text-[#12301D] outline-none focus:ring-4 ${value.shown && !shownValidation ? 'focus:ring-red-200' : 'focus:ring-[#2E6B3F]/20'}`}
+                    />
+                </div>
+                <div>
+                    <label className="mb-1 block text-sm font-medium text-[#12301D]">ARX points</label>
+                    <input
+                        value={value.ARXEarned}
+                        onChange={(e) => handlePropertyChange("ARXEarned", e.target.value)}
+                        className={`w-full rounded-2xl border ${value.shown && !shownValidation ? 'border-red-500' : 'border-black/10'} bg-white px-4 py-2 text-[#12301D] outline-none focus:ring-4 ${value.shown && !shownValidation ? 'focus:ring-red-200' : 'focus:ring-[#2E6B3F]/20'}`}
+                    />
+                </div>
             </div>
 
         </div>
@@ -434,6 +457,9 @@ export default function MeetResultEditor({ value, onChange, setResultsValid }: {
             showPlace: "",
             grade: dog.grade,
             average: dog.average,
+            dpcPoints: "",
+            NARXEarned: "",
+            ARXEarned: "",
             races: [],
         };
         const newMeetResults: MeetResults = [...value, newDogEntry];

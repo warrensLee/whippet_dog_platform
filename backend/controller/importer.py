@@ -1,8 +1,7 @@
 from flask import Blueprint, jsonify, request
 from mysql.connector import Error
 from classes.importer import CsvImporter
-from classes.user_role import UserRole
-from utils.auth_helpers import current_role, require_scope
+from utils.auth_helpers import current_role
 from utils.error_handler import handle_error
 
 import_bp = Blueprint("import_bp", __name__, url_prefix="/api/import")
@@ -29,8 +28,7 @@ def import_csv():
     mode = (request.args.get("mode") or "insert").strip().lower()
     use_adjustment = request.args.get("useAdjustment", "false").strip().lower() == "true"
 
-    #TODO: the below if statement can be refactored to be better 
-
+    '''
     if import_type == "people":
         deny = None
     elif import_type == "dogs":
@@ -56,7 +54,6 @@ def import_csv():
 
     else:
         return jsonify({"ok": False, "error": "Invalid import type"}), 400
-
     if ((import_type == "dogs" and role.edit_dog_scope != UserRole.ALL)
             or (import_type == "meets" and role.edit_meet_scope != UserRole.ALL)
             or (import_type == "meet_results" and role.edit_meet_scope != UserRole.ALL)
@@ -68,7 +65,7 @@ def import_csv():
             "ok": False,
             "error": "Importer requires ALL scope"
         }), 403
-
+    '''
     if mode not in ("insert", "update"):
         return jsonify({"ok": False, "error": "mode must be 'insert' or 'update'"}), 400
 

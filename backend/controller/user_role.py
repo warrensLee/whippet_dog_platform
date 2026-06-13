@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request
 from mysql.connector import Error
 from classes.user_role import UserRole
 from classes.change_log import ChangeLog
-from utils.auth_helpers import current_editor_id, current_role, require_scope
+from utils.auth_helpers import current_editor_id, current_role
 from utils.error_handler import handle_error
 
 user_role_bp = Blueprint("user_role", __name__, url_prefix="/api/user_role")

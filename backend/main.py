@@ -2,6 +2,7 @@ from flask import Flask
 from config import get_config
 from router import register_routes
 from utils.seed_user import seed_user
+import os
 
 def create_app(config_name='development'):
     """Application factory pattern"""

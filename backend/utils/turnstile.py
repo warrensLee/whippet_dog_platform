@@ -17,7 +17,7 @@ def validate_turnstile(token, remoteip=None):
         response.raise_for_status()
         response_data = response.json()
         if not response_data["success"]:
-            return False;
+            return False
         return True
     except requests.RequestException as e:
         print(f"Turnstile validation error: {e}")
