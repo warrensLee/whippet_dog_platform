@@ -317,7 +317,7 @@ def get_grading_guide():
                 COALESCE(Dog.HighCombinedWins, 0) AS HighCombinedWins,
                 GROUP_CONCAT(DogTitles.Title ORDER BY DogTitles.Title SEPARATOR ', ') AS Titles
             FROM Dog
-            INNER JOIN MeetResults ON Dog.CWANumber = MeetResults.CWANumber
+            LEFT JOIN MeetResults ON Dog.CWANumber = MeetResults.CWANumber
             LEFT JOIN DogTitles ON Dog.CWANumber = DogTitles.CWANumber
             GROUP BY Dog.CWANumber, Dog.CallName, Dog.RegisteredName, Dog.CurrentGrade,
                      Dog.Average, Dog.MeetPoints, Dog.ARXPoints, Dog.NARXPoints,
@@ -334,7 +334,7 @@ def get_grading_guide():
         writer.writeheader()
         writer.writerows(rows)
         
-        response = Response(output.getvalue(), mimetype="text/csv")
+        response = Response(output.getvalue().encode("utf-8-sig"), mimetype="text/csv")
         response.headers["Content-Disposition"] = f'attachment; filename="grading_guide.csv"'
         return response
     except Error as e:        
