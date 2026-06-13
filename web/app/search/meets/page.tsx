@@ -183,7 +183,13 @@ function SearchPage() {
                 title="Search Meets"
                 subtitle="Search by meet number, club, or location."
             >
-                <div className="rounded-3xl border border-white/15 bg-white/10 p-4 md:p-5 backdrop-blur">
+                <Link
+                    href="/search/dogs"
+                    className="m-5 rounded-full bg-[#2E6B3F] px-5 py-2 text-lg font-semibold text-white hover:bg-[#255733] transition"
+                >
+                    Search Dogs
+                </Link>
+                <div className="rounded-3xl border border-white/15 bg-white/10 p-4 md:p-5 backdrop-blur mt-5">
                     <SearchBar
                         action="/search/meets"
                         query={q}

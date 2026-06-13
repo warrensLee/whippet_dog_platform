@@ -145,15 +145,9 @@ function SearchPage() {
         [q]
     );
 
-    /*
-        Fallback values so the page can safely render before data loads.
-    */
     const total = data?.total ?? 0;
     const items = data?.items ?? [];
 
-    /*
-        Safely sort the items based on the selected sort option.
-    */
     const sortedItems = [...items].sort((a, b) => {
         switch (sort) {
             case "nameDesc":
@@ -184,9 +178,7 @@ function SearchPage() {
     });
     /*
         Pagination is done on the frontend here after results load.
-
-        This works fine for the current project size and keeps the page logic easy to follow.
-        If the dataset gets much larger later, this could be moved to backend pagination.
+        TODO: Move to backend Pagination
     */
     const totalPages = Math.max(1, Math.ceil(total / limit));
     const safePage = Math.min(page, totalPages);
@@ -238,13 +230,13 @@ function SearchPage() {
                 title="Search Dogs"
                 subtitle="Enter a CWA number, registered name, call name, owner name, or title."
             >
-                {/* 
-                    Now for searching we will use the SearchBar component.
-
-                    This keeps the search input consistent across the site and allows us to 
-                    reuse styling and logic without repeating code.
-                */}
-                <div className="rounded-3xl border border-white/15 bg-white/10 p-4 md:p-5 backdrop-blur">
+                <Link
+                    href="/search/meets"
+                    className="m-5 rounded-full bg-[#2E6B3F] px-5 py-2 text-lg font-semibold text-white hover:bg-[#255733] transition"
+                >
+                    Search Meets
+                </Link>
+                <div className="rounded-3xl border border-white/15 bg-white/10 p-4 md:p-5 backdrop-blur mt-5">
                     <SearchBar
                         action="/search/dogs"
                         query={q}
@@ -252,9 +244,6 @@ function SearchPage() {
                         placeholder="Search by CWA number, AKC number, registered name, call name, owner name, or title."
                         roundedLeft={true}
                     />
-                    {/* 
-                        Small status line gives feedback without taking up too much space.
-                    */}
                     <div className="mt-4 text-sm text-white/75">
                         {
                             loading

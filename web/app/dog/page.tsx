@@ -57,7 +57,6 @@ function DogPage() {
     total_show_points?: number;
     total_dpc_points?: number;
   } | null>(null);
-  const [statsLoading, setStatsLoading] = React.useState(false);
   const currentYear = new Date().getFullYear();
 
   const canEditDog = (user != undefined && user != "NotAuthenticated" && (user.hasPermission("editAllDogs") || (user.hasPermission("editOwnDogs") && owners.filter((o) => o.PersonID == user.ID).length != 0)))
@@ -112,7 +111,6 @@ function DogPage() {
 
     async function loadStats() {
       try {
-        setStatsLoading(true);
 
         const url =
           statsMode === "ytd"
@@ -128,8 +126,6 @@ function DogPage() {
         }
       } catch {
         setDogStats(null);
-      } finally {
-        setStatsLoading(false);
       }
     }
 
