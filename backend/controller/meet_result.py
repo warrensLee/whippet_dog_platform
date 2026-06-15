@@ -387,8 +387,17 @@ def edit_result_view(meet_number):
                 mr.ShowPlacement,
                 mr.Grade,
                 mr.Average,
+                mr.MeetPlacement,
+                mr.MeetPoints,
+                mr.AOMEarned,
+                mr.DPCLeg,
                 dd.RegisteredName,
-                dd.CallName
+                 dd.CallName,
+                 dd.Birthdate,
+                 dd.ARXPoints,
+                 dd.NARXPoints,
+                 dd.DPC,
+                 dd.DPCX
             FROM RaceResults rr
             LEFT JOIN MeetResults mr 
                 ON rr.CWANumber = mr.CWANumber 
@@ -419,11 +428,20 @@ def edit_result_view(meet_number):
                     "showPlace": int(row.get("ShowPlacement") or 0),
                     "grade": row.get("Grade") or "",
                     "average": int(row.get("Average") or 0),
-                    "dpcPoints": int(row.get("DPCPoints") or 0),
-                    "NARXEarned": int(row.get("NARXEarned") or 0),
-                    "ARXEarned": int(row.get("ARXEarned") or 0),
+                    "dpcPoints": str(int(row.get("DPCPoints") or 0)),
+                    "NARXEarned": str(row.get("NARXEarned") or 0),
+                    "ARXEarned": str(row.get("ARXEarned") or 0),
                     "races": [],
+                    "hcWinner": int(row.get("HCLegEarned")),
                     "entryType": row.get("EntryType") or "",
+                    "meetPlacement": str(row.get("MeetPlacement") or 0),
+                    "meetPoints": str(row.get("MeetPoints") or 0),
+                    "dpcLeg": str(row.get("DPCLeg") or 0),
+                    "aomEarned": float(row.get("AOMEarned") or 0) if row.get("AOMEarned") is not None else 0,
+                    "birthdate": row.get("Birthdate") or "",
+                    "arxPoints": float(row.get("ARXPoints") or 0),
+                    "narxPoints": float(row.get("NARXPoints") or 0),
+                    "dpcTitle": bool(row.get("DPC") == "1" or row.get("DPCX") == "1"),
                 }
             
             dog_data[cwa_number]["races"].append({
@@ -495,10 +513,13 @@ def bulk_update_edit_result_view(meet_number):
             arx_earned = int(entry.get("ARXEarned") or 0)
             narx_earned = int(entry.get("NARXEarned") or 0)
             dpc_points = int(entry.get("dpcPoints") or 0)
+            dpc_leg = 1 if entry.get("dpcLeg") == "1" else 0
             grade = entry.get("grade")
             entry_type = entry.get("entryType")
             average = float(entry.get("average") or 0)
-            
+            hcWinner = float(entry.get("hcWinner") or False)
+            meet_placement_str = str(entry.get("meetPlacement") or 0).strip()
+            meet_points_str = str(entry.get("meetPoints") or 0).strip()
             races = entry.get("races") or []
             for race in races:
                 program = race.get("program")
@@ -538,7 +559,14 @@ def bulk_update_edit_result_view(meet_number):
                      placement_str, meet_points, 0, 0, incident, editor_id, now),
                 )
 
-            new_result = MeetResult(meet_number, cwa_number, average, grade, 0, 0, 0, 0, arx_earned, narx_earned, shown, show_placement, show_points, 0, 0, 0, 0, dpc_points, entry_type, editor_id, now)
+            try:
+                meet_points_val = float(meet_points_str) if meet_points_str and meet_points_str.isdigit() or meet_points_str.replace('.', '', 1).isdigit() else 0
+            except (ValueError, TypeError):
+                meet_points_val = 0
+
+            aom_earned = 0.5 if meet_placement_str.upper() == "AOM" else 0
+
+            new_result = MeetResult(meet_number, cwa_number, average, grade, int(meet_placement_str) if meet_placement_str and meet_placement_str.isdigit() else 0, 0, 0, meet_points_val, arx_earned, narx_earned, shown, show_placement, show_points, dpc_leg, 0, 1 if hcWinner else 0, aom_earned, dpc_points, entry_type, editor_id, now)
             new_result.save()
             #new_result.update_from_race_results()
         
@@ -555,8 +583,8 @@ def bulk_update_edit_result_view(meet_number):
                     old = old_stats.get(cwa, default_old)
                     _apply_meet_stats_delta(dog, old, new_stats, editor_id, now)
 
-        RaceResult.calculate_dpc_leg_for_meet(meet_number)
-        RaceResult.calculate_hc_leg_for_meet(meet_number)
+        #RaceResult.calculate_dpc_leg_for_meet(meet_number)
+        #RaceResult.calculate_hc_leg_for_meet(meet_number)
 
         return jsonify({"ok": True}), 200
 

@@ -1,7 +1,8 @@
-import { Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Typography, Select, MenuItem } from "@mui/material";
+import { Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Typography } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { DogEntry, DogRace, MeetResults } from "./MeetResultTypes";
-import { useState, useEffect } from "react";
+import { DogEntry, MeetResults, validateRace, recalculateMeetRankings, calculateArxNarx, calculateDpc, calculateShowPoints } from "./MeetResultTypes";
+import { useState, useEffect, useRef } from "react";
+import DogEditor from "./DogEditor";
 
 type DogSearchResult = {
     id: string;
@@ -151,295 +152,47 @@ function DogSearchDialog({
     );
 }
 
-function validateRace(race: DogRace, allRaces?: DogRace[]): boolean {
-    if (!allRaces) {
-        return race.program.trim() !== "" &&
-            race.race.trim() !== "" &&
-            race.placement !== "" &&
-            Number(race.placement) !== 0;
-    }
-    const raceIndex = allRaces.indexOf(race);
-    const otherRaces = allRaces.filter((_, i) => i !== raceIndex);
-    const hasDuplicate = otherRaces.some(otherRace =>
-        otherRace.program === race.program && otherRace.race === race.race
-    );
-    if (hasDuplicate) {
-        return false;
-    }
-    return race.program.trim() !== "" &&
-        race.race.trim() !== "" &&
-        race.placement !== "" &&
-        Number(race.placement) !== 0;
-}
-
-function RaceEditor({ value, onChange, validate, onRemove, races }: { value: DogRace, onChange: (value: DogRace) => void, validate?: (isValid: boolean) => void, onRemove: () => void, races: DogRace[] }) {
-    const isValid = validateRace(value, races);
-
-    useEffect(() => {
-        if (validate) {
-            validate(isValid);
-        }
-    }, [isValid, validate, races, value]);
-
-    function handleFieldChange<K extends keyof DogRace>(key: K, new_value: DogRace[K]) {
-        const new_object: DogRace = { ...value }
-        new_object[key] = new_value
-        onChange(new_object)
-    }
-
-    const borderColor = !isValid ? "border-red-500" : "border-black/10";
-    const ringColor = !isValid ? "focus:ring-red-200" : "focus:ring-[#2E6B3F]/20";
-
-    return <div className={`ml-4 mt-2 p-4 rounded-2xl border ${borderColor} bg-white`} >
-        <div className="flex gap-3">
-            <div>
-                <label className="mb-2 block text-sm font-medium text-[#12301D]">Program <span className="text-red-500">*</span></label>
-                <input
-                    type="text"
-                    maxLength={1}
-                    required
-                    value={value.program}
-                    onChange={(e) => handleFieldChange("program", e.target.value)}
-                    className={`w-full rounded-2xl border ${borderColor} bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 ${ringColor}`}
-                />
-            </div>
-            <div>
-                <label className="mb-2 block text-sm font-medium text-[#12301D]">Race <span className="text-red-500">*</span></label>
-                <input
-                    type="text"
-                    required
-                    value={value.race}
-                    onChange={(e) => handleFieldChange("race", e.target.value)}
-                    className={`w-full rounded-2xl border ${borderColor} bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 ${ringColor}`}
-                />
-            </div>
-
-            <div>
-                <label className="mb-2 block text-sm font-medium text-[#12301D]">Box</label>
-                <input
-                    inputMode="numeric"
-                    value={value.box ?? ""}
-                    onChange={(e) => {
-                        const val = e.target.value;
-
-                        if (val === "") {
-                            handleFieldChange("box", undefined);
-                            return;
-                        }
-
-                        if (/^\d+$/.test(val)) {
-                            handleFieldChange("box", val);
-                        }
-                    }}
-                    className={`w-full rounded-2xl border ${borderColor} bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 ${ringColor}`}
-                />
-            </div>
-            <div>
-                <label className="mb-2 block text-sm font-medium text-[#12301D]">Placement<span className="text-red-500">*</span></label>
-                <input
-                    type="number"
-                    value={value.placement}
-                    required
-                    onChange={(e) => handleFieldChange("placement", e.target.value)}
-                    className={`w-full rounded-2xl border ${borderColor} bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 ${ringColor}`}
-                />
-            </div>
-        </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 mt-4">
 
 
-            <div>
-                <label className="mb-2 block text-sm font-medium text-[#12301D]">Incident</label>
-                <input
-                    type="text"
-                    value={value.incident}
-                    onChange={(e) => handleFieldChange("incident", e.target.value)}
-                    className={`w-full rounded-2xl border ${borderColor} bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 ${ringColor}`}
-                />
-            </div>
-        </div>
-        <button
-            onClick={onRemove}
-            className="mt-2 rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100"
-        >
-            Remove
-        </button>
-    </div>
-}
 
-function DogEditor({ value, onChange, validate, onRemove }: { value: DogEntry, onChange: (value: DogEntry) => void, validate?: (isValid: boolean) => void, onRemove: () => void }) {
-    const [expanded, setExpanded] = useState(true)
-    const racesValid = value.races.length === 0 || value.races.every(race => validateRace(race, value.races));
-    const shownValidation = !value.shown || ((value.showPlace == "" || (Number(value.showPlace) >= 0 && /^\d+$/.test(value.showPlace))) && (value.showPoints == "" || (Number(value.showPoints) >= 0 && /^\d+$/.test(value.showPoints))) && (value.dpcPoints == "" || (Number(value.dpcPoints) >= 0 && /^\d+$/.test(value.dpcPoints))));
-    console.log("shownValidation: " + shownValidation)
-    const borderColor = (!racesValid || (!shownValidation && value.shown)) ? "border-red-500" : "border-black/10";
 
-    function handlePropertyChange<K extends keyof DogEntry>(key: K, new_value: DogEntry[K]) {
-        const new_object: DogEntry = { ...value }
-        new_object[key] = new_value
-        onChange(new_object)
-    }
 
-    function handleRaceChange(index: number, newRace: DogRace) {
-        const newRaces = [...value.races]
-        newRaces[index] = newRace
-        onChange({ ...value, races: newRaces })
-    }
-
-    function addRace() {
-        const newRace: DogRace = { program: "", race: "", entryType: "", box: "", placement: "", incident: "" }
-        onChange({ ...value, races: [...value.races, newRace] })
-    }
-
-    function removeRace(index: number) {
-        const newRaces = value.races.filter((_, i) => i !== index)
-        onChange({ ...value, races: newRaces })
-    }
-
-    useEffect(() => {
-        if (validate) {
-            validate(racesValid && shownValidation);
-        }
-    }, [racesValid, shownValidation, validate]);
-
-    return <div className={`rounded-2xl border ${borderColor} bg-white/90 m-2 p-4 shadow-sm`}>
-        <div className="flex items-center gap-4">
-            <div>
-                <p className="text-base font-semibold text-[#12301D]">{value.callName}</p>
-            </div>
-            <div className="flex items-center gap-4">
-                <div>
-                    <label className="mb-1 block text-sm font-medium text-[#12301D]">Grade: {value.grade}</label>
-                </div>
-                <div>
-                    <label className="mb-1 block text-sm font-medium text-[#12301D]">Average: {value.average}</label>
-                </div>
-            </div>
-            <div className="flex items-center gap-2">
-                <div>
-                    <label className="mb-2 block ${borderColor} text-sm font-medium text-[#12301D]">Entry Type<span className="text-red-500">*</span></label>
-                    <Select
-                        value={value.entryType}
-                        onChange={(e) => handlePropertyChange("entryType", e.target.value)}
-                        sx={{
-                            width: '100%',
-                            height: '48px',
-                            borderRadius: '14px',
-                            '& .MuiOutlinedInput-notchedOutline': { borderColor: !racesValid ? 'red' : 'black' },
-                            '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: !racesValid ? 'red' : 'black' },
-                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: !racesValid ? 'red' : '#2E6B3F', borderWidth: '2px' },
-                        }}
-                        inputProps={{ className: 'px-4 py-3 text-[#12301D]' }}
-                    >
-                        <MenuItem value="PUPPY">PUPPY</MenuItem>
-                        <MenuItem value="REG">REG</MenuItem>
-                    </Select>
-                </div>
-                <span className="text-sm text-[#12301D]">Shown:</span>
-                <Checkbox checked={value.shown} onChange={() => {
-                    handlePropertyChange("shown", !value.shown)
-                }} />
-                {value.shown && (
-                    <div className="flex gap-4">
-                        <div>
-                            <label className="mb-1 block text-sm font-medium text-[#12301D]">Show Place</label>
-                            <input
-                                value={value.showPlace}
-                                onChange={(e) => handlePropertyChange("showPlace", e.target.value)}
-                                className={`w-full rounded-2xl border ${value.shown && !shownValidation ? 'border-red-500' : 'border-black/10'} bg-white px-4 py-2 text-[#12301D] outline-none focus:ring-4 ${value.shown && !shownValidation ? 'focus:ring-red-200' : 'focus:ring-[#2E6B3F]/20'}`}
-                            />
-                        </div>
-                        <div>
-                            <label className="mb-1 block text-sm font-medium text-[#12301D]">Show Points</label>
-                            <input
-                                value={value.showPoints}
-                                onChange={(e) => handlePropertyChange("showPoints", e.target.value)}
-                                className={`w-full rounded-2xl border ${value.shown && !shownValidation ? 'border-red-500' : 'border-black/10'} bg-white px-4 py-2 text-[#12301D] outline-none focus:ring-4 ${value.shown && !shownValidation ? 'focus:ring-red-200' : 'focus:ring-[#2E6B3F]/20'}`}
-                            />
-                        </div>
-                        <div>
-                            <label className="mb-1 block text-sm font-medium text-[#12301D]">DPC Points</label>
-                            <input
-                                value={value.dpcPoints}
-                                onChange={(e) => handlePropertyChange("dpcPoints", e.target.value)}
-                                className={`w-full rounded-2xl border ${value.shown && !shownValidation ? 'border-red-500' : 'border-black/10'} bg-white px-4 py-2 text-[#12301D] outline-none focus:ring-4 ${value.shown && !shownValidation ? 'focus:ring-red-200' : 'focus:ring-[#2E6B3F]/20'}`}
-                            />
-                        </div>
-                    </div>
-                )}
-                <div>
-                    <label className="mb-1 block text-sm font-medium text-[#12301D]">NARX points</label>
-                    <input
-                        value={value.NARXEarned}
-                        onChange={(e) => handlePropertyChange("NARXEarned", e.target.value)}
-                        className={`w-full rounded-2xl border ${value.shown && !shownValidation ? 'border-red-500' : 'border-black/10'} bg-white px-4 py-2 text-[#12301D] outline-none focus:ring-4 ${value.shown && !shownValidation ? 'focus:ring-red-200' : 'focus:ring-[#2E6B3F]/20'}`}
-                    />
-                </div>
-                <div>
-                    <label className="mb-1 block text-sm font-medium text-[#12301D]">ARX points</label>
-                    <input
-                        value={value.ARXEarned}
-                        onChange={(e) => handlePropertyChange("ARXEarned", e.target.value)}
-                        className={`w-full rounded-2xl border ${value.shown && !shownValidation ? 'border-red-500' : 'border-black/10'} bg-white px-4 py-2 text-[#12301D] outline-none focus:ring-4 ${value.shown && !shownValidation ? 'focus:ring-red-200' : 'focus:ring-[#2E6B3F]/20'}`}
-                    />
-                </div>
-            </div>
-
-        </div>
-        <div className="gap-3 flex">
-            <button
-                onClick={() => setExpanded(!expanded)}
-                className="mt-4 rounded-full bg-[#2E6B3F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#255733]"
-            >
-                {expanded ? "Collapse Races" : "Expand Races"}
-            </button>
-            <button
-                className="mt-4 rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100"
-                onClick={onRemove}
-            >
-                Remove
-            </button>
-        </div>
-        {expanded && (
-            <div className="mt-4">
-                <h4 className="mb-3 text-sm font-semibold text-[#12301D]">Races</h4>
-                {value.races.map((race, index) => (
-                    <div key={index} className="mb-4 last:mb-0">
-                        <RaceEditor value={race} onRemove={() => removeRace(index)} onChange={(newRace) => handleRaceChange(index, newRace)} races={value.races} validate={(isValid) => {
-                            const currentValidity = value.races.map((r, i) => i === index ? isValid : validateRace(r, value.races)).every(v => v);
-                            if (validate) {
-                                validate(currentValidity);
-                            }
-                        }} />
-                    </div>
-                ))}
-                <button
-                    onClick={addRace}
-                    className="mt-2 rounded-full bg-[#2E6B3F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#255733]"
-                >
-                    Add Race
-                </button>
-            </div>
-        )}
-    </div>
-}
 
 export default function MeetResultEditor({ value, onChange, setResultsValid }: { value: MeetResults, onChange: (results: MeetResults) => void, setResultsValid?: (valid: boolean) => void }) {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const allValid = value.length === 0 || value.every(dog => dog.races.length === 0 || dog.races.every(race => validateRace(race)));
 
+
+    function handleRecalculatingPoints(new_object: MeetResults, object_idx?: number): MeetResults {
+        if (object_idx == undefined || (new_object[object_idx].meetPlacement === value[object_idx].meetPlacement)) new_object = recalculateMeetRankings(new_object);
+        if (object_idx == undefined || (new_object[object_idx].NARXEarned === value[object_idx].NARXEarned && new_object[object_idx].ARXEarned === value[object_idx].ARXEarned)) new_object = calculateArxNarx(new_object);
+        if (object_idx == undefined || (new_object[object_idx].dpcLeg == value[object_idx].dpcLeg && new_object[object_idx].dpcPoints == value[object_idx].dpcPoints)) new_object = calculateDpc(new_object);
+        return new_object
+
+    }
+
     function handleDogChange(new_value: DogEntry) {
-        const new_object: MeetResults = [...value];
+        let new_object: MeetResults = [...value];
         const object_idx = new_object.findIndex((x) => x.cwaNumber == new_value.cwaNumber);
         new_object[object_idx] = new_value
+        new_object = handleRecalculatingPoints(new_object, object_idx)
         onChange(new_object)
+
     }
 
     function handleRemoveDog(dog: DogEntry) {
         let new_object: MeetResults = [...value];
         new_object = new_object.filter((x) => x.cwaNumber != dog.cwaNumber);
         onChange(new_object)
+    }
+
+    function handleHCWinnerChange(cwaNumber: string, hcWinner: boolean) {
+        const new_object: MeetResults = value.map(entry => ({
+            ...entry,
+            hcWinner: entry.cwaNumber === cwaNumber ? hcWinner : false
+        }));
+        onChange(new_object);
     }
 
     function handleAddDog(dog: DogSearchResult) {
@@ -456,14 +209,26 @@ export default function MeetResultEditor({ value, onChange, setResultsValid }: {
             showPoints: "",
             showPlace: "",
             grade: dog.grade,
+            entryType: "REG",
             average: dog.average,
             dpcPoints: "",
             NARXEarned: "",
             ARXEarned: "",
             races: [],
+            hcScore: "0",
+            hcLegEarned: "0",
+            hcWinner: false,
+            meetPlacement: "",
+            meetPoints: "",
+            aomEarned: 0,
+            dpcLeg: "",
+            birthdate: "",
+            arxPoints: "0",
+            narxPoints: "0",
+            dpcTitle: false,
         };
         const newMeetResults: MeetResults = [...value, newDogEntry];
-        onChange(newMeetResults);
+        onChange(handleRecalculatingPoints(newMeetResults))
         setDialogOpen(false);
         setError(null);
     }
@@ -474,9 +239,62 @@ export default function MeetResultEditor({ value, onChange, setResultsValid }: {
         }
     }, [allValid, setResultsValid]);
 
+    const prevMeetPointsRef = useRef<MeetResults>(value);
+
+    useEffect(() => {
+        const prevDogs = prevMeetPointsRef.current;
+        let changed = false;
+
+        if (prevDogs.length !== value.length) {
+            changed = true;
+        } else {
+            for (let i = 0; i < value.length; i++) {
+                const prev = prevDogs[i];
+                const curr = value[i];
+                if (prev.showPlace !== curr.showPlace) {
+                    changed = true;
+                    break;
+                }
+                if (prev.meetPoints !== curr.meetPoints) {
+                    changed = true;
+                    break;
+                }
+                if (prev.races.length !== curr.races.length) {
+                    changed = true;
+                    break;
+                }
+                for (let j = 0; j < prev.races.length; j++) {
+                    const pr = prev.races[j];
+                    const cr = curr.races[j];
+                    if (pr.placement !== cr.placement || pr.incident !== cr.incident) {
+                        changed = true;
+                        break;
+                    }
+                }
+                if (changed) break;
+            }
+        }
+
+        if (changed) {
+            prevMeetPointsRef.current = value;
+
+            let recalculated = value.map(dog => {
+                if (dog.shown && dog.showPlace) {
+                    return { ...dog, showPoints: calculateShowPoints(dog.showPlace) };
+                }
+                return dog;
+            });
+
+            recalculated = recalculateMeetRankings(recalculated);
+            recalculated = calculateArxNarx(recalculated);
+            recalculated = calculateDpc(recalculated);
+            onChange(recalculated);
+        }
+    }, [value, onChange]);
+
     return (
         <div
-            className="overflow-hidden rounded-2xl border border-black/10 bg-[#F8FBF9] align-center justify-center flex-column" >
+            className="overflow-hidden rounded-2xl border border-black/10 bg-[#F8FBter flex-column" >
 
 
             {
@@ -486,7 +304,7 @@ export default function MeetResultEditor({ value, onChange, setResultsValid }: {
                             const newAllValid = value.some((dog, idx) => idx === value.findIndex(d => d.cwaNumber === entry.cwaNumber) ? isValid : dog.races.every(r => validateRace(r)));
                             setResultsValid(newAllValid);
                         }
-                    }} />
+                    }} onHCWinnerChange={handleHCWinnerChange} />
                 })
             }
             <DogSearchDialog

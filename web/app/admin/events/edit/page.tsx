@@ -385,11 +385,11 @@ function EditEventPage() {
         }
     }
 
-    function handleEntriesChange(newEntries: MeetResults) {
+    const handleEntriesChange = React.useCallback((newEntries: MeetResults) => {
         setEntries(newEntries);
         setResultsError("");
         setResultsSuccess("");
-    }
+    }, []);
 
     /*
         Handles form submission and sends the cleaned payload
