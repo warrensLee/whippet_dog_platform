@@ -35,8 +35,15 @@ def _meet_stats(cwa_number: str) -> dict:
             COALESCE(SUM(CASE WHEN MeetPlacement=1 THEN 1 ELSE 0 END),0) AS meet_wins,
             COALESCE(COUNT(*),0)        AS meet_appearences,
             COALESCE(SUM(DPCPoints),0)  AS dpc_points
-        FROM MeetResults
-        WHERE CWANumber=%s
+        FROM MeetResults mr
+        WHERE mr.CWANumber=%s
+          AND NOT EXISTS (
+              SELECT 1 FROM RaceResults rr
+              WHERE rr.MeetNumber = mr.MeetNumber
+                AND rr.CWANumber = mr.CWANumber
+                AND rr.Incident IS NOT NULL
+                AND TRIM(rr.Incident) != ''
+          )
         """,
         (cwa_number,),
     ) or {}

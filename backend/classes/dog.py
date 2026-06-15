@@ -934,8 +934,15 @@ class Dog:
                 SUM(CASE WHEN MeetPlacement = 1 THEN 1 ELSE 0 END) as meet_wins,
                 COUNT(*) as meet_appearances,
                 SUM(AOMEarned) as total_aom_earned            
-            FROM MeetResults
-            WHERE CWANumber = %s
+            FROM MeetResults mr
+            WHERE mr.CWANumber = %s
+              AND NOT EXISTS (
+                  SELECT 1 FROM RaceResults rr
+                  WHERE rr.MeetNumber = mr.MeetNumber
+                    AND rr.CWANumber = mr.CWANumber
+                    AND rr.Incident IS NOT NULL
+                    AND TRIM(rr.Incident) != ''
+              )
         """, (self.cwa_number,))
 
         hc_wins_row = fetch_one("""

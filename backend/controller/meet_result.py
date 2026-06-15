@@ -65,8 +65,15 @@ def _meet_stats(cwa_number: str) -> dict:
             COALESCE(SUM(CASE WHEN MeetPlacement=1 THEN 1 ELSE 0 END),0) AS meet_wins,
             COALESCE(COUNT(*),0)        AS meet_appearences,
             COALESCE(SUM(DPCPoints),0)  AS dpc_points
-        FROM MeetResults
-        WHERE CWANumber=%s
+        FROM MeetResults mr
+        WHERE mr.CWANumber=%s
+          AND NOT EXISTS (
+              SELECT 1 FROM RaceResults rr
+              WHERE rr.MeetNumber = mr.MeetNumber
+                AND rr.CWANumber = mr.CWANumber
+                AND rr.Incident IS NOT NULL
+                AND TRIM(rr.Incident) != ''
+          )
         """,
         (cwa_number,),
     ) or {}
@@ -396,8 +403,7 @@ def edit_result_view(meet_number):
                  dd.Birthdate,
                  dd.ARXPoints,
                  dd.NARXPoints,
-                 dd.DPC,
-                 dd.DPCX
+                 dd.DPCPoints
             FROM RaceResults rr
             LEFT JOIN MeetResults mr 
                 ON rr.CWANumber = mr.CWANumber 
@@ -441,7 +447,7 @@ def edit_result_view(meet_number):
                     "birthdate": row.get("Birthdate") or "",
                     "arxPoints": float(row.get("ARXPoints") or 0),
                     "narxPoints": float(row.get("NARXPoints") or 0),
-                    "dpcTitle": bool(row.get("DPC") == "1" or row.get("DPCX") == "1"),
+                    "dpcTitle": bool((row.get("DPCPoints") or 0) > 15),
                 }
             
             dog_data[cwa_number]["races"].append({
