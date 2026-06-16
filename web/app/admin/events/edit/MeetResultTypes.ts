@@ -1,50 +1,52 @@
+import { RaceEntry } from "../types";
 
-export class DogRace {
-    program: string = "";
-    race: string = "";
-    box: string | undefined = "";
-    placement: string = "";
-    incident: string = "";
+export type DogRace = {
+    program: string;
+    race: string;
+    box: number | undefined;
+    placement: number;
+    cwaNumber: string;
+    incident: string | undefined;
+};
+
+export type DogEntry = {
+    shown: boolean
+    callName: string
+    grade: string
+    average: number
+    cwaNumber: string
+    registeredName: string
+    showPoints: number
+    entryType: "REG" | "PUPPY"
+    showPlace: number
+    dpcPoints: number
+    NARXEarned: number
+    ARXEarned: number
+    hcWinner: boolean
+    meetPlacement: number
+    meetPoints: number
+    aomEarned: string | number | null
+    hcScore: number
+    dpcLeg: boolean
+    hcLegEarned: boolean
+    birthdate: string
+    arxPoints: number
+    narxPoints: number
+    dpcTitle: boolean
 
 
 
 };
 
-export class DogEntry {
-    shown: boolean = false;
-    callName: string = "";
-    grade: string = "";
-    average: number = 0;
-    cwaNumber: string = "";
-    registeredName: string = "";
-    showPoints: string = "";
-    entryType: string = "";
-    showPlace: string = "";
-    races: DogRace[] = [];
-    dpcPoints: string = "";
-    NARXEarned: string = "";
-    ARXEarned: string = "";
-    hcWinner: boolean = false;
-    meetPlacement: string = "";
-    meetPoints: string = "";
-    aomEarned: string | number | null = null;
-    hcScore: string = "";
-    dpcLeg: string = "";
-    hcLegEarned: string = "";
-    birthdate: string = "";
-    arxPoints: string = "";
-    narxPoints: string = "";
-    dpcTitle: boolean = false;
-
-
-
-};
-
-export type MeetResults = DogEntry[];
+export type MeetResults = {
+    races: Map<string, Map<string, DogRace[]>>
+    entries: Map<string, DogEntry>
+}
 
 export type DogEntryResponse = {
     ok: true;
-    entries: MeetResults;
+    races: Map<string, Map<string, DogRace[]>>;
+    entries: Map<string, DogEntry>
 };
 
 export type ErroResponse = {
@@ -54,11 +56,20 @@ export type ErroResponse = {
 
 export type MeetResultEditResponse = DogEntryResponse | ErroResponse;
 
-export function recalculateMeetRankings(dogs: DogEntry[]): DogEntry[] {
-    if (dogs.length === 0) return dogs;
+export function recalculateMeetRankings(results: MeetResults): MeetResults {
+    const entries = new Map(results.entries);
+
+    if (entries.size === 0) return results
 
     function isIncidentDog(dog: DogEntry): boolean {
-        return dog.races.some(r => r.incident && r.incident.trim() !== '');
+        for (const x of results.races.values()) {
+            for (const y of x.values()) {
+                for (const z of y) {
+                    if (z.cwaNumber == dog.cwaNumber && z.incident) return true
+                }
+            }
+        }
+        return false
     }
 
     function getMeetPoints(dog: DogEntry): number {
@@ -67,15 +78,20 @@ export function recalculateMeetRankings(dogs: DogEntry[]): DogEntry[] {
     }
 
     function getLastRacePlacement(dog: DogEntry): number {
-        for (let i = dog.races.length - 1; i >= 0; i--) {
-            const p = dog.races[i].placement;
-            if (p && /^\d+$/.test(p)) return Number(p);
+        for (const raceMap of results.races.values()) {
+            for (const raceArr of raceMap.values()) {
+                for (const race of raceArr) {
+                    if (race.cwaNumber === dog.cwaNumber && typeof race.placement === 'number') {
+                        return race.placement;
+                    }
+                }
+            }
         }
         return 999;
     }
 
-    const ranked = dogs.filter(d => !isIncidentDog(d));
-    const incidents = dogs.filter(d => isIncidentDog(d));
+    const ranked = Array.from(entries.values()).filter(d => !isIncidentDog(d));
+    const incidents = Array.from(entries.values()).filter(d => isIncidentDog(d));
 
     ranked.sort((a, b) => {
         const pointsDiff = getMeetPoints(b) - getMeetPoints(a);
@@ -83,90 +99,88 @@ export function recalculateMeetRankings(dogs: DogEntry[]): DogEntry[] {
         return getLastRacePlacement(a) - getLastRacePlacement(b);
     });
 
-    const result = dogs.map(d => ({ ...d, meetPlacement: d.meetPlacement }));
-
     for (let i = 0; i < ranked.length; i++) {
-        const idx = result.findIndex(d => d.cwaNumber === ranked[i].cwaNumber);
-        if (idx !== -1) {
-            result[idx] = { ...result[idx], meetPlacement: String(i + 1) };
+        const dog = entries.get(ranked[i].cwaNumber);
+        if (dog) {
+            dog.meetPlacement = i + 1;
         }
     }
 
     for (let i = 0; i < incidents.length; i++) {
-        const idx = result.findIndex(d => d.cwaNumber === incidents[i].cwaNumber);
-        if (idx !== -1) {
-            result[idx] = { ...result[idx], meetPlacement: String(ranked.length + i + 1) };
+        const dog = entries.get(incidents[i].cwaNumber);
+        if (dog) {
+            dog.meetPlacement = ranked.length + i + 1;
         }
     }
 
-    return result;
+    return { races: results.races, entries };
 }
 
 const ADULT_AGE_MONTHS = 14;
 const ARX_THRESHOLD = 15;
 
-function isDogAdult(birthdate: string): boolean {
-    if (!birthdate) return false;
-    const birth = new Date(birthdate);
-    if (isNaN(birth.getTime())) return false;
-    const today = new Date();
-    const ageInMonths = (today.getFullYear() - birth.getFullYear()) * 12 + (today.getMonth() - birth.getMonth());
-    return ageInMonths >= ADULT_AGE_MONTHS;
-}
+export function calculateArxNarx(meetResults: MeetResults): MeetResults {
+    const entries = new Map(meetResults.entries);
 
-function hasIncident(dog: DogEntry): boolean {
-    return dog.races.some(r => r.incident && r.incident.trim() !== '');
-}
+    if (entries.size === 0) return meetResults;
 
-function completedAll4Programs(dog: DogEntry): boolean {
-    const programs = new Set<string>();
-    for (const race of dog.races) {
-        if (race.program.trim()) {
-            programs.add(race.program.trim());
+    function hasIncident(dog: DogEntry): boolean {
+        for (const raceMap of meetResults.races.values()) {
+            for (const raceArr of raceMap.values()) {
+                for (const race of raceArr) {
+                    if (race.cwaNumber === dog.cwaNumber && race.incident && race.incident.trim() !== '') {
+                        return true;
+                    }
+                }
+            }
         }
+        return false;
     }
-    return programs.size >= 4;
-}
 
-function countAdultDogs(dogs: DogEntry[]): number {
-    return dogs.filter(d => d.entryType !== "PUPPY").length;
-}
+    function completedAll4Programs(dog: DogEntry): boolean {
+        const programs = new Set<string>();
+        for (const raceMap of meetResults.races.values()) {
+            for (const raceArr of raceMap.values()) {
+                for (const race of raceArr) {
+                    if (race.cwaNumber === dog.cwaNumber && race.program.trim()) {
+                        programs.add(race.program.trim());
+                    }
+                }
+            }
+        }
+        return programs.size >= 4;
+    }
 
-export function calculateArxNarx(dogs: DogEntry[]): DogEntry[] {
-    if (dogs.length === 0) return dogs;
-
-    const adultCount = countAdultDogs(dogs);
+    const adultCount = Array.from(entries.values()).filter(d => d.entryType !== "PUPPY").length;
     const cutoff = Math.ceil(adultCount / 2);
 
-    const result = dogs.map(d => ({ ...d }));
-
-    for (const dog of result) {
-        const meetPlacement = Number(dog.meetPlacement) || 0;
-        const adult = dog.entryType == "REG"
+    for (const dog of entries.values()) {
+        const meetPlacement = dog.meetPlacement || 0;
+        const adult = dog.entryType === "REG";
         const noIncidents = !hasIncident(dog);
         const all4Programs = completedAll4Programs(dog);
         const inTopHalf = adult && meetPlacement > 0 && meetPlacement <= cutoff;
         const eligible = adult && noIncidents && all4Programs && inTopHalf;
 
         if (dog.entryType === "PUPPY" || !adult) {
-            dog.ARXEarned = "0";
-            dog.NARXEarned = "0";
+            dog.ARXEarned = 0;
+            dog.NARXEarned = 0;
         } else {
-            const hasArxTitle = +dog.arxPoints >= ARX_THRESHOLD;
-            dog.ARXEarned = (eligible && !hasArxTitle) ? "1" : "0";
-            dog.NARXEarned = eligible ? "1" : "0";
+            const hasArxTitle = dog.arxPoints >= ARX_THRESHOLD;
+            dog.ARXEarned = (eligible && !hasArxTitle) ? 1 : 0;
+            dog.NARXEarned = eligible ? 1 : 0;
         }
     }
 
-    return result;
+    return { races: meetResults.races, entries };
 }
 
 export function validateRace(race: DogRace, allRaces?: DogRace[]): boolean {
     if (!allRaces) {
         return race.program.trim() !== "" &&
             race.race.trim() !== "" &&
-            race.placement !== "" &&
-            Number(race.placement) !== 0;
+            typeof race.placement === 'number' &&
+            race.placement !== 0;
     }
     const raceIndex = allRaces.indexOf(race);
     const otherRaces = allRaces.filter((_, i) => i !== raceIndex);
@@ -178,8 +192,8 @@ export function validateRace(race: DogRace, allRaces?: DogRace[]): boolean {
     }
     return race.program.trim() !== "" &&
         race.race.trim() !== "" &&
-        race.placement !== "" &&
-        Number(race.placement) !== 0;
+        typeof race.placement === 'number' &&
+        race.placement !== 0;
 }
 
 export function getDpcPointDistribution(adultCount: number): number[] {
@@ -193,58 +207,76 @@ export function getDpcPointDistribution(adultCount: number): number[] {
     return [];
 }
 
-export function calculateShowPoints(showPlace: string): string {
-    if (!showPlace || !/^\d+$/.test(showPlace)) return "";
+export function calculateShowPoints(showPlace: number): number {
+    if (!showPlace || showPlace < 1 || showPlace > 4) return 0;
     switch (showPlace) {
-        case "1": return "5";
-        case "2": return "3";
-        case "3": return "2";
-        case "4": return "1";
-        default: return "0";
+        case 1: return 5;
+        case 2: return 3;
+        case 3: return 2;
+        case 4: return 1;
+        default: return 0;
     }
 }
 
-export function calculateDpc(dogs: DogEntry[]): DogEntry[] {
-    if (dogs.length === 0) return dogs;
+export function calculateDpc(meetResults: MeetResults): MeetResults {
+    const entries = new Map(meetResults.entries);
 
-    const adultCount = countAdultDogs(dogs);
+    if (entries.size === 0) return meetResults;
+
+    function hasIncident(dog: DogEntry): boolean {
+        for (const raceMap of meetResults.races.values()) {
+            for (const raceArr of raceMap.values()) {
+                for (const race of raceArr) {
+                    if (race.cwaNumber === dog.cwaNumber && race.incident && race.incident.trim() !== '') {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    const adultCount = Array.from(entries.values()).filter(d => d.entryType !== "PUPPY").length;
     const distribution = getDpcPointDistribution(adultCount);
 
-    const result = dogs.map(d => ({ ...d, dpcPoints: "0", dpcLeg: "" }));
+    for (const dog of entries.values()) {
+        dog.dpcPoints = 0;
+        dog.dpcLeg = false;
+    }
 
-    result.sort((a, b) => Number(a.meetPlacement) - Number(b.meetPlacement));
+    const sortedEntries = Array.from(entries.values()).sort((a, b) => a.meetPlacement - b.meetPlacement);
 
     let pointsIdx = 0;
-    for (const dog of result) {
+    for (const dog of sortedEntries) {
         if (pointsIdx >= distribution.length) break;
-        const hasIncidentDog = hasIncident(dog);
+        const dogHasIncident = hasIncident(dog);
         const isPuppy = dog.entryType === "PUPPY";
-        const hasTitle = dog.dpcTitle || false;
+        const hasTitle = !!dog.dpcTitle;
 
-        if (!hasIncidentDog && !isPuppy && !hasTitle && Number(dog.meetPlacement) > 0) {
-            dog.dpcPoints = String(distribution[pointsIdx]);
+        if (!dogHasIncident && !isPuppy && !hasTitle && dog.meetPlacement > 0) {
+            dog.dpcPoints = distribution[pointsIdx];
             pointsIdx++;
         }
     }
 
-    const shownResults = result.filter(d => d.shown && d.showPlace && /^\d+$/.test(d.showPlace));
-    shownResults.sort((a, b) => Number(a.showPlace) - Number(b.showPlace));
+    const shownResults = sortedEntries.filter(d => d.shown && d.showPlace > 0);
+    shownResults.sort((a, b) => a.showPlace - b.showPlace);
 
     const cutoff = adultCount > 0 ? Math.ceil(adultCount / 2) : 0;
 
     for (const dog of shownResults) {
-        const conPlace = Number(dog.showPlace);
+        const conPlace = dog.showPlace;
         const inTopHalf = conPlace <= cutoff;
         const dogHasIncident = hasIncident(dog);
         const isPuppy = dog.entryType === "PUPPY";
-        const hasTitle = dog.dpcTitle || false;
-        const hasLegOrPoints = dog.dpcLeg === "1" || Number(dog.dpcPoints) > 0;
+        const hasTitle = !!dog.dpcTitle;
+        const hasLegOrPoints = dog.dpcLeg || dog.dpcPoints > 0;
 
         if (inTopHalf && !dogHasIncident && !isPuppy && !hasTitle && !hasLegOrPoints) {
-            dog.dpcLeg = "1";
+            dog.dpcLeg = true;
             break;
         }
     }
 
-    return result;
+    return { races: meetResults.races, entries };
 }

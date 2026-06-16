@@ -417,9 +417,10 @@ def edit_result_view(meet_number):
         ) or []
 
         if not combined_rows:
-            return jsonify({"ok": True, "entries": []}), 200
+            return jsonify({"ok": True, "dogs": [], "races": {}}), 200
 
         dog_data = {}
+        race_data = {}
         
         for row in combined_rows:
             cwa_number = row.get("CWANumber")
@@ -434,15 +435,14 @@ def edit_result_view(meet_number):
                     "showPlace": int(row.get("ShowPlacement") or 0),
                     "grade": row.get("Grade") or "",
                     "average": int(row.get("Average") or 0),
-                    "dpcPoints": str(int(row.get("DPCPoints") or 0)),
-                    "NARXEarned": str(row.get("NARXEarned") or 0),
-                    "ARXEarned": str(row.get("ARXEarned") or 0),
-                    "races": [],
+                    "dpcPoints": int(row.get("DPCPoints") or 0),
+                    "NARXEarned": int(row.get("NARXEarned") or 0),
+                    "ARXEarned": int(row.get("ARXEarned") or 0),
                     "hcWinner": int(row.get("HCLegEarned")),
                     "entryType": row.get("EntryType") or "",
-                    "meetPlacement": str(row.get("MeetPlacement") or 0),
-                    "meetPoints": str(row.get("MeetPoints") or 0),
-                    "dpcLeg": str(row.get("DPCLeg") or 0),
+                    "meetPlacement": int(row.get("MeetPlacement") or 0),
+                    "meetPoints": int(row.get("MeetPoints") or 0),
+                    "dpcLeg": bool(row.get("DPCLeg") or False),
                     "aomEarned": float(row.get("AOMEarned") or 0) if row.get("AOMEarned") is not None else 0,
                     "birthdate": row.get("Birthdate") or "",
                     "arxPoints": float(row.get("ARXPoints") or 0),
@@ -450,9 +450,17 @@ def edit_result_view(meet_number):
                     "dpcTitle": bool((row.get("DPCPoints") or 0) > 15),
                 }
             
-            dog_data[cwa_number]["races"].append({
-                "program": row.get("Program") or "",
-                "race": row.get("RaceNumber") or "",
+            program = row.get("Program") or "1"
+            race = row.get("Race") or "1"
+
+            if program not in race_data:
+                race_data[program] = {}
+
+            if race not in race_data[program]:
+                race_data[program][race] = []
+            
+            race_data[program][race].append({
+                "dog": row.get("cwaNumber") or "",
                 "box": row.get("Box") or "",
                 "placement": row.get("Placement") or "",
                 "incident": row.get("Incident") or ""
@@ -460,7 +468,7 @@ def edit_result_view(meet_number):
 
         dog_entries = list(dog_data.values())
 
-        return jsonify({"ok": True, "entries": dog_entries}), 200
+        return jsonify({"ok": True, "dogs": dog_entries, "races": race_data}), 200
 
     except Error as e:
         return handle_error(e, "Database error")
