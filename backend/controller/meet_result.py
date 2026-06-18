@@ -451,7 +451,7 @@ def edit_result_view(meet_number):
                 }
             
             program = row.get("Program") or "1"
-            race = row.get("Race") or "1"
+            race = row.get("RaceNumber") or "1"
 
             if program not in race_data:
                 race_data[program] = {}
@@ -460,7 +460,7 @@ def edit_result_view(meet_number):
                 race_data[program][race] = []
             
             race_data[program][race].append({
-                "dog": row.get("cwaNumber") or "",
+                "dog": row.get("CWANumber") or "",
                 "box": row.get("Box") or "",
                 "placement": row.get("Placement") or "",
                 "incident": row.get("Incident") or ""
@@ -557,6 +557,7 @@ def bulk_update_edit_result_view(meet_number):
                     meet_points = rr.get_placement_points(placement_str)
                 elif placement_str.upper() == "AOM":
                     meet_points = 0.5
+                    placement_num = 0
                 else:
                     meet_points = 0
 
@@ -570,7 +571,7 @@ def bulk_update_edit_result_view(meet_number):
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """,
                     (meet_number, cwa_number, program, race_number, box,
-                     placement_str, meet_points, 0, 0, incident, editor_id, now),
+                     placement_num, meet_points, 0, 0, incident, editor_id, now),
                 )
 
             try:
@@ -596,7 +597,7 @@ def bulk_update_edit_result_view(meet_number):
                     new_stats = _meet_stats(cwa)
                     old = old_stats.get(cwa, default_old)
                     _apply_meet_stats_delta(dog, old, new_stats, editor_id, now)
-
+                    dog.update_from_meet_results()
         #RaceResult.calculate_dpc_leg_for_meet(meet_number)
         #RaceResult.calculate_hc_leg_for_meet(meet_number)
 

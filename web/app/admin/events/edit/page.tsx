@@ -10,7 +10,7 @@ import type { EventFormValues } from "@/app/admin/events/types";
 import { emptyEventFormValues } from "@/app/admin/events/types";
 import { PersonSearchResult } from "@/app/components/ui/PersonField";
 import MeetResultEditor from "./MeetResultEditor";
-import { MeetResultEditResponse, MeetResults } from "./MeetResultTypes";
+import { MeetResults, DogEntry, buildDogEntry, toBackendFormat } from "./MeetResultTypes";
 
 /*
     Safely converts incoming unknown values to strings.
@@ -176,11 +176,50 @@ function EditEventPage() {
 
     async function getMeetResults() {
         const meetResponse = await fetch("/api/meet_result/edit_result_view/" + meetNumber);
-        const responseJson: MeetResultEditResponse = await meetResponse.json();
+        const responseJson = await meetResponse.json();
         if (!responseJson.ok) {
-            throw new Error(responseJson.error)
+            throw new Error(responseJson.error || "Failed to load results")
         }
-        setEntries(responseJson.entries)
+
+        const baseDogs: Omit<DogEntry, "races">[] = responseJson.dogs || [];
+        const dogMap = new Map<string, DogEntry>();
+        for (const base of baseDogs) {
+            dogMap.set(base.cwaNumber, {
+                ...base,
+                races: [],
+                showPoints: base.showPoints ? String(base.showPoints) : "",
+                hcLegEarned: !!(base as unknown as { hcLegEarned: number }).hcLegEarned,
+                dpcLeg: base.dpcLeg ? true : false,
+            } as DogEntry);
+        }
+
+        if (responseJson.races) {
+            const raceData = responseJson.races as Record<string, Record<string, Array<{
+                dog: string;
+                box: string;
+                placement: string;
+                incident: string;
+            }>>>;
+            for (const [program, racesByNumber] of Object.entries(raceData)) {
+                for (const [raceNumber, placements] of Object.entries(racesByNumber)) {
+                    for (const placement of placements) {
+                        const existing = dogMap.get(placement.dog);
+                        if (existing) {
+                            existing.races.push({
+                                program: String(program),
+                                race: String(raceNumber),
+                                box: placement.box ? parseInt(placement.box) : undefined,
+                                placement: placement.placement === "AOM" ? "AOM" : (placement.placement ? parseInt(placement.placement) : 1),
+                                cwaNumber: placement.dog,
+                                incident: placement.incident || undefined,
+                            });
+                        }
+                    }
+                }
+            }
+        }
+
+        setEntries(Array.from(dogMap.values()));
     }
 
     async function saveMeetResults(entriesToSave: MeetResults) {
@@ -190,7 +229,7 @@ function EditEventPage() {
                 "Content-Type": "application/json",
             },
             credentials: "include",
-            body: JSON.stringify({ entries: entriesToSave }),
+            body: JSON.stringify({ entries: toBackendFormat(entriesToSave) }),
         });
 
         const json = await response.json().catch(() => null);
@@ -207,13 +246,9 @@ function EditEventPage() {
             return;
         }
 
-        let cancelled = false;
-
-        getMeetResults()
-
-        return () => {
-            cancelled = true;
-        };
+        getMeetResults().catch(err => {
+            setError(err instanceof Error ? err.message : "Failed to load results");
+        });
     }, [authorized, meetNumber]);
 
     /*
@@ -365,7 +400,7 @@ function EditEventPage() {
         }
 
         if (!resultsValid) {
-            setResultsError("Please fill in all required fields (Program, Race, Entry Type) before saving.");
+            setResultsError("Please fix validation errors (duplicate placements, missing fields) before saving.");
             return;
         }
 
@@ -517,16 +552,16 @@ function EditEventPage() {
             <section className="bg-[#E7F0E9] pt-12 pb-24">
                 <div className="max-w-5xl mx-auto px-4">
                     <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                            <div>
-                                <h2 className="text-2xl font-bold text-[#12301D]">
-                                    Event Information
-                                </h2>
-                                <div className="mt-1 h-1 w-14 rounded-full bg-[#2E6B3F]/70" />
+                        <div>
+                            <h2 className="text-2xl font-bold text-[#12301D]">
+                                Event Information
+                            </h2>
+                            <div className="mt-1 h-1 w-14 rounded-full bg-[#2E6B3F]/70" />
 
-                                <p className="mt-2 text-sm font-medium text-[#12301D]/70">
-                                    <span className="font-bold text-red-600">*</span> Required field
-                                </p>
-                            </div>
+                            <p className="mt-2 text-sm font-medium text-[#12301D]/70">
+                                <span className="font-bold text-red-600">*</span> Required field
+                            </p>
+                        </div>
                         <div className="flex flex-wrap gap-3">
                             <button
                                 type="button"

@@ -1,272 +1,126 @@
-import { Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Typography } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
-import { DogEntry, MeetResults, validateRace, recalculateMeetRankings, calculateArxNarx, calculateDpc, calculateShowPoints } from "./MeetResultTypes";
-import { useState, useEffect, useRef } from "react";
-import DogEditor from "./DogEditor";
+import { useState, useEffect, useRef, useMemo } from "react";
+import {
+    DogEntry,
+    MeetResults,
+    recalculateAll,
+    buildDogEntry,
+    RaceDefinition,
+    addRaceDefinition,
+    removeRaceAndRenumber,
+    removeProgramAndRenumber,
+} from "./MeetResultTypes";
+import RegistrationSection from "./RegistrationSection";
+import ProgramSection from "./ProgramSection";
+import CalculationsSection from "./CalculationsSection";
 
-type DogSearchResult = {
-    id: string;
+type SearchDogResult = {
     cwaNumber: string;
-    registeredNumber: string;
     registeredName: string;
     callName: string;
-    birthYear: string;
-    status: string;
-    ownerName: string;
-    title: string;
     grade: string;
-    average: number;
 };
 
-function DogSearchDialog({
-    open,
-    onClose,
-    onSelect,
+export default function MeetResultEditor({
+    value,
+    onChange,
+    setResultsValid,
 }: {
-    open: boolean;
-    onClose: () => void;
-    onSelect: (dog: DogSearchResult) => void;
+    value: MeetResults;
+    onChange: (results: MeetResults) => void;
+    setResultsValid?: (valid: boolean) => void;
 }) {
-    const [searchQuery, setSearchQuery] = useState('');
-    const [searchResults, setSearchResults] = useState<DogSearchResult[]>([]);
-    const [loading, setLoading] = useState(false);
-
-    const handleSearch = async () => {
-        if (!searchQuery.trim()) {
-            setSearchResults([]);
-            return;
-        }
-
-        setLoading(true);
-        try {
-            const usp = new URLSearchParams();
-            usp.set('q', searchQuery);
-            const res = await fetch(`/api/dog/search?${usp.toString()}`, {
-                cache: 'no-store',
-                credentials: 'include',
-            });
-
-            const json = await res.json().catch(() => null);
-
-            if (!res.ok || !json?.ok) {
-                throw new Error(json?.error || `Request failed (${res.status})`);
-            }
-
-            const mappedItems = Array.isArray(json.items)
-                ? json.items.map((item: Record<string, unknown>) => {
-                    return {
-                        id: String(item.id ?? ''),
-                        cwaNumber: String(item.id ?? ''),
-                        registeredName: String(item.name ?? ''),
-                        callName: String(item.callName),
-                        birthYear: item.year ? String(item.year) : '',
-                        status: String(item.active ?? ''),
-                        ownerName: String(item.ownerName ?? ''),
-                        title: String(item.title ?? ''),
-                        grade: String(item.grade ?? ''),
-                        average: Number(item.average ?? 0),
-                    } as DogSearchResult;
-                })
-                : [];
-
-            setSearchResults(mappedItems);
-        } catch (error) {
-            console.error('Search error:', error);
-            setSearchResults([]);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleSelect = (dog: DogSearchResult) => {
-        setSearchQuery("")
-        setSearchResults([]);
-        onSelect(dog);
-        onClose();
-    };
-
-    return (
-        <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-            <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography variant="h6">Add Dog</Typography>
-                <IconButton onClick={onClose} size="small" sx={{ ml: 'auto' }}>
-                    <CloseIcon />
-                </IconButton>
-            </DialogTitle>
-            <DialogContent>
-                <div className="space-y-4">
-                    <div>
-                        <label className="mb-2 block text-sm font-medium text-[#12301D]">
-                            Search by Registered Name, Call Name, or CWAID
-                        </label>
-                        <input
-                            type="text"
-                            value={searchQuery}
-                            onChange={(e) => { setSearchQuery(e.target.value); handleSearch(); }}
-                            className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
-                        />
-                    </div>
-
-                    <div className="max-h-64 overflow-y-auto">
-                        {searchResults.map((dog) => (
-                            <div
-                                key={dog.id}
-                                onClick={() => handleSelect(dog)}
-                                className="cursor-pointer rounded-lg border border-black/10 bg-white p-3 transition hover:bg-gray-50"
-                            >
-                                <Typography variant="body1" className="font-semibold text-[#12301D]">
-                                    {dog.registeredName}
-                                </Typography>
-                                {dog.callName && (
-                                    <Typography variant="body2" color="text.secondary">
-                                        Call Name: {dog.callName}
-                                    </Typography>
-                                )}
-                                <Typography variant="body2" color="text.secondary">
-                                    CWAID: {dog.cwaNumber}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    {dog.registeredName}
-                                </Typography>
-                            </div>
-                        ))}
-                    </div>
-
-                    {searchResults.length === 0 && searchQuery && !loading && (
-                        <Typography variant="body2" color="text.secondary" textAlign="center">
-                            No dogs found
-                        </Typography>
-                    )}
-                </div>
-            </DialogContent>
-            <DialogActions>
-                <button
-                    type="button"
-                    onClick={onClose}
-                    className="rounded-full border border-[#12301D]/15 bg-white px-6 py-3 font-semibold text-[#12301D] hover:bg-[#12301D]/5 transition"
-                >
-                    Cancel
-                </button>
-            </DialogActions>
-        </Dialog>
-    );
-}
-
-
-
-
-
-
-
-export default function MeetResultEditor({ value, onChange, setResultsValid }: { value: MeetResults, onChange: (results: MeetResults) => void, setResultsValid?: (valid: boolean) => void }) {
-    const [dialogOpen, setDialogOpen] = useState(false);
+    const [searchOpen, setSearchOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [searchResults, setSearchResults] = useState<SearchDogResult[]>([]);
+    const [searching, setSearching] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const allValid = value.length === 0 || value.every(dog => dog.races.length === 0 || dog.races.every(race => validateRace(race)));
+    const [programs, setPrograms] = useState<string[]>([]);
+    const [definedRaces, setDefinedRaces] = useState<RaceDefinition[]>([]);
 
+    const prevValueRef = useRef<MeetResults>(value);
 
-    function handleRecalculatingPoints(new_object: MeetResults, object_idx?: number): MeetResults {
-        if (object_idx == undefined || (new_object[object_idx].meetPlacement === value[object_idx].meetPlacement)) new_object = recalculateMeetRankings(new_object);
-        if (object_idx == undefined || (new_object[object_idx].NARXEarned === value[object_idx].NARXEarned && new_object[object_idx].ARXEarned === value[object_idx].ARXEarned)) new_object = calculateArxNarx(new_object);
-        if (object_idx == undefined || (new_object[object_idx].dpcLeg == value[object_idx].dpcLeg && new_object[object_idx].dpcPoints == value[object_idx].dpcPoints)) new_object = calculateDpc(new_object);
-        return new_object
-
-    }
-
-    function handleDogChange(new_value: DogEntry) {
-        let new_object: MeetResults = [...value];
-        const object_idx = new_object.findIndex((x) => x.cwaNumber == new_value.cwaNumber);
-        new_object[object_idx] = new_value
-        new_object = handleRecalculatingPoints(new_object, object_idx)
-        onChange(new_object)
-
-    }
-
-    function handleRemoveDog(dog: DogEntry) {
-        let new_object: MeetResults = [...value];
-        new_object = new_object.filter((x) => x.cwaNumber != dog.cwaNumber);
-        onChange(new_object)
-    }
-
-    function handleHCWinnerChange(cwaNumber: string, hcWinner: boolean) {
-        const new_object: MeetResults = value.map(entry => ({
-            ...entry,
-            hcWinner: entry.cwaNumber === cwaNumber ? hcWinner : false
-        }));
-        onChange(new_object);
-    }
-
-    function handleAddDog(dog: DogSearchResult) {
-        const alreadyExists = value.some(entry => entry.cwaNumber === dog.cwaNumber);
-        if (alreadyExists) {
-            setError('This dog already exists in the results');
-            return;
+    // Compute all duplicate placements at the top level
+    const allDuplicatePlacements = useMemo(() => {
+        // Build map: raceKey -> placement -> [dog CWA numbers]
+        const placementGroups = new Map<string, Map<number, string[]>>();
+        for (const dog of value) {
+            for (const race of dog.races) {
+                if (typeof race.placement !== "number" || race.placement === 0) continue;
+                const raceKey = `${race.program}-${race.race}`;
+                if (!placementGroups.has(raceKey)) placementGroups.set(raceKey, new Map());
+                const group = placementGroups.get(raceKey)!;
+                if (!group.has(race.placement)) group.set(race.placement, []);
+                group.get(race.placement)!.push(dog.cwaNumber);
+            }
         }
-        const newDogEntry: DogEntry = {
-            shown: false,
-            callName: dog.callName,
-            cwaNumber: dog.cwaNumber,
-            registeredName: dog.registeredName,
-            showPoints: "",
-            showPlace: "",
-            grade: dog.grade,
-            entryType: "REG",
-            average: dog.average,
-            dpcPoints: "",
-            NARXEarned: "",
-            ARXEarned: "",
-            races: [],
-            hcScore: "0",
-            hcLegEarned: "0",
-            hcWinner: false,
-            meetPlacement: "",
-            meetPoints: "",
-            aomEarned: 0,
-            dpcLeg: "",
-            birthdate: "",
-            arxPoints: "0",
-            narxPoints: "0",
-            dpcTitle: false,
-        };
-        const newMeetResults: MeetResults = [...value, newDogEntry];
-        onChange(handleRecalculatingPoints(newMeetResults))
-        setDialogOpen(false);
-        setError(null);
-    }
-
-    useEffect(() => {
-        if (setResultsValid) {
-            setResultsValid(allValid);
+        // Extract only dogs with duplicate placements
+        const raceDupes = new Map<string, Set<string>>();
+        for (const [raceKey, placementMap] of placementGroups) {
+            const dupes = new Set<string>();
+            for (const [, dogs] of placementMap) {
+                if (dogs.length > 1) {
+                    for (const cwa of dogs) dupes.add(cwa);
+                }
+            }
+            if (dupes.size > 0) {
+                raceDupes.set(raceKey, dupes);
+            }
         }
-    }, [allValid, setResultsValid]);
+        return raceDupes;
+    }, [value]);
 
-    const prevMeetPointsRef = useRef<MeetResults>(value);
-
+    // Initialize programs and defined races from existing data (once on mount)
+    const hasInitializedRef = useRef(false);
     useEffect(() => {
-        const prevDogs = prevMeetPointsRef.current;
+        if (hasInitializedRef.current) return;
+        hasInitializedRef.current = true;
+        if (!value || !Array.isArray(value) || value.length === 0) return;
+
+        const existingPrograms = new Set<string>();
+        const races: RaceDefinition[] = [];
+        for (const dog of value) {
+            for (const race of dog.races) {
+                if (race.program.trim()) {
+                    existingPrograms.add(race.program.trim());
+                    races.push({ program: race.program.trim(), race: race.race.trim() });
+                }
+            }
+        }
+        const programArray = Array.from(existingPrograms)
+            .map(Number)
+            .sort((a, b) => a - b)
+            .map(String);
+        if (programArray.length > 0) {
+            setPrograms(programArray);
+        }
+        if (races.length > 0) {
+            setDefinedRaces(races);
+        }
+    }, [value]);
+
+    // Auto-calculation cascade
+    useEffect(() => {
+        const prev = prevValueRef.current;
         let changed = false;
 
-        if (prevDogs.length !== value.length) {
+        if (prev.length !== value.length) {
             changed = true;
         } else {
             for (let i = 0; i < value.length; i++) {
-                const prev = prevDogs[i];
-                const curr = value[i];
-                if (prev.showPlace !== curr.showPlace) {
+                const p = prev[i];
+                const c = value[i];
+                if (p.shown !== c.shown || p.showPlace !== c.showPlace) {
                     changed = true;
                     break;
                 }
-                if (prev.meetPoints !== curr.meetPoints) {
+                if (p.races.length !== c.races.length) {
                     changed = true;
                     break;
                 }
-                if (prev.races.length !== curr.races.length) {
-                    changed = true;
-                    break;
-                }
-                for (let j = 0; j < prev.races.length; j++) {
-                    const pr = prev.races[j];
-                    const cr = curr.races[j];
-                    if (pr.placement !== cr.placement || pr.incident !== cr.incident) {
+                for (let j = 0; j < p.races.length; j++) {
+                    const pr = p.races[j];
+                    const cr = c.races.find(r => r.cwaNumber === pr.cwaNumber && r.program === pr.program && r.race === pr.race);
+                    if (!cr || pr.placement !== cr.placement || pr.incident !== cr.incident) {
                         changed = true;
                         break;
                     }
@@ -276,53 +130,332 @@ export default function MeetResultEditor({ value, onChange, setResultsValid }: {
         }
 
         if (changed) {
-            prevMeetPointsRef.current = value;
-
-            let recalculated = value.map(dog => {
-                if (dog.shown && dog.showPlace) {
-                    return { ...dog, showPoints: calculateShowPoints(dog.showPlace) };
-                }
-                return dog;
-            });
-
-            recalculated = recalculateMeetRankings(recalculated);
-            recalculated = calculateArxNarx(recalculated);
-            recalculated = calculateDpc(recalculated);
-            onChange(recalculated);
+            prevValueRef.current = value;
+            onChange(recalculateAll(value));
+        } else {
+            prevValueRef.current = value;
         }
     }, [value, onChange]);
 
-    return (
-        <div
-            className="overflow-hidden rounded-2xl border border-black/10 bg-[#F8FBter flex-column" >
+    // Validation
+    useEffect(() => {
+        if (setResultsValid) {
+            const fieldValid =
+                value.length === 0 ||
+                value.every(dog => {
+                    if (dog.races.length === 0) return true;
+                    return dog.races.every(race => {
+                        return (
+                            race.program.trim() !== "" &&
+                            race.race.trim() !== ""
+                        );
+                    });
+                });
 
-
-            {
-                value.map((entry) => {
-                    return <DogEditor key={entry.cwaNumber} value={entry} onChange={(value: DogEntry) => { handleDogChange(value) }} onRemove={() => handleRemoveDog(entry)} validate={(isValid) => {
-                        if (setResultsValid) {
-                            const newAllValid = value.some((dog, idx) => idx === value.findIndex(d => d.cwaNumber === entry.cwaNumber) ? isValid : dog.races.every(r => validateRace(r)));
-                            setResultsValid(newAllValid);
-                        }
-                    }} onHCWinnerChange={handleHCWinnerChange} />
-                })
+            // Check for duplicate placements only among those that have placements set
+            const placementCounts = new Map<string, number>();
+            for (const dog of value) {
+                for (const race of dog.races) {
+                    if (typeof race.placement === "number" && race.placement !== 0) {
+                        const key = `${race.program}-${race.race}-${race.placement}`;
+                        placementCounts.set(key, (placementCounts.get(key) || 0) + 1);
+                    }
+                }
             }
-            <DogSearchDialog
-                open={dialogOpen}
-                onClose={() => setDialogOpen(false)}
-                onSelect={handleAddDog}
-            />
-            <button
-                onClick={() => setDialogOpen(true)}
-                className="m-4 rounded-full bg-[#2E6B3F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#255733] w-[95%]"
-            >
-                Add Dog
-            </button>
+            const hasDuplicates = Array.from(placementCounts.values()).some(c => c > 1);
+
+            setResultsValid(fieldValid && !hasDuplicates);
+        }
+    }, [value, setResultsValid]);
+
+    // Dog search
+    const handleSearch = async () => {
+        if (!searchQuery.trim()) {
+            setSearchResults([]);
+            return;
+        }
+        setSearching(true);
+        try {
+            const res = await fetch(`/api/dog/search?q=${encodeURIComponent(searchQuery)}`, {
+                cache: "no-store",
+                credentials: "include",
+            });
+            const json = await res.json().catch(() => null);
+            if (!res.ok || !json?.ok) throw new Error(json?.error || "Search failed");
+            const mapped = (json.items || []).map((item: Record<string, unknown>) => ({
+                cwaNumber: String(item.id ?? ""),
+                registeredName: String(item.name ?? ""),
+                callName: String(item.callName ?? ""),
+                grade: String(item.grade ?? ""),
+            }));
+            setSearchResults(mapped);
+        } catch (e: unknown) {
+            const msg = e instanceof Error ? e.message : "Search error";
+            console.error("Search error:", msg);
+            setSearchResults([]);
+        } finally {
+            setSearching(false);
+        }
+    };
+
+    function handleAddDog(dog: SearchDogResult) {
+        const exists = value.some(d => d.cwaNumber === dog.cwaNumber);
+        if (exists) {
+            setError("This dog is already in the results");
+            return;
+        }
+
+        const newDog: DogEntry = {
+            shown: false,
+            callName: dog.callName,
+            grade: dog.grade,
+            average: 0,
+            cwaNumber: dog.cwaNumber,
+            registeredName: dog.registeredName,
+            showPoints: "",
+            entryType: "REG",
+            showPlace: "",
+            dpcPoints: "",
+            NARXEarned: "",
+            ARXEarned: "",
+            hcLegEarned: false,
+            meetPlacement: "",
+            meetPoints: "",
+            aomEarned: null,
+            hcScore: "0",
+            dpcLeg: false,
+            birthdate: "",
+            arxPoints: "0",
+            narxPoints: "0",
+            dpcTitle: false,
+            races: [],
+        };
+
+        const updated = [...value, newDog];
+        onChange(updated);
+        setSearchOpen(false);
+        setSearchQuery("");
+        setSearchResults([]);
+        setError(null);
+    }
+
+    function handleDogChange(dog: DogEntry) {
+        const updated = value.map(d => (d.cwaNumber === dog.cwaNumber ? dog : d));
+        onChange(updated);
+    }
+
+    function handleRemoveDog(dog: DogEntry) {
+        onChange(value.filter(d => d.cwaNumber !== dog.cwaNumber));
+    }
+
+    function handleHcLegChange(dogs: DogEntry[], cwaNumber: string, checked: boolean) {
+        const updated = dogs.map(d => ({
+            ...d,
+            hcLegEarned: d.cwaNumber === cwaNumber ? checked : false,
+        }));
+        onChange(updated);
+    }
+
+    function handleDpcLegChange(dogs: DogEntry[], cwaNumber: string, checked: boolean) {
+        const updated = dogs.map(d => ({
+            ...d,
+            dpcLeg: d.cwaNumber === cwaNumber ? checked : false,
+        }));
+        onChange(updated);
+    }
+
+    function handleAddDogToRace(program: string, raceNumber: string, cwaNumber: string) {
+        const dog = value.find(d => d.cwaNumber === cwaNumber);
+        if (!dog) {
+            setError("Dog not found in results. Add it via Registration section first.");
+            return;
+        }
+        if (dog.races.some(r => r.program === program && r.race === raceNumber)) {
+            setError("Dog is already in this race");
+            return;
+        }
+        const dogsInRace = value.filter(d =>
+            d.races.some(r => r.program === program && r.race === raceNumber)
+        );
+        const placements = dogsInRace
+            .map(d => {
+                const r = d.races.find(r => r.program === program && r.race === raceNumber);
+                return r && typeof r.placement === "number" ? r.placement : 0;
+            })
+            .filter((p): p is number => p > 0);
+        const maxPlacement = placements.length > 0 ? Math.max(...placements) : 0;
+        const race: DogEntry["races"][0] = {
+            program,
+            race: raceNumber,
+            box: undefined,
+            placement: maxPlacement + 1,
+            cwaNumber,
+            incident: undefined,
+        };
+        const updated = { ...dog, races: [...dog.races, race] };
+        handleDogChange(updated);
+    }
+
+    function handleRaceDogRemove(program: string, raceNumber: string, dog: DogEntry) {
+        const remainingRaces = dog.races.filter(
+            r => !(r.program === program && r.race === raceNumber)
+        );
+        handleDogChange({ ...dog, races: remainingRaces });
+    }
+
+    function handleRaceDogChange(program: string, raceNumber: string, dog: DogEntry) {
+        handleDogChange(dog);
+    }
+
+    function handleAddRace(program: string) {
+        const programRaces = definedRaces.filter(d => d.program === program);
+        const raceNumbers = programRaces.map(d => parseInt(d.race));
+        const maxRace = raceNumbers.length > 0 ? Math.max(...raceNumbers) : 0;
+        const newRaceNumber = String(maxRace + 1);
+        setDefinedRaces(prev => addRaceDefinition(prev, program, newRaceNumber));
+    }
+
+    function handleAddProgram() {
+        const nextNum = programs.length > 0 ? Math.max(...programs.map(Number)) + 1 : 1;
+        setPrograms([...programs, String(nextNum)]);
+    }
+
+    function handleRemoveRace(program: string, raceNumber: string) {
+        const { results: updated, definedRaces: newRaces } = removeRaceAndRenumber(value, program, raceNumber, definedRaces);
+        setDefinedRaces(newRaces);
+        onChange(updated);
+    }
+
+    function handleRemoveProgram(program: string) {
+        const { results: updated, definedRaces: newRaces, definedPrograms: newPrograms } = removeProgramAndRenumber(value, program, definedRaces, programs);
+        setPrograms(newPrograms);
+        setDefinedRaces(newRaces);
+        onChange(updated);
+    }
+
+    return (
+        <div className="overflow-hidden rounded-2xl border border-black/10 bg-[#F8F9FA]">
+            <RegistrationSection results={value} onChange={handleDogChange} onDpcLegChange={handleDpcLegChange} />
+
+            <div className="p-4">
+                <button
+                    onClick={() => {
+                        setSearchOpen(true);
+                    }}
+                    className="rounded-full bg-[#2E6B3F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#255733] w-full"
+                >
+                    + Add Dog to Meet
+                </button>
+            </div>
+
+            <div className="px-5 pt-2">
+                <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-bold text-[#12301D] text-lg">Programs</h3>
+                    <button
+                        onClick={handleAddProgram}
+                        className="rounded-full bg-[#2E6B3F] px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#255733]"
+                    >
+                        + Add Program
+                    </button>
+                </div>
+            </div>
+
+            {programs.length === 0 && (
+                <p className="text-center text-gray-400 text-sm py-6 px-5">
+                    No programs defined.
+                </p>
+            )}
+
+            {programs.map(program => (
+                <ProgramSection
+                    key={program}
+                    program={program}
+                    results={value}
+                    definedRaces={definedRaces}
+                    onRaceDogChange={handleRaceDogChange}
+                    onRaceDogRemove={handleRaceDogRemove}
+                    onAddDogToRace={handleAddDogToRace}
+                    onAddRace={handleAddRace}
+                    onRemoveRace={handleRemoveRace}
+                    onRemoveProgram={handleRemoveProgram}
+                    duplicatePlacements={allDuplicatePlacements}
+                />
+            ))}
+
+            <CalculationsSection results={value} onChange={handleDogChange} onDpcLegChange={handleDpcLegChange} onHcLegChange={handleHcLegChange} />
+
+            {/* Dog Search Dialog */}
+            {searchOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col">
+                        <div className="flex items-center justify-between p-5 border-b border-black/10">
+                            <h3 className="font-bold text-[#12301D]">Add Dog</h3>
+                            <button
+                                onClick={() => {
+                                    setSearchOpen(false);
+                                    setSearchQuery("");
+                                    setSearchResults([]);
+                                }}
+                                className="text-gray-400 hover:text-gray-600 text-xl"
+                            >
+                                ×
+                            </button>
+                        </div>
+                        <div className="p-5 flex-1 overflow-y-auto">
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="mb-2 block text-sm font-medium text-[#12301D]">
+                                        Search by Name, Call Name, or CWA ID
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            handleSearch();
+                                        }}
+                                        className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
+                                        autoFocus
+                                    />
+                                </div>
+                                <div className="max-h-64 overflow-y-auto">
+                                    {searchResults.map(dog => (
+                                        <button
+                                            key={dog.cwaNumber}
+                                            onClick={() => handleAddDog(dog)}
+                                            className="w-full text-left rounded-lg border border-black/10 bg-white p-3 transition hover:bg-gray-50 mb-2"
+                                        >
+                                            <div className="font-semibold text-[#12301D]">{dog.registeredName}</div>
+                                            {dog.callName && (
+                                                <div className="text-sm text-gray-500">
+                                                    Call: {dog.callName}
+                                                </div>
+                                            )}
+                                            <div className="text-sm text-gray-500">
+                                                CWA: {dog.cwaNumber}
+                                            </div>
+                                            {dog.grade && (
+                                                <div className="text-sm text-gray-500">
+                                                    Grade: {dog.grade}
+                                                </div>
+                                            )}
+                                        </button>
+                                    ))}
+                                    {searchResults.length === 0 && searchQuery && !searching && (
+                                        <div className="text-center text-gray-400 py-4 text-sm">No dogs found</div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {error && (
-                <div className="m-4 rounded-lg bg-red-50 px-4 py-3 text-red-700">
+                <div className="m-4 rounded-lg bg-red-50 px-4 py-3 text-red-700 text-sm">
                     {error}
                 </div>
             )}
         </div>
-    )
+    );
 }

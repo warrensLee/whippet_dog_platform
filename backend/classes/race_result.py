@@ -1,7 +1,7 @@
 '''
 Docstring for race_result
 
-TODO:
+TODO: write docstring
 '''
 
 from database import fetch_all, fetch_one, execute
@@ -58,15 +58,19 @@ class RaceResult:
         """Create a RaceResult instance from a database row."""
         if not row:
             return None
+        placement = row.get("Placement")
+        aom_earned = row.get("AOMEarned")
+        if str(placement) == "0" and aom_earned and float(aom_earned) > 0:
+            placement = "AOM"
         return cls(
             meet_number=row.get("MeetNumber"),
             cwa_number=row.get("CWANumber"),
             program=row.get("Program"),
             race_number=row.get("RaceNumber"),
             box=row.get("Box"),
-            placement=row.get("Placement"),
+            placement=placement,
             meet_points=row.get("MeetPoints"),
-            aom_earned=row.get("AOMEarned"),
+            aom_earned=aom_earned,
             dpc_points=row.get("DPCPoints"),
             incident=row.get("Incident"),
             last_edited_by=row.get("LastEditedBy"),
@@ -129,6 +133,7 @@ class RaceResult:
     def save(self):
         """Save race result to database. Returns True on success, raises Error on failure."""
         try:
+            placement_val = 0 if str(self.placement).upper() == "AOM" else self.placement
             execute(
                 """
                 INSERT INTO RaceResults (
@@ -144,7 +149,7 @@ class RaceResult:
                     self.program,
                     self.race_number,
                     self.box,
-                    self.placement,
+                    placement_val,
                     self.meet_points,
                     self.aom_earned,
                     self.dpc_points,
@@ -160,9 +165,11 @@ class RaceResult:
     def update(self):
         """Update race result in database. Returns True on success, raises Error on failure."""
         try:
+            placement_val = 0 if str(self.placement).upper() == "AOM" else self.placement
             execute(
                 """
                 UPDATE RaceResults
+                SET
                     Box = %s,
                     Placement = %s,
                     MeetPoints = %s,
@@ -174,7 +181,7 @@ class RaceResult:
                 WHERE MeetNumber = %s AND CWANumber = %s AND Program = %s AND RaceNumber = %s
                 """,
                 (
-                    self.box, self.placement, self.meet_points, self.aom_earned, self.dpc_points,
+                    self.box, placement_val, self.meet_points, self.aom_earned, self.dpc_points,
                     self.incident, self.last_edited_by, self.last_edited_at,
                     self.meet_number, self.cwa_number, self.program , self.race_number
                 ),      
@@ -507,13 +514,14 @@ class RaceResult:
 
     def to_dict(self):
         """Convert to dictionary for JSON responses."""
+        placement_val = "AOM" if str(self.placement).upper() == "AOM" or (str(self.placement) == "0" and self.aom_earned and float(self.aom_earned) > 0) else self.placement
         data = {
             "meetNumber": self.meet_number,
             "cwaNumber": self.cwa_number,
             "program": self.program,
             "raceNumber": self.race_number,
             "box": self.box,
-            "placement": self.placement,
+            "placement": placement_val,
             "meetPoints": self.meet_points,
             "dpcPoints": self.dpc_points,
             "incident": self.incident,
