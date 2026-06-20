@@ -628,7 +628,7 @@ class MeetResult:
                     ) AS OwnerIDs,
 
                     GROUP_CONCAT(
-                        DISTINCT rr.Incident
+                        DISTINCT NULLIF(rr.Incident, '')
                         ORDER BY rr.Program, rr.RaceNumber
                         SEPARATOR ', '
                     ) AS Incident
