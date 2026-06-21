@@ -62,9 +62,6 @@ export default function AdminTitlesPage() {
     email: "",
   });
 
-  React.useEffect(() => {
-    handleSearch();
-  }, []);
 
   const displayRows = React.useMemo(() => {
     return [...rows]
@@ -109,27 +106,33 @@ export default function AdminTitlesPage() {
       });
   }, [rows, filters, sortKey, sortDirection]);
 
-  async function handleSearch() {
-    try {
-      setLoading(true);
-      setError("");
+  const handleSearch = React.useCallback(
+    async function handleSearch() {
+      try {
+        setLoading(true);
+        setError("");
 
-      const res = await getTitlesInDateRange(start, end);
+        const res = await getTitlesInDateRange(start, end);
 
-      if (!res.ok) {
-        setError(res.error || "Failed to load titles.");
+        if (!res.ok) {
+          setError(res.error || "Failed to load titles.");
+          setRows([]);
+          return;
+        }
+
+        setRows(res.data || []);
+      } catch {
+        setError("Failed to load titles.");
         setRows([]);
-        return;
+      } finally {
+        setLoading(false);
       }
+    }, [end, start])
 
-      setRows(res.data || []);
-    } catch {
-      setError("Failed to load titles.");
-      setRows([]);
-    } finally {
-      setLoading(false);
-    }
-  }
+
+  React.useEffect(() => {
+    handleSearch();
+  }, [handleSearch]);
 
   function updateFilter(key: keyof typeof filters, value: string) {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -156,15 +159,15 @@ export default function AdminTitlesPage() {
 
   return (
     <main className="pt-24 bg-[#1F4D2E]">
-      <HeroSection title="Titles Earned" 
+      <HeroSection title="Titles Earned"
         topContent={
           <Link
-              href="/admin"
-              className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
+            href="/admin"
+            className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
           >
-              Back to Admin Dashboard
+            Back to Admin Dashboard
           </Link>
-       }/>
+        } />
 
       <section className="bg-[#E7F0E9] pt-12 pb-24 flex flex-col items-center">
         <Box sx={{ width: "80%", mt: 4 }}>
@@ -228,7 +231,7 @@ export default function AdminTitlesPage() {
                       <input
                         placeholder="filter"
                         value={filters[key as keyof typeof filters]}
-                        onChange={(e) => updateFilter(key as any, e.target.value)}
+                        onChange={(e) => updateFilter(key as keyof typeof filters, e.target.value)}
                         className="w-full border px-1 text-sm"
                       />
                     </TableCell>

@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import DogForm from "@/app/components/dog/DogForm";
+import DogForm from "../DogForm";
 import type { DogFormValues } from "@/app/admin/dogs/types";
 import { emptyDogFormValues } from "@/app/admin/dogs/types";
 import HeroSection from "@/app/components/ui/HeroSection";
@@ -237,20 +237,13 @@ export default function AddDogPage() {
                             values={form}
                             onChange={updateField}
                             onSubmit={handleSubmit}
-                            saving={saving}
-                            submitLabel="Create Dog"
                             error={error}
                             success={success}
-                            onCancel={
-                                () => {
-                                    router.push("/admin/dogs");
-                                }
-                            }
                             form={form}
                             setForm={setForm}
                             isEditMode={false}
                         />
-                        
+
                         {/* Action buttons */}
                         <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-end">
                             <button

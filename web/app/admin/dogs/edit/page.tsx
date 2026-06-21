@@ -3,20 +3,14 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import DogForm from "@/app/components/dog/DogForm";
+import DogForm from "../DogForm";
 import type { DogFormValues } from "@/app/admin/dogs/types";
 import { emptyDogFormValues } from "@/app/admin/dogs/types";
 import HeroSection from "@/app/components/ui/HeroSection";
-import DogOwnersSection from "@/app/components/dog/DogOwnersSection";
+import DogOwnersSection from "./DogOwnersSection";
 import DogTitlesSection from "@/app/components/dog/DogTitlesSection";
-import authContext from "@/lib/auth/auth";
 import AuthGuard from "@/lib/auth/authGuard";
 
-/*
-    Safely converts incoming unknown values to strings.
-
-    This keeps API data predictable before it enters form state.
-*/
 function normalizeText(value: unknown): string {
     if (typeof value === "string") {
         return value;
@@ -53,7 +47,7 @@ function normalizeDateInput(value: unknown): string {
     which shifts the local date by one day for users in negative-UTC
     timezones.
 */
-function normalizeDateInputForInput(value: unknown): string {
+function normalizeDate(value: unknown): string {
     const text = normalizeText(value).trim();
 
     if (!text) {
@@ -147,7 +141,7 @@ function buildFormFromDog(data: NonNullable<RawDogGetResponse["data"]>): DogForm
         foreignType: normalizeText(data.foreignType),
         callName: normalizeText(data.callName),
         registeredName: normalizeText(data.registeredName),
-        birthdate: normalizeDateInputForInput(data.birthdate),
+        birthdate: normalizeDate(data.birthdate),
         pedigreeLink: normalizeText(data.pedigreeLink),
         status: normalizeText(data.status) || "Active",
         publicNotes: normalizeText(data.publicNotes),
@@ -484,13 +478,8 @@ function EditDogPage() {
                                 values={form}
                                 onChange={updateField}
                                 onSubmit={handleSubmit}
-                                saving={saving}
-                                submitLabel={saving ? "Saving..." : "Save Changes"}
                                 error={error}
                                 success={success}
-                                onCancel={() => {
-                                    router.back();
-                                }}
                                 form={form}
                                 setForm={setForm}
                                 isEditMode={true}

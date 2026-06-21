@@ -101,7 +101,7 @@ export function toBackendFormat(entries: MeetResults): BackendEntry[] {
     }));
 }
 
-export function buildDogEntry(base: Omit<DogEntry, "races">, races: DogRace[], index: number): DogEntry {
+export function buildDogEntry(base: Omit<DogEntry, "races">, races: DogRace[]): DogEntry {
     return {
         ...base,
         races,
@@ -363,7 +363,6 @@ export function recalculateMeetRankings(results: MeetResults): MeetResults {
     return updated;
 }
 
-const ADULT_AGE_MONTHS = 14;
 const ARX_THRESHOLD = 15;
 
 export function calculateArxNarx(results: MeetResults): MeetResults {

@@ -3,10 +3,9 @@ import { DogEntry } from "./MeetResultTypes";
 type RegistrationSectionProps = {
     results: DogEntry[];
     onChange: (dog: DogEntry) => void;
-    onDpcLegChange: (dogs: DogEntry[], cwaNumber: string, checked: boolean) => void;
 };
 
-export default function RegistrationSection({ results, onChange, onDpcLegChange }: RegistrationSectionProps) {
+export default function RegistrationSection({ results, onChange }: RegistrationSectionProps) {
     function handlePropertyChange(dog: DogEntry, key: keyof DogEntry, value: DogEntry[keyof DogEntry]) {
         if (key === "showPlace" && (value === "" || value === "0")) {
             onChange({ ...dog, showPlace: value as DogEntry["showPlace"], showPoints: "0" });
@@ -15,10 +14,6 @@ export default function RegistrationSection({ results, onChange, onDpcLegChange 
         } else {
             onChange({ ...dog, [key]: value });
         }
-    }
-
-    function handleDpcLegChange(dog: DogEntry, checked: boolean) {
-        onDpcLegChange(results, dog.cwaNumber, checked);
     }
 
     return (
@@ -73,16 +68,16 @@ export default function RegistrationSection({ results, onChange, onDpcLegChange 
                                         className="w-4 h-4 accent-[#2E6B3F]"
                                     />
                                 </td>
-                                   <td className="py-3 px-3">
-                                        <input
-                                            type="number"
-                                            min="1"
-                                            disabled={!dog.shown}
-                                            value={dog.showPlace}
-                                            onChange={(e) => handlePropertyChange(dog, "showPlace", e.target.value)}
-                                            className={`w-full rounded-lg border px-2 py-1.5 text-sm text-[#12301D] outline-none focus:ring-2 focus:ring-[#2E6B3F]/30 ${dog.shown ? "border-black/10 bg-white" : "border-transparent bg-gray-100 text-gray-400"}`}
-                                        />
-                                    </td>
+                                <td className="py-3 px-3">
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        disabled={!dog.shown}
+                                        value={dog.showPlace}
+                                        onChange={(e) => handlePropertyChange(dog, "showPlace", e.target.value)}
+                                        className={`w-full rounded-lg border px-2 py-1.5 text-sm text-[#12301D] outline-none focus:ring-2 focus:ring-[#2E6B3F]/30 ${dog.shown ? "border-black/10 bg-white" : "border-transparent bg-gray-100 text-gray-400"}`}
+                                    />
+                                </td>
                             </tr>
                         ))}
                     </tbody>

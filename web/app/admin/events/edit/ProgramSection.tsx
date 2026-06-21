@@ -72,27 +72,27 @@ export default function ProgramSection({
                 <>
                     {definedRaceNumbers.length === 0 && (
                         <p className="text-center text-gray-400 text-sm py-6">
-                            No races in {title.toLowerCase()} yet. Click "+ Add Race" to start.
+                            No races in {title.toLowerCase()} yet. Click &quot;+ Add Race&quot; to start.
                         </p>
                     )}
 
                     {definedRaceNumbers.map(raceNumber => {
-                const dogsInRace = getDogsInRace(raceNumber);
+                        const dogsInRace = getDogsInRace(raceNumber);
 
-                return (
-                    <RaceSection
-                        key={`${program}-${raceNumber}`}
-                        program={program}
-                        raceNumber={raceNumber}
-                        dogs={dogsInRace}
-                        results={results}
-                        onRaceDogChange={onRaceDogChange}
-                        onRaceDogRemove={onRaceDogRemove}
-                        onAddDogToRace={onAddDogToRace}
-                        onRemoveRace={onRemoveRace}
-                    />
-                );
-            })}
+                        return (
+                            <RaceSection
+                                key={`${program}-${raceNumber}`}
+                                program={program}
+                                raceNumber={raceNumber}
+                                dogs={dogsInRace}
+                                results={results}
+                                onRaceDogChange={onRaceDogChange}
+                                onRaceDogRemove={onRaceDogRemove}
+                                onAddDogToRace={onAddDogToRace}
+                                onRemoveRace={onRemoveRace}
+                            />
+                        );
+                    })}
                 </>
             )}
         </div>

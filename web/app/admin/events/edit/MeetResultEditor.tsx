@@ -3,7 +3,6 @@ import {
     DogEntry,
     MeetResults,
     recalculateAll,
-    buildDogEntry,
     RaceDefinition,
     addRaceDefinition,
     removeRaceAndRenumber,
@@ -202,10 +201,6 @@ export default function MeetResultEditor({
         onChange(updated);
     }
 
-    function handleRemoveDog(dog: DogEntry) {
-        onChange(value.filter(d => d.cwaNumber !== dog.cwaNumber));
-    }
-
     function handleHcLegChange(dogs: DogEntry[], cwaNumber: string, checked: boolean) {
         const updated = dogs.map(d => ({
             ...d,
@@ -293,7 +288,7 @@ export default function MeetResultEditor({
 
     return (
         <div className="overflow-hidden rounded-2xl border border-black/10 bg-[#F8F9FA]">
-            <RegistrationSection results={value} onChange={handleDogChange} onDpcLegChange={handleDpcLegChange} />
+            <RegistrationSection results={value} onChange={handleDogChange} />
 
             <div className="p-4">
                 <button
@@ -368,7 +363,7 @@ export default function MeetResultEditor({
                                         type="text"
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        onKeyDown={(e) => {
+                                        onKeyDown={() => {
                                             handleSearch();
                                         }}
                                         className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"

@@ -5,22 +5,12 @@ import {
     DialogContent,
     DialogActions,
     TextField,
-    FormControl,
     Select,
     MenuItem,
-    Grid,
-    Typography,
-    Box,
 } from '@mui/material';
-import UserRole, { SCOPE_FIELDS, ScopeValue } from './types';
+import UserRole, { ScopeValue } from './types';
 import axios, { AxiosError } from 'axios';
-import { title } from 'process';
 
-const SCOPE_OPTIONS = [
-    { value: 0, label: 'None' },
-    { value: 1, label: 'only Self' },
-    { value: 2, label: 'All' },
-];
 
 
 

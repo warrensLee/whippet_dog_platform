@@ -163,29 +163,30 @@ export default function AdminUsersPage() {
     return '';
   };
 
-  const loadPage = async () => {
-    try {
-      setLoading(true);
-      setError('');
-      await Promise.all([fetchUsers(), fetchRoles()]);
-    }
-    catch (err: unknown) {
-      if (err instanceof AxiosError && err.response) {
-        setError(err.response.data.error || 'Failed to load users');
-      }
-      else if (err instanceof Error) {
-        setError(err.message || "Failed to load users!")
-      }
-      else {
-        setError("Failed to load users!")
-      }
-    }
-    finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+
+    const loadPage = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        await Promise.all([fetchUsers(), fetchRoles()]);
+      }
+      catch (err: unknown) {
+        if (err instanceof AxiosError && err.response) {
+          setError(err.response.data.error || 'Failed to load users');
+        }
+        else if (err instanceof Error) {
+          setError(err.message || "Failed to load users!")
+        }
+        else {
+          setError("Failed to load users!")
+        }
+      }
+      finally {
+        setLoading(false);
+      }
+    };
+
     loadPage();
 
     const fetchCurrentUser = async () => {

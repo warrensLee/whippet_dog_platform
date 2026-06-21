@@ -8,7 +8,7 @@ import FieldRow from "../components/ui/FieldRow";
 import StatPill from "../components/ui/StatPill";
 import Card from "../components/ui/Card";
 import PointBar from "../components/ui/PointBar";
-import MeetCard from "../components/event/MeetCard";
+import MeetCard from "./MeetCard"
 import TitleFamilyCard from "../components/dog/TitleFamilyCard";
 import authContext from "@/lib/auth/auth";
 
@@ -36,6 +36,15 @@ type DogTitle = {
 export default function Page() {
   return (<React.Suspense><DogPage /></React.Suspense>)
 }
+
+type DogStats = {
+  total_meet_points: number;
+  total_match_points: number;
+  total_hc_score: number
+  total_show_points?: number | undefined
+  total_dpc_points?: number | undefined
+}
+
 function DogPage() {
   const params = useSearchParams();
   const cwaNumber = decodeURIComponent(String(params.get("id") ?? ""));
@@ -117,7 +126,7 @@ function DogPage() {
             ? `/api/dog/stats/${encodedCwaNumber}/year/${currentYear}`
             : `/api/dog/stats/${encodedCwaNumber}`;
 
-        const res = await fetchJson<{ success: boolean; data: any }>(url);
+        const res = await fetchJson<{ success: boolean; data: DogStats }>(url);
 
         if (res.success) {
           setDogStats(res.data);

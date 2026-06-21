@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import type { DogSearchResponse } from "@/app/admin/dogs/types";
 import HeroSection from "@/app/components/ui/HeroSection";
 import SearchBar from "@/app/components/ui/SearchBar";
-import { userAgent } from "next/server";
 import authContext from "@/lib/auth/auth";
 
 /*
@@ -129,7 +128,7 @@ function AdminDogsPage() {
                 setLoading(false);
             }
         },
-        [q]
+        [q, user]
     );
 
     React.useEffect(
@@ -725,7 +724,7 @@ function AdminDogsPage() {
                                                     </Link>
 
                                                     <Link
-                                                        href={`/search?q=${encodeURIComponent(d.cwaNumber)}`}
+                                                        href={`/search/dogs?q=${encodeURIComponent(d.cwaNumber)}`}
                                                         className="rounded-full border border-[#12301D]/15 bg-white px-4 py-2 text-sm font-semibold text-[#12301D] hover:bg-[#12301D]/5 transition"
                                                     >
                                                         View in Search

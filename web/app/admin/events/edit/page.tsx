@@ -4,13 +4,13 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import EventForm from "@/app/components/event/EventForm";
+import EventForm from "../EventForm";
 import HeroSection from "@/app/components/ui/HeroSection";
 import type { EventFormValues } from "@/app/admin/events/types";
 import { emptyEventFormValues } from "@/app/admin/events/types";
 import { PersonSearchResult } from "@/app/components/ui/PersonField";
 import MeetResultEditor from "./MeetResultEditor";
-import { MeetResults, DogEntry, buildDogEntry, toBackendFormat } from "./MeetResultTypes";
+import { MeetResults, DogEntry, toBackendFormat } from "./MeetResultTypes";
 
 /*
     Safely converts incoming unknown values to strings.
@@ -174,54 +174,6 @@ function EditEventPage() {
     const [initialForm, setInitialForm] = React.useState<EventFormValues>(emptyEventFormValues);
     const [entries, setEntries] = React.useState<MeetResults>()
 
-    async function getMeetResults() {
-        const meetResponse = await fetch("/api/meet_result/edit_result_view/" + meetNumber);
-        const responseJson = await meetResponse.json();
-        if (!responseJson.ok) {
-            throw new Error(responseJson.error || "Failed to load results")
-        }
-
-        const baseDogs: Omit<DogEntry, "races">[] = responseJson.dogs || [];
-        const dogMap = new Map<string, DogEntry>();
-        for (const base of baseDogs) {
-            dogMap.set(base.cwaNumber, {
-                ...base,
-                races: [],
-                showPoints: base.showPoints ? String(base.showPoints) : "",
-                hcLegEarned: !!(base as unknown as { hcLegEarned: number }).hcLegEarned,
-                dpcLeg: base.dpcLeg ? true : false,
-            } as DogEntry);
-        }
-
-        if (responseJson.races) {
-            const raceData = responseJson.races as Record<string, Record<string, Array<{
-                dog: string;
-                box: string;
-                placement: string;
-                incident: string;
-            }>>>;
-            for (const [program, racesByNumber] of Object.entries(raceData)) {
-                for (const [raceNumber, placements] of Object.entries(racesByNumber)) {
-                    for (const placement of placements) {
-                        const existing = dogMap.get(placement.dog);
-                        if (existing) {
-                            existing.races.push({
-                                program: String(program),
-                                race: String(raceNumber),
-                                box: placement.box ? parseInt(placement.box) : undefined,
-                                placement: placement.placement === "AOM" ? "AOM" : (placement.placement ? parseInt(placement.placement) : 1),
-                                cwaNumber: placement.dog,
-                                incident: placement.incident || undefined,
-                            });
-                        }
-                    }
-                }
-            }
-        }
-
-        setEntries(Array.from(dogMap.values()));
-    }
-
     async function saveMeetResults(entriesToSave: MeetResults) {
         const response = await fetch(`/api/meet_result/edit_result_view/${meetNumber}`, {
             method: "POST",
@@ -245,6 +197,54 @@ function EditEventPage() {
         if (!authorized || !meetNumber) {
             return;
         }
+        async function getMeetResults() {
+            const meetResponse = await fetch("/api/meet_result/edit_result_view/" + meetNumber);
+            const responseJson = await meetResponse.json();
+            if (!responseJson.ok) {
+                throw new Error(responseJson.error || "Failed to load results")
+            }
+
+            const baseDogs: Omit<DogEntry, "races">[] = responseJson.dogs || [];
+            const dogMap = new Map<string, DogEntry>();
+            for (const base of baseDogs) {
+                dogMap.set(base.cwaNumber, {
+                    ...base,
+                    races: [],
+                    showPoints: base.showPoints ? String(base.showPoints) : "",
+                    hcLegEarned: !!(base as unknown as { hcLegEarned: number }).hcLegEarned,
+                    dpcLeg: base.dpcLeg ? true : false,
+                } as DogEntry);
+            }
+
+            if (responseJson.races) {
+                const raceData = responseJson.races as Record<string, Record<string, Array<{
+                    dog: string;
+                    box: string;
+                    placement: string;
+                    incident: string;
+                }>>>;
+                for (const [program, racesByNumber] of Object.entries(raceData)) {
+                    for (const [raceNumber, placements] of Object.entries(racesByNumber)) {
+                        for (const placement of placements) {
+                            const existing = dogMap.get(placement.dog);
+                            if (existing) {
+                                existing.races.push({
+                                    program: String(program),
+                                    race: String(raceNumber),
+                                    box: placement.box ? parseInt(placement.box) : undefined,
+                                    placement: placement.placement === "AOM" ? "AOM" : (placement.placement ? parseInt(placement.placement) : 1),
+                                    cwaNumber: placement.dog,
+                                    incident: placement.incident || undefined,
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+
+            setEntries(Array.from(dogMap.values()));
+        }
+
 
         getMeetResults().catch(err => {
             setError(err instanceof Error ? err.message : "Failed to load results");
@@ -294,10 +294,6 @@ function EditEventPage() {
         };
     }, [router]);
 
-    /*
-        After authorization succeeds, load the Event record that matches
-        the route id and populate the edit form.
-    */
     React.useEffect(
         () => {
             if (!authorized) {

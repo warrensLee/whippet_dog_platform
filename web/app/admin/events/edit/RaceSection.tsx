@@ -20,16 +20,6 @@ type RaceSectionProps = {
     onRemoveRace: (program: string, raceNumber: string) => void;
 };
 
-const INCIDENTS = [
-    "",
-    "Broken Box",
-    "Crossed Wire",
-    "Dog Down",
-    "False Start",
-    "Judging Error",
-    "Other",
-];
-
 export default function RaceSection({
     program,
     raceNumber,
@@ -118,7 +108,7 @@ export default function RaceSection({
         setShowAddDog(false);
     }
 
-     return (
+    return (
         <div className="rounded-xl border border-black/10 bg-white p-4 mb-3">
             <div className="flex items-center justify-between mb-3">
                 <h4 className="font-semibold text-[#12301D] text-base">Race {raceNumber}</h4>

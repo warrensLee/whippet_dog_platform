@@ -4,7 +4,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import EventForm from "@/app/components/event/EventForm";
+import EventForm from "../EventForm";
 import type { EventFormValues } from "@/app/admin/events/types";
 import { emptyEventFormValues } from "@/app/admin/events/types";
 import HeroSection from "@/app/components/ui/HeroSection";

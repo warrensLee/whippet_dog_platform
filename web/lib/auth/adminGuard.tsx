@@ -7,9 +7,14 @@ export default function AdminGuard({ permissions, redirect = true, children }: {
     const authctx = useContext(authContext);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const isAuthenticated = (): boolean => {
-        if (authctx == undefined) return false;
-        if (authctx == "NotAuthenticated") return false;
-        if (authctx.SystemRole != "ADMIN") return false;
+        if (authctx == undefined) return false
+        if (authctx == "NotAuthenticated") return false
+        if (authctx.SystemRole != "ADMIN") return false
+        if (permissions) {
+            for (const p in permissions) {
+                if (!authctx.hasPermission(p)) return false
+            }
+        }
         return true;
     }
 
