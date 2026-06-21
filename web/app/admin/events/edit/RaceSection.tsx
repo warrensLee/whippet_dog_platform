@@ -18,7 +18,6 @@ type RaceSectionProps = {
     ) => void;
     onAddDogToRace: (program: string, raceNumber: string, cwaNumber: string) => void;
     onRemoveRace: (program: string, raceNumber: string) => void;
-    duplicatePlacements: Set<string>;
 };
 
 const INCIDENTS = [
@@ -40,7 +39,6 @@ export default function RaceSection({
     onRaceDogRemove,
     onAddDogToRace,
     onRemoveRace,
-    duplicatePlacements,
 }: RaceSectionProps) {
     const [showAddDog, setShowAddDog] = useState(false);
     const [selectedDogCwa, setSelectedDogCwa] = useState("");
@@ -212,7 +210,7 @@ export default function RaceSection({
                                     <select
                                         value={getPlacement(dog)}
                                         onChange={(e) => handlePlacementChange(dog, e.target.value)}
-                                        className={`w-full rounded border px-2 py-1 text-sm text-[#12301D] outline-none focus:ring-2 ${duplicatePlacements.has(dog.cwaNumber) ? "border-red-500 focus:ring-red-200" : "border-black/10 focus:ring-[#2E6B3F]/30"}`}
+                                        className="w-full rounded border border-black/10 px-2 py-1 text-sm text-[#12301D] outline-none focus:ring-2 focus:ring-[#2E6B3F]/30"
                                     >
                                         {getPlacementOptions().map(opt => (
                                             <option key={opt} value={opt}>{opt}</option>

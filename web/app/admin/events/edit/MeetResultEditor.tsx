@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
     DogEntry,
     MeetResults,
@@ -38,36 +38,6 @@ export default function MeetResultEditor({
     const [definedRaces, setDefinedRaces] = useState<RaceDefinition[]>([]);
 
     const prevValueRef = useRef<MeetResults>(value);
-
-    // Compute all duplicate placements at the top level
-    const allDuplicatePlacements = useMemo(() => {
-        // Build map: raceKey -> placement -> [dog CWA numbers]
-        const placementGroups = new Map<string, Map<number, string[]>>();
-        for (const dog of value) {
-            for (const race of dog.races) {
-                if (typeof race.placement !== "number" || race.placement === 0) continue;
-                const raceKey = `${race.program}-${race.race}`;
-                if (!placementGroups.has(raceKey)) placementGroups.set(raceKey, new Map());
-                const group = placementGroups.get(raceKey)!;
-                if (!group.has(race.placement)) group.set(race.placement, []);
-                group.get(race.placement)!.push(dog.cwaNumber);
-            }
-        }
-        // Extract only dogs with duplicate placements
-        const raceDupes = new Map<string, Set<string>>();
-        for (const [raceKey, placementMap] of placementGroups) {
-            const dupes = new Set<string>();
-            for (const [, dogs] of placementMap) {
-                if (dogs.length > 1) {
-                    for (const cwa of dogs) dupes.add(cwa);
-                }
-            }
-            if (dupes.size > 0) {
-                raceDupes.set(raceKey, dupes);
-            }
-        }
-        return raceDupes;
-    }, [value]);
 
     // Initialize programs and defined races from existing data (once on mount)
     const hasInitializedRef = useRef(false);
@@ -152,19 +122,7 @@ export default function MeetResultEditor({
                     });
                 });
 
-            // Check for duplicate placements only among those that have placements set
-            const placementCounts = new Map<string, number>();
-            for (const dog of value) {
-                for (const race of dog.races) {
-                    if (typeof race.placement === "number" && race.placement !== 0) {
-                        const key = `${race.program}-${race.race}-${race.placement}`;
-                        placementCounts.set(key, (placementCounts.get(key) || 0) + 1);
-                    }
-                }
-            }
-            const hasDuplicates = Array.from(placementCounts.values()).some(c => c > 1);
-
-            setResultsValid(fieldValid && !hasDuplicates);
+            setResultsValid(fieldValid);
         }
     }, [value, setResultsValid]);
 
@@ -378,7 +336,6 @@ export default function MeetResultEditor({
                     onAddRace={handleAddRace}
                     onRemoveRace={handleRemoveRace}
                     onRemoveProgram={handleRemoveProgram}
-                    duplicatePlacements={allDuplicatePlacements}
                 />
             ))}
 

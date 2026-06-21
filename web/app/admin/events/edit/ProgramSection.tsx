@@ -20,7 +20,6 @@ type ProgramSectionProps = {
     onAddRace: (program: string) => void;
     onRemoveRace: (program: string, raceNumber: string) => void;
     onRemoveProgram: (program: string) => void;
-    duplicatePlacements: Map<string, Set<string>>;
 };
 
 export default function ProgramSection({
@@ -33,7 +32,6 @@ export default function ProgramSection({
     onAddRace,
     onRemoveRace,
     onRemoveProgram,
-    duplicatePlacements,
 }: ProgramSectionProps) {
     const [collapsed, setCollapsed] = useState(false);
     const definedRaceNumbers = getDefinedRacesForProgram(definedRaces, program);
@@ -80,12 +78,10 @@ export default function ProgramSection({
 
                     {definedRaceNumbers.map(raceNumber => {
                 const dogsInRace = getDogsInRace(raceNumber);
-                const raceKey = `${program}-${raceNumber}`;
-                const raceDuplicates = duplicatePlacements.get(raceKey) || new Set<string>();
 
                 return (
                     <RaceSection
-                        key={raceKey}
+                        key={`${program}-${raceNumber}`}
                         program={program}
                         raceNumber={raceNumber}
                         dogs={dogsInRace}
@@ -94,7 +90,6 @@ export default function ProgramSection({
                         onRaceDogRemove={onRaceDogRemove}
                         onAddDogToRace={onAddDogToRace}
                         onRemoveRace={onRemoveRace}
-                        duplicatePlacements={raceDuplicates}
                     />
                 );
             })}

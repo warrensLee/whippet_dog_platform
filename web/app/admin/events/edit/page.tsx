@@ -400,7 +400,7 @@ function EditEventPage() {
         }
 
         if (!resultsValid) {
-            setResultsError("Please fix validation errors (duplicate placements, missing fields) before saving.");
+            setResultsError("Please fix validation errors (missing fields) before saving.");
             return;
         }
 
