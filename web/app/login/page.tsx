@@ -80,7 +80,7 @@ export default function LoginPage() {
         <Box component="form" onSubmit={handleSubmit}>
           <TextField
             autoComplete="username"
-            label="Username"
+            label="Email"
             variant="outlined"
             fullWidth
             margin="normal"

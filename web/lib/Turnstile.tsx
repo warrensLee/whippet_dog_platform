@@ -14,7 +14,7 @@ declare global {
 
 export default function Turnstile({ onSuccess }: { onSuccess: (token: string) => void }) {
     const [sitekey, setSitekey] = useState<string | null>(null);
-
+    const [loaded, setLoaded] = useState(false);
     useEffect(() => {
         const fetchSitekey = async () => {
             try {
@@ -47,10 +47,12 @@ export default function Turnstile({ onSuccess }: { onSuccess: (token: string) =>
 
     return (
         <div>
+            {!loaded && <div className="bg-white p-5"><p className="text-black">Waiting for Cloudflare</p></div>}
             <Script
                 src="https://challenges.cloudflare.com/turnstile/v0/api.js"
                 async
                 defer
+                onLoad={() => setLoaded(true)}
             ></Script>
             <div className="cf-turnstile" data-theme="light" data-sitekey={sitekey}
                 data-size="normal"

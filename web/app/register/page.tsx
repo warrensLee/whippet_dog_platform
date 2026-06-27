@@ -11,11 +11,12 @@ export default function Page() {
 
 function RegisterPage() {
   const searchParams = useSearchParams();
-  const token = searchParams.get("token") || "";
+  const registrationEmail = searchParams.get("email") || ""
+  const token = searchParams.get("token")
   const [personId, setPersonId] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(registrationEmail);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -144,6 +145,7 @@ function RegisterPage() {
             type="email"
             fullWidth
             margin="normal"
+            disabled={registrationEmail != ""}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"

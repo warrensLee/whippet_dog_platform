@@ -165,7 +165,6 @@ function DogPage() {
 
   const statusLabel = dog?.status?.trim() || "Status unknown";
   const statusColor = getStatusColor(dog?.status);
-  console.log(publicNotes)
 
   return (
     <main className="min-h-screen bg-[#1F4D2E]">

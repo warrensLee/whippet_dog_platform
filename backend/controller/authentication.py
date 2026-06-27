@@ -24,7 +24,6 @@ def register():
     data = request.get_json(silent=True) or {}
     password = data.get("password") or ""
     invite_token = (data.get("token") or "").strip()
-
     if not invite_token:
         return jsonify({"ok": False, "error": "Invite token is required"}), 400
 
@@ -395,3 +394,31 @@ def invite_claim_dummy():
 
     send_invite_email(email, token)
     return jsonify({"ok": True, "message": "Invite created successfully"}), 200
+
+
+@auth_bp.get("/check_email")
+def check_email_registration():
+
+    try:
+        token = request.args.get("token")
+        if not token or not validate_turnstile(token):
+            return jsonify({"valid": False, "message": "Invalid or no Turnstile token"}), 200
+        email = request.args.get("email")
+        if not email:
+            return jsonify({"valid": False, "message": "No email entered"}), 200
+        p = Person.find_by_email(email)
+        if not p or p.password_hash != None:
+            return jsonify({"valid": False, "message": "This email is not approved or has already registered"})
+        
+        token = secrets.token_urlsafe(32)
+        expires_at = datetime.now(timezone.utc) + timedelta(days=2)
+        RegistrationInvite.create(
+        email=email,
+        token=token,
+        expires_at=expires_at,
+        created_by=None,
+        person_id=p.id
+        )
+        return jsonify({"valid": True, "token":token}), 200
+    except Exception as e:
+        handle_error(e) 
