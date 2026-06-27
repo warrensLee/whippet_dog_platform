@@ -107,8 +107,8 @@ def register():
                 before_obj=before_snapshot,
                 after_obj=refreshed.to_dict() if refreshed else person.to_dict(),
             )
-
-            return jsonify({"ok": True, "claimedDummy": True}), 200
+            session["user"] = person.to_session_dict()
+            return jsonify({"ok": True, "id": person.id}), 200
 
         # normal invite flow
         person = incoming
@@ -140,7 +140,8 @@ def register():
             after_obj=person.to_dict(),
         )
 
-        return jsonify({"ok": True, "claimedDummy": False}), 201
+        session["user"] = person.to_session_dict()
+        return jsonify({"ok": True, "id": person.id}), 201
 
     except Error as e:
         return handle_error(e, "Database error")

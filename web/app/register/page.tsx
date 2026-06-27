@@ -4,6 +4,7 @@ import { FormEvent, Suspense, useState } from "react";
 import { Box, Paper, TextField, Typography, Grid } from "@mui/material";
 import { useSearchParams } from "next/navigation";
 import PasswordRequirements from "@/lib/passwordRequirements/passwordRequirements";
+import { useRouter } from "next/navigation";
 
 export default function Page() {
   return (<Suspense><RegisterPage /></Suspense>)
@@ -13,6 +14,8 @@ function RegisterPage() {
   const searchParams = useSearchParams();
   const registrationEmail = searchParams.get("email") || ""
   const token = searchParams.get("token")
+  const router = useRouter()
+
   const [personId, setPersonId] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -24,6 +27,11 @@ function RegisterPage() {
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [submitting, setSubmitting] = useState(false);
   const [passwordRequirementsMet, setPasswordRequirementsMet] = useState(false)
+
+  if (!token) {
+    router.push("/email-registration")
+    return (<div />)
+  }
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -50,8 +58,8 @@ function RegisterPage() {
 
       if (res.ok && data?.ok) {
         setStatus("success");
-        setMessage("Registered! Redirecting to login…");
-        window.location.assign("/login");
+        setMessage("Registered! Redirecting to profile...");
+        setTimeout(() => router.push("/owner?id=" + data.id), 2500);
         return;
       }
 
@@ -161,7 +169,7 @@ function RegisterPage() {
             margin="normal"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="At least 8 characters"
+            placeholder="At least 12 characters"
             autoComplete="new-password"
             required
           />

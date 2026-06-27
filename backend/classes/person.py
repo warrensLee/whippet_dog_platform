@@ -1,11 +1,7 @@
-'''
-Docstring for person
-
-TODO:
-'''
 from werkzeug.security import generate_password_hash, check_password_hash
 from database import fetch_all, fetch_one, execute
 from mysql.connector import Error
+import re
 
 class Person:
     def __init__(self, id, person_id, first_name, last_name, email_address, address_line_one,
@@ -154,12 +150,16 @@ class Person:
     def validate(self):
         """Validate required fields. Returns list of errors (empty if valid)."""
         errors = []
+        username_regex = r"^[a-zA-Z0-9_]+$"
         if not self.first_name:
             errors.append("First name is required")
         if not self.last_name:
             errors.append("Last name is required")
-        if self.person_id is not None and len(str(self.person_id)) > 20:
-            errors.append("PersonID must be 20 characters or less")
+        if self.person_id is not None and (len(str(self.person_id)) > 20 or len(str(self.person_id)) <= 3):
+            errors.append("Username must be between 4 and 20 characters")
+        if self.person_id is not None and not re.match(username_regex, self.person_id):
+            errors.append("Username may only contain A-Z, 0-9, and _")
+
         return errors
 
     def set_password(self, password):
