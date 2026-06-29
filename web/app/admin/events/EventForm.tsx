@@ -5,6 +5,8 @@ import * as React from "react";
 import type { EventFormValues } from "@/app/admin/events/types";
 import RichTextEditor from "@/lib/richtext/RichTextEditor";
 import PersonField, { PersonSearchResult } from "@/app/components/ui/PersonField";
+import Button from "@/app/components/ui/buttons/Button";
+import SecondaryButton from "@/app/components/ui/buttons/SecondaryButton";
 type Props = {
     values: EventFormValues;
     onChange: <K extends keyof EventFormValues>(
@@ -242,21 +244,19 @@ export default function EventForm({
             )}
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <button
+                <Button
                     type="submit"
                     disabled={saving}
-                    className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm transition hover:bg-[#255733] disabled:opacity-60"
                 >
                     {saving ? "Saving..." : submitLabel}
-                </button>
+                </Button>
 
-                <button
+                <SecondaryButton
                     type="button"
                     onClick={onCancel}
-                    className="rounded-full border border-[#12301D]/15 bg-white px-6 py-3 font-semibold text-[#12301D] transition hover:bg-[#12301D]/5"
                 >
                     Cancel
-                </button>
+                </SecondaryButton>
             </div>
         </form>
     );

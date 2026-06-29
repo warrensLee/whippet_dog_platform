@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import HeroSection from '@/app/components/ui/HeroSection'
+import Button from '../components/ui/buttons/Button'
 
 // Purpose:
 //      Show ranked leaderboard of dogs
@@ -41,18 +42,15 @@ const statLabels: Record<string, string> = {
     narx: 'NARX Points',
 }
 
-export default function StandingsPage()
-{
+export default function StandingsPage() {
     const [statType, setStatType] = useState('meet_points')
     const [year, setYear] = useState(2026)
     const [rows, setRows] = useState<StandingRow[]>([])
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
 
-    async function loadStandings()
-    {
-        try
-        {
+    async function loadStandings() {
+        try {
             setLoading(true)
             setError('')
 
@@ -65,8 +63,7 @@ export default function StandingsPage()
 
             const data = await res.json()
 
-            if (!res.ok || !data.success)
-            {
+            if (!res.ok || !data.success) {
                 setRows([])
                 setError(data.error || 'Failed to load standings')
                 return
@@ -74,14 +71,12 @@ export default function StandingsPage()
 
             setRows(data.data || [])
         }
-        catch (err)
-        {
+        catch (err) {
             console.error(err)
             setRows([])
             setError('Failed to load standings')
         }
-        finally
-        {
+        finally {
             setLoading(false)
         }
     }
@@ -120,12 +115,12 @@ export default function StandingsPage()
                             className="rounded-full border border-white/20 bg-white px-5 py-3 text-sm font-semibold text-[#12301D] shadow-sm outline-none"
                         />
 
-                        <button
+                        <Button
                             onClick={loadStandings}
-                            className="rounded-full bg-[#2E6B3F] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#255733] transition"
+                            className='text-sm'
                         >
                             View Standings
-                        </button>
+                        </Button>
                     </div>
 
                     <div className="mt-4 text-sm text-white/75">

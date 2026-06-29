@@ -5,6 +5,7 @@ import { Box, Paper, TextField, Typography, Grid } from "@mui/material";
 import { useSearchParams } from "next/navigation";
 import PasswordRequirements from "@/lib/passwordRequirements/passwordRequirements";
 import { useRouter } from "next/navigation";
+import Button from "../components/ui/buttons/Button";
 
 export default function Page() {
   return (<Suspense><RegisterPage /></Suspense>)
@@ -194,13 +195,14 @@ function RegisterPage() {
             </Typography>
           )}
 
-          <button
+          <Button
             type="submit"
             disabled={!passwordRequirementsMet}
-            className="mt-2 rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60 w-full"
+            className="mt-2 !mx-0"
+            fullWidth
           >
             {submitting ? "Registering…" : "Register"}
-          </button>
+          </Button>
 
           <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 2 }}>
             Already have an account?{" "}

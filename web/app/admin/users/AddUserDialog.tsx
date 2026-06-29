@@ -19,6 +19,8 @@ import CloseIcon from '@mui/icons-material/Close';
 import React, { useState } from 'react';
 import { AddForm, UserRole } from './types';
 import PasswordRequirements from '@/lib/passwordRequirements/passwordRequirements';
+import Button from '@/app/components/ui/buttons/Button';
+import SecondaryButton from '@/app/components/ui/buttons/SecondaryButton';
 
 
 type AddUserDialogProps = {
@@ -195,17 +197,16 @@ export default function AddUserDialog({
         </Stack>
       </DialogContent>
       <DialogActions>
-        <button type="button" onClick={onClose} disabled={saving} className="rounded-full border border-[#12301D]/15 bg-white px-6 py-3 font-semibold text-[#12301D] hover:bg-[#12301D]/5 transition disabled:opacity-60">
+        <SecondaryButton type="button" onClick={onClose} disabled={saving} >
           Cancel
-        </button>
-        <button
+        </SecondaryButton>
+        <Button
           type="button"
           onClick={handleSubmit}
           disabled={saving || !passwordRequirementsMet || !form.username || !form.firstName || !form.lastName || !form.email}
-          className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60"
         >
           {saving ? 'Creating...' : 'Create User'}
-        </button>
+        </Button>
       </DialogActions>
     </Dialog>
   );

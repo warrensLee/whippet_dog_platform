@@ -10,9 +10,10 @@ import {
 } from '@mui/material';
 
 import { Person } from '../../admin/users/types';
+import DangerButton from '../ui/buttons/DangerButton';
+import SecondaryButton from '../ui/buttons/SecondaryButton';
 
-interface DeleteUserDialogProps
-{
+interface DeleteUserDialogProps {
   open: boolean;
   saving: boolean;
   userToDelete: Person | null;
@@ -21,14 +22,13 @@ interface DeleteUserDialogProps
 }
 
 export default function DeleteUserDialog(
-{
-  open,
-  saving,
-  userToDelete,
-  onClose,
-  onDelete,
-}: DeleteUserDialogProps)
-{
+  {
+    open,
+    saving,
+    userToDelete,
+    onClose,
+    onDelete,
+  }: DeleteUserDialogProps) {
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>Delete User</DialogTitle>
@@ -49,17 +49,17 @@ export default function DeleteUserDialog(
         </Typography>
       </DialogContent>
       <DialogActions>
-        <button type="button" onClick={onClose} disabled={saving} className="rounded-full border border-[#12301D]/15 bg-white px-6 py-3 font-semibold text-[#12301D] hover:bg-[#12301D]/5 transition disabled:opacity-60">
+        <SecondaryButton type="button" onClick={onClose} disabled={saving} className='text-sm'>
           Cancel
-        </button>
-        <button
+        </SecondaryButton>
+        <DangerButton
           type="button"
           onClick={onDelete}
           disabled={saving}
-          className="rounded-full border border-red-200 bg-red-50 px-5 py-2.5 text-sm font-semibold text-red-700 hover:bg-red-100 transition disabled:opacity-50"
+          className='text-sm'
         >
           {saving ? 'Deleting...' : 'Delete User'}
-        </button>
+        </DangerButton>
       </DialogActions>
     </Dialog>
   );

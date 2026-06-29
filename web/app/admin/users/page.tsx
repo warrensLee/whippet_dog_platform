@@ -53,6 +53,8 @@ import { AddForm, EditForm, Person, UserRole, emptyAddForm, emptyForm } from './
 import AddUserDialog from './AddUserDialog';
 import AdminGuard from '@/lib/auth/adminGuard';
 import Loading from '@/lib/loading';
+import Button from '@/app/components/ui/buttons/Button';
+import SecondaryButton from '@/app/components/ui/buttons/SecondaryButton';
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<Person[]>([]);
@@ -585,13 +587,13 @@ export default function AdminUsersPage() {
         >
           <Box sx={{ width: '95%', maxWidth: '1600px' }}>
             <Box sx={{ mb: 2 }}>
-              <button
+              <Button
                 type="button"
                 onClick={openAddMenu}
-                className="mt-2 rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60 w-full"
+                fullWidth
               >
                 Add User
-              </button>
+              </Button>
 
               <Menu
                 anchorEl={addMenuAnchor}
@@ -681,17 +683,17 @@ export default function AdminUsersPage() {
                 </Select>
               </FormControl>
 
-              <button
+              <SecondaryButton
                 type="button"
                 onClick={() => {
                   setSearch('');
                   setRoleFilter('all');
                   setStatusFilter('all');
                 }}
-                className="rounded-full border border-[#12301D]/15 bg-white px-6 py-3 font-semibold text-nowrap text-[#12301D] hover:bg-[#12301D]/5 transition"
+                className="text-nowrap"
               >
                 Clear Filters
-              </button>
+              </SecondaryButton>
             </Box>
 
             <TableContainer component={Paper}>
@@ -793,14 +795,14 @@ export default function AdminUsersPage() {
 
                               <Tooltip title={lockDisabledReason}>
                                 <span>
-                                  <button
+                                  <Button
                                     type="button"
-                                    className="rounded-full bg-orange-500 px-6 py-3 font-semibold text-white shadow-sm hover:bg-orange-700 transition disabled:opacity-60 w-full"
+                                    className="bg-orange-500 !px-4 !py-3 hover:bg-orange-700 transition disabled:opacity-60 w-full"
                                     disabled={!!lockDisabledReason}
                                     onClick={() => handleToggleLock(user)}
                                   >
                                     {user.locked ? "Unlock" : "Lock"}
-                                  </button>
+                                  </Button>
                                 </span>
                               </Tooltip>
                               {user.dummy && user.email != "" && (

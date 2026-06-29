@@ -10,6 +10,8 @@ import {
 } from '@mui/material';
 import UserRole, { ScopeValue } from './types';
 import axios, { AxiosError } from 'axios';
+import SecondaryButton from '@/app/components/ui/buttons/SecondaryButton';
+import Button from '@/app/components/ui/buttons/Button';
 
 
 
@@ -110,10 +112,10 @@ const EditRoleDialog = ({ open, onClose, roleData, onSave }: { open: boolean, on
                 </div>
             </DialogContent>
             <DialogActions>
-                <button type="button" onClick={onClose} className="rounded-full border border-[#12301D]/15 bg-white px-6 py-3 font-semibold text-[#12301D] hover:bg-[#12301D]/5 transition disabled:opacity-50">Cancel</button>
-                <button type="button" onClick={handleSave} disabled={error} className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-50">
+                <SecondaryButton type="button" onClick={onClose}>Cancel</SecondaryButton>
+                <Button type="button" onClick={handleSave} disabled={error}>
                     Save Changes
-                </button>
+                </Button>
             </DialogActions>
         </Dialog >
     );

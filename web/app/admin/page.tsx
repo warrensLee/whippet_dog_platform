@@ -8,7 +8,7 @@ import { Alert, Dialog, Paper, Snackbar, Typography } from "@mui/material";
 import axios from "axios";
 import ImportCsvPage from "./ImportDialog";
 import AdminGuard from "@/lib/auth/adminGuard";
-
+import Button from "@/app/components/ui/buttons/Button"
 
 const panelStyle = {
   m: 2,
@@ -102,7 +102,7 @@ export default function Admin() {
               <div className="flex flex-column">
                 <Link href="/admin/titles" className="block rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">View Earned Titles</Link>
                 <Link href="/admin/dogs" className="block rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Manage Dogs</Link>
-                <button
+                <Button
                   type="button"
                   onClick={async () => {
                     try {
@@ -124,7 +124,7 @@ export default function Admin() {
                   className="block rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1"
                 >
                   Download Grading Guide
-                </button>
+                </Button>
               </div>
             </Paper>
           </AuthGuard>
@@ -156,11 +156,15 @@ export default function Admin() {
             </Paper>
             <Paper sx={panelStyle}>
               <Typography variant="h4">Database</Typography>
-              <Link href="/admin/history" className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">View history</Link>
-              <button type="button" onClick={() => setImportDialogOpen(true)} className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Import Records</button>
-              <button type="button" onClick={dumpDB} className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Download Dump</button>
-              <input id="restoreFileInput" style={{ display: "none" }} type="file" accept=".sql.zst" onChange={restoreDB} />
-              <button type="button" onClick={() => document.getElementById("restoreFileInput")!.click()} className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">Restore</button>
+
+              <div className="flex flex-column">
+                <Link href="/admin/history" className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition m-1">View history</Link>
+
+                <Button type="button" onClick={() => setImportDialogOpen(true)} >Import Records</Button>
+                <Button type="button" onClick={dumpDB} className="m-1">Download Dump</Button>
+                <input id="restoreFileInput" style={{ display: "none" }} type="file" accept=".sql.zst" onChange={restoreDB} />
+                <Button type="button" onClick={() => document.getElementById("restoreFileInput")!.click()}>Restore</Button>
+              </div>
             </Paper>
           </AdminGuard>
         </section>

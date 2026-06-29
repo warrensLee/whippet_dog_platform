@@ -21,6 +21,7 @@ import type { DogDetail, DogOwner, MeetEntry } from "../../lib/dog/types";
 
 import RichTextEditor from "@/lib/richtext/RichTextEditor";
 import RichTextViewer from "@/lib/richtext/RichTextViewer";
+import Button from "../components/ui/buttons/Button";
 
 type DogTitle = {
   cwaNumber: string;
@@ -336,7 +337,7 @@ function DogPage() {
               {editingPublicNotes && <div><RichTextEditor value={publicNotes} onChange={(v: string) => setPublicNotes(v)} style={{}} /><button type="button" onClick={savePublicNotes} className="mt-2 rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60 w-full">Save</button></div>}
 
               {!editingPublicNotes && user != "NotAuthenticated" && user != undefined && owners.filter((o) => o.PersonID == user.ID).length != 0 && (
-                <button type="button" onClick={() => setEditingPublicNotes(true)} className="mt-2 rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60 w-full">Edit Public Notes</button>
+                <Button type="button" onClick={() => setEditingPublicNotes(true)} fullWidth>Edit Public Notes</Button>
               )}
             </Card>
           )}

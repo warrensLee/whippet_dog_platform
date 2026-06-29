@@ -15,9 +15,9 @@ function UserMenu() {
     const [open, setOpen] = useState(false);
     const [menuAnchor, setMenuAnchor] = useState<undefined | HTMLElement>(undefined)
     if (user == undefined || user == "NotAuthenticated") {
-        return (<button onClick={() => window.location.href = "/login"} className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] hover:shadow-md transition">
+        return (<Link href="/login" className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] hover:shadow-md transition">
             Login
-        </button>)
+        </Link>)
     }
     return (<div>
         <button onClick={(event: React.MouseEvent<HTMLButtonElement>) => { setMenuAnchor(event.currentTarget); setOpen(true) }} className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] hover:shadow-md transition">

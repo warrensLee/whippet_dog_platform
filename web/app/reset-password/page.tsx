@@ -3,6 +3,7 @@ import { FormEvent, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Box, Paper, TextField, Typography } from "@mui/material";
 import PasswordRequirements from "@/lib/passwordRequirements/passwordRequirements";
+import Button from "../components/ui/buttons/Button";
 
 function ResetForm() {
   const token = useSearchParams().get("token") || "";
@@ -124,13 +125,13 @@ function ResetForm() {
           {msg && (
             <Typography color="error.main" sx={{ mt: 1 }}> {msg} </Typography>
           )}
-          <button
+          <Button
             type="submit"
             disabled={submitting || !password.trim() || !passwordRequirementsMet || !token}
-            className="mt-2 rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60 w-full"
+            fullWidth
           >
             {submitting ? "Resetting…" : "Reset Password"}
-          </button>
+          </Button>
         </Box>
       </Paper>
     </Box>

@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import type { DogSearchResponse } from "@/app/admin/dogs/types";
 import HeroSection from "@/app/components/ui/HeroSection";
 import SearchBar from "@/app/components/ui/SearchBar";
+import SecondaryButton from "@/app/components/ui/buttons/SecondaryButton";
 
 /*
     Keeps page and limit values from becoming invalid or weird.
@@ -366,12 +367,12 @@ function SearchPage() {
                                         <option value="yearDesc">Birth Year Descending</option>
                                     </select>
 
-                                    <button
+                                    <SecondaryButton
                                         type="submit"
-                                        className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#12301D] shadow-sm hover:bg-[#12301D]/5 transition"
+                                        className="text-sm !py-1.5"
                                     >
                                         Sort
-                                    </button>
+                                    </SecondaryButton>
                                 </form>
                             </div>
 

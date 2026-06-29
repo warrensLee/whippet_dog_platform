@@ -22,6 +22,7 @@ import HeroSection from '@/app/components/ui/HeroSection';
 import axios from 'axios';
 import AdminGuard from '@/lib/auth/adminGuard';
 import Link from "next/link";
+import Button from '@/app/components/ui/buttons/Button';
 
 const getScopeLabel = (scope: number) => {
   switch (scope) {
@@ -75,16 +76,16 @@ export default function UserRoles() {
   return (
     <AdminGuard>
       <main className="pt-24 bg-[#1F4D2E]">
-        <HeroSection title="Edit User Roles" 
+        <HeroSection title="Edit User Roles"
           subtitle="Manage user roles and their permissions."
           topContent={
             <Link
-                href="/admin"
-                className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
+              href="/admin"
+              className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
             >
-                Back to Admin Dashboard
+              Back to Admin Dashboard
             </Link>
-          }/>
+          } />
         <section className="bg-[#E7F0E9] pt-12 pb-24 flex-center" style={{ display: "flex", justifyContent: "center", flexDirection: "column", alignItems: "center" }}>
 
           <EditRoleDialog open={editDialogOpen} roleData={selectedRole} onClose={() => { setEditDialogOpen(false); fetchRoles() }} onSave={() => { fetchRoles() }} />
@@ -137,10 +138,10 @@ export default function UserRoles() {
               </TableBody>
             </Table>
           </TableContainer >
-          <button type="button" onClick={() => {
+          <Button type="button" onClick={() => {
             setSelectedRole(new UserRole())
             setEditDialogOpen(true)
-          }} className="bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60 w-[80%]">Add Role</button>
+          }} className='w-[80%] rounded-none !m-0'>Add Role</Button>
         </section>
       </main >
     </AdminGuard>

@@ -9,6 +9,7 @@ import Loading from "@/lib/loading";
 import RichTextViewer from "@/lib/richtext/RichTextViewer";
 import authContext from "@/lib/auth/auth";
 import RichTextEditor from "@/lib/richtext/RichTextEditor";
+import Button from "../components/ui/buttons/Button";
 class ownedDog {
     name: string
     registeredName?: string
@@ -176,8 +177,8 @@ function Owner() {
                 <div style={{ display: "flex", width: "100%", minWidth: "fit-content", maxWidth: "750px", flexDirection: "column" }} >
                     {!editingProfile && <RichTextViewer text={publicNotes} />}
                     {editingProfile && <RichTextEditor style={{}} onChange={setPublicNotes} value={publicNotes} />}
-                    {editingProfile && <button type="button" onClick={handleSaveNotes} className="mt-2 rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60 w-full">Save </button>}
-                    {!editingProfile && user != undefined && user != "NotAuthenticated" && user.ID == +params.get("id")! && <button type="button" onClick={() => setEditingProfile(true)} className="mt-2 rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60 w-full">Edit Profile</button>}
+                    {editingProfile && <Button type="button" onClick={handleSaveNotes} >Save </Button>}
+                    {!editingProfile && user != undefined && user != "NotAuthenticated" && user.ID == +params.get("id")! && <Button fullWidth type="button" onClick={() => setEditingProfile(true)} >Edit Profile</Button>}
 
                 </div>
             </section>

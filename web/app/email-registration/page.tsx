@@ -4,6 +4,7 @@ import HeroSection from "../components/ui/HeroSection";
 import { useState } from "react";
 import { useRouter } from 'next/navigation';
 import Alert from "@mui/material/Alert";
+import Button from "../components/ui/buttons/Button";
 
 type checkEmailResponse = {
     valid: false,
@@ -50,14 +51,13 @@ export default function EmailRegistration() {
                     <Turnstile onSuccess={function (token: string): void {
                         setToken(token)
                     }} />
-                    <button
+                    <Button
                         disabled={!email || !token}
                         type="button"
-                        className="m-1 rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm transition hover:bg-[#255733] disabled:bg-gray-400 disabled:no-cursor"
                         onClick={() => handleSubmit()}
                     >
                         Check Email
-                    </button>
+                    </Button>
                     {error && <Alert severity="error">{error}</Alert>}
                     {checking && <Alert severity="info">checking</Alert>}
                 </div>

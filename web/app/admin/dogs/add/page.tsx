@@ -8,6 +8,8 @@ import type { DogFormValues } from "@/app/admin/dogs/types";
 import { emptyDogFormValues } from "@/app/admin/dogs/types";
 import HeroSection from "@/app/components/ui/HeroSection";
 import AuthGuard from "@/lib/auth/authGuard";
+import SecondaryButton from "@/app/components/ui/buttons/SecondaryButton";
+import Button from "@/app/components/ui/buttons/Button"
 
 /*
     Builds a clean payload from the current form state before sending
@@ -213,23 +215,23 @@ export default function AddDogPage() {
                             </div>
 
                             <div className="flex flex-wrap gap-3">
-                                <button
+                                <SecondaryButton
                                     type="button"
                                     onClick={handleResetForm}
                                     disabled={saving}
-                                    className="rounded-full border border-[#12301D]/15 bg-white px-5 py-2.5 text-sm font-semibold text-[#12301D] transition hover:bg-[#12301D]/5 disabled:opacity-50"
+                                    className="text-sm"
                                 >
                                     Reset Changes
-                                </button>
+                                </SecondaryButton>
 
-                                <button
+                                <SecondaryButton
                                     type="button"
                                     onClick={() => router.push("/admin/dogs")}
                                     disabled={saving}
-                                    className="rounded-full border border-[#12301D]/15 bg-white px-5 py-2.5 text-sm font-semibold text-[#12301D] transition hover:bg-[#12301D]/5 disabled:opacity-50"
+                                    className="text-sm"
                                 >
                                     Cancel
-                                </button>
+                                </SecondaryButton>
                             </div>
                         </div>
 
@@ -246,23 +248,21 @@ export default function AddDogPage() {
 
                         {/* Action buttons */}
                         <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-end">
-                            <button
+                            <Button
                                 type="submit"
                                 form="dog-form"
                                 disabled={saving}
-                                className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60"
                             >
                                 {saving ? "Creating..." : "Create Dog"}
-                            </button>
+                            </Button>
 
-                            <button
+                            <SecondaryButton
                                 type="button"
                                 onClick={() => router.push("/admin/dogs")}
                                 disabled={saving}
-                                className="rounded-full border border-[#12301D]/15 bg-white px-6 py-3 font-semibold text-[#12301D] hover:bg-[#12301D]/5 transition disabled:opacity-50"
                             >
                                 Cancel
-                            </button>
+                            </SecondaryButton>
                         </div>
                     </div>
                 </section>

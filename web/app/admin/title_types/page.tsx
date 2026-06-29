@@ -25,6 +25,7 @@ import HeroSection from '@/app/components/ui/HeroSection';
 import axios from 'axios';
 import AuthGuard from '@/lib/auth/authGuard';
 import { ArrowDownward, ArrowUpward } from '@mui/icons-material';
+import Button from '@/app/components/ui/buttons/Button';
 
 export default function TitleTypesPage() {
   const [titleTypes, setTitleTypes] = useState<TitleType[]>([]);
@@ -105,15 +106,15 @@ export default function TitleTypesPage() {
   return (
     <AuthGuard permissions={["editAllTitleTypes"]}>
       <main className="pt-24 bg-[#1F4D2E]">
-        <HeroSection title="Edit Title Types" subtitle="Manage the title types available in the system." 
-        topContent={
-          <Link
+        <HeroSection title="Edit Title Types" subtitle="Manage the title types available in the system."
+          topContent={
+            <Link
               href="/admin"
               className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
-          >
+            >
               Back to Admin Dashboard
-          </Link>
-          }/>
+            </Link>
+          } />
         <section
           className="bg-[#E7F0E9] pt-12 pb-24 flex-center"
           style={{
@@ -200,16 +201,16 @@ export default function TitleTypesPage() {
             </Table>
           </TableContainer>
 
-          <button
+          <Button
             type="button"
             onClick={() => {
               setSelectedTitleType(new TitleType());
               setEditDialogOpen(true);
             }}
-            className="mt-2 rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60 w-[80%]"
+            className="mt-2 w-[80%]"
           >
             Add Title Type
-          </button>
+          </Button>
         </section>
       </main>
     </AuthGuard>

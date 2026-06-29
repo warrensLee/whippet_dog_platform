@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Button from "./buttons/Button";
 
 /*
     A simple search bar component that can be reused across the site.
@@ -41,9 +42,9 @@ export default function SearchBar({ action, query, sort, placeholder, roundedLef
             {/* Invisible input to include the current sort option in the form submission.*/}
             <input type="hidden" name="sort" value={sort} />
 
-            <button type="submit" className=" mr-0px rounded-r-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] hover:shadow-md transition">
+            <Button type="submit" className="rounded-none !m-0 rounded-r-full !px-6 !py-3.25">
                 Search
-            </button>
+            </Button>
         </form>
     );
 }

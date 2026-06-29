@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import type { MeetSearchResponse } from "@/app/admin/events/types";
 import HeroSection from "@/app/components/ui/HeroSection";
 import SearchBar from "@/app/components/ui/SearchBar";
+import SecondaryButton from "@/app/components/ui/buttons/SecondaryButton";
 
 function clampInteger(num: number, min: number, max: number) {
     if (!Number.isFinite(num)) {
@@ -301,12 +302,12 @@ function SearchPage() {
                                         <option value="clubDesc">Club Z–A</option>
                                     </select>
 
-                                    <button
+                                    <SecondaryButton
                                         type="submit"
-                                        className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#12301D] shadow-sm hover:bg-[#12301D]/5 transition"
+                                        className="!px-4 !py-2 text-sm"
                                     >
                                         Sort
-                                    </button>
+                                    </SecondaryButton>
                                 </form>
                             </div>
 

@@ -18,6 +18,7 @@ import {
 } from "@mui/material";
 
 import { Close } from "@mui/icons-material"
+import Button from "../components/ui/buttons/Button";
 
 type RowError = { row: number; pk?: string; error: string };
 
@@ -175,51 +176,53 @@ export default function ImportCSV({ onSuccess, onFail, onCancel }: { onSuccess: 
         )}
 
         <Box>
-          <button type="button" disabled={!canSubmit} onClick={onSubmit} className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition disabled:opacity-60 w-full">
+          <Button type="button" disabled={!canSubmit} onClick={onSubmit} >
             {loading ? "Importing..." : "Upload & Import"}
-          </button>
+          </Button>
           {loading && <CircularProgress size={20} sx={{ ml: 2 }} />}
         </Box>
 
         {error && <Alert severity="error">{error}</Alert>}
       </Box>
 
-      {report && (
-        <Paper sx={{ p: 2 }}>
-          <Typography variant="h6">Result</Typography>
-          <Typography variant="body2" sx={{ mt: 1 }}>
-            File: {report.file} | Type: {report.type} | Mode: {report.mode}{report.useAdjustment ? " | Scores as adjustments: Yes" : ""}
-          </Typography>
+      {
+        report && (
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="h6">Result</Typography>
+            <Typography variant="body2" sx={{ mt: 1 }}>
+              File: {report.file} | Type: {report.type} | Mode: {report.mode}{report.useAdjustment ? " | Scores as adjustments: Yes" : ""}
+            </Typography>
 
-          <Divider sx={{ my: 2 }} />
+            <Divider sx={{ my: 2 }} />
 
-          <Box sx={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 2 }}>
-            <Stat label="Rows" value={report.rows} />
-            <Stat label="Inserted" value={report.inserted} />
-            <Stat label="Updated" value={report.updated} />
-            <Stat label="Skipped" value={report.skipped} />
-            <Stat label="Failed" value={report.failed} />
-          </Box>
+            <Box sx={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 2 }}>
+              <Stat label="Rows" value={report.rows} />
+              <Stat label="Inserted" value={report.inserted} />
+              <Stat label="Updated" value={report.updated} />
+              <Stat label="Skipped" value={report.skipped} />
+              <Stat label="Failed" value={report.failed} />
+            </Box>
 
-          {!!report.rowErrors?.length && (
-            <>
-              <Divider sx={{ my: 2 }} />
-              <Typography variant="subtitle1">Row Errors</Typography>
-              <Box component="ul" sx={{ pl: 3, mt: 1, mb: 0 }}>
-                {report.rowErrors.map((r, i) => (
-                  <li key={i}>
-                    <Typography variant="body2">
-                      Row {r.row}
-                      {r.pk ? ` (${r.pk})` : ""}: {r.error}
-                    </Typography>
-                  </li>
-                ))}
-              </Box>
-            </>
-          )}
-        </Paper>
-      )}
-    </Box>
+            {!!report.rowErrors?.length && (
+              <>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="subtitle1">Row Errors</Typography>
+                <Box component="ul" sx={{ pl: 3, mt: 1, mb: 0 }}>
+                  {report.rowErrors.map((r, i) => (
+                    <li key={i}>
+                      <Typography variant="body2">
+                        Row {r.row}
+                        {r.pk ? ` (${r.pk})` : ""}: {r.error}
+                      </Typography>
+                    </li>
+                  ))}
+                </Box>
+              </>
+            )}
+          </Paper>
+        )
+      }
+    </Box >
   );
 }
 

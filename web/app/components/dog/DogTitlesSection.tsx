@@ -2,6 +2,9 @@
 
 import * as React from "react";
 import axios from "axios";
+import Button from "../ui/buttons/Button";
+import SecondaryButton from "../ui/buttons/SecondaryButton";
+import DangerButton from "../ui/buttons/DangerButton";
 
 type DogTitle = {
     title: string;
@@ -50,6 +53,7 @@ export async function getTitlesInDateRange(start: string, end: string) {
     return response.data;
 }
 
+//TODO: this section may have an unused title editor
 export default function DogTitlesSection({ cwaNumber }: { cwaNumber: string }) {
     const [titles, setTitles] = React.useState<DogTitle[]>([]);
     const [loadingTitles, setLoadingTitles] = React.useState(true);
@@ -365,14 +369,14 @@ export default function DogTitlesSection({ cwaNumber }: { cwaNumber: string }) {
                                     </div>
 
                                     <div className="flex gap-2">
-                                        <button
+                                        <DangerButton
                                             type="button"
                                             onClick={() => handleDelete(t.title)}
                                             disabled={deletingTitle === t.title}
-                                            className="rounded-full border border-red-200 bg-white px-3 py-1 text-xs font-semibold text-red-600 disabled:opacity-50"
+                                            className="bg-white text-sm !py-1.5"
                                         >
                                             {deletingTitle === t.title ? "..." : "Delete"}
-                                        </button>
+                                        </DangerButton>
                                     </div>
                                 </div>
                             )}
@@ -465,35 +469,35 @@ export default function DogTitlesSection({ cwaNumber }: { cwaNumber: string }) {
                     {addError && <p className="text-xs text-red-600">{addError}</p>}
 
                     <div className="flex gap-2">
-                        <button
+                        <Button
                             type="button"
                             onClick={handleAdd}
                             disabled={adding || !addForm.title.trim()}
-                            className="rounded-full bg-[#2E6B3F] px-5 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                            className="text-sm"
                         >
                             {adding ? "Adding..." : "Add Title"}
-                        </button>
-                        <button
+                        </Button>
+                        <SecondaryButton
                             type="button"
                             onClick={() => {
                                 setAddOpen(false);
                                 setAddForm(emptyTitleForm);
                                 setAddError("");
                             }}
-                            className="rounded-full border border-black/10 bg-white px-5 py-2 text-sm font-semibold text-[#12301D]"
+                            className="text-sm"
                         >
                             Cancel
-                        </button>
+                        </SecondaryButton>
                     </div>
                 </div>
             ) : (
-                <button
+                <SecondaryButton
                     type="button"
                     onClick={() => setAddOpen(true)}
-                    className="rounded-full border border-[#2E6B3F]/30 bg-white px-5 py-2 text-sm font-semibold text-[#2E6B3F]"
+                    className="text-sm !text-[#2E6B3F]"
                 >
                     + Add Title
-                </button>
+                </SecondaryButton>
             )}
         </SectionCard>
     );

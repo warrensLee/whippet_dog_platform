@@ -22,6 +22,7 @@ import {
 import axios from "axios";
 import AuthGuard from "@/lib/auth/authGuard";
 import HeroSection from "@/app/components/ui/HeroSection";
+import SecondaryButton from "@/app/components/ui/buttons/SecondaryButton";
 
 interface ChangeLog {
   id: number;
@@ -210,14 +211,13 @@ export default function ChangeLogManager() {
                               <TableCell>{log.changedBy}</TableCell>
                               <TableCell>{formatDate(log.changedAt)}</TableCell>
                               <TableCell align="center">
-                                 <button
-                                   type="button"
-                                   onClick={() => setSelectedLog(log)}
-                                   className="rounded-full border border-[#12301D]/15 bg-white px-4 py-1.5 text-sm font-semibold text-[#12301D] hover:bg-[#12301D]/5 transition"
-                                 >
-                                   View
-                                 </button>
-                               </TableCell>
+                                <SecondaryButton
+                                  type="button"
+                                  onClick={() => setSelectedLog(log)}
+                                >
+                                  View
+                                </SecondaryButton>
+                              </TableCell>
                             </TableRow>
                           );
                         })}

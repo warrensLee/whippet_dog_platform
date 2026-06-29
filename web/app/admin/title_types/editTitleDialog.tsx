@@ -10,6 +10,8 @@ import {
 } from '@mui/material';
 import TitleType from './types';
 import axios from 'axios';
+import SecondaryButton from '@/app/components/ui/buttons/SecondaryButton';
+import Button from '@/app/components/ui/buttons/Button';
 
 const EditTitleTypeDialog = ({
     open,
@@ -113,17 +115,16 @@ const EditTitleTypeDialog = ({
             </DialogContent>
 
             <DialogActions>
-                <button type="button" onClick={onClose} className="rounded-full border border-[#12301D]/15 bg-white px-6 py-3 font-semibold text-[#12301D] hover:bg-[#12301D]/5 transition">
+                <SecondaryButton type="button" onClick={onClose}>
                     Cancel
-                </button>
+                </SecondaryButton>
 
-                <button
+                <Button
                     type="button"
                     onClick={handleSave}
-                    className="rounded-full bg-[#2E6B3F] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#255733] transition"
                 >
                     {isEditMode ? "Save Changes" : "Add Title Type"}
-                </button>
+                </Button>
             </DialogActions>
         </Dialog>
     );

@@ -7,6 +7,8 @@ import type { DogSearchResponse } from "@/app/admin/dogs/types";
 import HeroSection from "@/app/components/ui/HeroSection";
 import SearchBar from "@/app/components/ui/SearchBar";
 import authContext from "@/lib/auth/auth";
+import SecondaryButton from "@/app/components/ui/buttons/SecondaryButton";
+import DangerButton from "@/app/components/ui/buttons/DangerButton";
 
 /*
     Clamps a number to a safe integer range.
@@ -537,12 +539,12 @@ function AdminDogsPage() {
                                         <option value="yearDesc">Year Descending</option>
                                     </select>
 
-                                    <button
+                                    <SecondaryButton
                                         type="submit"
-                                        className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#12301D] shadow-sm hover:bg-[#12301D]/5 transition"
+                                        className="text-sm"
                                     >
                                         Sort
-                                    </button>
+                                    </SecondaryButton>
                                 </form>
                             </div>
 
@@ -610,16 +612,16 @@ function AdminDogsPage() {
                                     View Public Search
                                 </Link>
 
-                                <button
+                                <DangerButton
                                     type="button"
                                     onClick={handleDeleteSelectedDogs}
                                     disabled={Boolean(pagedItems.length === 0 || deleting)}
-                                    className="rounded-full border border-red-200 bg-red-50 px-5 py-2.5 text-sm font-semibold text-red-700 hover:bg-red-100 transition disabled:opacity-50"
+                                    className="text-sm"
                                 >
                                     {deleting
                                         ? "Removing..."
                                         : `Remove Selected (${selectedDogs.length})`}
-                                </button>
+                                </DangerButton>
                             </div>
                         </div>
                     </div>
@@ -731,16 +733,16 @@ function AdminDogsPage() {
                                                     </Link>
                                                 </div>
 
-                                                <button
+                                                <DangerButton
                                                     type="button"
                                                     onClick={() => {
                                                         handleDeleteDog(d.cwaNumber);
                                                     }}
                                                     disabled={deleting}
-                                                    className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 transition disabled:opacity-50"
+                                                    className="text-sm"
                                                 >
                                                     Remove
-                                                </button>
+                                                </DangerButton>
                                             </div>
                                         </div>
                                     );
