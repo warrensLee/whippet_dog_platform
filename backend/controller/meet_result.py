@@ -441,7 +441,7 @@ def edit_result_view(meet_number):
                     "hcWinner": int(row.get("HCLegEarned")),
                     "entryType": row.get("EntryType") or "",
                     "meetPlacement": int(row.get("MeetPlacement") or 0),
-                    "meetPoints": int(row.get("MeetPoints") or 0),
+                    "meetPoints": float(row.get("MeetPoints") or 0),
                     "dpcLeg": row.get("DPCLeg") == "1",
                     "aomEarned": float(row.get("AOMEarned") or 0) if row.get("AOMEarned") is not None else 0,
                     "birthdate": row.get("Birthdate") or "",
