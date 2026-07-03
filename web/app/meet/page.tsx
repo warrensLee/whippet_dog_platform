@@ -14,6 +14,7 @@ import FinalMeetResults from "./FinalMeetResults";
 import authContext from "@/lib/auth/auth";
 import Loading from "@/lib/loading";
 import RichTextViewer from "@/lib/richtext/RichTextViewer";
+import { FinalMeetResult } from "./types";
 
 /*
     This page is focused on one event/meet record.
@@ -44,24 +45,7 @@ interface MeetRace {
     entryCount?: number;
 }
 
-interface FinalMeetResult {
-    cwaNumber: string;
-    place?: number | string | null;
-    grade?: string | null;
-    callName?: string | null;
-    registeredName?: string | null;
-    ownerName?: string | null;
-    ownerIDs?: string | null;
-    meetPoints?: number | string | null;
-    scratchDQInfo?: string | null;
-    arxEarned?: number | string | null;
-    narxEarned?: number | string | null;
-    incident?: string | null;
-    hcScore?: number | string | null;
-    dpcPoints?: number | string | null;
-    entryType?: string | null;
-    matchPoints?: string;
-}
+
 
 function normalizeEventDetail(e: Record<string, unknown>): EventDetail {
     const getString = (key: string): string => {
@@ -98,10 +82,6 @@ function normalizeEventDetail(e: Record<string, unknown>): EventDetail {
     };
 }
 
-/*
-    Grouping by program makes the page read like a real event schedule
-    instead of one flat pile of races.
-*/
 function groupRacesByProgram(races: MeetRace[]) {
     const groups = new Map<string, MeetRace[]>();
 
@@ -376,24 +356,7 @@ function MeetPage() {
 
 
                     <FinalMeetResults
-                        results={finalMeetResults.map((row) => ({
-                            CWANumber: row.cwaNumber,
-                            Place: row.place,
-                            Grade: row.grade,
-                            CallName: row.callName,
-                            RegisteredName: row.registeredName,
-                            OwnerName: row.ownerName,
-                            OwnerIDs: row.ownerIDs,
-                            MeetPoints: row.meetPoints,
-                            ScratchDQInfo: row.scratchDQInfo,
-                            ARX: row.arxEarned,
-                            NARX: row.narxEarned,
-                            Incident: row.incident,
-                            EntryType: row.entryType,
-                            HCScore: row.hcScore,
-                            MatchPoints: row.matchPoints,
-                            DPCPoints: row.dpcPoints
-                        }))}
+                        results={finalMeetResults}
                     />
 
                     <Card title="Programs & Races">

@@ -7,6 +7,7 @@ import type { MeetSearchResponse } from "@/app/admin/events/types";
 import HeroSection from "@/app/components/ui/HeroSection";
 import SearchBar from "@/app/components/ui/SearchBar";
 import SecondaryButton from "@/app/components/ui/buttons/SecondaryButton";
+import { formatDate } from "@/lib/ui/formatDate";
 
 function clampInteger(num: number, min: number, max: number) {
     if (!Number.isFinite(num)) {
@@ -159,7 +160,7 @@ function SearchPage() {
 
     const upcomingCount = pagedItems.filter(
         (d) => {
-            const date = new Date(d.meetDate);
+            const date = new Date(formatDate(d.meetDate)!);
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             return date >= today;
@@ -386,7 +387,7 @@ function SearchPage() {
                                                     <span className="font-medium text-[#000000]">
                                                         Date
                                                     </span>
-                                                    : {m.meetDate || "—"}
+                                                    : {m.meetDate ? formatDate(m.meetDate) : "—"}
                                                 </div>
 
                                                 <div>

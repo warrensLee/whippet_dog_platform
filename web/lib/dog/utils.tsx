@@ -1,7 +1,9 @@
+import { formatDate } from "../ui/formatDate";
+
 export function calcAgeMonths(birthdate?: string | null): number | null {
   if (!birthdate) return null;
 
-  const birth = new Date(birthdate + "T00:00:00");
+  const birth = new Date(formatDate(birthdate)!);
   if (Number.isNaN(birth.getTime())) return null;
 
   const now = new Date();
@@ -16,9 +18,9 @@ export function ageLabel(months: number | null): string | null {
 
   const category =
     months < 8 ? "Puppy" :
-    months >= 84 ? "Veteran" :
-    months >= 14 ? "Adult" :
-    "";
+      months >= 84 ? "Veteran" :
+        months >= 14 ? "Adult" :
+          "";
 
   return `${years > 0 ? `${years}y ` : ""}${remainingMonths}m${category ? ` · ${category}` : ""}`;
 }

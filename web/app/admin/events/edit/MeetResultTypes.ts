@@ -91,6 +91,7 @@ export function toBackendFormat(entries: MeetResults): BackendEntry[] {
         meetPlacement: dog.meetPlacement === "AOM" ? "AOM" : (dog.meetPlacement ? parseInt(dog.meetPlacement) || 0 : 0),
         meetPoints: dog.meetPoints || 0,
         dpcLeg: dog.dpcLeg ? "1" : "0",
+        aomEarned: dog.aomEarned,
         races: dog.races.map(race => ({
             program: race.program,
             race: race.race,

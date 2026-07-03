@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import type { MeetEntry } from "@/lib/dog/types";
+import { formatDate } from "@/lib/ui/formatDate";
 
 export default function MeetCard({
   meet,
@@ -12,12 +13,7 @@ export default function MeetCard({
   const [open, setOpen] = React.useState(false);
 
   const meetDate = meet.MeetDate
-    ? new Date(meet.MeetDate).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    })
-    : "Unknown Date";
+    ? formatDate(meet.MeetDate) : "Unknown Date";
 
   const meetResult = meet.meetResults?.[0];
   const placement = meetResult?.meetPlacement;

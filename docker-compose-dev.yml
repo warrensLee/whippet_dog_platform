@@ -44,18 +44,6 @@ services:
     depends_on: [db]
     env_file: ".env.backend"
 
-  backup:
-    image: mysql:8.0.44
-    container_name: cwa-backup
-    depends_on: [db]
-    volumes:
-      - ./backups:/backups
-      - ./mysql/backup.sh:/backup.sh
-    entrypoint: >
-      sh -c " chmod +x /backup.sh && sleep 30 && while true; do
-        /backup.sh;
-        sleep 86400;
-      done"
   nginx:
     image: nginx:alpine
     ports:

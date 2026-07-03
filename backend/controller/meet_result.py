@@ -358,13 +358,16 @@ def list_final_meet_results_for_meet(meet_number):
                 "registeredName": row.get("RegisteredName"),
                 "ownerName": row.get("OwnerName"),
                 "ownerIDs": row.get("OwnerIDs"),
-                "meetPoints": row.get("MeetPoints"),
-                "arxEarned": row.get("ARXEarned"),
-                "narxEarned": row.get("NARXEarned"),
+                "meetPoints": float(row.get("MeetPoints") or 0),
+                "arxEarned": float(row.get("ARXEarned") or 0),
+                "narxEarned": float(row.get("NARXEarned") or 0),
                 "incident": row.get("Incident"),
-                "hcScore": row.get("HCScore"),
-                "matchPoints": row.get("MatchPoints"),
-                "dpcPoints": row.get("DPCPoints"),
+                "hcScore": float(row.get("HCScore") or 0),
+                "matchPoints": float(row.get("MatchPoints") or 0),
+                "dpcPoints": float(row.get("DPCPoints") or 0),
+                "shown": row.get("Shown") == "1",
+                "showPlacement": int(row.get("ShowPlacement") or 0),
+                "showPoints": float(row.get("ShowPoints") or 0)
             })
 
         return jsonify({"ok": True, "data": data}), 200
@@ -436,8 +439,8 @@ def edit_result_view(meet_number):
                     "grade": row.get("Grade") or "",
                     "average": int(row.get("Average") or 0),
                     "dpcPoints": int(row.get("DPCPoints") or 0),
-                    "NARXEarned": int(row.get("NARXEarned") or 0),
-                    "ARXEarned": int(row.get("ARXEarned") or 0),
+                    "NARXEarned": float(row.get("NARXEarned") or 0),
+                    "ARXEarned": float(row.get("ARXEarned") or 0),
                     "hcWinner": int(row.get("HCLegEarned")),
                     "entryType": row.get("EntryType") or "",
                     "meetPlacement": int(row.get("MeetPlacement") or 0),
@@ -531,7 +534,8 @@ def bulk_update_edit_result_view(meet_number):
             grade = entry.get("grade")
             entry_type = entry.get("entryType")
             average = float(entry.get("average") or 0)
-            hcWinner = float(entry.get("hcWinner") or False)
+            hcWinner = bool(entry.get("hcWinner") or False)
+            aomEarned = float(entry.get("aomEarned") or 0)
             meet_placement_str = str(entry.get("meetPlacement") or 0).strip()
             meet_points_str = str(entry.get("meetPoints") or 0).strip()
             races = entry.get("races") or []
@@ -579,9 +583,8 @@ def bulk_update_edit_result_view(meet_number):
             except (ValueError, TypeError):
                 meet_points_val = 0
 
-            aom_earned = 0.5 if meet_placement_str.upper() == "AOM" else 0
 
-            new_result = MeetResult(meet_number, cwa_number, average, grade, int(meet_placement_str) if meet_placement_str and meet_placement_str.isdigit() else 0, 0, 0, meet_points_val, arx_earned, narx_earned, shown, show_placement, show_points, dpc_leg, 0, 1 if hcWinner else 0, aom_earned, dpc_points, entry_type, editor_id, now)
+            new_result = MeetResult(meet_number, cwa_number, average, grade, int(meet_placement_str) if meet_placement_str and meet_placement_str.isdigit() else 0, 0, 0, meet_points_val, arx_earned, narx_earned, shown, show_placement, show_points, dpc_leg, 0, 1 if hcWinner else 0, aomEarned, dpc_points, entry_type, editor_id, now)
             new_result.save()
             #new_result.update_from_race_results()
         

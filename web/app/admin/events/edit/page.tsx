@@ -615,9 +615,7 @@ function EditEventPage() {
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        setEntries(undefined);
-                                        setResultsError("");
-                                        setResultsSuccess("");
+                                        router.back()
                                     }}
                                     disabled={resultsSaving}
                                     className="rounded-full border border-[#12301D]/15 bg-white px-6 py-3 text-sm font-semibold text-[#12301D] transition hover:bg-[#12301D]/5 disabled:opacity-50"

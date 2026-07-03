@@ -130,7 +130,7 @@ export default function CalculationsSection({ results, onChange, onDpcLegChange,
                                     <input
                                         type="text"
                                         value={dog.aomEarned ? String(dog.aomEarned) : ""}
-                                        onChange={(e) => handlePropChange(dog, "aomEarned", e.target.value ? parseFloat(e.target.value) : null)}
+                                        onChange={(e) => handlePropChange(dog, "aomEarned", e.target.value)}
                                         className="w-full rounded-lg border border-black/10 bg-white px-2 py-1.5 text-sm text-[#12301D] text-right outline-none focus:ring-2 focus:ring-[#2E6B3F]/30"
                                     />
                                 </td>

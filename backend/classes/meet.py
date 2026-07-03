@@ -273,7 +273,7 @@ class Meet:
         data = {
             "meetNumber": self.meet_number,
             "clubAbbreviation": self.club_abbreviation,
-            "meetDate": self.meet_date,
+            "meetDate": self.meet_date.strftime("%d-%m-%Y"),
             "raceSecretary": self.race_secretary,
             "raceSecretaryName": race_secretary_name,
             "judge": self.judge,

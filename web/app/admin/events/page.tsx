@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import type { EventSearchResponse } from "@/app/admin/events/types";
 import HeroSection from "@/app/components/ui/HeroSection";
 import SearchBar from "@/app/components/ui/SearchBar";
+import { formatDate } from "@/lib/ui/formatDate";
 
 /*
     Clamps a number to a safe integer range.
@@ -375,11 +376,7 @@ function AdminEventsPage() {
             return value;
         }
 
-        return date.toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-        });
+        return formatDate(value)
     }
 
     return (

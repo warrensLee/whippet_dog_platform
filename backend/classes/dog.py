@@ -1020,7 +1020,7 @@ class Dog:
             "foreignType": self.foreign_type,
             "callName": self.call_name,
             "registeredName": self.registered_name,
-            "birthdate": self.birthdate if isinstance(self.birthdate, str) else (self.birthdate.strftime("%Y-%m-%d") if self.birthdate else None),
+            "birthdate": self.birthdate if isinstance(self.birthdate, str) else (self.birthdate.strftime("%d-%m-%Y") if self.birthdate else None),
             "pedigreeLink": self.pedigree_link,
             "status": self.status,
             "average": self.average,

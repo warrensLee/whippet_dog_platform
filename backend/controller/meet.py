@@ -263,7 +263,7 @@ def search_meets():
                 "id": d.get("MeetNumber"),
                 "meetNumber": d.get("MeetNumber"),
                 "clubAbbreviation": d.get("ClubAbbreviation"),
-                "meetDate": d.get("MeetDate"),
+                "meetDate": d.get("MeetDate").strftime("%d-%m-%Y"),
                 "raceSecretary": d.get("RaceSecretary"),
                 "raceSecretaryName": d.get("RaceSecretaryName"),
                 "judge": d.get("Judge"),
