@@ -151,6 +151,8 @@ class Person:
         """Validate required fields. Returns list of errors (empty if valid)."""
         errors = []
         username_regex = r"^[a-zA-Z0-9_]+$"
+        if self.first_name and len(self.first_name) >=50:
+            errors.append("Person Name is too long")
         if not self.first_name:
             errors.append("First name is required")
         if not self.last_name:

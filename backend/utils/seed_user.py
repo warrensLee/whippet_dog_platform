@@ -3,14 +3,15 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from classes.person import Person
 
-PERSON_ID = os.getenv("SEED_ADMIN_ID", "admin")
-FIRST_NAME = os.getenv("SEED_ADMIN_FIRST_NAME", "Site")
-LAST_NAME = os.getenv("SEED_ADMIN_LAST_NAME", "Admin")
-EMAIL = os.getenv("SEED_ADMIN_EMAIL", "admin@example.com")
-PASSWORD = os.getenv("SEED_ADMIN_PASSWORD", "ChangeMe123!")
-SYSTEM_ROLE = os.getenv("SEED_ADMIN_ROLE", "ADMIN")
+
 
 def seed_user():
+    PERSON_ID = os.getenv("SEED_ADMIN_ID")
+    FIRST_NAME = os.getenv("SEED_ADMIN_FIRST_NAME")
+    LAST_NAME = os.getenv("SEED_ADMIN_LAST_NAME")
+    EMAIL = os.getenv("SEED_ADMIN_EMAIL")
+    PASSWORD = os.getenv("SEED_ADMIN_PASSWORD")
+    SYSTEM_ROLE = os.getenv("SEED_ADMIN_ROLE", "ADMIN")
     existing = len(Person.list_all_persons()) > 0
     if existing:
         return

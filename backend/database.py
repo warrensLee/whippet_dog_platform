@@ -3,22 +3,30 @@ import time
 import mysql.connector
 import mysql.connector.pooling
 import traceback
-connection_pool = mysql.connector.pooling.MySQLConnectionPool(
-    pool_name="whippet_pool",
-    pool_size=10,
-    pool_reset_session=True,
-    host=os.getenv("DB_HOST"),
-    user=os.getenv("DB_USER"),
-    password=os.getenv("DB_PASSWORD"),
-    database=os.getenv("DB_NAME"),
-    autocommit=True,
-    connect_timeout=10,
-    use_pure=True,
-)
+
+mysql_connector = None
+
+def get_connection_pool():
+    global mysql_connector
+    if mysql_connector is None:
+        mysql_connector = mysql.connector.pooling.MySQLConnectionPool(
+            pool_name="whippet_pool",
+            pool_size=10,
+            pool_reset_session=True,
+            host=os.getenv("DB_HOST"),
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD"),
+            database=os.getenv("DB_NAME"),
+            port=os.getenv("DB_PORT", 3306),
+            autocommit=True,
+            connect_timeout=10,
+            use_pure=True,
+        )
+    return mysql_connector
 
 #TODO: make this a context manager
 def get_conn():
-    return connection_pool.get_connection()
+    return get_connection_pool().get_connection()
 
 def fetch_all(sql: str, params=()):
     start = time.time()

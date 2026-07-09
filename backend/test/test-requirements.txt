@@ -1,0 +1,6 @@
+testcontainers[mysql]
+testcontainers
+coverage
+pytest-flask
+pytest-cov
+pytest
