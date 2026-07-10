@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import HeroSection from "../components/ui/HeroSection";
@@ -9,12 +8,13 @@ import FieldRow from "../components/ui/FieldRow";
 import StatPill from "../components/ui/StatPill";
 import { fetchJson } from "../../lib/ui/fetchJson";
 import { formatDate } from "../../lib/ui/formatDate";
-import RaceLineup from "../components/event/RaceLineup";
+import RaceLineup from "./RaceLineup";
 import FinalMeetResults from "./FinalMeetResults";
 import authContext from "@/lib/auth/auth";
 import Loading from "@/lib/loading";
 import RichTextViewer from "@/lib/richtext/RichTextViewer";
 import { FinalMeetResult } from "./types";
+import { useState, useMemo, useContext, Suspense, useEffect } from "react";
 
 /*
     This page is focused on one event/meet record.
@@ -137,29 +137,29 @@ function groupRacesByProgram(races: MeetRace[]) {
 }
 
 export default function Page() {
-    return (<React.Suspense fallback={<Loading />}> <MeetPage /></React.Suspense >)
+    return (<Suspense fallback={<Loading />}> <MeetPage /></Suspense >)
 }
 function MeetPage() {
     const params = useSearchParams();
     const meetNumber = decodeURIComponent(String(params.get("id")) ?? "");
     const encodedMeetNumber = encodeURIComponent(meetNumber);
 
-    const [event, setEvent] = React.useState<EventDetail | null>(null);
-    const [races, setRaces] = React.useState<MeetRace[]>([]);
-    const [loading, setLoading] = React.useState(true);
-    const [error, setError] = React.useState("");
+    const [event, setEvent] = useState<EventDetail | null>(null);
+    const [races, setRaces] = useState<MeetRace[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
-    const programGroups = React.useMemo(() => groupRacesByProgram(races), [races]);
-    const user = React.useContext(authContext);
+    const programGroups = useMemo(() => groupRacesByProgram(races), [races]);
+    const user = useContext(authContext);
 
-    const [finalMeetResults, setFinalMeetResults] = React.useState<FinalMeetResult[]>([]);
+    const [finalMeetResults, setFinalMeetResults] = useState<FinalMeetResult[]>([]);
 
     const isAdmin =
         user !== "NotAuthenticated" &&
         user !== undefined &&
         user.SystemRole === "ADMIN";
 
-    React.useEffect(() => {
+    useEffect(() => {
         let cancelled = false;
 
         async function loadMeetPage() {
