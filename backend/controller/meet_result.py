@@ -356,6 +356,7 @@ def list_final_meet_results_for_meet(meet_number):
                 "grade": row.get("Grade"),
                 "callName": row.get("CallName"),
                 "registeredName": row.get("RegisteredName"),
+                "entryType": row.get("EntryType"),
                 "ownerName": row.get("OwnerName"),
                 "ownerIDs": row.get("OwnerIDs"),
                 "meetPoints": float(row.get("MeetPoints") or 0),
