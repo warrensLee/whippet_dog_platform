@@ -450,7 +450,7 @@ def edit_result_view(meet_number):
                     "birthdate": row.get("Birthdate") or "",
                     "arxPoints": float(row.get("ARXPoints") or 0),
                     "narxPoints": float(row.get("NARXPoints") or 0),
-                    "dpcTitle": bool((row.get("DPCPoints") or 0) > 15),
+                    "dpcTitle": bool(int(row.get("DPCPoints") or 0) >= 15),
                 }
             
             program = row.get("Program") or "1"

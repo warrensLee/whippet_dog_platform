@@ -487,8 +487,7 @@ export function calculateDpc(results: MeetResults): MeetResults {
 
     const updated = results.map(dog => ({
         ...dog,
-        dpcPoints: "",
-        dpcLeg: false,
+        dpcPoints: "0",
     }));
 
     const sorted = [...updated].sort((a, b) => parseInt(a.meetPlacement || "999") - parseInt(b.meetPlacement || "999"));
@@ -511,25 +510,6 @@ export function calculateDpc(results: MeetResults): MeetResults {
 
     const shownResults = sorted.filter(d => d.shown && d.showPlace && parseInt(d.showPlace) > 0);
     shownResults.sort((a, b) => parseInt(a.showPlace) - parseInt(b.showPlace));
-
-    const cutoff = adultCount > 0 ? Math.ceil(adultCount / 2) : 0;
-
-    for (const dog of shownResults) {
-        const conPlace = parseInt(dog.showPlace || "0");
-        const inTopHalf = conPlace <= cutoff;
-        const dogHasIncident = hasIncident(dog.cwaNumber);
-        const isPuppy = dog.entryType === "PUPPY";
-        const hasTitle = dog.dpcTitle;
-        const hasLegOrPoints = dog.dpcLeg || dog.dpcPoints;
-
-        if (inTopHalf && !dogHasIncident && !isPuppy && !hasTitle && !hasLegOrPoints) {
-            const idx = updated.findIndex(d => d.cwaNumber === dog.cwaNumber);
-            if (idx >= 0) {
-                updated[idx] = { ...updated[idx], dpcLeg: true };
-            }
-            break;
-        }
-    }
 
     return updated;
 }
