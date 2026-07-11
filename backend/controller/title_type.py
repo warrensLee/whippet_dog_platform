@@ -154,23 +154,6 @@ def delete_title_type():
     except Error as e:
         return handle_error(e, "Database error")
 
-@title_type_bp.get("/get/<title>")
-def get_title_type(title):
-    # role = current_role()
-    # if not role:
-    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    # deny = require_scope(role.view_title_type_scope, "view title types")
-    # if deny:
-    #     return deny
-
-    title_type = TitleType.find_by_identifier(title)
-    if not title_type:
-        return jsonify({"ok": False, "error": "Title type does not exist"}), 404
-
-    return jsonify({"ok": True, "data": title_type.to_dict()}), 200
-
-
 @title_type_bp.get("/get")
 def get_all_title_types():
     # role = current_role()

@@ -37,26 +37,6 @@ def list_user_roles():
 
     # return jsonify({"ok": False, "error": "Not allowed"}), 403
 
-@user_role_bp.get("/get/<int:role_id>")
-def get_user_role(role_id):
-    # role = current_role()
-    # if not role:
-    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    # deny = require_scope(role.view_user_role_scope, "view user roles")
-    # if deny:
-    #     return deny
-
-    target = UserRole.find_by_id(role_id)
-    if not target:
-        return jsonify({"ok": False, "error": "User role does not exist"}), 404
-
-    # if role.view_user_role_scope == UserRole.SELF and not _is_own_role(role, target):
-    #     return jsonify({"ok": False, "error": "Not allowed to view this user role"}), 403
-
-    return jsonify({"ok": True, "data": target.to_dict()}), 200
-
-
 @user_role_bp.post("/add")
 def register_user_role():
     role = current_role()

@@ -9,7 +9,6 @@ from controller.database import database_bp
 from controller.importer import import_bp
 from controller.meet import meet_bp
 from controller.meet_result import meet_result_bp
-from controller.race_result import race_result_bp
 from controller.person import person_bp
 from controller.stats import stats_bp
 from controller.title_type import title_type_bp
@@ -54,7 +53,6 @@ def register_routes(app):
     app.register_blueprint(import_bp)
     app.register_blueprint(meet_bp)
     app.register_blueprint(meet_result_bp)
-    app.register_blueprint(race_result_bp)
     app.register_blueprint(person_bp)
     app.register_blueprint(stats_bp)
     app.register_blueprint(title_type_bp)

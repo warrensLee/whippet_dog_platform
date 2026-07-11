@@ -23,36 +23,6 @@ def _is_judge_or_secretary(meet_number: str) -> bool:
         return False
     return meet.judge == pid or meet.race_secretary == pid
 
-
-# def _meet_stats(cwa_number: str) -> dict:
-#     row = fetch_one(
-#         """
-#         SELECT
-#             COALESCE(SUM(MeetPoints),0) AS meet_points,
-#             COALESCE(SUM(ARXEarned),0)  AS arx_points,
-#             COALESCE(SUM(NARXEarned),0) AS narx_points,
-#             COALESCE(SUM(ShowPoints),0) AS show_points,
-#             COALESCE(SUM(DPCLeg),0)     AS dpc_legs,
-#             COALESCE(SUM(CASE WHEN MeetPlacement=1 THEN 1 ELSE 0 END),0) AS meet_wins,
-#             COALESCE(COUNT(*),0)        AS meet_appearences,
-#             COALESCE(SUM(DPCPoints),0)  AS dpc_points
-#         FROM MeetResults
-#         WHERE CWANumber=%s
-#         """,
-#         (cwa_number,),
-#     ) or {}
-
-#     return {
-#         "meet_points": float(row.get("meet_points") or 0),
-#         "arx_points": float(row.get("arx_points") or 0),
-#         "narx_points": float(row.get("narx_points") or 0),
-#         "show_points": float(row.get("show_points") or 0),
-#         "dpc_legs": float(row.get("dpc_legs") or 0),
-#         "meet_wins": float(row.get("meet_wins") or 0),
-#         "meet_appearences": float(row.get("meet_appearences") or 0),
-#         "dpc_points": float(row.get("dpc_points") or 0),
-#     }
-
 def _meet_stats(cwa_number: str) -> dict:
     row = fetch_one(
         """
@@ -137,243 +107,38 @@ def _apply_meet_stats_delta(dog: Dog, old: dict, new: dict, editor_id: str, now:
     dog.update()
     DogTitle.sync_titles_for_dog(dog, editor_id, now)
 
-@meet_result_bp.post("/add")
-def register_meet_result():
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
+def _get_race_entries(meet_number: str, program: str, race_number: str):
+    rows = fetch_all(
+        """
+        SELECT
+            rr.CWANumber AS CWANumber,
+            rr.Placement AS Placement,
+            rr.MeetPoints AS MeetPoints,
+            rr.AOMEarned AS AOMEarned,
+            rr.DPCPoints AS DPCPoints,
+            rr.Box AS Box,
+            rr.Incident AS Incident,
+            d.CallName AS CallName,
+            d.RegisteredName AS RegisteredName
+        FROM RaceResults rr
+        LEFT JOIN Dog d ON d.CWANumber = rr.CWANumber
+        WHERE rr.MeetNumber = %s
+          AND rr.Program = %s
+          AND rr.RaceNumber = %s
+        ORDER BY
+            CASE
+                WHEN rr.Placement IS NULL THEN 9999
+                ELSE rr.Placement
+            END,
+            d.RegisteredName,
+            d.CallName
+        """,
+        (meet_number, program, race_number),
+    ) or []
 
-    deny = require_scope(role.edit_meet_scope, "create meet results")
-    if deny:
-        return deny
-
-    data = request.get_json(silent=True) or {}
-    meet_result = MeetResult.from_request_data(data)
-
-    if role.edit_meet_scope == UserRole.SELF and not _is_judge_or_secretary(meet_result.meet_number):
-        return jsonify({"ok": False, "error": "You can only add meet results for meets where you are a judge or race secretary"}), 403
-
-    editor_id = current_editor_id()
-    now = datetime.now(timezone.utc)
-    meet_result.last_edited_by = editor_id
-    meet_result.last_edited_at = now
-
-    validation_errors = meet_result.validate()
-    if validation_errors:
-        return jsonify({"ok": False, "error": ", ".join(validation_errors)}), 400
-
-    if MeetResult.exists(meet_result.meet_number, meet_result.cwa_number):
-        return jsonify({"ok": False, "error": "Meet result already exists"}), 409
-
-    try:
-        dog = Dog.find_by_identifier(meet_result.cwa_number)
-        old_stats = _meet_stats(meet_result.cwa_number) if dog else None
-        meet_result.save()
-
-        ChangeLog.log(
-            changed_table="MeetResults",
-            record_pk=f"{meet_result.meet_number}|{meet_result.cwa_number}",
-            operation="INSERT",
-            changed_by=editor_id,
-            source="api/meet_result/add POST",
-            before_obj=None,
-            after_obj=meet_result.to_dict(),
-        )
-
-        if dog:
-            new_stats = _meet_stats(meet_result.cwa_number)
-            _apply_meet_stats_delta(dog, old_stats, new_stats, editor_id, now)
-
-        return jsonify({"ok": True}), 201
-
-    except Error as e:
-        return handle_error(e, "Database error")
+    return rows
 
 
-@meet_result_bp.post("/edit")
-def edit_meet_result():
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    deny = require_scope(role.edit_meet_scope, "edit meet results")
-    if deny:
-        return deny
-
-    data = request.get_json(silent=True) or {}
-    meet_number = (data.get("meetNumber") or "").strip()
-    cwa_number = (data.get("cwaNumber") or "").strip()
-
-    if not meet_number:
-        return jsonify({"ok": False, "error": "Meet number is required"}), 400
-    if not cwa_number:
-        return jsonify({"ok": False, "error": "CWA Number is required"}), 400
-
-    existing = MeetResult.find_by_identifier(meet_number, cwa_number)
-    if not existing:
-        return jsonify({"ok": False, "error": "Meet result does not exist"}), 404
-
-    if role.edit_meet_scope == UserRole.SELF and not _is_judge_or_secretary(meet_number):
-        return jsonify({"ok": False, "error": "You can only edit meet results for meets where you are a judge or race secretary"}), 403
-
-    editor_id = current_editor_id()
-    now = datetime.now(timezone.utc)
-
-    before_snapshot = existing.to_dict()
-
-    meet_result = MeetResult.from_request_data(data)
-    meet_result.meet_number = meet_number
-    meet_result.cwa_number = cwa_number
-    meet_result.last_edited_by = editor_id
-    meet_result.last_edited_at = now
-
-    validation_errors = meet_result.validate()
-    if validation_errors:
-        return jsonify({"ok": False, "error": ", ".join(validation_errors)}), 400
-
-    try:
-        dog = Dog.find_by_identifier(cwa_number)
-        old_stats = _meet_stats(cwa_number) if dog else None
-
-        meet_result.update()
-
-        refreshed = MeetResult.find_by_identifier(meet_number, cwa_number)
-        after_snapshot = refreshed.to_dict() if refreshed else meet_result.to_dict()
-
-        ChangeLog.log(
-            changed_table="MeetResults",
-            record_pk=f"{meet_number}|{cwa_number}",
-            operation="UPDATE",
-            changed_by=editor_id,
-            source="api/meet_result/edit POST",
-            before_obj=before_snapshot,
-            after_obj=after_snapshot,
-        )
-
-        if dog:
-            new_stats = _meet_stats(cwa_number)
-            _apply_meet_stats_delta(dog, old_stats, new_stats, editor_id, now)
-
-        return jsonify({"ok": True}), 200
-
-    except Error as e:
-        return handle_error(e, "Database error")
-
-
-@meet_result_bp.post("/delete")
-def delete_meet_result():
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    deny = require_scope(role.edit_meet_scope, "delete meet results")
-    if deny:
-        return deny
-
-    data = request.get_json(silent=True) or {}
-    meet_number = (data.get("meetNumber") or "").strip()
-    cwa_number = (data.get("cwaNumber") or "").strip()
-
-    if data.get("confirm") is not True:
-        return jsonify({"ok": False, "error": "Confirmation required"}), 400
-    if not meet_number:
-        return jsonify({"ok": False, "error": "Meet number is required"}), 400
-    if not cwa_number:
-        return jsonify({"ok": False, "error": "CWA Number is required"}), 400
-
-    meet_result = MeetResult.find_by_identifier(meet_number, cwa_number)
-    if not meet_result:
-        return jsonify({"ok": False, "error": "Meet result does not exist"}), 404
-
-    if role.edit_meet_scope == UserRole.SELF and not _is_judge_or_secretary(meet_number):
-        return jsonify({"ok": False, "error": "You can only delete meet results for meets where you are a judge or race secretary"}), 403
-
-    editor_id = current_editor_id()
-    now = datetime.now(timezone.utc)
-
-    try:
-        dog = Dog.find_by_identifier(cwa_number)
-        old_stats = _meet_stats(cwa_number) if dog else None
-        before_snapshot = meet_result.to_dict()
-
-        meet_result.delete(meet_number, cwa_number)
-
-        ChangeLog.log(
-            changed_table="MeetResults",
-            record_pk=f"{meet_number}|{cwa_number}",
-            operation="DELETE",
-            changed_by=editor_id,
-            source="api/meet_result/delete POST",
-            before_obj=before_snapshot,
-            after_obj=None,
-        )
-
-        if dog:
-            new_stats = _meet_stats(cwa_number)
-            _apply_meet_stats_delta(dog, old_stats, new_stats, editor_id, now)
-
-        return jsonify({"ok": True}), 200
-
-    except Error as e:
-        return handle_error(e, "Database error")
-
-
-@meet_result_bp.get("/get/<meet_number>/<cwa_number>")
-def get_meet_result(meet_number, cwa_number):
-    meet_result = MeetResult.find_by_identifier(meet_number, cwa_number)
-    if not meet_result:
-        return jsonify({"ok": False, "error": "Meet result does not exist"}), 404
-    return jsonify({"ok": True, "data": meet_result.to_dict()}), 200
-
-
-@meet_result_bp.get("/get")
-def list_all_meet_results():
-    try:
-        meet_results = MeetResult.list_all_meet_results()
-        return jsonify({"ok": True, "data": [mr.to_dict() for mr in meet_results]}), 200
-    except Error as e:
-        return handle_error(e, "Database error")
-    
-@meet_result_bp.get("/by_meet/<meet_number>")
-def list_meet_results_for_meet(meet_number):
-    try:
-        meet_results = MeetResult.list_results_for_meet(meet_number)
-        return jsonify({"ok": True, "data": [mr.to_dict() for mr in meet_results]}), 200
-    except Error as e:
-        return handle_error(e, "Database error")
-    
-@meet_result_bp.get("/final_by_meet/<meet_number>")
-def list_final_meet_results_for_meet(meet_number):
-    try:
-        rows = MeetResult.list_final_results_for_meet(meet_number)
-
-        data = []
-
-        for index, row in enumerate(rows, 1):
-            data.append({
-                "cwaNumber": row.get("CWANumber"),
-                "place": index,
-                "grade": row.get("Grade"),
-                "callName": row.get("CallName"),
-                "registeredName": row.get("RegisteredName"),
-                "entryType": row.get("EntryType"),
-                "ownerName": row.get("OwnerName"),
-                "ownerIDs": row.get("OwnerIDs"),
-                "meetPoints": float(row.get("MeetPoints") or 0),
-                "arxEarned": float(row.get("ARXEarned") or 0),
-                "narxEarned": float(row.get("NARXEarned") or 0),
-                "incident": row.get("Incident"),
-                "hcScore": float(row.get("HCScore") or 0),
-                "matchPoints": float(row.get("MatchPoints") or 0),
-                "dpcPoints": float(row.get("DPCPoints") or 0),
-                "shown": row.get("Shown") == "1",
-                "showPlacement": int(row.get("ShowPlacement") or 0),
-                "showPoints": float(row.get("ShowPoints") or 0)
-            })
-
-        return jsonify({"ok": True, "data": data}), 200
-    except Error as e:
-        return handle_error(e, "Database error")
 
 
 @meet_result_bp.get("/edit_result_view/<meet_number>")
@@ -610,3 +375,283 @@ def bulk_update_edit_result_view(meet_number):
     except Error as e:
         return handle_error(e, "Database error")
 
+@meet_result_bp.post("/add")
+def register_meet_result():
+    role = current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+    deny = require_scope(role.edit_meet_scope, "create meet results")
+    if deny:
+        return deny
+
+    data = request.get_json(silent=True) or {}
+    meet_result = MeetResult.from_request_data(data)
+
+    if role.edit_meet_scope == UserRole.SELF and not _is_judge_or_secretary(meet_result.meet_number):
+        return jsonify({"ok": False, "error": "You can only add meet results for meets where you are a judge or race secretary"}), 403
+
+    editor_id = current_editor_id()
+    now = datetime.now(timezone.utc)
+    meet_result.last_edited_by = editor_id
+    meet_result.last_edited_at = now
+
+    validation_errors = meet_result.validate()
+    if validation_errors:
+        return jsonify({"ok": False, "error": ", ".join(validation_errors)}), 400
+
+    if MeetResult.exists(meet_result.meet_number, meet_result.cwa_number):
+        return jsonify({"ok": False, "error": "Meet result already exists"}), 409
+
+    try:
+        dog = Dog.find_by_identifier(meet_result.cwa_number)
+        old_stats = _meet_stats(meet_result.cwa_number) if dog else None
+        meet_result.save()
+
+        ChangeLog.log(
+            changed_table="MeetResults",
+            record_pk=f"{meet_result.meet_number}|{meet_result.cwa_number}",
+            operation="INSERT",
+            changed_by=editor_id,
+            source="api/meet_result/add POST",
+            before_obj=None,
+            after_obj=meet_result.to_dict(),
+        )
+
+        if dog:
+            new_stats = _meet_stats(meet_result.cwa_number)
+            _apply_meet_stats_delta(dog, old_stats, new_stats, editor_id, now)
+
+        return jsonify({"ok": True}), 201
+
+    except Error as e:
+        return handle_error(e, "Database error")
+
+
+@meet_result_bp.post("/edit")
+def edit_meet_result():
+    role = current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+    deny = require_scope(role.edit_meet_scope, "edit meet results")
+    if deny:
+        return deny
+
+    data = request.get_json(silent=True) or {}
+    meet_number = (data.get("meetNumber") or "").strip()
+    cwa_number = (data.get("cwaNumber") or "").strip()
+
+    if not meet_number:
+        return jsonify({"ok": False, "error": "Meet number is required"}), 400
+    if not cwa_number:
+        return jsonify({"ok": False, "error": "CWA Number is required"}), 400
+
+    existing = MeetResult.find_by_identifier(meet_number, cwa_number)
+    if not existing:
+        return jsonify({"ok": False, "error": "Meet result does not exist"}), 404
+
+    if role.edit_meet_scope == UserRole.SELF and not _is_judge_or_secretary(meet_number):
+        return jsonify({"ok": False, "error": "You can only edit meet results for meets where you are a judge or race secretary"}), 403
+
+    editor_id = current_editor_id()
+    now = datetime.now(timezone.utc)
+
+    before_snapshot = existing.to_dict()
+
+    meet_result = MeetResult.from_request_data(data)
+    meet_result.meet_number = meet_number
+    meet_result.cwa_number = cwa_number
+    meet_result.last_edited_by = editor_id
+    meet_result.last_edited_at = now
+
+    validation_errors = meet_result.validate()
+    if validation_errors:
+        return jsonify({"ok": False, "error": ", ".join(validation_errors)}), 400
+
+    try:
+        dog = Dog.find_by_identifier(cwa_number)
+        old_stats = _meet_stats(cwa_number) if dog else None
+
+        meet_result.update()
+
+        refreshed = MeetResult.find_by_identifier(meet_number, cwa_number)
+        after_snapshot = refreshed.to_dict() if refreshed else meet_result.to_dict()
+
+        ChangeLog.log(
+            changed_table="MeetResults",
+            record_pk=f"{meet_number}|{cwa_number}",
+            operation="UPDATE",
+            changed_by=editor_id,
+            source="api/meet_result/edit POST",
+            before_obj=before_snapshot,
+            after_obj=after_snapshot,
+        )
+
+        if dog:
+            new_stats = _meet_stats(cwa_number)
+            _apply_meet_stats_delta(dog, old_stats, new_stats, editor_id, now)
+
+        return jsonify({"ok": True}), 200
+
+    except Error as e:
+        return handle_error(e, "Database error")
+
+
+@meet_result_bp.post("/delete")
+def delete_meet_result():
+    role = current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+    deny = require_scope(role.edit_meet_scope, "delete meet results")
+    if deny:
+        return deny
+
+    data = request.get_json(silent=True) or {}
+    meet_number = (data.get("meetNumber") or "").strip()
+    cwa_number = (data.get("cwaNumber") or "").strip()
+
+    if data.get("confirm") is not True:
+        return jsonify({"ok": False, "error": "Confirmation required"}), 400
+    if not meet_number:
+        return jsonify({"ok": False, "error": "Meet number is required"}), 400
+    if not cwa_number:
+        return jsonify({"ok": False, "error": "CWA Number is required"}), 400
+
+    meet_result = MeetResult.find_by_identifier(meet_number, cwa_number)
+    if not meet_result:
+        return jsonify({"ok": False, "error": "Meet result does not exist"}), 404
+
+    if role.edit_meet_scope == UserRole.SELF and not _is_judge_or_secretary(meet_number):
+        return jsonify({"ok": False, "error": "You can only delete meet results for meets where you are a judge or race secretary"}), 403
+
+    editor_id = current_editor_id()
+    now = datetime.now(timezone.utc)
+
+    try:
+        dog = Dog.find_by_identifier(cwa_number)
+        old_stats = _meet_stats(cwa_number) if dog else None
+        before_snapshot = meet_result.to_dict()
+
+        meet_result.delete(meet_number, cwa_number)
+
+        ChangeLog.log(
+            changed_table="MeetResults",
+            record_pk=f"{meet_number}|{cwa_number}",
+            operation="DELETE",
+            changed_by=editor_id,
+            source="api/meet_result/delete POST",
+            before_obj=before_snapshot,
+            after_obj=None,
+        )
+
+        if dog:
+            new_stats = _meet_stats(cwa_number)
+            _apply_meet_stats_delta(dog, old_stats, new_stats, editor_id, now)
+
+        return jsonify({"ok": True}), 200
+
+    except Error as e:
+        return handle_error(e, "Database error")
+
+
+@meet_result_bp.get("/get/<meet_number>/<cwa_number>")
+def get_meet_result(meet_number, cwa_number):
+    meet_result = MeetResult.find_by_identifier(meet_number, cwa_number)
+    if not meet_result:
+        return jsonify({"ok": False, "error": "Meet result does not exist"}), 404
+    return jsonify({"ok": True, "data": meet_result.to_dict()}), 200
+
+
+@meet_result_bp.get("/get")
+def list_all_meet_results():
+    try:
+        meet_results = MeetResult.list_all_meet_results()
+        return jsonify({"ok": True, "data": [mr.to_dict() for mr in meet_results]}), 200
+    except Error as e:
+        return handle_error(e, "Database error")
+    
+@meet_result_bp.get("/by_meet/<meet_number>")
+def list_meet_results_for_meet(meet_number):
+    try:
+        meet_results = MeetResult.list_results_for_meet(meet_number)
+        return jsonify({"ok": True, "data": [mr.to_dict() for mr in meet_results]}), 200
+    except Error as e:
+        return handle_error(e, "Database error")
+    
+
+@meet_result_bp.get("/final_by_meet/<meet_number>")
+def list_final_meet_results_for_meet(meet_number):
+    try:
+        rows = MeetResult.list_final_results_for_meet(meet_number)
+
+        data = []
+
+        for index, row in enumerate(rows, 1):
+            data.append({
+                "cwaNumber": row.get("CWANumber"),
+                "place": index,
+                "grade": row.get("Grade"),
+                "callName": row.get("CallName"),
+                "registeredName": row.get("RegisteredName"),
+                "entryType": row.get("EntryType"),
+                "ownerName": row.get("OwnerName"),
+                "ownerIDs": row.get("OwnerIDs"),
+                "meetPoints": float(row.get("MeetPoints") or 0),
+                "arxEarned": float(row.get("ARXEarned") or 0),
+                "narxEarned": float(row.get("NARXEarned") or 0),
+                "incident": row.get("Incident"),
+                "hcScore": float(row.get("HCScore") or 0),
+                "matchPoints": float(row.get("MatchPoints") or 0),
+                "dpcPoints": float(row.get("DPCPoints") or 0),
+                "shown": row.get("Shown") == "1",
+                "showPlacement": int(row.get("ShowPlacement") or 0),
+                "showPoints": float(row.get("ShowPoints") or 0)
+            })
+
+        return jsonify({"ok": True, "data": data}), 200
+    except Error as e:
+        return handle_error(e, "Database error")
+
+
+
+@meet_result_bp.get("/by_race/<meet_number>/<program>/<race_number>")
+def get_race_entries(meet_number, program, race_number):
+    try:
+        rows = _get_race_entries(meet_number, program, race_number)
+
+        if not rows:
+            return jsonify({"ok": False, "error": "Race does not exist or has no entries"}), 404
+
+        entries = []
+        for row in rows:
+            dog_name = row.get("CallName") or row.get("RegisteredName") or row.get("CWANumber")
+
+            entries.append({
+                "cwaNumber": row.get("CWANumber"),
+                "dogName": dog_name,
+                "registeredName": row.get("RegisteredName"),
+                "callName": row.get("CallName"),
+                "placement": row.get("Placement"),
+                "meetPoints": row.get("MeetPoints"),
+                "aomEarned": row.get("AOMEarned"),
+                "dpcPoints": row.get("DPCPoints"),
+                "box": row.get("Box"),
+                "incident": row.get("Incident"),
+            })
+
+        return jsonify({
+            "ok": True,
+            "data": {
+                "meetNumber": meet_number,
+                "program": program,
+                "raceNumber": race_number,
+                "entries": entries,
+            }
+        }), 200
+
+    except Error as e:
+        return handle_error(e, "Database error")
+    except Exception as e:
+        return handle_error(e, "Server error")
