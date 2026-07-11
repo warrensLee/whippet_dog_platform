@@ -491,15 +491,17 @@ export function calculateDpc(results: MeetResults): MeetResults {
     }));
 
     const sorted = [...updated].sort((a, b) => parseInt(a.meetPlacement || "999") - parseInt(b.meetPlacement || "999"));
+    const shownResults = sorted.filter(d => d.shown && d.showPlace && parseInt(d.showPlace) > 0);
+    shownResults.sort((a, b) => parseInt(a.showPlace) - parseInt(b.showPlace));
 
     let pointsIdx = 0;
-    for (const dog of sorted) {
+    for (const dog of shownResults) {
         if (pointsIdx >= distribution.length) break;
         const dogHasIncident = hasIncident(dog.cwaNumber);
         const isPuppy = dog.entryType === "PUPPY";
         const hasTitle = dog.dpcTitle;
 
-        if (!dogHasIncident && !isPuppy && !hasTitle && parseInt(dog.meetPlacement || "0") > 0) {
+        if (dog.shown && !dogHasIncident && !isPuppy && !hasTitle && parseInt(dog.meetPlacement || "0") > 0) {
             const idx = updated.findIndex(d => d.cwaNumber === dog.cwaNumber);
             if (idx >= 0) {
                 updated[idx] = { ...updated[idx], dpcPoints: String(distribution[pointsIdx]) };
@@ -507,9 +509,6 @@ export function calculateDpc(results: MeetResults): MeetResults {
             pointsIdx++;
         }
     }
-
-    const shownResults = sorted.filter(d => d.shown && d.showPlace && parseInt(d.showPlace) > 0);
-    shownResults.sort((a, b) => parseInt(a.showPlace) - parseInt(b.showPlace));
 
     return updated;
 }

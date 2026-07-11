@@ -27,31 +27,3 @@ export async function fetchMeetResults(meetNumber: string) {
 
     return res.json();
 }
-
-export async function saveRaceEntry(payload: {
-    meetNumber: string;
-    cwaNumber: string;
-    program: string;
-    raceNumber: string;
-    entryType: string;
-    box: string;
-    placement: string;
-    incident: string;
-}) {
-    const res = await fetch("/api/race_result/edit", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-    });
-
-    const json = await res.json().catch(() => null);
-
-    if (!res.ok || !json?.ok) {
-        throw new Error(json?.error || "Failed to save race entry.");
-    }
-
-    return json;
-}

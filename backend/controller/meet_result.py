@@ -63,7 +63,7 @@ def _meet_stats(cwa_number: str) -> dict:
             COALESCE(SUM(ShowPoints),0) AS show_points,
             COALESCE(SUM(DPCLeg),0)     AS dpc_legs,
             COALESCE(SUM(CASE WHEN MeetPlacement=1 THEN 1 ELSE 0 END),0) AS meet_wins,
-            COALESCE(COUNT(*),0)        AS meet_appearences,
+            COALESCE(SUM(CASE WHEN EntryType='REG' THEN 1 ELSE 0 END),0) AS meet_appearences,
             COALESCE(SUM(DPCPoints),0)  AS dpc_points
         FROM MeetResults mr
         WHERE mr.CWANumber=%s

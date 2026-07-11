@@ -932,7 +932,7 @@ class Dog:
                 SUM(DPCPoints) as total_dpc_points,
                 SUM(DPCLeg) as total_dpc_legs,
                 SUM(CASE WHEN MeetPlacement = 1 THEN 1 ELSE 0 END) as meet_wins,
-                COUNT(*) as meet_appearances,
+                SUM(CASE WHEN EntryType='REG' THEN 1 ELSE 0 END) as meet_appearances,
                 SUM(AOMEarned) as total_aom_earned            
             FROM MeetResults mr
             WHERE mr.CWANumber = %s
