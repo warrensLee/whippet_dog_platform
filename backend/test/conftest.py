@@ -35,9 +35,9 @@ def client(app):
 
 @pytest.fixture()
 def admin_session(client):
-    with client.session_transaction() as session:
+    with client.session_transaction():
         with patch("controller.authentication.validate_turnstile", return_value=True):
-            response = client.post("/api/auth/login", json=dict(
+            client.post("/api/auth/login", json=dict(
                 username= "test@test.com",
                 password= "password",
                 cf_token= "whatever"

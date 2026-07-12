@@ -408,7 +408,7 @@ def check_email_registration():
         if not email:
             return jsonify({"valid": False, "message": "No email entered"}), 200
         p = Person.find_by_email(email)
-        if not p or p.password_hash != None:
+        if not p or p.password_hash is not None:
             return jsonify({"valid": False, "message": "This email is not approved or has already registered"})
         
         token = secrets.token_urlsafe(32)
