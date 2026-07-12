@@ -45,7 +45,6 @@ export default function RaceSection({
     function getPlacement(dog: DogEntry): string | undefined {
         const race = dog.races.find(r => r.program === program && r.race === raceNumber);
         if (!race) return undefined;
-        if (race.placement === "AOM") return "AOM";
         return typeof race.placement === "number" ? String(race.placement) : undefined;
     }
 
@@ -54,12 +53,7 @@ export default function RaceSection({
         const raceIndex = updated.races.findIndex(r => r.program === program && r.race === raceNumber);
         if (raceIndex >= 0) {
             const races = [...updated.races];
-            let placement: number | "AOM" | undefined;
-            if (value === "AOM") {
-                placement = "AOM";
-            } else {
-                placement = value ? parseInt(value) : undefined;
-            }
+            const placement: number | undefined = value ? parseInt(value) : undefined;
             races[raceIndex] = { ...races[raceIndex], placement };
             updated.races = races;
         }
@@ -70,7 +64,6 @@ export default function RaceSection({
         const count = dogs.length;
         const opts: string[] = [];
         for (let i = 1; i <= count; i++) opts.push(String(i));
-        opts.push("AOM");
         return opts;
     }
 
