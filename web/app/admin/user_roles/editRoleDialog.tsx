@@ -68,7 +68,7 @@ const EditRoleDialog = ({ open, onClose, roleData, onSave }: { open: boolean, on
             }
         }
     };
-    const error = !formData.title || formData.title.trim().length == 0 || !formData.editDogScope || !formData.editMeetScope || !formData.editTitleTypeScope
+    const error = !formData.title || formData.title.trim().length == 0
     return (
         <Dialog open={open} onClose={onClose} maxWidth="lg" sx={{ minWidth: "fit-content" }}>
             <DialogTitle>Edit User Role</DialogTitle>
