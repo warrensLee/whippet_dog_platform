@@ -55,7 +55,7 @@ export type BackendEntry = {
     cwaNumber: string;
     shown: boolean;
     showPoints: number;
-    showPlace: number;
+    showPlace: string;
     grade: string;
     average: number;
     dpcPoints: number;
@@ -79,8 +79,8 @@ export function toBackendFormat(entries: MeetResults): BackendEntry[] {
     return entries.map(dog => ({
         cwaNumber: dog.cwaNumber,
         shown: dog.shown,
-        showPoints: dog.showPoints ? parseInt(dog.showPoints) || 0 : 0,
-        showPlace: dog.showPlace ? parseInt(dog.showPlace) || 0 : 0,
+        showPoints: parseFloat(dog.showPoints) || 0,
+        showPlace: dog.showPlace || "0",
         grade: dog.grade,
         average: dog.average || 0,
         dpcPoints: dog.dpcPoints ? parseInt(dog.dpcPoints) || 0 : 0,
@@ -106,7 +106,7 @@ export function buildDogEntry(base: Omit<DogEntry, "races">, races: DogRace[]): 
     return {
         ...base,
         races,
-        showPoints: base.showPoints ?? String(calculateShowPoints(parseInt(base.showPlace || "0"))),
+        showPoints: base.showPoints ?? String(calculateShowPoints(base.showPlace)),
     };
 }
 
@@ -457,13 +457,15 @@ export function getDpcPointDistribution(adultCount: number): number[] {
     return [];
 }
 
-export function calculateShowPoints(showPlace: number): number {
-    if (!showPlace || showPlace < 1 || showPlace > 4) return 0;
+export function calculateShowPoints(showPlace: string): number {
     switch (showPlace) {
-        case 1: return 5;
-        case 2: return 3;
-        case 3: return 2;
-        case 4: return 1;
+        case "1": return 5;
+        case "2": return 3;
+        case "3": return 2;
+        case "4": return 1;
+        case "AOM1": return 0.5;
+        case "AOM2": return 0.5;
+        case "AOM3": return 0.5;
         default: return 0;
     }
 }
@@ -491,8 +493,8 @@ export function calculateDpc(results: MeetResults): MeetResults {
     }));
 
     const sorted = [...updated].sort((a, b) => parseInt(a.meetPlacement || "999") - parseInt(b.meetPlacement || "999"));
-    const shownResults = sorted.filter(d => d.shown && d.showPlace && parseInt(d.showPlace) > 0);
-    shownResults.sort((a, b) => parseInt(a.showPlace) - parseInt(b.showPlace));
+    const shownResults = sorted.filter(d => d.shown && d.showPlace);
+    shownResults.sort((a, b) => (parseInt(a.showPlace) || Infinity) - (parseInt(b.showPlace) || Infinity));
 
     let pointsIdx = 0;
     for (const dog of shownResults) {
@@ -583,7 +585,7 @@ export function calculateAom(results: MeetResults): MeetResults {
 export function recalculateAll(results: MeetResults): MeetResults {
     let updated = results.map(dog => {
         if (dog.shown && dog.showPlace) {
-            return { ...dog, showPoints: String(calculateShowPoints(parseInt(dog.showPlace))) };
+            return { ...dog, showPoints: String(calculateShowPoints(dog.showPlace)) };
         }
         return dog;
     });

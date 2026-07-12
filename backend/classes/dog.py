@@ -82,7 +82,7 @@ class Dog:
         self.manual_dpc_legs_adjustment = _float_or_zero(self.manual_dpc_legs_adjustment)
         self.manual_high_combined_wins_adjustment = _float_or_zero(self.manual_high_combined_wins_adjustment)
 
-        self.show_points = _int_or_zero(self.show_points)
+        self.show_points = float(self.show_points or 0)
         self.dpc_legs = _int_or_zero(self.dpc_legs)
         self.meet_wins = _float_or_zero(self.meet_wins)
         self.meet_appearences = _int_or_zero(self.meet_appearences)
@@ -539,6 +539,7 @@ class Dog:
             m["raceResults"] = [
                 RaceResult.from_db_row(r).to_dict() for r in race_results_rows
             ]
+            m["MeetDate"] = m["MeetDate"].strftime("%d-%m-%Y")
         return meets
 
     
@@ -680,7 +681,7 @@ class Dog:
         float_field(errors, self.manual_dpc_legs_adjustment, "Manual DPC Legs Adjustment", min_value=-99999.99, max_value=99999.99)
         float_field(errors, self.manual_high_combined_wins_adjustment, "Manual High Combined Wins Adjustment", min_value=-99999.99, max_value=99999.99)
         
-        int_field(errors, self.show_points, "Show Points", min_value=0, max_value=32767)
+        float_field(errors, self.show_points, "Show Points", min_value=0, max_value=32767)
         int_field(errors, self.dpc_legs, "DPC Legs", min_value=0, max_value=32767)
         int_field(errors, self.meet_appearences, "Meet Appearances", min_value=0, max_value=32767)
         int_field(errors, self.high_combined_wins, "High Combined Wins", min_value=0, max_value=32767)
@@ -979,7 +980,7 @@ class Dog:
             self.meet_points        = float(stats['total_meet_points'] or 0)
             self.arx_points         = float(stats['total_arx'] or 0)
             self.narx_points        = float(stats['total_narx'] or 0)
-            self.show_points        = int(stats['total_show_points'] or 0)
+            self.show_points        = float(stats['total_show_points'] or 0)
             self.dpc_points         = float(stats['total_dpc_points'] or 0)
             self.dpc_legs           = int(stats['total_dpc_legs'] or 0)
             self.meet_appearences   = int(stats['meet_appearances'] or 0)

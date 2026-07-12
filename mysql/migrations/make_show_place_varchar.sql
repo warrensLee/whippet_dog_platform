@@ -1,0 +1,2 @@
+ALTER TABLE MeetResults
+    MODIFY COLUMN ShowPlacement VARCHAR(4);

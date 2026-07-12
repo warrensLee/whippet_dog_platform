@@ -57,9 +57,7 @@ export interface MeetResult {
   meetPoints?: number | null;
   arxEarned?: number | null;
   narxEarned?: number | null;
-  conformationPlacement?: number | null;
-  matchPoints?: number | null;
-  showPlacement?: number | null;
+  showPlacement?: string | null;
   showPoints?: number | null;
   dpcLeg?: number | null;
   dpcPoints?: number | null;

@@ -5,12 +5,25 @@ type RegistrationSectionProps = {
     onChange: (dog: DogEntry) => void;
 };
 
+
+
 export default function RegistrationSection({ results, onChange }: RegistrationSectionProps) {
+
+    function getShowPlacementOptions(): string[] {
+        const count = results.filter((r) => r.shown).length
+        const opts: string[] = [];
+        for (let i = 1; i <= count; i++) opts.push(String(i));
+        opts.push("AOM1");
+        opts.push("AOM2");
+        opts.push("AOM3");
+        return opts;
+    }
+
     function handlePropertyChange(dog: DogEntry, key: keyof DogEntry, value: DogEntry[keyof DogEntry]) {
         if (key === "showPlace" && (value === "" || value === "0")) {
             onChange({ ...dog, showPlace: value as DogEntry["showPlace"], showPoints: "0" });
         } else if (key === "shown" && value === false) {
-            onChange({ ...dog, shown: false, showPoints: "0" });
+            onChange({ ...dog, shown: false, showPoints: "0", showPlace: "" });
         } else {
             onChange({ ...dog, [key]: value });
         }
@@ -68,15 +81,16 @@ export default function RegistrationSection({ results, onChange }: RegistrationS
                                         className="w-4 h-4 accent-[#2E6B3F]"
                                     />
                                 </td>
-                                <td className="py-3 px-3">
-                                    <input
-                                        type="number"
-                                        min="1"
+                                <td className="py-3 px-1">
+                                    <select
+                                        value={dog.shown ? dog.showPlace : "NS"}
                                         disabled={!dog.shown}
-                                        value={dog.showPlace}
                                         onChange={(e) => handlePropertyChange(dog, "showPlace", e.target.value)}
-                                        className={`w-full rounded-lg border px-2 py-1.5 text-sm text-[#12301D] outline-none focus:ring-2 focus:ring-[#2E6B3F]/30 ${dog.shown ? "border-black/10 bg-white" : "border-transparent bg-gray-100 text-gray-400"}`}
-                                    />
+                                        className={"w-full rounded-lg border border-black/10 px-2 py-1.5 text-sm text-[#12301D] outline-none focus:ring-2 focus:ring-[#2E6B3F]/30 " + (dog.shown ? "bg-white" : "bg-gray-100")}
+                                    >
+                                        {getShowPlacementOptions().map((s) => <option key={s} value={s}>{s}</option>)}
+                                        {!dog.shown && <option key="NS" value="NS"></option>}
+                                    </select>
                                 </td>
                             </tr>
                         ))}

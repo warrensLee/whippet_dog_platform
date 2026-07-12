@@ -1,0 +1,4 @@
+ALTER TABLE MeetResults
+    MODIFY COLUMN ShowPoints DECIMAL(4,2);
+ALTER TABLE Dog 
+    MODIFY COLUMN ShowPoints DECIMAL(6,2);

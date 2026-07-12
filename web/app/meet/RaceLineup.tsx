@@ -81,7 +81,7 @@ export default function RaceLineup({
                 const program = encodeURIComponent(String(race.program ?? ""));
 
                 const res = await fetchJson<{ ok: boolean; data: RaceLineupDetail }>(
-                    `/api/race_result/by_race/${encodeURIComponent(meetNumber)}/${program}/${raceNumber}`
+                    `/api/meet_result/by_race/${encodeURIComponent(meetNumber)}/${program}/${raceNumber}`
                 );
 
                 if (!cancelled) {

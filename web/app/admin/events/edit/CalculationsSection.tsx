@@ -44,7 +44,6 @@ export default function CalculationsSection({ results, onChange, onDpcLegChange,
                             <th className="text-left py-3 px-2 font-semibold text-[#12301D] w-20">DPC Pts</th>
                             <th className="text-center py-3 px-2 font-semibold text-[#12301D] w-16">DPC Leg</th>
                             <th className="text-center py-3 px-2 font-semibold text-[#12301D] w-16">HC Leg</th>
-                            <th className="text-left py-3 px-2 font-semibold text-[#12301D] w-16">AOM</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -124,14 +123,6 @@ export default function CalculationsSection({ results, onChange, onDpcLegChange,
                                         checked={Boolean(dog.hcLegEarned)}
                                         onChange={(e) => handleHcLegChange(dog, e.target.checked)}
                                         className="w-4 h-4 accent-[#2E6B3F]"
-                                    />
-                                </td>
-                                <td className="py-2 px-2">
-                                    <input
-                                        type="text"
-                                        value={dog.aomEarned ? String(dog.aomEarned) : ""}
-                                        onChange={(e) => handlePropChange(dog, "aomEarned", e.target.value)}
-                                        className="w-full rounded-lg border border-black/10 bg-white px-2 py-1.5 text-sm text-[#12301D] text-right outline-none focus:ring-2 focus:ring-[#2E6B3F]/30"
                                     />
                                 </td>
                             </tr>

@@ -96,7 +96,7 @@ def _apply_meet_stats_delta(dog: Dog, old: dict, new: dict, editor_id: str, now:
     dog.meet_points = float(dog.meet_points or 0) - old["meet_points"] + new["meet_points"]
     dog.arx_points = float(dog.arx_points or 0) - old["arx_points"] + new["arx_points"]
     dog.narx_points = float(dog.narx_points or 0) - old["narx_points"] + new["narx_points"]
-    dog.show_points = int(dog.show_points or 0) - int(old["show_points"]) + int(new["show_points"])
+    dog.show_points = float(dog.show_points or 0) - float(old["show_points"]) + float(new["show_points"])
     dog.dpc_points = float(getattr(dog, "dpc_points", 0) or 0) - old["dpc_points"] + new["dpc_points"]
     dog.dpc_legs = int(dog.dpc_legs or 0) - int(old["dpc_legs"]) + int(new["dpc_legs"])
     dog.meet_wins = int(dog.meet_wins or 0) - int(old["meet_wins"]) + int(new["meet_wins"])
@@ -200,8 +200,8 @@ def edit_result_view(meet_number):
                     "registeredName": row.get("RegisteredName") or "",
                     "callName": row.get("CallName") or "",
                     "shown": bool(row.get("Shown") == "1"),
-                    "showPoints": int(row.get("ShowPoints") or 0),
-                    "showPlace": int(row.get("ShowPlacement") or 0),
+                    "showPoints":float(row.get("ShowPoints") or 0),
+                    "showPlace": row.get("ShowPlacement") or "0",
                     "grade": row.get("Grade") or "",
                     "average": int(row.get("Average") or 0),
                     "dpcPoints": int(row.get("DPCPoints") or 0),
@@ -291,8 +291,8 @@ def bulk_update_edit_result_view(meet_number):
                 continue
                 
             shown = 1 if entry.get("shown") else 0
-            show_points = int(entry.get("showPoints") or 0)
-            show_placement = int(entry.get("showPlace") or 0)
+            show_points = float(entry.get("showPoints") or 0)
+            show_placement = entry.get("showPlace") or "0"
             arx_earned = int(entry.get("ARXEarned") or 0)
             narx_earned = int(entry.get("NARXEarned") or 0)
             dpc_points = int(entry.get("dpcPoints") or 0)
@@ -606,7 +606,7 @@ def list_final_meet_results_for_meet(meet_number):
                 "matchPoints": float(row.get("MatchPoints") or 0),
                 "dpcPoints": float(row.get("DPCPoints") or 0),
                 "shown": row.get("Shown") == "1",
-                "showPlacement": int(row.get("ShowPlacement") or 0),
+                "showPlacement": row.get("ShowPlacement"),
                 "showPoints": float(row.get("ShowPoints") or 0)
             })
 

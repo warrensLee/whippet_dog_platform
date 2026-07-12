@@ -103,20 +103,20 @@ export default function MeetCard({
                         </span>
                       )}
 
-                      {r.conformationPlacement != null && (
+                      {r.showPlacement != null && (
                         <span className="text-[#12301D]/70">
                           Match Placement:{" "}
                           <span className="font-semibold text-[#12301D]">
-                            #{r.conformationPlacement}
+                            {r.showPlacement}
                           </span>
                         </span>
                       )}
 
-                      {r.matchPoints != null && (
+                      {r.showPoints != null && (
                         <span className="text-[#12301D]/70">
                           Match Pts:{" "}
                           <span className="font-semibold text-[#12301D]">
-                            {r.matchPoints}
+                            {r.showPoints}
                           </span>
                         </span>
                       )}
