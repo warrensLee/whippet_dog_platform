@@ -11,6 +11,7 @@ import { emptyEventFormValues } from "@/app/admin/events/types";
 import { PersonSearchResult } from "@/app/components/ui/PersonField";
 import MeetResultEditor from "./MeetResultEditor";
 import { MeetResults, DogEntry, toBackendFormat } from "./MeetResultTypes";
+import { formatDate } from "@/lib/ui/formatDate";
 
 /*
     Safely converts incoming unknown values to strings.
@@ -115,7 +116,7 @@ async function buildFormFromEvent(data: NonNullable<RawEventGetResponse["data"]>
     return {
         meetNumber: normalizeText(data.meetNumber),
         clubAbbreviation: normalizeText(data.clubAbbreviation),
-        meetDate: toDateInputValue(data.meetDate),
+        meetDate: toDateInputValue(formatDate(data.meetDate)!),
         raceSecretary,
         judge,
         location: normalizeText(data.location),
