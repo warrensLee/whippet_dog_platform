@@ -337,8 +337,8 @@ def reset_password():
 @auth_bp.post("/change-password")
 def change_password():
     data = request.get_json(silent=True) or {}
-    password = data.get("password") or ""
-    new_password = data.get("new_password") or ""
+    password = data.get("password") 
+    new_password = data.get("new_password")
 
 
     if not password or not new_password:
