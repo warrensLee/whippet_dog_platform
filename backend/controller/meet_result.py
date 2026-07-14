@@ -156,7 +156,7 @@ def edit_result_view(meet_number):
                 mr.EntryType,
                 mr.ARXEarned,
                 mr.NARXEarned,
-                mr.DPCPoints,
+                mr.DPCPoints as meetDPC,
                 mr.HCLegEarned,
                 mr.Shown,
                 mr.ShowPoints,
@@ -172,7 +172,7 @@ def edit_result_view(meet_number):
                  dd.Birthdate,
                  dd.ARXPoints,
                  dd.NARXPoints,
-                 dd.DPCPoints
+                 dd.DPCPoints AS dogDPC
             FROM RaceResults rr
             LEFT JOIN MeetResults mr 
                 ON rr.CWANumber = mr.CWANumber 
@@ -204,7 +204,7 @@ def edit_result_view(meet_number):
                     "showPlace": row.get("ShowPlacement") or "0",
                     "grade": row.get("Grade") or "",
                     "average": int(row.get("Average") or 0),
-                    "dpcPoints": int(row.get("DPCPoints") or 0),
+                    "dpcPoints": int(row.get("meetDPC") or 0),
                     "NARXEarned": float(row.get("NARXEarned") or 0),
                     "ARXEarned": float(row.get("ARXEarned") or 0),
                     "hcWinner": int(row.get("HCLegEarned")),
@@ -216,7 +216,7 @@ def edit_result_view(meet_number):
                     "birthdate": row.get("Birthdate") or "",
                     "arxPoints": float(row.get("ARXPoints") or 0),
                     "narxPoints": float(row.get("NARXPoints") or 0),
-                    "dpcTitle": bool(int(row.get("DPCPoints") or 0) >= 15),
+                    "dpcTitle": bool(int(row.get("dogDPC") or 0) >= 15),
                 }
             
             program = row.get("Program") or "1"
