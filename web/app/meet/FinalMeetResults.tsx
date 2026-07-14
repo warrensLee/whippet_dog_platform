@@ -151,7 +151,14 @@ export default function FinalMeetResults({
 
   const showResults = results.filter(
     (dog) => dog.shown
-  ).sort((a, b) => Number(a.showPlacement || Infinity) - Number(b.showPlacement || Infinity))
+  ).sort((a, b) => {
+    let aShowPlacement = Number(a.showPlacement) || Infinity
+    let bShowPlacement = Number(b.showPlacement) || Infinity
+    if (aShowPlacement == 0) aShowPlacement = Infinity
+    if (bShowPlacement == 0) bShowPlacement = Infinity
+    return aShowPlacement - bShowPlacement
+  })
+
 
   return (
     <Card title={`Final Meet Results${results.length ? ` (${results.length})` : ""}`}>

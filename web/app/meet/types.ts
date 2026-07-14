@@ -17,5 +17,5 @@ export interface FinalMeetResult {
     matchPoints?: number;
     shown?: boolean
     showPoints?: number
-    showPlacement?: number
+    showPlacement?: string
 }

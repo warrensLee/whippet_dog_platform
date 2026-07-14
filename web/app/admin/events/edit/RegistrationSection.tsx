@@ -16,6 +16,7 @@ export default function RegistrationSection({ results, onChange }: RegistrationS
         opts.push("AOM1");
         opts.push("AOM2");
         opts.push("AOM3");
+        opts.push("N/A");
         return opts;
     }
 

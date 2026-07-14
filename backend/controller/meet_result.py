@@ -292,7 +292,11 @@ def bulk_update_edit_result_view(meet_number):
                 
             shown = 1 if entry.get("shown") else 0
             show_points = float(entry.get("showPoints") or 0)
+
             show_placement = entry.get("showPlace") or "0"
+            if entry.get("showPlace") == "N/A":
+                show_placement = "0"
+
             arx_earned = int(entry.get("ARXEarned") or 0)
             narx_earned = int(entry.get("NARXEarned") or 0)
             dpc_points = int(entry.get("dpcPoints") or 0)
