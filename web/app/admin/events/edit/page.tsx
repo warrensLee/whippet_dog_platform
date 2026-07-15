@@ -211,6 +211,7 @@ function EditEventPage() {
                 dogMap.set(base.cwaNumber, {
                     ...base,
                     races: [],
+                    showPlace: base.showPlace == "0" ? "N/A" : base.showPlace,
                     showPoints: base.showPoints ? String(base.showPoints) : "",
                     hcLegEarned: !!(base as unknown as { hcLegEarned: number }).hcLegEarned,
                     dpcLeg: base.dpcLeg ? true : false,
