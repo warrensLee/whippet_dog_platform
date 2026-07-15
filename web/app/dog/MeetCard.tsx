@@ -107,7 +107,7 @@ export default function MeetCard({
                         <span className="text-[#12301D]/70">
                           Match Placement:{" "}
                           <span className="font-semibold text-[#12301D]">
-                            {r.showPlacement}
+                            {r.showPlacement == "0" ? "N/A" : r.showPlacement}
                           </span>
                         </span>
                       )}
