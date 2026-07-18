@@ -1013,7 +1013,7 @@ class Dog:
     
     def to_dict(self, include_private=True):
         """Convert to dictionary for JSON responses."""
-        ytd_match = self.get_ytd_match_points(self.cwa_number)
+        ytd_match = self.get_ytd_show_points(self.cwa_number)
 
         data = {
             "cwaNumber": self.cwa_number,
@@ -1053,7 +1053,7 @@ class Dog:
             "meetWins": self.meet_wins,
             "meetAppearences": self.meet_appearences,
             "highCombinedWins": self.high_combined_wins,
-            "ytdMatchPoints": ytd_match.get("ytdMatchPoints"),
+            "ytdShowPoints": ytd_match.get("ytdShowPoints"),
             "ytdYear": ytd_match.get("year"),
             "aomEarned": self.aom_earned,
             "publicNotes": self.public_notes,
@@ -1080,14 +1080,13 @@ class Dog:
         return stats["COUNT(*)"]
     
     @classmethod
-    def get_ytd_match_points(cls, cwa_number: str, year: int | None = None):
+    def get_ytd_show_points(cls, cwa_number: str, year: int | None = None):
         if year is None:
-            from datetime import datetime
             year = datetime.now().year
         
         row = fetch_one("""
             SELECT 
-                SUM(MatchPoints) as ytd_match_points
+                SUM(ShowPoints) as ytd_show_points
             FROM MeetResults mr
             JOIN Meet m ON m.MeetNumber = mr.MeetNumber
             WHERE mr.CWANumber = %s
@@ -1095,9 +1094,8 @@ class Dog:
         """, (cwa_number, year)) or {}
         
         return {
-            "cwaNumber": cwa_number,
             "year": year,
-            "ytdMatchPoints": float(row.get("ytd_match_points") or 0)
+            "ytdShowPoints": float(row.get("ytd_show_points") or 0)
         }
     
     @classmethod

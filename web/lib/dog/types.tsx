@@ -47,7 +47,7 @@ export interface DogDetail {
   akcNumber?: string | null;
   ckcNumber?: string | null;
   foreignNumber?: string | null;
-  ytdMatchPoints?: number | null;
+  ytdShowPoints?: number | null;
   ytdYear?: number | null;
   kennelClubChampion?: boolean | null;
 }

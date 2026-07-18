@@ -202,7 +202,7 @@ function DogPage() {
           <div className="flex flex-wrap gap-6">
             <StatPill label="Completed Meets" value={dog?.adjustedMeetAppearances ?? dog?.meetAppearences ?? "—"} />
             <StatPill label="Meet Wins" value={dog?.adjustedMeetWins ?? dog?.meetWins ?? "—"} />
-            <StatPill label="YTD Match Points" value={dog?.ytdMatchPoints ?? "—"} accent />
+            <StatPill label="YTD Show Points" value={dog?.ytdShowPoints ?? "—"} accent />
             <StatPill label="High Combined Wins" value={dog?.adjustedHighCombinedWins ?? dog?.highCombinedWins ?? "—"} />
           </div>
 
