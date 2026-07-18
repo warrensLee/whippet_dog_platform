@@ -200,10 +200,10 @@ class Dog:
         '''Check if dog is eligible for Dual Purpose Championship (DPC) titles.'''
         titles = []
 
-        dpc_legs = self.dpc_legs or 0
+        dpc_legs = self.scored_dpc_legs()
         dpc_points = self.scored_dpc_points()
 
-        has_dpc = max(dpc_legs, dpc_points) >= 5
+        has_dpc = dpc_legs >= 5 or dpc_points >= 15
         has_arx = "ARX" in self.check_arx_titles()
 
         if has_dpc:

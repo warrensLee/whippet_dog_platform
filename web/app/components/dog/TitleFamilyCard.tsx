@@ -37,12 +37,8 @@ export default function TitleFamilyCard({
     });
   }
 
-  const dpcProgress = Math.max(
-    dog.dpcLegs ?? 0,
-    dog.adjustedDpcPoints ?? dog.dpcPoints ?? 0
-  );
 
-  const hasDpc = dpcProgress >= 5 || hasTitle("DPC");
+  const hasDpc = (dog.adjustedDPCLegs ?? 0) >= 5 || (dog.adjustedDpcPoints ?? 0) >= 15 || hasTitle("DPC");
   const hasArx = (dog.adjustedArxPoints ?? dog.arxPoints ?? 0) >= 15 || hasTitle("ARX");
   const hasDpcx = hasTitle("DPCX") || (hasDpc && hasArx);
 
@@ -76,22 +72,19 @@ export default function TitleFamilyCard({
 
   return (
     <div
-      className={`overflow-hidden rounded-2xl border transition-all ${
-        hasAnyEarned ? `${currentStyle.border} shadow-sm` : "border-black/10 bg-white"
-      }`}
+      className={`overflow-hidden rounded-2xl border transition-all ${hasAnyEarned ? `${currentStyle.border} shadow-sm` : "border-black/10 bg-white"
+        }`}
     >
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className={`flex w-full items-center justify-between px-5 py-4 text-left transition-colors ${
-          hasAnyEarned ? currentStyle.bg : "bg-white hover:bg-black/[0.02]"
-        }`}
+        className={`flex w-full items-center justify-between px-5 py-4 text-left transition-colors ${hasAnyEarned ? currentStyle.bg : "bg-white hover:bg-black/[0.02]"
+          }`}
       >
         <div className="flex items-center gap-3">
           <span
-            className={`rounded-full px-3 py-1 text-sm font-bold ${
-              hasAnyEarned ? currentStyle.badge : "bg-black/8 text-[#12301D]/40"
-            }`}
+            className={`rounded-full px-3 py-1 text-sm font-bold ${hasAnyEarned ? currentStyle.badge : "bg-black/8 text-[#12301D]/40"
+              }`}
           >
             {highestEarned ? highestEarned.name : family.family}
           </span>
@@ -107,8 +100,8 @@ export default function TitleFamilyCard({
               {locked
                 ? locked
                 : nextTier
-                ? `${nextTier.threshold - value} ${family.unit} until ${nextTier.name}`
-                : "All tiers earned"}
+                  ? `${nextTier.threshold - value} ${family.unit} until ${nextTier.name}`
+                  : "All tiers earned"}
             </p>
           </div>
         </div>
@@ -182,18 +175,16 @@ export default function TitleFamilyCard({
               return (
                 <div
                   key={tier.name}
-                  className={`flex items-center gap-3 rounded-xl border px-4 py-2.5 transition-all ${
-                    isCurrent
-                      ? `${style.bg} ${style.border} shadow-sm`
-                      : earned
+                  className={`flex items-center gap-3 rounded-xl border px-4 py-2.5 transition-all ${isCurrent
+                    ? `${style.bg} ${style.border} shadow-sm`
+                    : earned
                       ? `${style.bg} ${style.border} opacity-70`
                       : "border-black/8 bg-black/[0.03] opacity-50"
-                  }`}
+                    }`}
                 >
                   <div
-                    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
-                      earned ? style.badge : "bg-black/10"
-                    }`}
+                    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${earned ? style.badge : "bg-black/10"
+                      }`}
                   >
                     {earned ? (
                       <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
@@ -224,16 +215,14 @@ export default function TitleFamilyCard({
 
           {family.family === "DPC" && (
             <div
-              className={`flex items-center gap-3 rounded-xl border px-4 py-2.5 transition-all ${
-                hasDpcx
-                  ? `${TIER_STYLES.green.bg} ${TIER_STYLES.green.border} shadow-sm`
-                  : "border-black/8 bg-black/[0.03] opacity-50"
-              }`}
+              className={`flex items-center gap-3 rounded-xl border px-4 py-2.5 transition-all ${hasDpcx
+                ? `${TIER_STYLES.green.bg} ${TIER_STYLES.green.border} shadow-sm`
+                : "border-black/8 bg-black/[0.03] opacity-50"
+                }`}
             >
               <div
-                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
-                  hasDpcx ? TIER_STYLES.green.badge : "bg-black/10"
-                }`}
+                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${hasDpcx ? TIER_STYLES.green.badge : "bg-black/10"
+                  }`}
               >
                 {hasDpcx ? (
                   <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
@@ -264,9 +253,8 @@ export default function TitleFamilyCard({
                 {[1, 2, 3, 4, 5].map((leg) => (
                   <div
                     key={leg}
-                    className={`h-2.5 flex-1 rounded-full ${
-                      (dog.adjustedDPCLegs ?? dog.dpcLegs ?? 0) >= leg ? "bg-[#2E6B3F]" : "bg-black/10"
-                    }`}
+                    className={`h-2.5 flex-1 rounded-full ${(dog.adjustedDPCLegs ?? dog.dpcLegs ?? 0) >= leg ? "bg-[#2E6B3F]" : "bg-black/10"
+                      }`}
                   />
                 ))}
               </div>
