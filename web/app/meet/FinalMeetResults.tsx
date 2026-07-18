@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Card from "@/app/components/ui/Card";
 import { FinalMeetResult } from "./types";
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 
 const TABLE_HEADER_ITEM_STYLE = "px-1.5 py-[2px] text-left whitespace-nowrap"
 const TABLE_POINTS_STYLE = "px-2 py-1 whitespace-nowrap text-[13px]";
@@ -91,6 +92,7 @@ function ResultsTable({
               <th className={TABLE_HEADER_ITEM_STYLE}>Incident</th>
               <th className={TABLE_HEADER_ITEM_STYLE}>ARX</th>
               <th className={TABLE_HEADER_ITEM_STYLE}>NARX</th>
+              <th className={TABLE_HEADER_ITEM_STYLE}>High Combined</th>
             </tr>
           </thead>
           <tbody>
@@ -126,6 +128,15 @@ function ResultsTable({
                 </td>
                 <td className={TABLE_POINTS_STYLE}>
                   {formatValue(dog.narxEarned)}
+                </td>
+                <td className={TABLE_POINTS_STYLE}>
+                  {dog.HCLegEarned && <EmojiEventsIcon sx={{
+                    stroke: 'black',
+                    strokeWidth: 1,
+                    fill: "yellow",
+                    width: "24px",
+                    height: "24px",
+                  }} />}
                 </td>
               </tr>
             ))}

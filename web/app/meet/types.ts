@@ -16,6 +16,7 @@ export interface FinalMeetResult {
     entryType?: string;
     matchPoints?: number;
     shown?: boolean
+    HCLegEarned?: boolean
     showPoints?: number
     showPlacement?: string
 }

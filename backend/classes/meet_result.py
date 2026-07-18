@@ -614,6 +614,7 @@ class MeetResult:
                     mr.Shown,
                     mr.ShowPlacement,
                     mr.ShowPoints,
+                    mr.HCLegEarned,
                     d.CallName,
                     d.RegisteredName,
                     mr.EntryType AS EntryType,

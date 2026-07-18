@@ -611,7 +611,8 @@ def list_final_meet_results_for_meet(meet_number):
                 "dpcPoints": float(row.get("DPCPoints") or 0),
                 "shown": row.get("Shown") == "1",
                 "showPlacement": row.get("ShowPlacement"),
-                "showPoints": float(row.get("ShowPoints") or 0)
+                "showPoints": float(row.get("ShowPoints") or 0),
+                "HCLegEarned": bool(row.get("HCLegEarned") == "1")
             })
 
         return jsonify({"ok": True, "data": data}), 200
