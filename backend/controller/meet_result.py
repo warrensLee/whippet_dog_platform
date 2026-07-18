@@ -104,6 +104,7 @@ def _apply_meet_stats_delta(dog: Dog, old: dict, new: dict, editor_id: str, now:
     dog.high_combined_wins = int(new["high_combined_wins"])
     if hasattr(dog, "compute_last_three_meet_average"):
         dog.average = dog.compute_last_three_meet_average()
+    dog.current_grade = dog.check_grade()
     dog.update()
     DogTitle.sync_titles_for_dog(dog, editor_id, now)
 
