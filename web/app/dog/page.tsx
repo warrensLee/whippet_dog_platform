@@ -279,13 +279,6 @@ function DogPage() {
                     value={dog?.adjustedMeetPoints ?? 0}
                     max={maxPoints}
                   />
-
-                  <PointBar
-                    label={`Match Points (${statsMode === "ytd" ? `${currentYear} YTD` : "All Time"})`}
-                    value={dogStats?.total_match_points ?? 0}
-                    max={maxPoints}
-                  />
-
                   <PointBar
                     label={`High Combined Points (${statsMode === "ytd" ? `${currentYear} YTD` : "All Time"})`}
                     value={dog.adjustedHighCombinedWins ?? 0}
