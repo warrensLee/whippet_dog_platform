@@ -28,29 +28,29 @@ def get_tables():
 
 
 def restore_from_file(path):
-    conn = get_conn()
-    conn.autocommit = False
-    cur = conn.cursor()
 
-    try:
-        with open(path, "r", encoding="utf-8") as file:
-            sql = file.read()
+    with get_conn() as conn:
+        conn.autocommit = False
+        cur = conn.cursor()
 
-        statements = sql.split(';')
-        for statement in statements:
-            statement = statement.strip()
-            if statement:  
-                cur.execute(statement)
+        try:
+            with open(path, "r", encoding="utf-8") as file:
+                sql = file.read()
 
-        conn.commit()
+            statements = sql.split(';')
+            for statement in statements:
+                statement = statement.strip()
+                if statement:  
+                    cur.execute(statement)
 
-    except Exception:
-        conn.rollback()
-        raise
+            conn.commit()
 
-    finally:
-        cur.close()
-        conn.close()
+        except Exception:
+            conn.rollback()
+            raise
+
+        finally:
+            cur.close()
 
 
 def generate_sql():
@@ -120,25 +120,24 @@ def restore_from_commands(statements):
     Takes an iterator of SQL commands and applys them to the DB
     """
     
-    conn = get_conn()
-    conn.autocommit = False
-    cur = conn.cursor()
+    with get_conn() as conn:
+        conn.autocommit = False
+        cur = conn.cursor()
 
-    try:
-        for statement in statements:
-            statement = statement.strip()
-            if statement:  
-                cur.execute(statement)
+        try:
+            for statement in statements:
+                statement = statement.strip()
+                if statement:  
+                    cur.execute(statement)
 
-        conn.commit()
+            conn.commit()
 
-    except Exception:
-        conn.rollback()
-        raise
+        except Exception:
+            conn.rollback()
+            raise
 
-    finally:
-        cur.close()
-        conn.close()
+        finally:
+            cur.close()
 
 @database_bp.post("/restore")
 def restore_database():

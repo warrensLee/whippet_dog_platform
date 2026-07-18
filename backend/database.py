@@ -3,6 +3,7 @@ import time
 import mysql.connector
 import mysql.connector.pooling
 import traceback
+from contextlib import contextmanager
 
 mysql_connector = None
 
@@ -24,67 +25,67 @@ def get_connection_pool():
         )
     return mysql_connector
 
-#TODO: make this a context manager
+@contextmanager
 def get_conn():
-    return get_connection_pool().get_connection()
+    conn = get_connection_pool().get_connection()
+    try: 
+        yield conn
+    finally:
+        conn.close()
 
 def fetch_all(sql: str, params=()):
     start = time.time()
-    conn = get_conn()
-    cur = conn.cursor(dictionary=True)
-    try:
-        cur.execute(sql, params)
-        result = cur.fetchall()
-        elapsed = time.time() - start
-        if elapsed > 1.0:
-            print(f"[SLOW QUERY] {elapsed:.2f}s")
-            traceback.print_stack()
-        return result
-    finally:
-        cur.close()
-        conn.close()
+    with get_conn() as conn:
+        cur = conn.cursor(dictionary=True)
+        try:
+            cur.execute(sql, params)
+            result = cur.fetchall()
+            elapsed = time.time() - start
+            if elapsed > 1.0:
+                print(f"[SLOW QUERY] {elapsed:.2f}s")
+                traceback.print_stack()
+            return result
+        finally:
+            cur.close()
 
 def fetch_one(sql: str, params=()):
     start = time.time()
-    conn = get_conn()
-    cur = conn.cursor(dictionary=True)
-    try:
-        cur.execute(sql, params)
-        result = cur.fetchone()
-        elapsed = time.time() - start
-        if elapsed > 1.0:
-            print(f"[SLOW QUERY] {elapsed:.2f}s - {sql[:100]}")
-        return result
-    finally:
-        cur.close()
-        conn.close()
+    with get_conn() as conn:
+        cur = conn.cursor(dictionary=True)
+        try:
+            cur.execute(sql, params)
+            result = cur.fetchone()
+            elapsed = time.time() - start
+            if elapsed > 1.0:
+                print(f"[SLOW QUERY] {elapsed:.2f}s - {sql[:100]}")
+            return result
+        finally:
+            cur.close()
 
 
 def execute(sql: str, params=(), *, return_lastrowid: bool = False):
     start = time.time()
-    conn = get_conn()
-    cur = conn.cursor()
-    try:
-        cur.execute(sql, params)
-        elapsed = time.time() - start
-        if elapsed > 1.0:
-            print(f"[SLOW QUERY] {elapsed:.2f}s - {sql[:100]}")
+    with get_conn() as conn:
+        cur = conn.cursor()
+        try:
+            cur.execute(sql, params)
+            elapsed = time.time() - start
+            if elapsed > 1.0:
+                print(f"[SLOW QUERY] {elapsed:.2f}s - {sql[:100]}")
 
-        if return_lastrowid:
-            return cur.lastrowid
+            if return_lastrowid:
+                return cur.lastrowid
 
-        return cur.rowcount
-    finally:
-        cur.close()
-        conn.close()
+            return cur.rowcount
+        finally:
+            cur.close()
 
 
 def execute_many(sql: str, param_list):
-    conn = get_conn()
-    cur = conn.cursor()
-    try:
-        cur.executemany(sql, param_list)
-        return cur.rowcount
-    finally:
-        cur.close()
-        conn.close()
+    with get_conn() as conn:
+        cur = conn.cursor()
+        try:
+            cur.executemany(sql, param_list)
+            return cur.rowcount
+        finally:
+            cur.close()
