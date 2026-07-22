@@ -114,7 +114,7 @@ class UserRole:
         return errors
 
     def save(self):
-        execute(
+        self.id = execute(
             """
             INSERT INTO UserRole (
                 Title,
@@ -134,6 +134,7 @@ class UserRole:
                 self.edit_title_type_scope,
                 self.last_edited_by,
             ),
+            return_lastrowid=True
         )
         return True
 

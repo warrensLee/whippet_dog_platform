@@ -49,6 +49,16 @@ function normalizeDateInput(value: unknown): string {
     which shifts the local date by one day for users in negative-UTC
     timezones.
 */
+
+function toHtmlDate(date: string): string {
+    const [day, month, year] = date.split("-");
+
+    if (!day || !month || !year) {
+        throw new Error("Invalid date format. Expected DD-MM-YYYY.");
+    }
+
+    return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+}
 function normalizeDate(value: unknown): string {
     const text = normalizeText(value).trim();
 
@@ -143,7 +153,7 @@ function buildFormFromDog(data: NonNullable<RawDogGetResponse["data"]>): DogForm
         foreignType: normalizeText(data.foreignType),
         callName: normalizeText(data.callName),
         registeredName: normalizeText(data.registeredName),
-        birthdate: normalizeDate(data.birthdate),
+        birthdate: toHtmlDate(data.birthdate!),
         pedigreeLink: normalizeText(data.pedigreeLink),
         status: normalizeText(data.status) || "Active",
         publicNotes: normalizeText(data.publicNotes),

@@ -282,7 +282,7 @@ function MeetPage() {
             />
 
             <section className="bg-[#E7F0E9] pt-10 pb-24">
-                <div className="mx-auto max-w-4xl space-y-6 px-6">
+                <div className="mx-auto max-w-6xl space-y-6 px-6">
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                         <StatPill label="Adult Dogs" value={adultDogCount} accent />
                         <StatPill label="Puppy Dogs" value={puppyDogCount} />

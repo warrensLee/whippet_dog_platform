@@ -206,7 +206,7 @@ def edit_result_view(meet_number):
                     "dpcPoints": int(row.get("meetDPC") or 0),
                     "NARXEarned": float(row.get("NARXEarned") or 0),
                     "ARXEarned": float(row.get("ARXEarned") or 0),
-                    "hcWinner": int(row.get("HCLegEarned")),
+                    "hcLegEarned": bool(row.get("HCLegEarned") == "1"),
                     "entryType": row.get("EntryType") or "",
                     "meetPlacement": int(row.get("MeetPlacement") or 0),
                     "meetPoints": float(row.get("MeetPoints") or 0),

@@ -203,7 +203,8 @@ class Dog:
         dpc_legs = self.scored_dpc_legs()
         dpc_points = self.scored_dpc_points()
 
-        has_dpc = dpc_legs >= 5 or dpc_points >= 15
+        has_trp = "TRP" in self.check_trp_titles()
+        has_dpc = (dpc_legs >= 5 or dpc_points >= 15) and (has_trp or self.kennel_club_champion)
         has_arx = "ARX" in self.check_arx_titles()
 
         if has_dpc:
@@ -1014,14 +1015,13 @@ class Dog:
     def to_dict(self, include_private=True):
         """Convert to dictionary for JSON responses."""
         ytd_match = self.get_ytd_show_points(self.cwa_number)
-
         data = {
             "cwaNumber": self.cwa_number,
             "registeredNumber": self.registered_number,
             "foreignType": self.foreign_type,
             "callName": self.call_name,
             "registeredName": self.registered_name,
-            "birthdate": self.birthdate if isinstance(self.birthdate, str) else (self.birthdate.strftime("%d-%m-%Y") if self.birthdate else None),
+            "birthdate": self.birthdate.strftime("%d-%m-%Y"), 
             "pedigreeLink": self.pedigree_link,
             "status": self.status,
             "average": self.average,

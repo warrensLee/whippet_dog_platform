@@ -71,3 +71,6 @@ class PasswordResetToken:
         execute(
             "DELETE FROM PasswordResetToken WHERE ExpiresAt <= UTC_TIMESTAMP()"
         )
+    
+    def delete(self):
+        execute("DELETE FROM PasswordResetToken WHERE TokenId = %s", (self.token_id,))
