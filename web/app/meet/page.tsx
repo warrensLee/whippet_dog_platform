@@ -13,39 +13,9 @@ import FinalMeetResults from "./FinalMeetResults";
 import authContext from "@/lib/auth/auth";
 import Loading from "@/lib/loading";
 import RichTextViewer from "@/lib/richtext/RichTextViewer";
-import { FinalMeetResult } from "./types";
+import { DisplayProgram, EventDetail, FinalMeetResult, MeetRace } from "./types";
 import { useState, useMemo, useContext, Suspense, useEffect } from "react";
-
-/*
-    This page is focused on one event/meet record.
-    Dog pages handle dog history. This page should stay centered on
-    event info, programs, and races.
-*/
-interface EventDetail {
-    meetNumber: string;
-    meetDate?: string;
-    clubAbbreviation?: string;
-    raceSecretary?: string;
-    judge?: string;
-    location?: string;
-    yards?: string | number;
-    completed?: boolean;
-    eventMeetCount?: number;
-    requestFormLink?: string;
-    resultsLink?: string;
-    publicNotes?: string;
-    privateNotes?: string;
-}
-
-interface MeetRace {
-    meetNumber: string;
-    raceNumber: string | number;
-    displayRaceNumber?: number;
-    program?: string;
-    entryCount?: number;
-}
-
-
+import ProgramLineup from "./ProgramLineup";
 
 function normalizeEventDetail(e: Record<string, unknown>): EventDetail {
     const getString = (key: string): string => {
@@ -82,7 +52,7 @@ function normalizeEventDetail(e: Record<string, unknown>): EventDetail {
     };
 }
 
-function groupRacesByProgram(races: MeetRace[]) {
+function groupRacesByProgram(races: MeetRace[]): DisplayProgram[] {
     const groups = new Map<string, MeetRace[]>();
 
     for (const race of races) {
@@ -364,39 +334,7 @@ function MeetPage() {
                             <p className="text-sm text-[#12301D]/40">Loading…</p>
                         ) : programGroups.length > 0 ? (
                             <div className="space-y-4">
-                                {programGroups.map((group) => (
-                                    <div
-                                        key={group.program}
-                                        className="rounded-2xl border border-black/10 bg-white/70 p-4 shadow-sm"
-                                    >
-                                        <div className="mb-3 flex items-center justify-between gap-3 border-b border-black/5 pb-3">
-                                            <div>
-                                                <p className="text-sm font-bold text-[#12301D]">
-                                                    {group.program === "Unassigned"
-                                                        ? "Unassigned Program"
-                                                        : `Program ${group.program}`}
-                                                </p>
-                                                <p className="mt-1 text-xs text-[#12301D]/50">
-                                                    {group.races.length} race{group.races.length === 1 ? "" : "s"}
-                                                </p>
-                                            </div>
-
-                                            <span className="rounded-full bg-[#EEF3EF] px-3 py-1 text-xs font-semibold text-[#385245]">
-                                                {group.races.reduce((sum, race) => sum + (race.entryCount ?? 0), 0)} total entries
-                                            </span>
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            {group.races.map((race, index) => (
-                                                <RaceLineup
-                                                    key={`${group.program}-${race.raceNumber}-${index}`}
-                                                    meetNumber={meetNumber}
-                                                    race={race}
-                                                />
-                                            ))}
-                                        </div>
-                                    </div>
-                                ))}
+                                {programGroups.map((program) => <ProgramLineup key={program.program} program={program} meetNumber={meetNumber} />)}
                             </div>
                         ) : (
                             <p className="text-sm text-[#12301D]/40">

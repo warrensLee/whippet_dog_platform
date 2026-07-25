@@ -3,8 +3,8 @@ import Card from "@/app/components/ui/Card";
 import { FinalMeetResult } from "./types";
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 
-const TABLE_HEADER_ITEM_STYLE = "px-1.5 py-[2px] text-left whitespace-nowrap"
-const TABLE_POINTS_STYLE = "px-2 py-1 whitespace-nowrap text-[13px]";
+const TABLE_HEADER_ITEM_STYLE = "px-1.5 py-[2px] text-center whitespace-nowrap"
+const TABLE_POINTS_STYLE = "px-2 py-1 whitespace-nowrap text-[13px] text-center";
 const TABLE_TITLE_STYLE = "mb-3 text-[11px] font-bold uppercase tracking-[0.08em] text-[#12301D]/75";
 const TABLE_HEADER_STYLE = "border-b border-[#12301D]/20 text-[10px] font-bold uppercase tracking-[0.08em] text-[#12301D]/75";
 const TABLE_STYLE = "min-w-full border-collapse text-[14px] leading-tight text-[#12301D] [td]:align-middle";

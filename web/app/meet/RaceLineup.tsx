@@ -3,30 +3,9 @@
 import Link from "next/link";
 import { fetchJson } from "@/lib/ui/fetchJson";
 import { Fragment, useEffect, useMemo, useState } from "react";
+import { BaseRace, RaceLineupDetail, RaceLineupEntry } from "./types";
 
-type RaceLineupEntry = {
-    cwaNumber: string;
-    dogName: string;
-    registeredName: string | null;
-    placement: number | null;
-    meetPoints: number | null;
-    aomEarned: number | null;
-    dpcPoints: number | null;
-};
 
-type RaceLineupDetail = {
-    meetNumber: string;
-    program: string;
-    raceNumber: string;
-    entries: RaceLineupEntry[];
-};
-
-type BaseRace = {
-    raceNumber: string | number;
-    displayRaceNumber?: number;
-    program?: string;
-    entryCount?: number;
-};
 
 function groupEntriesByPlacement(entries: RaceLineupEntry[]) {
     const groups = new Map<string, RaceLineupEntry[]>();
@@ -66,9 +45,8 @@ export default function RaceLineup({
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [detail, setDetail] = useState<RaceLineupDetail | null>(null);
-    const [open, setOpen] = useState(false)
     useEffect(() => {
-        if (!open || detail) return;
+        if (detail) return;
 
         let cancelled = false;
 
@@ -103,7 +81,7 @@ export default function RaceLineup({
         return () => {
             cancelled = true;
         };
-    }, [detail, meetNumber, open, race.program, race.raceNumber]);
+    }, [detail, meetNumber, race.program, race.raceNumber]);
 
     const groupedEntries = useMemo(() => {
         return detail ? groupEntriesByPlacement(detail.entries) : [];
@@ -111,7 +89,7 @@ export default function RaceLineup({
 
     return (
         <div className="overflow-hidden rounded-xl border border-black/8 bg-white/70">
-            <button className="flex items-center text-left justify-between w-full p-2" onClick={() => setOpen(!open)}>
+            <div className="flex items-center justify-between gap-3 p-2">
                 <div>
                     <p className="text-sm font-semibold text-[#12301D]">
                         Race #{race.displayRaceNumber ?? race.raceNumber}
@@ -120,17 +98,8 @@ export default function RaceLineup({
                         {race.entryCount ?? 0} entries
                     </p>
                 </div>
-                <svg
-                    className={`h-4 w-4 text-[#12301D]/40 transition-transform ${open ? "rotate-180" : ""}`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-            </button>
-            {open && <div className="border-t border-black/8 px-4 py-3">
+            </div>
+            <div className="border-t border-black/8 px-4 py-3">
                 {loading ? (
                     <p className="text-xs text-[#12301D]/50">Loading lineup...</p>
                 ) : error ? (
@@ -144,7 +113,7 @@ export default function RaceLineup({
                         No lineup data available for this race yet.
                     </p>
                 )}
-            </div>}
+            </div>
         </div>
     );
 }
