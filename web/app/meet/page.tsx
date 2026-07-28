@@ -8,7 +8,6 @@ import FieldRow from "../components/ui/FieldRow";
 import StatPill from "../components/ui/StatPill";
 import { fetchJson } from "../../lib/ui/fetchJson";
 import { formatDate } from "../../lib/ui/formatDate";
-import RaceLineup from "./RaceLineup";
 import FinalMeetResults from "./FinalMeetResults";
 import authContext from "@/lib/auth/auth";
 import Loading from "@/lib/loading";
