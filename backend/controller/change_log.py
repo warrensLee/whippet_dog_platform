@@ -12,24 +12,10 @@ def get_change_log(id):
     role = current_role()
     if not role or role.title != "ADMIN":
         return jsonify({"ok": False, "error": "Not authorized"}), 403
-    # role = current_role()
-    # if not role:
-    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    # deny = require_scope(role.view_change_log_scope, "view change logs")
-    # if deny:
-    #     return deny
 
     change_log = ChangeLog.find_by_identifier(id)
     if not change_log:
         return jsonify({"ok": False, "error": "Change log does not exist"}), 404
-
-    # if role.view_change_log_scope == UserRole.SELF:
-    #     pid = current_editor_id()
-    #     if not pid:
-    #         return jsonify({"ok": False, "error": "Not signed in"}), 401
-    #     if change_log.changed_by != pid:
-    #         return jsonify({"ok": False, "error": "Not allowed to view this change log"}), 403
 
     return jsonify({"ok": True, "data": change_log.to_dict()}), 200
 
@@ -38,27 +24,11 @@ def get_change_log(id):
 def list_all_change_logs():
     role = current_role()
     if not role or role.title != "ADMIN":
-        return jsonify({"ok": False, "error": "Not authorized"}), 403    # role = current_role()
-    # if not role:
-    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    # deny = require_scope(role.view_change_log_scope, "view change logs")
-    # if deny:
-    #     return deny
+        return jsonify({"ok": False, "error": "Not authorized"}), 403
 
     try:
         change_logs = ChangeLog.list_all()
         return jsonify({"ok": True, "data": [c.to_dict() for c in change_logs]}), 200
-
-        # elif role.view_change_log_scope == UserRole.SELF:
-        #     pid = current_editor_id()
-        #     if not pid:
-        #         return jsonify({"ok": False, "error": "Not signed in"}), 401
-        #     change_logs = ChangeLog.list_for_user(pid)
-        #     return jsonify({"ok": True, "data": [c.to_dict() for c in change_logs]}), 200
-
-        # else:
-        #     return jsonify({"ok": False, "error": "Not allowed to view change logs"}), 403
 
     except Error as e:
         return handle_error(e, "Database error")

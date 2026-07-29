@@ -102,7 +102,7 @@ class ChangeLog:
     def save(self):
         """Insert Change instance into database"""
         try:
-            execute(
+            self.id = execute(
                 """
                 INSERT INTO ChangeLog (
                     ChangedTable, RecordPK, Operation, ChangedBy, ChangedAt,
@@ -120,6 +120,7 @@ class ChangeLog:
                     self.before_data,
                     self.after_data,
                 ),
+                return_lastrowid=True
             )
             return True
         except Error as e:
