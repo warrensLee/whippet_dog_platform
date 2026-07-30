@@ -368,9 +368,6 @@ function EditDogPage() {
                 throw new Error(json?.error || `Save failed (${res.status})`);
             }
 
-            const cleanedForm = buildEditPayload(form);
-
-            setForm(cleanedForm);
             setSuccess("Dog information updated successfully.");
         } catch (e) {
             setError(

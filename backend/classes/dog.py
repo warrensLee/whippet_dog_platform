@@ -326,7 +326,7 @@ class Dog:
             foreign_type=(data.get("foreignType") or "").strip() or None,
             call_name=(data.get("callName") or "").strip(),
             registered_name=(data.get("registeredName") or "").strip(),
-            birthdate=(data.get("birthdate") or "").strip() or None,
+            birthdate=datetime.strptime((data.get("birthdate") or "").strip(),"%Y-%m-%d") if data.get("birthdate") else None,
             pedigree_link=(data.get("pedigreeLink") or "").strip() or None,
             status=(data.get("status") or "").strip(),
             average=(data.get("average") or "").strip() or None,
@@ -659,12 +659,7 @@ class Dog:
         enum_field(errors, self.status, "Status", self.VALID_STATUSES, required=True)
         enum_field(errors, self.current_grade, "Current Grade", self.VALID_GRADES, required=True)
         
-        if require(errors, self.birthdate, "Birthdate is required"):
-            bd = s(self.birthdate)
-            try:
-                datetime.strptime(bd, "%Y-%m-%d")
-            except ValueError:
-                errors.append("Birthdate must be in YYYY-MM-DD format")
+        require(errors, self.birthdate, "Birthdate is required")
         
         float_field(errors, self.average, "Average", min_value=0, max_value=99999.99)
         float_field(errors, self.meet_points, "Meet Points", min_value=0, max_value=99999.99)
