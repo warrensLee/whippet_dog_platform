@@ -102,7 +102,7 @@ function ResultsTable({
                 className="border-b border-[#12301D]/10 align-top hover:bg-[#DCE7DF]/35"
               >
                 <td className="px-2 py-1 whitespace-nowrap">
-                  {formatValue(dog.place)}
+                  {formatValue(dog.meetPlacement)}
                 </td>
                 <td className="px-2 py-1 whitespace-nowrap font-semibold">
                   <Link

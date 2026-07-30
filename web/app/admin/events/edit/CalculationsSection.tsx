@@ -1,13 +1,14 @@
 import { DogEntry } from "./MeetResultTypes";
 
 type CalculationsSectionProps = {
+    title: string
     results: DogEntry[];
     onChange: (dog: DogEntry) => void;
     onDpcLegChange: (dogs: DogEntry[], cwaNumber: string, checked: boolean) => void;
     onHcLegChange: (dogs: DogEntry[], cwaNumber: string, checked: boolean) => void;
 };
 
-export default function CalculationsSection({ results, onChange, onDpcLegChange, onHcLegChange }: CalculationsSectionProps) {
+export default function CalculationsSection({ title, results, onChange, onDpcLegChange, onHcLegChange }: CalculationsSectionProps) {
     const sorted = [...results].sort((a, b) => {
         const placeA = parseInt(a.meetPlacement || "999");
         const placeB = parseInt(b.meetPlacement || "999");
@@ -29,7 +30,7 @@ export default function CalculationsSection({ results, onChange, onDpcLegChange,
 
     return (
         <div className="rounded-2xl border border-black/10 bg-[#F8F9FA] p-5 mb-4">
-            <h3 className="font-bold text-[#12301D] text-lg mb-4">Final Results</h3>
+            <h3 className="font-bold text-[#12301D] text-lg mb-4">{title}</h3>
 
             <div className="overflow-x-auto">
                 <table className="w-full text-sm">

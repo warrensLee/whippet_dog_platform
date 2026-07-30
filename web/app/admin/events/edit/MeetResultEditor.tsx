@@ -334,7 +334,8 @@ export default function MeetResultEditor({
                 />
             ))}
 
-            <CalculationsSection results={value} onChange={handleDogChange} onDpcLegChange={handleDpcLegChange} onHcLegChange={handleHcLegChange} />
+            <CalculationsSection title="Final Results" results={value.filter((v) => v.entryType == "REG")} onChange={handleDogChange} onDpcLegChange={handleDpcLegChange} onHcLegChange={handleHcLegChange} />
+            <CalculationsSection title="Puppy Results" results={value.filter((v) => v.entryType == "PUPPY")} onChange={handleDogChange} onDpcLegChange={handleDpcLegChange} onHcLegChange={handleHcLegChange} />
 
             {/* Dog Search Dialog */}
             {searchOpen && (

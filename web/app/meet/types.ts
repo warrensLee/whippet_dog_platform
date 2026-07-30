@@ -1,6 +1,6 @@
 export interface FinalMeetResult {
     cwaNumber: string;
-    place?: number | null;
+    meetPlacement?: number | null;
     grade?: string | null;
     callName?: string | null;
     registeredName?: string | null;

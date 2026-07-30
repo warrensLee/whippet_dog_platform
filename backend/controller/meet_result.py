@@ -389,7 +389,7 @@ def list_final_meet_results_for_meet(meet_number):
         for index, row in enumerate(rows, 1):
             data.append({
                 "cwaNumber": row.get("CWANumber"),
-                "place": index,
+                "meetPlacement": row.get("MeetPlacement"),
                 "grade": row.get("Grade"),
                 "callName": row.get("CallName"),
                 "registeredName": row.get("RegisteredName"),
