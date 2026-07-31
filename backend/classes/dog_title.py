@@ -247,8 +247,8 @@ class DogTitle:
 
             new_title.save()
 
-            pdf_bytes = generate_title_pdf(dog, title)
             if send_email:
+                pdf_bytes = generate_title_pdf(dog, title)
                 for email in dog.get_owner_emails():
                     send_titles_email(email, pdf_bytes, f"{dog.registered_name}_{title}.pdf")
             

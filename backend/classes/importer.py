@@ -198,6 +198,7 @@ class CsvImporter:
             if payload.get("shown") == "0":
                 payload["showPlacement"] = payload.get("showPlacement") or "0"
                 payload["showPoints"] = payload.get("showPoints") or "0"
+
         return payload
 
     def import_rows(self, import_type, filename, rows, *, mode, use_adjustment=False):
@@ -262,24 +263,7 @@ class CsvImporter:
             before_snapshot = None
 
             if import_type == "dogs" and use_adjustment:
-                if record_exists:
-                    current_dog = find(pk)
-                else:
-                    current_dog = None
-            else:
-                current_dog = None
-
-            if record_exists:
-                if current_dog:
-                    before_snapshot = current_dog.to_dict() if hasattr(current_dog, "to_dict") else None
-                obj.update()
-                updated += 1
-            else:
-                obj.save()
-                inserted += 1
-
-            if import_type == "dogs" and use_adjustment:
-                score_to_dog_attr = {
+                score_to_raw = {
                     "meetPoints": "meet_points",
                     "arxPoints": "arx_points",
                     "narxPoints": "narx_points",
@@ -287,31 +271,39 @@ class CsvImporter:
                     "dpcPoints": "dpc_points",
                     "dpcLegs": "dpc_legs",
                     "meetWins": "meet_wins",
-                    "meetAppearences": "meet_appearences",
+                    "meetAppearences": "meet_appearances",
                     "highCombinedWins": "high_combined_wins",
                 }
-                adj_to_obj_attr = {
-                    "manualMeetPointsAdjustment": "manual_meet_points_adjustment",
-                    "manualArxPointsAdjustment": "manual_arx_points_adjustment",
-                    "manualNarxPointsAdjustment": "manual_narx_points_adjustment",
-                    "manualShowPointsAdjustment": "manual_show_points_adjustment",
-                    "manualDpcPointsAdjustment": "manual_dpc_points_adjustment",
-                    "manualDPCLegsAdjustment": "manual_dpc_legs_adjustment",
-                    "manualMeetAppearancesAdjustment": "manual_meet_appearances_adjustment",
-                    "manualMeetWinsAdjustment": "manual_meet_wins_adjustment",
-                    "manualHighCombinedWinsAdjustment": "manual_high_combined_wins_adjustment",
+                adj_attr_map = {
+                    "meet_points": "manual_meet_points_adjustment",
+                    "arx_points": "manual_arx_points_adjustment",
+                    "narx_points": "manual_narx_points_adjustment",
+                    "show_points": "manual_show_points_adjustment",
+                    "dpc_points": "manual_dpc_points_adjustment",
+                    "dpc_legs": "manual_dpc_legs_adjustment",
+                    "meet_wins": "manual_meet_wins_adjustment",
+                    "meet_appearances": "manual_meet_appearances_adjustment",
+                    "high_combined_wins": "manual_high_combined_wins_adjustment",
                 }
-                for score_field, attr in score_to_dog_attr.items():
-                    if score_field in payload:
-                        imported_value = float(payload[score_field])
-                        if current_dog:
-                            current_raw = float(getattr(current_dog, attr, 0) or 0)
-                        else:
-                            current_raw = 0
-                        adjustment = round(imported_value - current_raw, 2)
-                        setattr(obj, attr, current_raw)
-                        setattr(obj, adj_to_obj_attr[score_field], adjustment)
-                        del payload[score_field]
+                if record_exists:
+                    db_obj = find(pk)
+                    for score_field, raw_attr in score_to_raw.items():
+                        if score_field in payload:
+                            obj.__setattr__(raw_attr, getattr(db_obj, raw_attr, 0))
+                            obj.__setattr__(adj_attr_map[raw_attr], float(payload[score_field]))
+                else:
+                    for score_field, raw_attr in score_to_raw.items():
+                        if score_field in payload:
+                            obj.__setattr__(raw_attr, 0)
+                            obj.__setattr__(adj_attr_map[raw_attr], float(payload[score_field]))
+            if record_exists:
+                existing = find(pk)
+                before_snapshot = existing.to_dict() if hasattr(existing, "to_dict") else None
+                obj.update()
+                updated += 1
+            else:
+                obj.save()
+                inserted += 1
 
             refreshed = find(pk)
             after_snapshot = refreshed.to_dict() if refreshed and hasattr(refreshed, "to_dict") else (
