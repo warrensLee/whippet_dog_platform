@@ -3,11 +3,17 @@ import { DogEntry } from "./MeetResultTypes";
 type RegistrationSectionProps = {
     results: DogEntry[];
     onChange: (dog: DogEntry) => void;
+    onRemoveDog?: (cwaNumber: string) => void;
 };
 
 
 
-export default function RegistrationSection({ results, onChange }: RegistrationSectionProps) {
+export default function RegistrationSection({ results, onChange, onRemoveDog }: RegistrationSectionProps) {
+    function handleRemoveClick(cwaNumber: string) {
+        if (onRemoveDog) {
+            onRemoveDog(cwaNumber);
+        }
+    }
 
     function getShowPlacementOptions(): string[] {
         const count = results.filter((r) => r.shown).length
@@ -44,12 +50,13 @@ export default function RegistrationSection({ results, onChange }: RegistrationS
                             <th className="text-left py-3 px-3 font-semibold text-[#12301D] w-28">Entry Type</th>
                             <th className="text-center py-3 px-3 font-semibold text-[#12301D] w-16">Shown</th>
                             <th className="text-left py-3 px-3 font-semibold text-[#12301D] w-20">Show Place</th>
+                            <th className="text-center py-3 px-3 font-semibold text-[#12301D] w-16"></th>
                         </tr>
                     </thead>
                     <tbody>
                         {results.length === 0 && (
                             <tr>
-                                <td colSpan={6} className="py-6 text-center text-gray-400 text-sm">
+                                <td colSpan={7} className="py-6 text-center text-gray-400 text-sm">
                                     No dogs registered for this meet yet.
                                 </td>
                             </tr>
@@ -92,6 +99,16 @@ export default function RegistrationSection({ results, onChange }: RegistrationS
                                         {getShowPlacementOptions().map((s) => <option key={s} value={s}>{s}</option>)}
                                         {!dog.shown && <option key="NS" value="NS"></option>}
                                     </select>
+                                </td>
+                                <td className="py-3 px-3 text-center">
+                                    {onRemoveDog && (
+                                        <button
+                                            onClick={() => handleRemoveClick(dog.cwaNumber)}
+                                            className="text-red-500 hover:text-red-700 text-sm font-bold transition"
+                                        >
+                                            ×
+                                        </button>
+                                    )}
                                 </td>
                             </tr>
                         ))}

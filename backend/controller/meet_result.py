@@ -264,22 +264,15 @@ def bulk_update_edit_result_view(meet_number):
     try:
         cwa_numbers = [entry.get("cwaNumber") for entry in entries if entry.get("cwaNumber")]
 
+        all_in_meet = fetch_all(
+            "SELECT DISTINCT CWANumber FROM MeetResults WHERE MeetNumber = %s",
+            (meet_number,),
+        ) or []
+        all_in_meet_set = {row["CWANumber"] for row in all_in_meet}
+
         old_stats = {}
-        if cwa_numbers:
-            cwa_placeholders = ",".join(["%s"] * len(cwa_numbers))
-            existing_rows = fetch_all(
-                f"""
-                SELECT CWANumber, Shown, ShowPoints, ShowPlacement
-                FROM MeetResults
-                WHERE MeetNumber = %s AND CWANumber IN ({cwa_placeholders})
-                """,
-                [meet_number] + cwa_numbers
-            ) or []
-            
-            for row in existing_rows:
-                cwa = row["CWANumber"]
-                if cwa not in old_stats:
-                    old_stats[cwa] = _meet_stats(cwa)
+        for cwa in all_in_meet_set:
+            old_stats[cwa] = _meet_stats(cwa)
 
         execute("DELETE FROM RaceResults WHERE MeetNumber = %s", (meet_number,))
         execute("DELETE FROM MeetResults WHERE MeetNumber = %s", (meet_number,))
@@ -357,19 +350,27 @@ def bulk_update_edit_result_view(meet_number):
             new_result.save()
             #new_result.update_from_race_results()
         
-        default_old = {
+        default_new = {
             "meet_points": 0, "arx_points": 0, "narx_points": 0,
             "show_points": 0, "dpc_legs": 0, "meet_wins": 0,
             "meet_appearences": 0, "dpc_points": 0, "high_combined_wins": 0
         }
-        if cwa_numbers:
-            for cwa in cwa_numbers:
-                dog = Dog.find_by_identifier(cwa)
-                if dog:
-                    new_stats = _meet_stats(cwa)
-                    old = old_stats.get(cwa, default_old)
-                    _apply_meet_stats_delta(dog, old, new_stats, editor_id, now)
-                    dog.update_from_meet_results()
+
+        for cwa in cwa_numbers:
+            dog = Dog.find_by_identifier(cwa)
+            if dog:
+                new_stats = _meet_stats(cwa)
+                old = old_stats.get(cwa, default_new)
+                _apply_meet_stats_delta(dog, old, new_stats, editor_id, now)
+                dog.update_from_meet_results()
+
+        removed_cwas = all_in_meet_set - set(cwa_numbers)
+        for cwa in removed_cwas:
+            dog = Dog.find_by_identifier(cwa)
+            if dog:
+                _apply_meet_stats_delta(dog, old_stats[cwa], default_new, editor_id, now)
+                dog.update_from_meet_results()
+
         #RaceResult.calculate_dpc_leg_for_meet(meet_number)
         #RaceResult.calculate_hc_leg_for_meet(meet_number)
 

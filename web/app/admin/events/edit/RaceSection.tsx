@@ -1,5 +1,5 @@
 import { DogEntry } from "./MeetResultTypes";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 type RaceSectionProps = {
     program: string;
@@ -20,6 +20,7 @@ type RaceSectionProps = {
     onRemoveRace: (program: string, raceNumber: string) => void;
 };
 
+
 export default function RaceSection({
     program,
     raceNumber,
@@ -34,8 +35,15 @@ export default function RaceSection({
     const [selectedDogCwa, setSelectedDogCwa] = useState("");
 
     const inRaceCwaNumbers = useMemo(() => new Set(dogs.map(d => d.cwaNumber)), [dogs]);
-
     const availableDogs = useMemo(() => results.filter(d => !inRaceCwaNumbers.has(d.cwaNumber)), [results, inRaceCwaNumbers]);
+
+    const sortedDogs = useMemo(() =>
+        dogs.sort((da, db) => {
+            const daPlace = Number(da.races.find((r) => r.program === program && r.race === raceNumber)?.placement) || Infinity
+            const dbPlace = Number(db.races.find((r) => r.program === program && r.race === raceNumber)?.placement) || Infinity
+            return daPlace - dbPlace
+        })
+        , [dogs, program, raceNumber])
 
     function getBox(dog: DogEntry): string {
         const race = dog.races.find(r => r.program === program && r.race === raceNumber);
@@ -171,7 +179,7 @@ export default function RaceSection({
                                 </td>
                             </tr>
                         )}
-                        {dogs.map(dog => (
+                        {sortedDogs.map(dog => (
                             <tr key={dog.cwaNumber} className="border-b border-black/5 last:border-0 hover:bg-gray-50">
                                 <td className="py-2 px-2">
                                     <span className="font-medium text-[#12301D]">{dog.callName}</span>

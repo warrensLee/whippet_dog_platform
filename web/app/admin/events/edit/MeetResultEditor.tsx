@@ -249,11 +249,20 @@ export default function MeetResultEditor({
         handleDogChange(updated);
     }
 
+    function handleRemoveDog(cwaNumber: string) {
+        const updated = value.filter(d => d.cwaNumber !== cwaNumber);
+        onChange(updated);
+    }
+
     function handleRaceDogRemove(program: string, raceNumber: string, dog: DogEntry) {
         const remainingRaces = dog.races.filter(
             r => !(r.program === program && r.race === raceNumber)
         );
-        handleDogChange({ ...dog, races: remainingRaces });
+        if (remainingRaces.length === 0) {
+            handleRemoveDog(dog.cwaNumber);
+        } else {
+            handleDogChange({ ...dog, races: remainingRaces });
+        }
     }
 
     function handleRaceDogChange(program: string, raceNumber: string, dog: DogEntry) {
@@ -288,7 +297,7 @@ export default function MeetResultEditor({
 
     return (
         <div className="overflow-hidden rounded-2xl border border-black/10 bg-[#F8F9FA]">
-            <RegistrationSection results={value} onChange={handleDogChange} />
+            <RegistrationSection results={value} onChange={handleDogChange} onRemoveDog={handleRemoveDog} />
 
             <div className="p-4">
                 <button
