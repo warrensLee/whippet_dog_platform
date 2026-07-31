@@ -59,38 +59,6 @@ function toHtmlDate(date: string): string {
 
     return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
 }
-function normalizeDate(value: unknown): string {
-    const text = normalizeText(value).trim();
-
-    if (!text) {
-        return "";
-    }
-
-    const parts = text.slice(0, 10).split("-");
-    if (parts.length !== 3) {
-        return text.slice(0, 10);
-    }
-
-    const [yearStr, monthStr, dayStr] = parts;
-    const year = parseInt(yearStr, 10);
-    const month = parseInt(monthStr, 10);
-    const day = parseInt(dayStr, 10);
-
-    if (isNaN(year) || isNaN(month) || isNaN(day)) {
-        return text.slice(0, 10);
-    }
-
-    const localDate = new Date(year, month - 1, day);
-    if (isNaN(localDate.getTime())) {
-        return text.slice(0, 10);
-    }
-
-    const y = localDate.getFullYear();
-    const m = String(localDate.getMonth() + 1).padStart(2, "0");
-    const d = String(localDate.getDate()).padStart(2, "0");
-
-    return `${y}-${m}-${d}`;
-}
 
 type RawDogGetResponse = {
     ok: boolean;

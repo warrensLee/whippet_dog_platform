@@ -1,7 +1,7 @@
 from database import fetch_one, fetch_all, execute
 from mysql.connector import Error
 from datetime import datetime
-from utils.validators import (s, require, int_field, float_field, fk_exists, enum_field, str_field)
+from utils.validators import (require, int_field, float_field, fk_exists, enum_field, str_field)
 from classes.meet_result import MeetResult
 from classes.race_result import RaceResult
 

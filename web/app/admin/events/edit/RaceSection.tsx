@@ -1,5 +1,5 @@
 import { DogEntry } from "./MeetResultTypes";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 
 type RaceSectionProps = {
     program: string;

@@ -4,7 +4,6 @@ from datetime import datetime, timezone
 from classes.meet_result import MeetResult
 from classes.dog import Dog
 from classes.dog_title import DogTitle
-from classes.change_log import ChangeLog
 from classes.user_role import UserRole
 from classes.race_result import RaceResult
 from classes.meet import Meet

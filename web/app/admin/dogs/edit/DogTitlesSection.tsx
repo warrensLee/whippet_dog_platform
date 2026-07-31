@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import axios from "axios";
 import Button from "@/app/components/ui/buttons/Button";
 import SecondaryButton from "@/app/components/ui/buttons/SecondaryButton";
 import DangerButton from "@/app/components/ui/buttons/DangerButton";

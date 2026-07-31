@@ -6,21 +6,21 @@ def change_log_object():
     for log in ChangeLog.list_all():
         ChangeLog.delete(log.id)
 
-    new_log = ChangeLog(None,"CHANGEDTABLE","PK", "EDIT", 1, datetime.datetime.now(),"SOURCE","TEST1","TEST2");
+    new_log = ChangeLog(None,"CHANGEDTABLE","PK", "EDIT", 1, datetime.datetime.now(),"SOURCE","TEST1","TEST2")
     new_log.save() 
     yield new_log
     new_log.delete(new_log.id)
 
 def test_list_all_change_logs_not_admin(all_privileges_session):
     response = all_privileges_session.get("/api/change_log/get")
-    assert response.json["ok"] == False
+    assert not response.json["ok"]
     assert response.json["error"] == "Not authorized"
     assert response.status_code == 403
 
 
 def test_get_change_log_not_admin(all_privileges_session):
     response = all_privileges_session.get("/api/change_log/get/0")
-    assert response.json["ok"] == False
+    assert not response.json["ok"]
     assert response.json["error"] == "Not authorized"
     assert response.status_code == 403
 
@@ -39,7 +39,7 @@ def test_list_all_change_logs(admin_session, change_log_object):
 
 def test_get_change_log_invalid_id(admin_session):
     response = admin_session.get("/api/change_log/get/999999")
-    assert response.json["ok"] == False
+    assert not response.json["ok"]
     assert response.json["error"] == "Change log does not exist"
 
 def test_get_change_log(admin_session, change_log_object):
