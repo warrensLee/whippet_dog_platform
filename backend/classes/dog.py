@@ -908,8 +908,8 @@ class Dog:
             if r and r.get("MeetPoints") is not None
         ]
 
-        if not points:
-            return 0.0
+        if not points or len(points) < 3:
+            return self.average
 
         avg = sum(points) / len(points)
         return round(avg, 2)
