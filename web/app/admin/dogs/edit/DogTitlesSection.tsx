@@ -2,9 +2,9 @@
 
 import * as React from "react";
 import axios from "axios";
-import Button from "../ui/buttons/Button";
-import SecondaryButton from "../ui/buttons/SecondaryButton";
-import DangerButton from "../ui/buttons/DangerButton";
+import Button from "@/app/components/ui/buttons/Button";
+import SecondaryButton from "@/app/components/ui/buttons/SecondaryButton";
+import DangerButton from "@/app/components/ui/buttons/DangerButton";
 
 type DogTitle = {
     title: string;
@@ -21,6 +21,14 @@ type TitleType = {
     lastEditedAt?: string | null;
 };
 
+function formatDateForBackend(dateStr: string | null): string | null {
+    if (!dateStr) return null;
+    const [year, month, day] = dateStr.split("-");
+    if (year && month && day) {
+        return `${day}-${month}-${year}`;
+    }
+    return dateStr;
+}
 
 const emptyTitleForm: DogTitle = {
     title: "",
@@ -46,12 +54,6 @@ function SectionCard({
     );
 }
 
-export async function getTitlesInDateRange(start: string, end: string) {
-    const response = await axios.get("/api/dog_title/earned", {
-        params: { start, end },
-    });
-    return response.data;
-}
 
 //TODO: this section may have an unused title editor
 export default function DogTitlesSection({ cwaNumber }: { cwaNumber: string }) {
@@ -154,7 +156,7 @@ export default function DogTitlesSection({ cwaNumber }: { cwaNumber: string }) {
                 body: JSON.stringify({
                     cwaNumber,
                     title: addForm.title.trim(),
-                    titleDate: addForm.titleDate?.trim() || null,
+                    titleDate: formatDateForBackend(addForm.titleDate || null),
                     titleNumber: addForm.titleNumber?.trim() || "",
                     namePrefix: addForm.namePrefix?.trim() || "",
                     nameSuffix: addForm.nameSuffix?.trim() || "",
@@ -187,7 +189,7 @@ export default function DogTitlesSection({ cwaNumber }: { cwaNumber: string }) {
                 body: JSON.stringify({
                     cwaNumber,
                     title: editForm.title.trim(),
-                    titleDate: editForm.titleDate?.trim() || null,
+                    titleDate: formatDateForBackend(editForm.titleDate || null),
                     titleNumber: editForm.titleNumber?.trim() || "",
                     namePrefix: editForm.namePrefix?.trim() || "",
                     nameSuffix: editForm.nameSuffix?.trim() || "",

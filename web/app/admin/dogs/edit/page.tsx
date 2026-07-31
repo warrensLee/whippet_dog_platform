@@ -8,7 +8,7 @@ import type { DogFormValues } from "@/app/admin/dogs/types";
 import { emptyDogFormValues } from "@/app/admin/dogs/types";
 import HeroSection from "@/app/components/ui/HeroSection";
 import DogOwnersSection from "./DogOwnersSection";
-import DogTitlesSection from "@/app/components/dog/DogTitlesSection";
+import DogTitlesSection from "./DogTitlesSection";
 import AuthGuard from "@/lib/auth/authGuard";
 import Button from "@/app/components/ui/buttons/Button";
 import SecondaryButton from "@/app/components/ui/buttons/SecondaryButton";

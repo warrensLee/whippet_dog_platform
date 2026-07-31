@@ -17,8 +17,15 @@ import {
 } from "@mui/material";
 import { ArrowDownward, ArrowUpward } from "@mui/icons-material";
 import HeroSection from "@/app/components/ui/HeroSection";
-import { getTitlesInDateRange } from "../../components/dog/DogTitlesSection";
+import axios from "axios";
 
+
+async function getTitlesInDateRange(start: string, end: string) {
+  const response = await axios.get("/api/dog_title/earned", {
+    params: { start, end },
+  });
+  return response.data;
+}
 type TitleReportRow = {
   cwaNumber: string;
   registeredName?: string | null;

@@ -6,6 +6,7 @@ TODO:
 from database import fetch_all, fetch_one, execute
 from mysql.connector import Error
 from classes.change_log import ChangeLog
+from datetime import datetime
 from utils.email_service import send_titles_email
 from utils.generate_pdf import generate_title_pdf
 
@@ -28,7 +29,7 @@ class DogTitle:
             cwa_number=(data.get("cwaNumber") or "").strip(),
             title=(data.get("title") or "").strip(),
             title_number=(data.get("titleNumber") or "").strip(),
-            title_date=data.get("titleDate"),
+            title_date=datetime.strptime(data.get("titleDate"),"%d-%m-%Y") if data.get("titleDate") else None,
             name_prefix=(data.get("namePrefix") or "").strip(),
             name_suffix=(data.get("nameSuffix") or "").strip(),
             last_edited_by=data.get("lastEditedBy"),
@@ -319,7 +320,7 @@ class DogTitle:
             "cwaNumber": self.cwa_number,
             "title": self.title,
             "titleNumber": self.title_number,
-            "titleDate": self.title_date.isoformat() if hasattr(self.title_date, 'isoformat') else self.title_date,
+            "titleDate": self.title_date.strftime("%d-%m-%Y"),
             "namePrefix": self.name_prefix,
             "nameSuffix": self.name_suffix,
             "lastEditedBy": self.last_edited_by,
