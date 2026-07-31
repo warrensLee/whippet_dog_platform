@@ -204,7 +204,7 @@ class Dog:
         dpc_points = self.scored_dpc_points()
 
         has_trp = "TRP" in self.check_trp_titles()
-        has_dpc = (dpc_legs >= 5 or dpc_points >= 15) and (has_trp or self.kennel_club_champion)
+        has_dpc = (dpc_legs >= 5 or dpc_points >= 15 or self.kennel_club_champion) and has_trp
         has_arx = "ARX" in self.check_arx_titles()
 
         if has_dpc:
