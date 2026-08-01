@@ -326,29 +326,44 @@ export function recalculateMeetRankings(results: MeetResults): MeetResults {
         return isNaN(v) ? 0 : v;
     }
 
-    function getLastRacePlacement(cwaNumber: string): number {
-        for (const dog of results) {
-            for (const race of dog.races) {
-                if (race.cwaNumber === cwaNumber && typeof race.placement === "number" && race.placement > 0) {
-                    return race.placement;
-                }
-            }
-        }
-        return 999;
-    }
 
     const rankedAdults = entries.filter(d => !isIncidentDog(d.cwaNumber) && d.entryType == "REG");
     const rankedPuppies = entries.filter(d => !isIncidentDog(d.cwaNumber) && d.entryType == "PUPPY");
     const incidentAdults = entries.filter(d => isIncidentDog(d.cwaNumber) && d.entryType == "REG");
     const incidentPuppies = entries.filter(d => isIncidentDog(d.cwaNumber) && d.entryType == "PUPPY");
 
+    function getLastRace(dog: DogEntry): DogRace | undefined {
+        let lastRace = dog.races[0] || undefined;
 
-    const updated = [...entries];
-    rankedAdults.sort((a, b) => {
+        for (const race of dog.races) {
+            const currentProgram = Number(race.program);
+            const lastProgram = Number(lastRace.program);
+
+            if (
+                currentProgram > lastProgram ||
+                (currentProgram === lastProgram &&
+                    Number(race.race) > Number(lastRace.race))
+            ) {
+                lastRace = race;
+            }
+        }
+
+        return lastRace;
+    }
+
+
+    function placementSorter(a: DogEntry, b: DogEntry): number {
         const pointsDiff = getMeetPoints(b.cwaNumber) - getMeetPoints(a.cwaNumber);
         if (pointsDiff !== 0) return pointsDiff;
-        return getLastRacePlacement(a.cwaNumber) - getLastRacePlacement(b.cwaNumber);
-    });
+        const lastRaceA = getLastRace(a)
+        const lastRaceB = getLastRace(b)
+        if (Number(lastRaceA?.race) != Number(lastRaceB?.race)) return Number(lastRaceB?.race) || Infinity - Number(lastRaceA?.race) || Infinity
+        return (Number(lastRaceA?.placement) || Infinity) - (Number(lastRaceB?.placement) || Infinity)
+
+    }
+
+    const updated = [...entries];
+    rankedAdults.sort(placementSorter);
 
     for (let i = 0; i < rankedAdults.length; i++) {
         const idx = updated.findIndex(d => d.cwaNumber === rankedAdults[i].cwaNumber);
@@ -364,11 +379,7 @@ export function recalculateMeetRankings(results: MeetResults): MeetResults {
         }
     }
 
-    rankedPuppies.sort((a, b) => {
-        const pointsDiff = getMeetPoints(b.cwaNumber) - getMeetPoints(a.cwaNumber);
-        if (pointsDiff !== 0) return pointsDiff;
-        return getLastRacePlacement(a.cwaNumber) - getLastRacePlacement(b.cwaNumber);
-    });
+    rankedPuppies.sort(placementSorter);
 
     for (let i = 0; i < rankedPuppies.length; i++) {
         const idx = updated.findIndex(d => d.cwaNumber === rankedPuppies[i].cwaNumber);
