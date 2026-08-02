@@ -33,6 +33,8 @@ export default function MeetResultEditor({
     const [searchResults, setSearchResults] = useState<SearchDogResult[]>([]);
     const [searching, setSearching] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [adultCalculationError, setAdultCalculationError] = useState(false)
+    const [puppyCalculationError, setPuppyCalculationError] = useState(false)
     const [programs, setPrograms] = useState<string[]>([]);
     const [definedRaces, setDefinedRaces] = useState<RaceDefinition[]>([]);
 
@@ -121,9 +123,9 @@ export default function MeetResultEditor({
                     });
                 });
 
-            setResultsValid(fieldValid);
+            setResultsValid(fieldValid && !adultCalculationError && !puppyCalculationError);
         }
-    }, [value, setResultsValid]);
+    }, [value, setResultsValid, adultCalculationError, puppyCalculationError]);
 
     // Dog search
     const handleSearch = async () => {
@@ -343,8 +345,8 @@ export default function MeetResultEditor({
                 />
             ))}
 
-            <CalculationsSection title="Final Results" results={value.filter((v) => v.entryType == "REG")} onChange={handleDogChange} onDpcLegChange={handleDpcLegChange} onHcLegChange={handleHcLegChange} />
-            <CalculationsSection title="Puppy Results" results={value.filter((v) => v.entryType == "PUPPY")} onChange={handleDogChange} onDpcLegChange={handleDpcLegChange} onHcLegChange={handleHcLegChange} />
+            <CalculationsSection title="Final Results" results={value.filter((v) => v.entryType == "REG")} onChange={handleDogChange} onDpcLegChange={handleDpcLegChange} onHcLegChange={handleHcLegChange} setCalculationErrors={setAdultCalculationError} />
+            <CalculationsSection title="Puppy Results" results={value.filter((v) => v.entryType == "PUPPY")} onChange={handleDogChange} onDpcLegChange={handleDpcLegChange} onHcLegChange={handleHcLegChange} setCalculationErrors={setPuppyCalculationError} />
 
             {/* Dog Search Dialog */}
             {searchOpen && (

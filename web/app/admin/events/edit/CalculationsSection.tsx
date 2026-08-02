@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useRef, useState } from "react";
 import { DogEntry } from "./MeetResultTypes";
 
 type CalculationsSectionProps = {
@@ -6,9 +7,10 @@ type CalculationsSectionProps = {
     onChange: (dog: DogEntry) => void;
     onDpcLegChange: (dogs: DogEntry[], cwaNumber: string, checked: boolean) => void;
     onHcLegChange: (dogs: DogEntry[], cwaNumber: string, checked: boolean) => void;
+    setCalculationErrors: (error: boolean) => void
 };
 
-export default function CalculationsSection({ title, results, onChange, onDpcLegChange, onHcLegChange }: CalculationsSectionProps) {
+export default function CalculationsSection({ title, results, onChange, onDpcLegChange, onHcLegChange, setCalculationErrors }: CalculationsSectionProps) {
     const sorted = [...results].sort((a, b) => {
         const placeA = parseInt(a.meetPlacement || "999");
         const placeB = parseInt(b.meetPlacement || "999");
@@ -28,6 +30,32 @@ export default function CalculationsSection({ title, results, onChange, onDpcLeg
         onHcLegChange(results, dog.cwaNumber, checked);
     }
 
+    const [activeCWANumber, setActiveCWANumber] = useState<string | null>(null)
+    const activeDogElement = useRef<HTMLTableRowElement | null>(null)
+    const placementErrors = useMemo(() => {
+        const errors: string[] = []
+        const seenDogs: Record<string, string> = {}
+        for (const x of results) {
+            if (seenDogs[x.meetPlacement] != undefined) {
+                errors.push(x.cwaNumber, seenDogs[x.meetPlacement])
+                continue
+            }
+            seenDogs[x.meetPlacement] = x.cwaNumber
+            if (x.meetPlacement == '' || !Number.isInteger(Number(x.meetPlacement))) {
+                errors.push(x.cwaNumber)
+                continue
+            }
+            if (Number(x.meetPlacement) > results.length || Number(x.meetPlacement) <= 0) {
+                errors.push(x.cwaNumber)
+                continue
+            }
+        }
+        return errors
+    }, [results])
+
+    useEffect(() => {
+        setCalculationErrors(placementErrors.length > 0)
+    }, [placementErrors, setCalculationErrors])
     return (
         <div className="rounded-2xl border border-black/10 bg-[#F8F9FA] p-5 mb-4">
             <h3 className="font-bold text-[#12301D] text-lg mb-4">{title}</h3>
@@ -56,9 +84,28 @@ export default function CalculationsSection({ title, results, onChange, onDpcLeg
                             </tr>
                         )}
                         {sorted.map((dog) => (
-                            <tr key={dog.cwaNumber} className="border-b border-black/5 last:border-0 hover:bg-white/50">
+                            <tr key={dog.cwaNumber} className="border-b border-black/5 last:border-0 hover:bg-white/50" ref={activeCWANumber == dog.cwaNumber ? activeDogElement : undefined}>
                                 <td className="py-2 px-2 text-center font-semibold text-[#12301D]">
-                                    {dog.meetPlacement || "-"}
+                                    <input
+                                        type="text"
+                                        value={dog.meetPlacement}
+                                        onChange={(e) => {
+                                            handlePropChange(dog, "meetPlacement", e.target.value)
+
+                                            requestAnimationFrame(() => {
+                                                if (activeDogElement.current == null) {
+                                                    return
+                                                }
+                                                activeDogElement.current.scrollIntoView({
+                                                    behavior: "instant",
+                                                    block: "center",
+                                                });
+                                            })
+                                        }}
+                                        onFocus={() => setActiveCWANumber(dog.cwaNumber)}
+                                        onBlur={() => setActiveCWANumber(null)}
+                                        className={`w-[8ch] rounded-lg border bg-white px-2 py-1.5 text-sm text-[#12301D] text-right outline-none focus:ring-2 focus:ring-[#2E6B3F]/30 ${placementErrors.find((x) => x == dog.cwaNumber) !== undefined ? "border-red-400" : "border-black/10"}`}
+                                    />
                                 </td>
                                 <td className="py-2 px-2">
                                     <span className="font-medium text-[#12301D]">{dog.callName}</span>
