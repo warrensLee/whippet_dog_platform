@@ -12,34 +12,34 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import SecondaryButton from '../ui/buttons/SecondaryButton';
-import Button from '../ui/buttons/Button';
+import SecondaryButton from '@/app/components/ui/buttons/SecondaryButton';
+import Button from '@/app/components/ui/buttons/Button';
 
 type Props =
   {
     open: boolean;
-    saving: boolean;
     onClose: () => void;
-    onSave: () => void;
+    onSuccess: () => void;
   };
 
-export default function InviteUserDialog({ open, saving, onClose, onSave, }: Props) {
+export default function InviteUserDialog({ open, onClose, onSuccess }: Props) {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
 
+  const [saving, setSaving] = useState(false)
   const resetForm = () => {
     setEmail('');
     setError('');
   };
 
   const handleClose = () => {
-    if (saving) return;
     resetForm();
     onClose();
   };
 
   const handleInvite = async () => {
     try {
+      setSaving(true)
       setError('');
 
       const res = await axios.post('/api/auth/invite', {
@@ -52,8 +52,7 @@ export default function InviteUserDialog({ open, saving, onClose, onSave, }: Pro
       }
 
       resetForm();
-      onSave();
-      onClose();
+      onSuccess()
     }
     catch (err: unknown) {
       if (err instanceof AxiosError && err.response) {
@@ -65,6 +64,8 @@ export default function InviteUserDialog({ open, saving, onClose, onSave, }: Pro
       else {
         setError('Failed to send invite');
       }
+    } finally {
+      setSaving(false)
     }
   };
 

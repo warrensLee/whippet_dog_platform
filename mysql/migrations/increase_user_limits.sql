@@ -1,0 +1,4 @@
+ALTER TABLE Person 
+    MODIFY COLUMN Country VARCHAR(50),
+    MODIFY COLUMN PrimaryPhone VARCHAR(32),
+    MODIFY COLUMN SecondaryPhone VARCHAR(32);

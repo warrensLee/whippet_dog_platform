@@ -1,5 +1,5 @@
 'use client';
-
+import { emptyAddForm } from './types';
 import {
   Alert,
   Dialog,
@@ -16,45 +16,96 @@ import {
   Typography,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { AddForm, UserRole } from './types';
 import PasswordRequirements from '@/lib/passwordRequirements/passwordRequirements';
 import Button from '@/app/components/ui/buttons/Button';
 import SecondaryButton from '@/app/components/ui/buttons/SecondaryButton';
+import axios from 'axios';
 
 
 type AddUserDialogProps = {
   open: boolean;
-  saving: boolean;
-  form: AddForm;
   roles: UserRole[];
   onClose: () => void;
-  onSave: (form: AddForm) => Promise<void> | void;
-  updateForm: (key: keyof AddForm, value: string) => void;
-  error: string;
+  onSuccess: () => void
 };
 
 export default function AddUserDialog({
   open,
-  saving,
-  form,
   roles,
   onClose,
-  onSave,
-  updateForm,
-  error,
+  onSuccess,
 }: AddUserDialogProps) {
-  const handleSubmit = async () => {
-    await onSave(form);
-  };
+
+
+  const [saving, setSaving] = useState(false)
+  const [addForm, setAddForm] = useState(emptyAddForm);
   const [passwordRequirementsMet, setPasswordRequirementsMet] = useState(false)
   const [confirmPassword, setConfirmPassword] = useState("")
+  const [error, setError] = useState("")
 
+
+  async function closeDialog() {
+    onClose()
+    setAddForm(emptyAddForm)
+    setConfirmPassword("")
+    setError('')
+  }
+  async function handleAddUser() {
+    try {
+      setSaving(true)
+      setError('');
+
+      const res = await axios.post('/api/person/add',
+        {
+          firstName: addForm.firstName,
+          lastName: addForm.lastName,
+          email: addForm.email,
+          addressLineOne: addForm.addressLineOne,
+          addressLineTwo: addForm.addressLineTwo,
+          city: addForm.city,
+          stateProvince: addForm.stateProvince,
+          zipCode: addForm.zipCode,
+          country: addForm.country,
+          primaryPhone: addForm.primaryPhone,
+          secondaryPhone: addForm.secondaryPhone,
+          systemRole: addForm.systemRole,
+          locked: false,
+          notes: addForm.notes,
+          personId: addForm.username,
+          password: addForm.password,
+          publicNotes: addForm.publicNotes
+        });
+
+      if (!res.data.ok) {
+        setError(res.data.error || 'Failed to create user');
+        return;
+      }
+
+      onSuccess()
+      setAddForm(emptyAddForm)
+      setConfirmPassword("")
+    } catch {
+      setError("Failed to add user!")
+    } finally {
+      setSaving(false)
+    }
+  };
+
+  async function handleSubmit() {
+    await handleAddUser();
+  };
+
+
+  const updateForm = (key: keyof AddForm, value: string) => {
+    setAddForm((prev) => ({ ...prev, [key]: value }));
+  };
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
+    <Dialog open={open} onClose={closeDialog} fullWidth maxWidth="md">
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <Typography variant="h6">Add New User</Typography>
-        <IconButton onClick={onClose} size="small" sx={{ ml: 'auto' }}>
+        <IconButton onClick={closeDialog} size="small" sx={{ ml: 'auto' }}>
           <CloseIcon />
         </IconButton>
       </DialogTitle>
@@ -68,25 +119,25 @@ export default function AddUserDialog({
           <Typography variant="subtitle2">Basic Info</Typography>
           <TextField
             label="Username"
-            value={form.username}
+            value={addForm.username}
             onChange={(e) => updateForm('username', e.target.value)}
             fullWidth
           />
           <TextField
             label="First Name"
-            value={form.firstName}
+            value={addForm.firstName}
             onChange={(e) => updateForm('firstName', e.target.value)}
             fullWidth
           />
           <TextField
             label="Last Name"
-            value={form.lastName}
+            value={addForm.lastName}
             onChange={(e) => updateForm('lastName', e.target.value)}
             fullWidth
           />
           <TextField
             label="Email"
-            value={form.email}
+            value={addForm.email}
             onChange={(e) => updateForm('email', e.target.value)}
             fullWidth
           />
@@ -96,7 +147,7 @@ export default function AddUserDialog({
           <TextField
             type="password"
             label="Password"
-            value={form.password}
+            value={addForm.password}
             onChange={(e) => updateForm('password', e.target.value)}
             fullWidth
           />
@@ -107,7 +158,7 @@ export default function AddUserDialog({
             onChange={(e) => setConfirmPassword(e.target.value)}
             fullWidth
           />
-          <PasswordRequirements confirmPassword={confirmPassword} password={form.password} setRequirementsMet={setPasswordRequirementsMet} />
+          <PasswordRequirements confirmPassword={confirmPassword} password={addForm.password} setRequirementsMet={setPasswordRequirementsMet} />
 
           <Typography variant="subtitle2" sx={{ pt: 1 }}>
             Address
@@ -115,37 +166,37 @@ export default function AddUserDialog({
 
           <TextField
             label="Address Line 1"
-            value={form.addressLineOne}
+            value={addForm.addressLineOne}
             onChange={(e) => updateForm('addressLineOne', e.target.value)}
             fullWidth
           />
           <TextField
             label="Address Line 2"
-            value={form.addressLineTwo}
+            value={addForm.addressLineTwo}
             onChange={(e) => updateForm('addressLineTwo', e.target.value)}
             fullWidth
           />
           <TextField
             label="City"
-            value={form.city}
+            value={addForm.city}
             onChange={(e) => updateForm('city', e.target.value)}
             fullWidth
           />
           <TextField
             label="State / Province"
-            value={form.stateProvince}
+            value={addForm.stateProvince}
             onChange={(e) => updateForm('stateProvince', e.target.value)}
             fullWidth
           />
           <TextField
             label="Zip Code"
-            value={form.zipCode}
+            value={addForm.zipCode}
             onChange={(e) => updateForm('zipCode', e.target.value)}
             fullWidth
           />
           <TextField
             label="Country"
-            value={form.country}
+            value={addForm.country}
             onChange={(e) => updateForm('country', e.target.value)}
             fullWidth
           />
@@ -156,13 +207,13 @@ export default function AddUserDialog({
 
           <TextField
             label="Primary Phone"
-            value={form.primaryPhone}
+            value={addForm.primaryPhone}
             onChange={(e) => updateForm('primaryPhone', e.target.value)}
             fullWidth
           />
           <TextField
             label="Secondary Phone"
-            value={form.secondaryPhone}
+            value={addForm.secondaryPhone}
             onChange={(e) => updateForm('secondaryPhone', e.target.value)}
             fullWidth
           />
@@ -174,7 +225,7 @@ export default function AddUserDialog({
           <FormControl fullWidth>
             <InputLabel>System Role</InputLabel>
             <Select
-              value={form.systemRole}
+              value={addForm.systemRole}
               label="System Role"
               onChange={(e) => updateForm('systemRole', String(e.target.value))}
             >
@@ -188,7 +239,7 @@ export default function AddUserDialog({
 
           <TextField
             label="Notes"
-            value={form.notes}
+            value={addForm.notes}
             onChange={(e) => updateForm('notes', e.target.value)}
             fullWidth
             multiline
@@ -197,13 +248,13 @@ export default function AddUserDialog({
         </Stack>
       </DialogContent>
       <DialogActions>
-        <SecondaryButton type="button" onClick={onClose} disabled={saving} >
+        <SecondaryButton type="button" onClick={closeDialog} disabled={saving} >
           Cancel
         </SecondaryButton>
         <Button
           type="button"
           onClick={handleSubmit}
-          disabled={saving || !passwordRequirementsMet || !form.username || !form.firstName || !form.lastName || !form.email}
+          disabled={saving || !passwordRequirementsMet || !addForm.username || !addForm.firstName || !addForm.lastName || !addForm.email}
         >
           {saving ? 'Creating...' : 'Create User'}
         </Button>

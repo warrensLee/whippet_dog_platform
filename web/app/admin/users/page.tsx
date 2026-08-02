@@ -1,15 +1,11 @@
 'use client';
 
-//TODO: Clean up this page and Refactor it  so that API logic and errors appear inside of the individual dialog components
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import axios, { AxiosError } from 'axios';
 import HeroSection from '@/app/components/ui/HeroSection';
 
 import {
-  deleteUserRequest,
-  resetUserPasswordRequest,
-  saveUserEditRequest,
   toggleUserLockRequest,
 } from '@/lib/user/adminUserActions';
 
@@ -41,55 +37,71 @@ import EditIcon from '@mui/icons-material/Edit';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import MailOutlineIcon from '@mui/icons-material/MailOutline';
 import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined';
-import EditUserDialog from '../../components/user/EditUserDialog';
-import DummyUserDialog from '../../components/user/DummyUserDialog';
-import InviteUserDialog from '../../components/user/InviteUserDialog';
-import DeleteUserDialog from '../../components/user/DeleteUserDialog';
-import ChangePasswordDialog from '../../components/user/ChangePasswordDialog';
+import EditUserDialog from './EditUserDialog';
+import DummyUserDialog from './DummyUserDialog';
+import InviteUserDialog from './InviteUserDialog'
+import DeleteUserDialog from './DeleteUserDialog'
+import ChangePasswordDialog from './ChangePasswordDialog'
 import DeleteIcon from '@mui/icons-material/Delete';
 import KeyIcon from '@mui/icons-material/Key';
 
-import { AddForm, EditForm, Person, UserRole, emptyAddForm, emptyForm } from './types';
+import { Person, UserRole } from './types';
 import AddUserDialog from './AddUserDialog';
 import AdminGuard from '@/lib/auth/adminGuard';
 import Loading from '@/lib/loading';
 import Button from '@/app/components/ui/buttons/Button';
 import SecondaryButton from '@/app/components/ui/buttons/SecondaryButton';
+import authContext from '@/lib/auth/auth';
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<Person[]>([]);
-  const [currentUserId, setCurrentUserId] = useState<string>('');
-  const [currentUserPersonId, setCurrentUserPersonId] = useState<string>('');
   const [roles, setRoles] = useState<UserRole[]>([]);
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
-
+  const currentUser = useContext(authContext)
   const [addMenuAnchor, setAddMenuAnchor] = useState<null | HTMLElement>(null);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [dummyOpen, setDummyOpen] = useState(false);
 
   const [search, setSearch] = useState('');
-  const [form, setForm] = useState<EditForm>(emptyForm);
-  const [addForm, setAddForm] = useState<AddForm>(emptyAddForm);
+  const [editingPerson, setEditingPerson] = useState<Person | undefined>(undefined)
 
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [addError, setAddError] = useState('');
+  const [alertSeverity, setAlertSeverity] = useState<"error" | "success">("error");
+
+  const [message, setMessage] = useState('');
 
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<Person | null>(null);
 
   const [passwordResetOpen, setPasswordResetOpen] = useState(false);
-  const [userToResetPassword, setUserToResetPassword] = useState<Person | null>(null);
 
-  const fetchUsers = async () => {
-    const res = await axios.get('/api/person/search');
-    setUsers(res.data.ok ? res.data.data : []);
-  };
+  function handleResetPasswordSuccess() {
+    setPasswordResetOpen(false)
+    setSuccess("Password set successfully!")
+  }
+
+  function setError(message: string) {
+    setMessage(message)
+    setAlertSeverity("error")
+  }
+
+  function setSuccess(message: string) {
+    setMessage(message)
+    setAlertSeverity("success")
+  }
+
+  const fetchUsers = useCallback(async () => {
+    try {
+      const res = await axios.get('/api/person/search');
+      setUsers(res.data.ok ? res.data.data : []);
+    } catch {
+      setUsers([])
+      setError("Failed to get users!")
+    }
+  }, []);
 
   const fetchRoles = async () => {
     const res = await axios.get('/api/user_role/get');
@@ -104,39 +116,12 @@ export default function AdminUsersPage() {
     setAddMenuAnchor(null);
   };
 
-  const openInvite = () => {
-    closeAddMenu();
-    setInviteOpen(true);
-  };
-
-  const closeInvite = () => {
-    if (saving)
-      return;
-    setInviteOpen(false);
-  };
-
-  const openDummy = () => {
-    closeAddMenu();
-    setDummyOpen(true);
-  };
-
-  const closeDummy = () => {
-    if (saving) return;
-    setDummyOpen(false);
-  };
-
   const isCurrentUser = (user: Person) => {
     const sameId =
       user.id != null &&
-      currentUserId !== '' &&
-      String(user.id) === String(currentUserId);
+      currentUser && currentUser != "NotAuthenticated" && currentUser.ID == user.id
 
-    const samePersonId =
-      user.personId != null &&
-      currentUserPersonId !== '' &&
-      String(user.personId) === String(currentUserPersonId);
-
-    return sameId || samePersonId;
+    return sameId;
   };
 
   const getLockDisabledReason = (user: Person) => {
@@ -145,9 +130,6 @@ export default function AdminUsersPage() {
 
     if (isCurrentUser(user))
       return 'You cannot lock your own account.';
-
-    if (!user.locked && (user.systemRole || '').toUpperCase() === 'ADMIN' && adminUsers.length <= 1)
-      return 'You cannot lock the last admin account.';
 
     return '';
   };
@@ -158,9 +140,6 @@ export default function AdminUsersPage() {
 
     if (isCurrentUser(user))
       return 'You cannot delete your own account.';
-
-    if ((user.systemRole || '').toUpperCase() === 'ADMIN' && adminUsers.length <= 1)
-      return 'You cannot delete the last admin account.';
 
     return '';
   };
@@ -190,23 +169,7 @@ export default function AdminUsersPage() {
     };
 
     loadPage();
-
-    const fetchCurrentUser = async () => {
-      try {
-        const res = await axios.get('/api/person/mine');
-
-        if (res.data?.ok) {
-          setCurrentUserId(String(res.data.data?.id ?? ''));
-          setCurrentUserPersonId(String(res.data.data?.personId ?? ''));
-        }
-      }
-      catch (err) {
-        console.error('Failed to fetch current user', err);
-      }
-    };
-
-    fetchCurrentUser();
-  }, []);
+  }, [fetchUsers]);
 
   const filteredUsers = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -248,52 +211,9 @@ export default function AdminUsersPage() {
   }, [users, search, roleFilter, statusFilter]);
 
   const openEdit = (user: Person) => {
-    setForm({
-      id: user.id,
-      personId: user.personId || '',
-      firstName: user.firstName || '',
-      lastName: user.lastName || '',
-      email: user.email || '',
-      addressLineOne: user.addressLineOne || '',
-      addressLineTwo: user.addressLineTwo || '',
-      city: user.city || '',
-      stateProvince: user.stateProvince || '',
-      zipCode: user.zipCode || '',
-      country: user.country || '',
-      primaryPhone: user.primaryPhone || '',
-      secondaryPhone: user.secondaryPhone || '',
-      systemRole: user.systemRole || '',
-      locked: !!user.locked,
-      notes: user.notes || '',
-      publicNotes: user.publicNotes || ''
-    });
-    setError('');
+    setEditingPerson(user);
     setSuccess('');
-    setOpen(true);
-  };
-
-  const adminUsers = useMemo(
-    () => users.filter((u) => (u.systemRole || '').toUpperCase() === 'ADMIN'),
-    [users]
-  );
-
-  const closeEdit = () => {
-    if (saving) return;
-    setOpen(false);
-    setForm(emptyForm);
-  };
-
-  const openAdd = () => {
-    closeAddMenu();
-    setAddForm(emptyAddForm);
-    setAddError('');
-    setAddOpen(true);
-  };
-
-  const closeAdd = () => {
-    if (saving) return;
-    setAddOpen(false);
-    setAddForm(emptyAddForm);
+    setEditDialogOpen(true);
   };
 
   const openDelete = (user: Person) => {
@@ -304,108 +224,27 @@ export default function AdminUsersPage() {
       return;
     }
 
-    setUserToDelete(user);
+    setEditingPerson(user);
     setError('');
     setSuccess('');
     setDeleteOpen(true);
   };
 
-  const closeDelete = () => {
-    if (saving) return;
-    setDeleteOpen(false);
-    setUserToDelete(null);
-  };
 
-  const updateForm = <K extends keyof EditForm>(key: K, value: EditForm[K]) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
-  };
+  function handleEditSuccess() {
+    setEditDialogOpen(false)
+    setSuccess("User Updated!")
+    fetchUsers()
+  }
 
-  const updateAddForm = (key: keyof AddForm, value: string) => {
-    setAddForm((prev) => ({ ...prev, [key]: value }));
-  };
 
-  const handleSave = async () => {
-    try {
-      setOpen(false);
-      setSaving(true);
-      setError('');
-      setSuccess('');
-
-      const res = await saveUserEditRequest(form);
-
-      if (!res.data.ok) {
-        setError(res.data.error || 'Failed to update user');
-        return;
-      }
-
-      await fetchUsers();
-
-      setSuccess('User updated successfully');
-    }
-    catch (err: unknown) {
-      if (err instanceof AxiosError && err.response) {
-        setError(err.response.data.error || 'Failed to update user!');
-      }
-      else if (err instanceof Error) {
-        setError(err.message || "Failed to update user!")
-      }
-      else {
-        setError("Failed to update user!")
-      }
-    }
-    finally {
-      setSaving(false);
-    }
-  };
-
-  const handleDeleteUser = async () => {
-    closeDelete();
-    if (!userToDelete)
-      return;
-
-    try {
-      setSaving(true);
-      setError('');
-      setSuccess('');
-
-      const res = await deleteUserRequest(userToDelete);
-
-      if (!res.data.ok) {
-        setError(res.data.error || 'Failed to delete user');
-        return;
-      }
-
-      await fetchUsers();
-      setSuccess('User deleted successfully');
-    }
-    catch (err: unknown) {
-      if (err instanceof AxiosError && err.response) {
-        setError(err.response.data.error || 'Failed to delete user');
-      }
-      else if (err instanceof Error) {
-        setError(err.message || 'Failed to delete user');
-      }
-      else {
-        setError('Failed to delete user');
-      }
-    }
-    finally {
-      setSaving(false);
-    }
-  };
 
   const openResetPassword = (user: Person) => {
-    setUserToResetPassword(user);
-    setError('');
+    setEditingPerson(user)
     setSuccess('');
     setPasswordResetOpen(true);
   };
 
-  const closeResetPassword = () => {
-    if (saving) return;
-    setPasswordResetOpen(false);
-    setUserToResetPassword(null);
-  };
 
   const inviteDummyUser = async (user: Person) => {
     setSuccess("");
@@ -422,40 +261,6 @@ export default function AdminUsersPage() {
     }
   }
 
-  const handleResetPassword = async (newPassword: string) => {
-    closeResetPassword();
-    if (!userToResetPassword)
-      return;
-
-    try {
-      setSaving(true);
-      setError('');
-      setSuccess('');
-
-      const res = await resetUserPasswordRequest(userToResetPassword.personId, newPassword);
-
-      if (!res.data.ok) {
-        setError(res.data.error || 'Failed to reset password');
-        return;
-      }
-
-      setSuccess('Password reset successfully');
-    }
-    catch (err: unknown) {
-      if (err instanceof AxiosError && err.response) {
-        setError(err.response.data.error || 'Failed to reset password');
-      }
-      else if (err instanceof Error) {
-        setError(err.message || 'Failed to reset password');
-      }
-      else {
-        setError('Failed to reset password');
-      }
-    }
-    finally {
-      setSaving(false);
-    }
-  };
 
   const handleToggleLock = async (user: Person) => {
     const reason = getLockDisabledReason(user);
@@ -503,56 +308,6 @@ export default function AdminUsersPage() {
     }
   };
 
-  const handleAddUser = async () => {
-    try {
-      setAddOpen(false);
-      setSaving(true);
-      setAddError('');
-
-      const res = await axios.post('/api/person/add',
-        {
-          firstName: addForm.firstName,
-          lastName: addForm.lastName,
-          email: addForm.email,
-          addressLineOne: addForm.addressLineOne,
-          addressLineTwo: addForm.addressLineTwo,
-          city: addForm.city,
-          stateProvince: addForm.stateProvince,
-          zipCode: addForm.zipCode,
-          country: addForm.country,
-          primaryPhone: addForm.primaryPhone,
-          secondaryPhone: addForm.secondaryPhone,
-          systemRole: addForm.systemRole,
-          locked: false,
-          notes: addForm.notes,
-          personId: addForm.username,
-          password: addForm.password,
-          publicNotes: addForm.publicNotes
-        });
-
-      if (!res.data.ok) {
-        setAddError(res.data.error || 'Failed to create user');
-        return;
-      }
-
-      await fetchUsers();
-      setSuccess('User created successfully');
-    }
-    catch (err: unknown) {
-      if (err instanceof AxiosError && err.response) {
-        setError(err.response.data.error || 'Failed to add user!');
-      }
-      else if (err instanceof Error) {
-        setError(err.message || "Failed to add user!")
-      }
-      else {
-        setError("Failed to add user!")
-      }
-    }
-    finally {
-      setSaving(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -603,21 +358,30 @@ export default function AdminUsersPage() {
                 transformOrigin={{ vertical: 'top', horizontal: 'left' }}
                 sx={{ mt: 1, }}
               >
-                <MenuItem onClick={openAdd}>
+                <MenuItem onClick={() => {
+                  closeAddMenu()
+                  setAddOpen(true)
+                }}>
                   <ListItemIcon>
                     <PersonAddIcon fontSize="small" />
                   </ListItemIcon>
                   Add User
                 </MenuItem>
 
-                <MenuItem onClick={openDummy}>
+                <MenuItem onClick={() => {
+                  closeAddMenu()
+                  setDummyOpen(true)
+                }}>
                   <ListItemIcon>
                     <BadgeOutlinedIcon fontSize="small" />
                   </ListItemIcon>
                   Create Dummy Account
                 </MenuItem>
 
-                <MenuItem onClick={openInvite}>
+                <MenuItem onClick={() => {
+                  closeAddMenu()
+                  setInviteOpen(true)
+                }}>
                   <ListItemIcon>
                     <MailOutlineIcon fontSize="small" />
                   </ListItemIcon>
@@ -625,15 +389,9 @@ export default function AdminUsersPage() {
                 </MenuItem>
               </Menu>
             </Box>
-            {error && !open && (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {error}
-              </Alert>
-            )}
-
-            {success && (
-              <Alert severity="success" sx={{ mb: 2 }}>
-                {success}
+            {message && (
+              <Alert severity={alertSeverity} sx={{ mb: 2 }}>
+                {message}
               </Alert>
             )}
 
@@ -828,34 +586,28 @@ export default function AdminUsersPage() {
           </Box>
 
           <EditUserDialog
-            open={open}
-            saving={saving}
-            form={form}
+            open={editDialogOpen}
+            user={editingPerson}
             roles={roles}
-            onClose={closeEdit}
-            onSave={handleSave}
-            updateForm={updateForm}
-            error={error}
+            onSuccess={handleEditSuccess}
+            onClose={() => setEditDialogOpen(false)}
           />
 
           <AddUserDialog
             open={addOpen}
-            saving={saving}
-            form={addForm}
             roles={roles}
-            onClose={closeAdd}
-            onSave={() => {
-              handleAddUser();
+            onClose={() => setAddOpen(false)}
+            onSuccess={() => {
+              setSuccess("User added successfully!")
+              setAddOpen(false)
+              fetchUsers()
             }}
-            updateForm={updateAddForm}
-            error={addError}
           />
 
           <InviteUserDialog
             open={inviteOpen}
-            saving={saving}
-            onClose={closeInvite}
-            onSave={() => {
+            onClose={() => setInviteOpen(false)}
+            onSuccess={() => {
               setSuccess('Invite sent successfully');
               setInviteOpen(false);
             }}
@@ -863,10 +615,9 @@ export default function AdminUsersPage() {
 
           <DummyUserDialog
             open={dummyOpen}
-            saving={saving}
             roles={roles}
-            onClose={closeDummy}
-            onSave={async () => {
+            onClose={() => setDummyOpen(false)}
+            onSuccess={async () => {
               await fetchUsers();
               setSuccess('Dummy account created successfully');
               setDummyOpen(false);
@@ -875,21 +626,20 @@ export default function AdminUsersPage() {
 
           <DeleteUserDialog
             open={deleteOpen}
-            saving={saving}
-            userToDelete={userToDelete}
-            onClose={closeDelete}
-            onDelete={handleDeleteUser}
+            userToDelete={editingPerson}
+            onClose={() => setDeleteOpen(false)}
+            onSuccess={() => {
+              setDeleteOpen(false)
+              fetchUsers()
+              setSuccess("User deleted successfully")
+            }}
           />
 
           <ChangePasswordDialog
             open={passwordResetOpen}
-            saving={saving}
-            personId={userToResetPassword?.personId || ''}
-            personName={
-              userToResetPassword?.personId || ''
-            }
-            onClose={closeResetPassword}
-            onSave={handleResetPassword}
+            person={editingPerson}
+            onClose={() => setPasswordResetOpen(false)}
+            onSuccess={handleResetPasswordSuccess}
           />
 
         </section>

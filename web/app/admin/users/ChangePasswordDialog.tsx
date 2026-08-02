@@ -11,41 +11,72 @@ import {
   Alert,
 } from '@mui/material';
 import PasswordRequirements from '@/lib/passwordRequirements/passwordRequirements';
-import Button from '../ui/buttons/Button';
-import SecondaryButton from '../ui/buttons/SecondaryButton';
+import Button from '@/app/components/ui/buttons/Button';
+import SecondaryButton from '@/app/components/ui/buttons/SecondaryButton';
+import { Person } from './types';
+import { resetUserPasswordRequest } from '@/lib/user/adminUserActions';
+import { AxiosError } from 'axios';
 
 interface ChangePasswordDialogProps {
   open: boolean;
-  saving: boolean;
-  personId: string;
-  personName: string;
+  person: Person | undefined;
   onClose: () => void;
-  onSave: (newPassword: string) => void;
+  onSuccess: () => void;
 }
 
 export default function ChangePasswordDialog({
   open,
-  saving,
-  personName,
+  person,
   onClose,
-  onSave,
+  onSuccess
 }: ChangePasswordDialogProps) {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [passwordRequirementsMet, setPasswordRequirementsMet] = useState(false);
-
-  const handleSave = () => {
+  const [saving, setSaving] = useState(false)
+  function handleSave() {
     setError('');
-
-    onSave(newPassword);
+    handleResetPassword(newPassword);
   };
 
-  const handleClose = () => {
+  function handleClose() {
     setNewPassword('');
     setConfirmPassword('');
     setError('');
     onClose();
+  };
+
+  const handleResetPassword = async (newPassword: string) => {
+    if (!person) return
+    try {
+      setSaving(true);
+      setError('');
+
+      const res = await resetUserPasswordRequest(person.personId, newPassword);
+
+      if (!res.data.ok) {
+        setError(res.data.error || 'Failed to reset password');
+        return;
+      }
+      onSuccess()
+    }
+    catch (err: unknown) {
+      if (err instanceof AxiosError && err.response) {
+        setError(err.response.data.error || 'Failed to reset password');
+      }
+      else if (err instanceof Error) {
+        setError(err.message || 'Failed to reset password');
+      }
+      else {
+        setError('Failed to reset password');
+      }
+    }
+    finally {
+      setSaving(false);
+      setNewPassword("")
+      setConfirmPassword("")
+    }
   };
 
   return (
@@ -54,7 +85,7 @@ export default function ChangePasswordDialog({
       <DialogContent>
         <Typography sx={{ mb: 2 }}>
           Please enter the new password for {' '}
-          <strong>{personName}</strong>
+          <strong>{person?.personId}({person?.firstName + " " + person?.lastName})</strong>
         </Typography>
 
         {error && (

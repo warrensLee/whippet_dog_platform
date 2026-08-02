@@ -17,22 +17,21 @@ import {
   Typography,
 } from '@mui/material';
 import { AddForm, UserRole, emptyAddForm } from '../../admin/users/types';
-import SecondaryButton from '../ui/buttons/SecondaryButton';
-import Button from '../ui/buttons/Button';
+import SecondaryButton from '@/app/components/ui/buttons/SecondaryButton';
+import Button from '@/app/components/ui/buttons/Button';
 
 type Props =
   {
     open: boolean;
-    saving: boolean;
     roles: UserRole[];
     onClose: () => void;
-    onSave: () => void;
+    onSuccess: () => void;
   };
 
-export default function DummyUserDialog({ open, saving, roles, onClose, onSave, }: Props) {
+export default function DummyUserDialog({ open, roles, onClose, onSuccess, }: Props) {
   const [form, setForm] = useState<AddForm>(emptyAddForm);
   const [error, setError] = useState('');
-
+  const [saving, setSaving] = useState(false)
   const updateForm = (key: keyof AddForm, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
@@ -48,6 +47,7 @@ export default function DummyUserDialog({ open, saving, roles, onClose, onSave, 
     onClose();
   };
 
+
   const mergedNotes = useMemo(() => {
     const trimmed = form.notes.trim();
     return trimmed ? `DUMMY ACCOUNT\n${trimmed}` : 'DUMMY ACCOUNT';
@@ -55,8 +55,8 @@ export default function DummyUserDialog({ open, saving, roles, onClose, onSave, 
 
   const handleCreateDummy = async () => {
     try {
-      setError('');
-
+      setError('')
+      setSaving(true)
       const res = await axios.post('/api/person/add',
         {
           firstName: form.firstName,
@@ -81,11 +81,8 @@ export default function DummyUserDialog({ open, saving, roles, onClose, onSave, 
       }
 
       resetForm();
-      onSave();
-      onClose();
-    }
-    catch
-    (err: unknown) {
+      onSuccess();
+    } catch (err: unknown) {
       if (err instanceof AxiosError && err.response) {
         setError(err.response.data?.error || 'Failed to create dummy account');
       }
@@ -95,6 +92,8 @@ export default function DummyUserDialog({ open, saving, roles, onClose, onSave, 
       else {
         setError('Failed to create dummy account');
       }
+    } finally {
+      setSaving(false)
     }
   };
 
@@ -103,7 +102,6 @@ export default function DummyUserDialog({ open, saving, roles, onClose, onSave, 
       <DialogTitle>Create Dummy Account</DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
-          {error && <Alert severity="error">{error}</Alert>}
 
           <Alert severity="info">
             This creates a manual placeholder person record. No invite email or password is created.
@@ -228,7 +226,7 @@ export default function DummyUserDialog({ open, saving, roles, onClose, onSave, 
           />
         </Stack>
       </DialogContent>
-
+      {error && <Alert severity="error">{error}</Alert>}
       <DialogActions>
         <SecondaryButton type="button" onClick={handleClose} disabled={saving} className="rounded-full border border-[#12301D]/15 bg-white px-6 py-3 font-semibold text-[#12301D] hover:bg-[#12301D]/5 transition disabled:opacity-60">
           Cancel

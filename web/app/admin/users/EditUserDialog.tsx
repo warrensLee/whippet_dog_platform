@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   Alert,
   Dialog,
@@ -15,41 +15,125 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { EditForm, UserRole } from '../../admin/users/types';
+import { EditForm, Person, UserRole } from '../../admin/users/types';
 import RichTextEditor from '@/lib/richtext/RichTextEditor';
-import SecondaryButton from '../ui/buttons/SecondaryButton';
-import Button from '../ui/buttons/Button';
+import SecondaryButton from '@/app/components/ui/buttons/SecondaryButton';
+import Button from '@/app/components/ui/buttons/Button';
+import { saveUserEditRequest } from '@/lib/user/adminUserActions';
+import { AxiosError } from 'axios';
 
 type Props = {
   open: boolean;
-  saving: boolean;
-  form: EditForm;
+  user: Person | undefined;
   roles: UserRole[];
   onClose: () => void;
-  onSave: () => void;
-  updateForm: <K extends keyof EditForm>(key: K, value: EditForm[K]) => void;
-  error: string;
+  onSuccess: () => void;
 };
 
 export default function EditUserDialog({
   open,
-  saving,
-  form,
+  user,
   roles,
   onClose,
-  onSave,
-  updateForm,
-  error,
+  onSuccess
 }: Props) {
+  const [error, setError] = useState("")
+  const [saving, setSaving] = useState(false)
+
+  const reloadEditFormFromUser = useCallback(() => {
+    if (user) {
+      setForm({
+        id: user.id,
+        personId: user.personId || '',
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || '',
+        addressLineOne: user.addressLineOne || '',
+        addressLineTwo: user.addressLineTwo || '',
+        city: user.city || '',
+        stateProvince: user.stateProvince || '',
+        zipCode: user.zipCode || '',
+        country: user.country || '',
+        primaryPhone: user.primaryPhone || '',
+        secondaryPhone: user.secondaryPhone || '',
+        systemRole: user.systemRole || '',
+        locked: !!user.locked,
+        notes: user.notes || '',
+        publicNotes: user.publicNotes || ''
+      })
+    }
+  }, [user])
+
+
+  const [form, setForm] = useState({
+    id: 0,
+    personId: '',
+    firstName: '',
+    lastName: '',
+    email: '',
+    addressLineOne: '',
+    addressLineTwo: '',
+    city: '',
+    stateProvince: '',
+    zipCode: '',
+    country: '',
+    primaryPhone: '',
+    secondaryPhone: '',
+    systemRole: '',
+    locked: false,
+    notes: '',
+    publicNotes: ''
+  })
+
+  useEffect(() => {
+    reloadEditFormFromUser()
+  }, [reloadEditFormFromUser, user])
+
+  function handleClose() {
+    setError("")
+    onClose()
+    reloadEditFormFromUser()
+  }
+
+  function updateForm<K extends keyof EditForm>(key: K, value: EditForm[K]) {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  async function onSave() {
+    try {
+      setSaving(true);
+      setError('');
+
+      const res = await saveUserEditRequest(form);
+
+      if (!res.data.ok) {
+        setError(res.data.error || 'Failed to update user');
+        return;
+      }
+      onSuccess()
+      reloadEditFormFromUser()
+    }
+    catch (err: unknown) {
+      if (err instanceof AxiosError && err.response) {
+        setError(err.response.data.error || 'Failed to update user!');
+      }
+      else if (err instanceof Error) {
+        setError(err.message || "Failed to update user!")
+      }
+      else {
+        setError("Failed to update user!")
+      }
+    }
+    finally {
+      setSaving(false);
+    }
+  };
+
+
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
+    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
       <DialogTitle>Edit User</DialogTitle>
       <DialogContent>
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
         <Stack spacing={2} sx={{ mt: 1 }}>
           <Typography variant="subtitle2">Basic Info</Typography>
 
@@ -172,10 +256,17 @@ export default function EditUserDialog({
           />
           <Typography>Public Notes</Typography>
           <RichTextEditor style={{}} value={form.publicNotes} onChange={(e) => updateForm("publicNotes", e)} />
+
+
         </Stack>
       </DialogContent>
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
       <DialogActions>
-        <SecondaryButton type="button" onClick={onClose} disabled={saving} >
+        <SecondaryButton type="button" onClick={handleClose} disabled={saving} >
           Cancel
         </SecondaryButton>
         <Button type="button" onClick={onSave} disabled={saving}>

@@ -90,3 +90,9 @@ def enum_field(errors, value, name, valid_values, *, required=False):
         errors.append(f"{name} must be one of: {', '.join(valid_values)}")
         return None
     return val
+
+def varchar_field(errors, value, length_limit, field_name):
+    if value and len(value) > length_limit:
+        errors.append(f"{field_name} must by {length_limit} characters or less")
+        return False
+    return True

@@ -2,6 +2,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from database import fetch_all, fetch_one, execute
 from mysql.connector import Error
 import re
+from utils.validators import varchar_field 
 
 class Person:
     def __init__(self, id, person_id, first_name, last_name, email_address, address_line_one,
@@ -151,8 +152,18 @@ class Person:
         """Validate required fields. Returns list of errors (empty if valid)."""
         errors = []
         username_regex = r"^[a-zA-Z0-9_]+$"
-        if self.first_name and len(self.first_name) >=50:
-            errors.append("Person Name is too long")
+        varchar_field(errors,self.first_name,50,"First Name")
+        varchar_field(errors,self.last_name,50,"Last Name")
+        varchar_field(errors, self.email,50, "Email")
+        varchar_field(errors, self.address_line_one,50, "Address Line 1")
+        varchar_field(errors, self.address_line_two,50, "Address Line 2")
+        varchar_field(errors, self.city,50, "City")
+        varchar_field(errors, self.state_province,50, "State/Province")
+        varchar_field(errors, self.zip_code,10, "Zip code")
+        varchar_field(errors, self.country,50, "Country")
+        varchar_field(errors, self.primary_phone,32, "Primary Phone")
+        varchar_field(errors, self.secondary_phone,32, "Secondary Phone")
+        
         if not self.first_name:
             errors.append("First name is required")
         if not self.last_name:
@@ -161,7 +172,6 @@ class Person:
             errors.append("Username must be between 4 and 20 characters")
         if self.person_id is not None and not re.match(username_regex, self.person_id):
             errors.append("Username may only contain A-Z, 0-9, and _")
-
         return errors
 
     def set_password(self, password):
