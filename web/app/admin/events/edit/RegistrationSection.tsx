@@ -103,8 +103,8 @@ export default function RegistrationSection({ results, onChange, onRemoveDog }: 
                                 <td className="py-3 px-3 text-center">
                                     {onRemoveDog && (
                                         <button
-                                            onClick={() => handleRemoveClick(dog.cwaNumber)}
-                                            className="text-red-500 hover:text-red-700 text-sm font-bold transition"
+                                            onClick={() => handleRemoveClick(dog.cwaNumber)} disabled={dog.races.length > 0}
+                                            className="text-red-500 hover:text-red-700 text-sm font-bold transition disabled:text-gray-200"
                                         >
                                             ×
                                         </button>

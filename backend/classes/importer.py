@@ -341,6 +341,7 @@ class CsvImporter:
             
             if import_type == "dogs" and mode == "update":
                 obj.update_from_meet_results()
+                DogTitle.sync_titles_for_dog(obj, editor_id, now, send_email=False)
 
         affected_dogs = set()
         for item in changed_deferred:

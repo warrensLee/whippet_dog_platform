@@ -154,11 +154,12 @@ export default function FinalMeetResults({
 }) {
   const adultResults = results.filter(
     (dog) => String(dog.entryType ?? "").trim().toUpperCase() !== "PUPPY"
-  );
+  ).sort((a, b) => (a.meetPlacement || Infinity) - (b.meetPlacement || Infinity));
 
   const puppyResults = results.filter(
     (dog) => String(dog.entryType ?? "").trim().toUpperCase() === "PUPPY"
-  );
+  ).sort((a, b) => (a.meetPlacement || Infinity) - (b.meetPlacement || Infinity));
+
 
   const showResults = results.filter(
     (dog) => dog.shown
