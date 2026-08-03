@@ -9,7 +9,7 @@ mysqldump \
   -h 127.0.0.1 \
   -u root \
   -p${MYSQL_ROOT_PASSWORD} \
-  --all-databases | zstd -10 > "$BACKUP_FILE"
+  $MYSQL_DATABASE | zstd -10 > "$BACKUP_FILE"
 
 if [ $? -eq 0 ]; then
   echo "Backup completed successfully: $BACKUP_FILE"
