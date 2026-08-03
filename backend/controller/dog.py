@@ -420,3 +420,18 @@ def list_meets_for_dog(cwa_number):
          return jsonify({"ok": True, "data": meets}), 200
      except Error as e:
          return handle_error(e, "Database error")
+
+'''
+    this endpoint is needed to reload dog stats after site changes.
+    it can be called from the bowser directly by an admin
+    DO NOT DELETE
+'''
+@dog_bp.get("/reload_all_stats")
+def reload_all_stats():
+    role = current_role()
+    if not role or role.title != "ADMIN":
+        return jsonify({"ok":False, "message": "unauthorized"})
+    for dog in Dog.list_all_dogs():
+        if dog is not None:
+            dog.update_from_meet_results()
+    return jsonify({"ok":True})
