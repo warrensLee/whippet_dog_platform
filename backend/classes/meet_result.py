@@ -295,7 +295,6 @@ class MeetResult:
         )
         return [MeetResult.from_db_row(row) for row in rows]
 
-    ''' we no longer do this at the backend level
     def update_from_race_results(self):
         """Recalculate meet result totals from RaceResults for this meet+dog."""
         if not self.meet_number or not self.cwa_number:
@@ -331,7 +330,6 @@ class MeetResult:
         RaceResult.calculate_hc_leg_for_meet(self.meet_number)
         MeetResult.recalculate_derived_fields_for_meet(self.meet_number)
 
-    '''
     @classmethod
     def recalculate_derived_fields_for_meet(cls, meet_number):
         """Recalculate ARX/NARX/DPC/HC for every dog in a meet using final placements, then roll up to Dog."""

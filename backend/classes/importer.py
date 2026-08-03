@@ -290,12 +290,12 @@ class CsvImporter:
                     for score_field, raw_attr in score_to_raw.items():
                         if score_field in payload:
                             obj.__setattr__(raw_attr, getattr(db_obj, raw_attr, 0))
-                            obj.__setattr__(adj_attr_map[raw_attr], float(payload[score_field]))
+                            obj.__setattr__(adj_attr_map[raw_attr], float(payload[score_field] or 0 ))
                 else:
                     for score_field, raw_attr in score_to_raw.items():
                         if score_field in payload:
                             obj.__setattr__(raw_attr, 0)
-                            obj.__setattr__(adj_attr_map[raw_attr], float(payload[score_field]))
+                            obj.__setattr__(adj_attr_map[raw_attr], float(payload[score_field] or 0))
             if record_exists:
                 existing = find(pk)
                 before_snapshot = existing.to_dict() if hasattr(existing, "to_dict") else None
@@ -338,6 +338,9 @@ class CsvImporter:
 
             elif hook:
                 hook(refreshed or obj, editor_id, now)
+            
+            if import_type == "dogs" and mode == "update":
+                obj.update_from_meet_results()
 
         affected_dogs = set()
         for item in changed_deferred:
