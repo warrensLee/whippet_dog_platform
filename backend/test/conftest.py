@@ -5,6 +5,15 @@ from main import create_app
 from unittest.mock import patch
 from classes.person import Person
 from classes.user_role import UserRole
+from classes.dog import Dog
+import string
+import random
+from classes.change_log import ChangeLog
+
+
+def randomword():
+   letters = string.ascii_lowercase
+   return ''.join(random.choice(letters) for i in range(10))
 
 @pytest.fixture(scope="session")
 def app():
@@ -30,7 +39,7 @@ def app():
 
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def client(app):
     return app.test_client(use_cookies=True)
 
@@ -78,6 +87,39 @@ def public_user_session(client, public_user):
         yield client
 
 @pytest.fixture
+def privileged_client_factory(app):
+    created_user_roles = []
+    created_people = []
+    def get_privileged_client(edit_dog_scope=0, edit_meet_scope=0, edit_title_type_scope=0):
+        user_role = UserRole(randomword(), edit_dog_scope=edit_dog_scope, edit_meet_scope=edit_meet_scope,edit_title_type_scope=edit_title_type_scope)
+        user_role.save()
+        user = Person(None,randomword(),"test123", "test456", randomword() + "@test3.com","","","","","","","","",user_role.title,"","","",False)
+        user.set_password("test")
+        user.save()
+        created_user_roles.append(user_role)
+        created_people.append(user)
+        client = app.test_client(use_cookies=True)
+        with client.session_transaction():
+            with patch("controller.authentication.validate_turnstile", return_value=True):
+                client.post("/api/auth/login", json=dict(
+                    username= user.email,
+                    password= "test",
+                    cf_token= "whatever"
+                ))
+        return client
+
+    yield get_privileged_client
+
+    for x in created_people:
+        for y in ChangeLog.list_for_user(x.id):
+            ChangeLog.delete(y.id)
+        x.delete()
+
+    for x in created_user_roles:
+        x.delete_by_id()
+
+
+@pytest.fixture
 def all_privileges_user():
     user_role = UserRole("ALL", edit_dog_scope=2, edit_meet_scope=2,edit_title_type_scope=2)
     user_role.save()
@@ -99,4 +141,18 @@ def all_privileges_session(client, all_privileges_user):
             ))
             assert login_response.status_code == 200
         yield client
-    
+
+@pytest.fixture
+def dog_factory():
+    created_dogs = []
+    cwa_counter = 1111 
+    def _create_dog():
+        nonlocal cwa_counter
+        d = Dog(str(cwa_counter),"0","AKC","TEST","TESTINGTON", "1912-12-12","","ACTIVE",87,"D",10,12,12,12,5,12,12,12,12,"","","","","",False)
+        d.save()
+        created_dogs.append(cwa_counter)
+        cwa_counter += 1 
+        return d
+    yield _create_dog
+    for x in created_dogs:
+        Dog.delete(x)

@@ -14,42 +14,16 @@ dog_owner_bp = Blueprint("dog_owner", __name__, url_prefix="/api/dog_owner")
 
 @dog_owner_bp.get("/owners/<cwa_number>")
 def owners_for_dog(cwa_number):
-    # role = current_role()
-    # if not role:
-    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    # deny = require_scope(role.view_dog_owner_scope, "view dog owners")
-    # if deny:
-    #     return deny
-
-    # if role.view_dog_owner_scope == UserRole.SELF:
-    #     if not _is_owner(cwa_number):
-    #         return jsonify({"ok": False, "error": "Not allowed to view owners for this dog"}), 403
-
     data = list_owner_people_for_dog(cwa_number)
     return jsonify({"ok": True, "data": data}), 200
 
 
 @dog_owner_bp.get("/get")
 def list_dog_owner_links():
-    # role = current_role()
-    # if not role:
-    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    # deny = require_scope(role.edit_dog_scope, "view dog owners")
-    # if deny:
-    #     return deny
 
     person_id = request.args.get("personID")
 
     try:
-        # if role.edit_dog_scope == UserRole.SELF:
-            # if not current_editor_id():
-                # return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-            # rows = DogOwner.list_all(cwa_id=cwa_id, person_id=current_editor_id())
-
-        # else:
         person = Person.find_by_id(person_id)
         if not person:
             return jsonify({"ok": False, "error": "invalid Person"})
@@ -73,8 +47,8 @@ def add_owner():
         return deny
 
     data = request.get_json(silent=True) or {}
-    cwa_id = (data.get("cwaId") or "").strip()
-    person_id = (data.get("personId") or "").strip()
+    cwa_id = str(data.get("cwaId") or "").strip()
+    person_id = str(data.get("personId") or "").strip()
 
     if not cwa_id or not person_id:
         return jsonify({"ok": False, "error": "cwaId and personId are required"}), 400
@@ -131,8 +105,8 @@ def remove_owner():
         return deny
 
     data = request.get_json(silent=True) or {}
-    cwa_id = (data.get("cwaId") or "").strip()
-    person_id = (data.get("personId") or "").strip()
+    cwa_id = str(data.get("cwaId") or "").strip()
+    person_id = str(data.get("personId") or "").strip()
 
     if not cwa_id or not person_id:
         return jsonify({"ok": False, "error": "cwaId and personId are required"}), 400
