@@ -367,7 +367,18 @@ class Meet:
         return stats["COUNT(*)"]
 
     @staticmethod
-    def search(query):
+    def search(query, sort = "dateDesc", page = 1, limit = None):
+
+        orderings = {
+            "dateAsc": "ORDER BY m.MeetDate ASC",
+            "dateDesc": "ORDER BY m.MeetDate DESC",
+            "numberAsc": "ORDER BY m.MeetNumber ASC",
+            "numberDesc": "ORDER BY m.MeetNumber DESC",
+            "locationAsc": "ORDER BY m.Location ASC",
+            "locationDesc": "ORDER BY m.Location DESC",
+            "clubAsc": "ORDER BY m.ClubAbbreviation ASC",
+            "clubDesc": "ORDER BY m.ClubAbbreviation DESC",
+        }
         q = (query or "").strip()
         like = f"%{q}%"
 
@@ -396,12 +407,15 @@ class Meet:
                 OR m.Location LIKE %s
                 OR m.Yards LIKE %s
                 OR m.PublicNotes LIKE %s
-                OR m.PrivateNotes LIKE %s
-        ORDER BY m.MeetDate DESC, m.MeetNumber ASC
         """
-        params = [like, like, like, like, like, like, like, like, like]
-
-
+        params = [like, like, like, like, like, like, like, like]
+        if sort not in orderings:
+            sort = "dateDesc"
+        sql += " " + orderings[sort]
+        if limit is not None:
+           sql = sql + " LIMIT %s OFFSET %s"
+           params.append(limit)
+           params.append((page-1)*limit)
         rows = fetch_all(sql, params)
         return rows
     

@@ -376,10 +376,14 @@ def search_dogs():
 
     q = (request.args.get("q") or "").strip()
     owner = request.args.get("owner", None)
-
+    sort = request.args.get("sort", None)
     try:
-        rows = Dog.search(query=q, owner_person_id=owner)
-
+        page = int(request.args.get("page", 1))
+    except (TypeError, ValueError):
+        page = 1
+    try:
+        count = len(Dog.search(query=q, owner_person_id=owner))
+        rows = Dog.search(query=q, owner_person_id=owner, page=page, limit=20, sort=sort)
         items = []
         for r in rows:
             d = dict(r)
@@ -396,7 +400,7 @@ def search_dogs():
                 "grade": d.get("CurrentGrade"), 
                 "average": d.get("Average"), 
             })
-        return jsonify({"ok": True, "total": len(items), "items": items}), 200
+        return jsonify({"ok": True, "total": count, "items": items}), 200
 
     except Error as e:
         return handle_error(e, "Database error")

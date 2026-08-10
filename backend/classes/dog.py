@@ -4,6 +4,7 @@ from datetime import datetime
 from utils.validators import (require, int_field, float_field, fk_exists, enum_field, str_field)
 from classes.meet_result import MeetResult
 from classes.race_result import RaceResult
+from enum import StrEnum
 
 def _float_or_zero(value):
     return float(value) if value not in (None, "") else 0.0
@@ -12,8 +13,6 @@ def _int_or_zero(value):
     return int(float(value)) if value not in (None, "") else 0
 
 class Dog:
-
-    # Age thresholds in months 
     PUPPY_AGE_MONTHS = 8
     ADULT_AGE_MONTHS = 14
     VETERAN_AGE_MONTHS = 84
@@ -428,12 +427,19 @@ class Dog:
             (identifier,),
         )
         return cls.from_db_row(row)
-    
+
     @classmethod
-    def search(cls, query, owner_person_id=None):
+    def search(cls, query, owner_person_id=None, page=1, limit: int | None=None, sort=None):
         q = (query or "").strip()
         like = f"%{q}%"
-
+        orderings = {
+            "nameAsc": "ORDER BY d.RegisteredName ASC",
+            "nameDesc": "ORDER BY d.RegisteredName DESC",
+            "cwaAsc": "ORDER BY d.CWANumber ASC",
+            "cwaDesc": "ORDER BY d.CWANumber DESC",
+            "birthAsc": "ORDER BY d.Birthdate ASC",
+            "birthDesc": "ORDER BY d.Birthdate DESC"
+        }
         sql = """
             SELECT
                 d.*,
@@ -458,20 +464,23 @@ class Dog:
                 OR d.CallName LIKE %s
                 OR do.PersonID LIKE %s
                 OR CONCAT(p.FirstName, ' ', p.LastName) LIKE %s
-                OR p.EmailAddress LIKE %s
                 OR dt.Title LIKE %s
-            )
+            )  
         """
-        params = [like, like, like, like, like, like, like, like]
+        params = [like, like, like, like, like, like, like]
 
         if owner_person_id:
             sql += " AND do.PersonID = %s"
             params.append(owner_person_id)
+        
+        sql += "GROUP BY d.CWANumber " 
+        if sort in orderings:
+            sql += orderings[sort] + " "
 
-        sql += """
-            GROUP BY d.CWANumber
-            ORDER BY d.RegisteredName ASC, d.CWANumber ASC
-        """
+        if limit is not None:
+            sql += "LIMIT %s OFFSET %s"
+            params.append(limit)
+            params.append((page-1)*limit)
 
         rows = fetch_all(sql, params)
         return rows
@@ -916,7 +925,7 @@ class Dog:
 
     
     def update_from_meet_results(self):
-        """Recalculate dog stats from all meet results"""
+        """Recalculate dog stats and titles from all meet results"""
         if not self.cwa_number:
             return
 

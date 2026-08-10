@@ -8,6 +8,7 @@ import HeroSection from "@/app/components/ui/HeroSection";
 import SearchBar from "@/app/components/ui/SearchBar";
 import SecondaryButton from "@/app/components/ui/buttons/SecondaryButton";
 import { formatDate } from "@/lib/ui/formatDate";
+import MeetCard from "./meetCard";
 
 function clampInteger(num: number, min: number, max: number) {
     if (!Number.isFinite(num)) {
@@ -26,7 +27,7 @@ function SearchPage() {
 
     const q = (sp.get("q") ?? "").trim();
     const page = clampInteger(Number(sp.get("page") ?? "1"), 1, 1_000_000);
-    const limit = clampInteger(Number(sp.get("limit") ?? "20"), 1, 50);
+    const limit = clampInteger(Number(sp.get("limit") ?? "12"), 1, 50);
     const sort = (sp.get("sort") ?? "dateDesc").trim();
 
     const [data, setData] = React.useState<MeetSearchResponse | null>(null);
@@ -63,6 +64,7 @@ function SearchPage() {
                         throw new Error(json?.error || `Request failed (${res.status})`);
                     }
 
+                    //TODO: unify the frontend and the meet search endpoint so that this conversion is not needed
                     const mapped: MeetSearchResponse =
                     {
                         ok: true,
@@ -112,53 +114,19 @@ function SearchPage() {
                 cancelled = true;
             };
         },
-        [q]
+        [q, sort, page]
     );
 
     const total = data?.total ?? 0;
     const items = data?.items ?? [];
 
-    const sortedItems = [...items].sort((a, b) => {
-        switch (sort) {
-            case "dateAsc":
-                return (a.meetDate || "").localeCompare(b.meetDate || "");
-
-            case "dateDesc":
-                return (b.meetDate || "").localeCompare(a.meetDate || "");
-
-            case "numberAsc":
-                return (a.meetNumber || "").localeCompare(b.meetNumber || "", undefined, { numeric: true });
-
-            case "numberDesc":
-                return (b.meetNumber || "").localeCompare(a.meetNumber || "", undefined, { numeric: true });
-
-            case "locationAsc":
-                return (a.location || "").localeCompare(b.location || "");
-
-            case "locationDesc":
-                return (b.location || "").localeCompare(a.location || "");
-
-            case "clubAsc":
-                return (a.clubAbbreviation || "").localeCompare(b.clubAbbreviation || "");
-
-            case "clubDesc":
-                return (b.clubAbbreviation || "").localeCompare(a.clubAbbreviation || "");
-
-            case "dateAsc":
-            default:
-                return (a.meetDate || "").localeCompare(b.meetDate || "");
-        }
-    });
-
     const totalPages = Math.max(1, Math.ceil(total / limit));
     const safePage = Math.min(page, totalPages);
-    const start = (safePage - 1) * limit;
-    const pagedItems = sortedItems.slice(start, start + limit);
 
     const prevPage = Math.max(1, safePage - 1);
     const nextPage = Math.min(totalPages, safePage + 1);
 
-    const upcomingCount = pagedItems.filter(
+    const upcomingCount = items.filter(
         (d) => {
             const date = new Date(formatDate(d.meetDate)!);
             const today = new Date();
@@ -167,7 +135,7 @@ function SearchPage() {
         }
     ).length;
 
-    const pastCount = pagedItems.length - upcomingCount;
+    const pastCount = items.length - upcomingCount;
 
     function makeLink(p: number) {
         const params = new URLSearchParams(sp.toString());
@@ -279,7 +247,7 @@ function SearchPage() {
                                 {
                                     loading
                                         ? "Loading..."
-                                        : `Showing ${pagedItems.length} of ${total}`
+                                        : `Showing ${items.length} of ${total}`
                                 }
                             </div>
                             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
@@ -350,100 +318,14 @@ function SearchPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         {
-                            pagedItems.map(
-                                (m) => {
-                                    return (
-                                        <div
-                                            key={m.id}
-                                            className="rounded-2xl border border-black/10 bg-white/90 backdrop-blur p-5 shadow-sm transition hover:shadow-md hover:-translate-y-[2px] hover:border-[#2E6B3F]/35"
-                                        >
-                                            <div className="flex items-start justify-between gap-3">
-                                                <div>
-                                                    <Link
-                                                        href={`/meet?id=${m.meetNumber}`}
-                                                        className="text-xl font-semibold text-[#12301D] hover:text-[#2E6B3F] underline-offset-4 hover:underline transition"
-                                                    >
-                                                        Meet {m.meetNumber || "Untitled"}
-                                                    </Link>
-                                                </div>
-
-                                                <div className="shrink-0 rounded-full px-3 py-1 text-xs font-semibold bg-[#2E6B3F]/10 text-[#2E6B3F]">
-                                                    {m.clubAbbreviation || "—"}
-                                                </div>
-                                                {/* <div
-                                                    className={[
-                                                        "shrink-0 rounded-full px-3 py-1 text-xs font-semibold",
-                                                        m.completed
-                                                            ? "bg-emerald-100 text-emerald-700"
-                                                            : "bg-amber-100 text-amber-800",
-                                                    ].join(" ")}
-                                                >
-                                                    {m.completed ? "Completed" : "In Progress"}
-                                                </div> */}
-                                            </div>
-
-                                            <div className="mt-4 grid grid-cols-2 gap-y-2 text-sm text-[#12301D]/80">
-                                                <div>
-                                                    <span className="font-medium text-[#000000]">
-                                                        Date
-                                                    </span>
-                                                    : {m.meetDate ? formatDate(m.meetDate) : "—"}
-                                                </div>
-
-                                                <div>
-                                                    <span className="font-medium text-[#000000]">
-                                                        Location
-                                                    </span>
-                                                    : {m.location || "—"}
-                                                </div>
-
-                                                <div>
-                                                    <span className="font-medium text-[#000000]">
-                                                        Judge
-                                                    </span>
-                                                    : {m.judgeName || "—"}
-                                                </div>
-
-                                                <div>
-                                                    <span className="font-medium text-[#000000]">
-                                                        Race Secretary
-                                                    </span>
-                                                    : {m.raceSecretaryName || "—"}
-                                                </div>
-
-                                                <div className="col-span-2">
-                                                    <span className="font-medium text-[#000000]">
-                                                        Yards
-                                                    </span>
-                                                    : {m.yards || "—"}
-                                                </div>
-                                                <div className="col-span-2">
-                                                    <span className="font-medium text-[#000000]">
-                                                        Event Meets
-                                                    </span>
-                                                    : {m.eventMeetCount ?? 0} / 3
-                                                </div>
-                                            </div>
-
-                                            <div className="mt-4 h-px w-full bg-gradient-to-r from-[#2E6B3F]/35 via-black/5 to-transparent" />
-
-                                            <div className="mt-4 flex flex-wrap gap-3">
-                                                <Link
-                                                    href={`/meet?id=${m.meetNumber}`}
-                                                    className="rounded-full bg-[#2E6B3F] px-4 py-2 text-sm font-semibold text-white hover:bg-[#255733] transition"
-                                                >
-                                                    View Meet
-                                                </Link>
-                                            </div>
-                                        </div>
-                                    );
-                                }
+                            items.map(
+                                (m) => <MeetCard m={m} key={m.id} />
                             )
                         }
                     </div>
 
                     {
-                        !loading && !error && pagedItems.length === 0 && (
+                        !loading && !error && items.length === 0 && (
                             <div className="mt-6 rounded-2xl border border-black/10 bg-white/80 px-4 py-6 text-sm text-[#12301D]/70 shadow-sm">
                                 No matches found. Try a different meet number, club, location, or judge name.
                             </div>

@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, Response
+from flask import Blueprint, json, jsonify, request, Response
 import csv
 import io
 from mysql.connector import Error
@@ -252,9 +252,20 @@ def get_meet_races(meet_number):
 @meet_bp.get("/search")
 def search_meets():
     q = (request.args.get("q") or "").strip()
-
+    limit = request.args.get("limit") or 20
     try:
-        rows = Meet.search(q)
+        limit = int(limit)
+    except:
+        limit = 20
+    page = request.args.get("page") or 1
+    try:
+        page = int(page)
+    except:
+        page = 1
+    sort= (request.args.get("sort") or "dateDesc").strip()
+    try:
+        rows = Meet.search(q, sort, page, limit)
+        count = len(Meet.search(q, limit=None))
 
         items = []
         for r in rows:
@@ -274,7 +285,7 @@ def search_meets():
                 "eventMeetCount": d.get("EventMeetCount"),
                 "publicNotes": d.get("PublicNotes"),
             })
-        return jsonify({"ok": True, "total": len(items), "items": items}), 200
+        return jsonify({"ok": True, "total": count, "items": items}), 200
 
     except Error as e:
         return handle_error(e, "Database error")
