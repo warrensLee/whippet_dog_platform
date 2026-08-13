@@ -26,7 +26,6 @@ def _is_owner(cwa_number):
 
 @dog_title_bp.post("/add")
 def add_dog_title(send_email=True):
-    """Add a new title to a dog."""
     role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
@@ -85,9 +84,9 @@ def add_dog_title(send_email=True):
         return handle_error(e, "Database error")
 
 
+#TODO: Remove confirm argument
 @dog_title_bp.post("/delete")
 def delete_dog_title():
-    """Delete a dog title."""
     role = current_role()
     if not role:
         return jsonify({"ok": False, "error": "Not signed in"}), 401
@@ -140,27 +139,14 @@ def delete_dog_title():
 
 @dog_title_bp.get("/get/<cwa_number>")
 def get_dog_title(cwa_number):
-    """Get a specific dog title."""
-    # role = current_role()
-    # if not role:
-    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    # deny = require_scope(role.view_dog_titles_scope, "view dog titles")
-    # if deny:
-    #     return deny
-
-    # if role.view_dog_titles_scope == UserRole.SELF:
-    #     if not _is_owner(cwa_number):
-    #         return jsonify({
-    #             "ok": False,
-    #             "error": "You can only view titles on dogs you own"
-    #         }), 403
 
     dog_titles = DogTitle.list_for_dog(cwa_number)
     data = [t.to_dict() for t in dog_titles]
     return jsonify({"ok": True, "data": data}), 200
 
-def _earned_titles_response():
+@dog_title_bp.get("/earned")
+def get_earned_titles():
+
     start = (request.args.get("start") or "").strip()
     end = (request.args.get("end") or "").strip()
 
@@ -194,7 +180,3 @@ def _earned_titles_response():
 
     except Error as e:
         return handle_error(e, "Database error")
-
-@dog_title_bp.get("/earned")
-def get_earned_titles():
-    return _earned_titles_response()

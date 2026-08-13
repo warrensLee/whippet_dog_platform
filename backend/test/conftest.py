@@ -6,6 +6,7 @@ from unittest.mock import patch
 from classes.person import Person
 from classes.user_role import UserRole
 from classes.dog import Dog
+from classes.dog_title import DogTitle
 import string
 import random
 from classes.change_log import ChangeLog
@@ -155,4 +156,5 @@ def dog_factory():
         return d
     yield _create_dog
     for x in created_dogs:
+        DogTitle.delete_all_for_dog(str(x))
         Dog.delete(x)
