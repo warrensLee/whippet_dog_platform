@@ -1,7 +1,6 @@
 // admin/events/edit?meetNumber=
 "use client";
 
-import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import EventForm from "../EventForm";
@@ -12,6 +11,9 @@ import { PersonSearchResult } from "@/app/components/ui/PersonField";
 import MeetResultEditor from "./MeetResultEditor";
 import { MeetResults, DogEntry, toBackendFormat } from "./MeetResultTypes";
 import { formatDate } from "@/lib/ui/formatDate";
+import AuthGuard from "@/lib/auth/authGuard";
+import authContext from "@/lib/auth/auth";
+import { Suspense, useCallback, useContext, useEffect, useState } from "react";
 
 /*
     Safely converts incoming unknown values to strings.
@@ -149,31 +151,22 @@ function buildEditPayload(form: EventFormValues): Record<string, unknown> {
 }
 
 export default function Page() {
-    return (<React.Suspense><EditEventPage /></React.Suspense>)
+    return (<Suspense><EditEventPage /></Suspense>)
 }
 function EditEventPage() {
     const params = useSearchParams();
     const router = useRouter();
 
     const meetNumber = String(params.get("meetNumber") ?? "").trim();
-    /*
-        Auth/loading state for protecting the page.
-    */
-    const [authLoading, setAuthLoading] = React.useState(true);
-    const [authorized, setAuthorized] = React.useState(false);
-    const [isAdmin, setIsAdmin] = React.useState(false);
+    const user = useContext(authContext);
 
-
-    /*
-        Page/form state.
-    */
-    const [loading, setLoading] = React.useState(true);
-    const [saving, setSaving] = React.useState(false);
-    const [error, setError] = React.useState("");
-    const [success, setSuccess] = React.useState("");
-    const [form, setForm] = React.useState<EventFormValues>(emptyEventFormValues);
-    const [initialForm, setInitialForm] = React.useState<EventFormValues>(emptyEventFormValues);
-    const [entries, setEntries] = React.useState<MeetResults>()
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
+    const [form, setForm] = useState<EventFormValues>(emptyEventFormValues);
+    const [initialForm, setInitialForm] = useState<EventFormValues>(emptyEventFormValues);
+    const [entries, setEntries] = useState<MeetResults>()
 
     async function saveMeetResults(entriesToSave: MeetResults) {
         const response = await fetch(`/api/meet_result/edit_result_view/${meetNumber}`, {
@@ -194,8 +187,8 @@ function EditEventPage() {
         return json;
     }
 
-    React.useEffect(() => {
-        if (!authorized || !meetNumber) {
+    useEffect(() => {
+        if (!meetNumber) {
             return;
         }
         async function getMeetResults() {
@@ -251,56 +244,15 @@ function EditEventPage() {
         getMeetResults().catch(err => {
             setError(err instanceof Error ? err.message : "Failed to load results");
         });
-    }, [authorized, meetNumber]);
+    }, [meetNumber]);
 
     /*
         Checks whether the current user is signed in and allowed
         to manage Event records.
     */
 
-    React.useEffect(() => {
-        let cancelled = false;
-
-        async function checkAccess() {
-            try {
-                const res = await fetch("/api/auth/me", {
-                    credentials: "include",
-                });
-
-                const json = await res.json().catch(() => null);
-
-                if (!res.ok || !json?.signedIn) {
-                    router.replace("/login");
-                    return;
-                }
-
-                const role = (json?.user?.SystemRole || "").toUpperCase();
-
-                if (!cancelled) {
-                    setAuthorized(true);
-                    setIsAdmin(role === "ADMIN");
-                }
-            } catch {
-                router.replace("/login");
-            } finally {
-                if (!cancelled) {
-                    setAuthLoading(false);
-                }
-            }
-        }
-
-        checkAccess();
-
-        return () => {
-            cancelled = true;
-        };
-    }, [router]);
-
-    React.useEffect(
+    useEffect(
         () => {
-            if (!authorized) {
-                return;
-            }
 
             let cancelled = false;
 
@@ -359,7 +311,7 @@ function EditEventPage() {
                 cancelled = true;
             };
         },
-        [authorized, meetNumber]
+        [meetNumber]
     );
 
     /*
@@ -386,10 +338,10 @@ function EditEventPage() {
         setSuccess("");
     }
 
-    const [resultsSaving, setResultsSaving] = React.useState(false);
-    const [resultsSuccess, setResultsSuccess] = React.useState("");
-    const [resultsError, setResultsError] = React.useState("");
-    const [resultsValid, setResultsValid] = React.useState(true);
+    const [resultsSaving, setResultsSaving] = useState(false);
+    const [resultsSuccess, setResultsSuccess] = useState("");
+    const [resultsError, setResultsError] = useState("");
+    const [resultsValid, setResultsValid] = useState(true);
 
     async function handleSaveResults() {
         if (!entries) {
@@ -418,7 +370,7 @@ function EditEventPage() {
         }
     }
 
-    const handleEntriesChange = React.useCallback((newEntries: MeetResults) => {
+    const handleEntriesChange = useCallback((newEntries: MeetResults) => {
         setEntries(newEntries);
         setResultsError("");
         setResultsSuccess("");
@@ -490,155 +442,140 @@ function EditEventPage() {
         }
     }
 
-    /*
-        While auth is still being checked, show a simple gate screen.
-    */
-    if (authLoading) {
-        return (
-            <main className="min-h-screen flex items-center justify-center bg-[#1F4D2E] text-white">
-                Checking access...
-            </main>
-        );
-    }
 
-    /*
-        If auth check finished but user is not authorized, we return null
-        because the redirect is already being handled.
-    */
-    if (!authorized) {
-        return null;
-    }
 
     return (
-        <main className="pt-24 bg-[#1F4D2E]">
-            {/* 
+        <AuthGuard>
+            <main className="pt-24 bg-[#1F4D2E]">
+                {/* 
                 Hero section for the main search entry area.
 
                 I kept this visually strong so the page feels more polished
                 and less like a plain database dump.
             */}
-            <HeroSection
-                title="Edit Event"
-                subtitle="Update Event information securely through the admin panel."
-                topContent={
-                    <div className="mt-4 flex flex-wrap justify-center gap-3">
-                        <Link
-                            href="/admin/events"
-                            className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
-                        >
-                            Back to Admin Events
-                        </Link>
-
-                        <Link
-                            href={`/meet?id=${encodeURIComponent(form.meetNumber || meetNumber)}`}
-                            className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
-                        >
-                            View Event Page
-                        </Link>
-                    </div>
-                }
-            >
-
-                <div className="-mt-6 text-white/80 text-sm">
-                    Editing record: <span className="font-semibold text-white">{form.meetNumber || meetNumber}</span>
-                </div>
-
-
-            </HeroSection>
-
-            {/* Main form section */}
-            <section className="bg-[#E7F0E9] pt-12 pb-24">
-                <div className="max-w-5xl mx-auto px-4">
-                    <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                        <div>
-                            <h2 className="text-2xl font-bold text-[#12301D]">
-                                Event Information
-                            </h2>
-                            <div className="mt-1 h-1 w-14 rounded-full bg-[#2E6B3F]/70" />
-
-                            <p className="mt-2 text-sm font-medium text-[#12301D]/70">
-                                <span className="font-bold text-red-600">*</span> Required field
-                            </p>
-                        </div>
-                        <div className="flex flex-wrap gap-3">
-                            <button
-                                type="button"
-                                onClick={handleResetForm}
-                                disabled={loading || saving}
-                                className="rounded-full border border-[#12301D]/15 bg-white px-5 py-2.5 text-sm font-semibold text-[#12301D] transition hover:bg-[#12301D]/5 disabled:opacity-50"
+                <HeroSection
+                    title="Edit Event"
+                    subtitle="Update Event information securely through the admin panel."
+                    topContent={
+                        <div className="mt-4 flex flex-wrap justify-center gap-3">
+                            <Link
+                                href="/admin/events"
+                                className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
                             >
-                                Reset Changes
-                            </button>
+                                Back to Admin Events
+                            </Link>
 
-                            <button
-                                type="button"
-                                onClick={() => router.push("/admin/events")}
-                                disabled={saving}
-                                className="rounded-full border border-[#12301D]/15 bg-white px-5 py-2.5 text-sm font-semibold text-[#12301D] transition hover:bg-[#12301D]/5 disabled:opacity-50"
+                            <Link
+                                href={`/meet?id=${encodeURIComponent(form.meetNumber || meetNumber)}`}
+                                className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
                             >
-                                Cancel
-                            </button>
+                                View Event Page
+                            </Link>
                         </div>
+                    }
+                >
+
+                    <div className="-mt-6 text-white/80 text-sm">
+                        Editing record: <span className="font-semibold text-white">{form.meetNumber || meetNumber}</span>
                     </div>
 
-                    <EventForm
-                        values={form}
-                        onChange={updateField}
-                        onSubmit={handleSubmit}
-                        saving={saving}
-                        personLoading={loading}
-                        submitLabel="Save Changes"
-                        error={error}
-                        success={success}
-                        onCancel={
-                            () => {
-                                router.push("/admin/events");
-                            }
-                        }
-                        isEditMode={true}
-                        canEditPrivateNotes={isAdmin}
-                    />
-                    <h2 className="mt-10 text-2xl font-bold text-[#12301D]">Programs & Race Results</h2>
-                    <div className="mt-1 h-1 w-14 rounded-full bg-[#2E6B3F]/70" />
-                    <div className="mt-10">
-                        <div className="rounded-2xl border border-black/10 bg-white p-8 shadow-md">
 
+                </HeroSection>
 
-                            {entries && <MeetResultEditor value={entries} onChange={handleEntriesChange} setResultsValid={setResultsValid} />}
-                            <div className="mt-4 flex gap-3">
+                {/* Main form section */}
+                <section className="bg-[#E7F0E9] pt-12 pb-24">
+                    <div className="max-w-5xl mx-auto px-4">
+                        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                            <div>
+                                <h2 className="text-2xl font-bold text-[#12301D]">
+                                    Event Information
+                                </h2>
+                                <div className="mt-1 h-1 w-14 rounded-full bg-[#2E6B3F]/70" />
+
+                                <p className="mt-2 text-sm font-medium text-[#12301D]/70">
+                                    <span className="font-bold text-red-600">*</span> Required field
+                                </p>
+                            </div>
+                            <div className="flex flex-wrap gap-3">
                                 <button
                                     type="button"
-                                    onClick={handleSaveResults}
-                                    disabled={resultsSaving || !entries || !resultsValid}
-                                    className="rounded-full bg-[#2E6B3F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#255733] disabled:opacity-50"
+                                    onClick={handleResetForm}
+                                    disabled={loading || saving}
+                                    className="rounded-full border border-[#12301D]/15 bg-white px-5 py-2.5 text-sm font-semibold text-[#12301D] transition hover:bg-[#12301D]/5 disabled:opacity-50"
                                 >
-                                    {resultsSaving ? "Saving..." : "Save Results"}
+                                    Reset Changes
                                 </button>
+
                                 <button
                                     type="button"
-                                    onClick={() => {
-                                        router.back()
-                                    }}
-                                    disabled={resultsSaving}
-                                    className="rounded-full border border-[#12301D]/15 bg-white px-6 py-3 text-sm font-semibold text-[#12301D] transition hover:bg-[#12301D]/5 disabled:opacity-50"
+                                    onClick={() => router.push("/admin/events")}
+                                    disabled={saving}
+                                    className="rounded-full border border-[#12301D]/15 bg-white px-5 py-2.5 text-sm font-semibold text-[#12301D] transition hover:bg-[#12301D]/5 disabled:opacity-50"
                                 >
                                     Cancel
                                 </button>
                             </div>
-                            {resultsSuccess && (
-                                <div className="mt-4 rounded-lg bg-green-50 p-3 text-sm text-green-800">
-                                    {resultsSuccess}
+                        </div>
+
+                        <EventForm
+                            values={form}
+                            onChange={updateField}
+                            onSubmit={handleSubmit}
+                            saving={saving}
+                            personLoading={loading}
+                            submitLabel="Save Changes"
+                            error={error}
+                            success={success}
+                            onCancel={
+                                () => {
+                                    router.push("/admin/events");
+                                }
+                            }
+                            isEditMode={true}
+                            canEditPrivateNotes={user !== undefined && user !== "NotAuthenticated" && user.SystemRole === "ADMIN"}
+                        />
+                        <h2 className="mt-10 text-2xl font-bold text-[#12301D]">Programs & Race Results</h2>
+                        <div className="mt-1 h-1 w-14 rounded-full bg-[#2E6B3F]/70" />
+                        <div className="mt-10">
+                            <div className="rounded-2xl border border-black/10 bg-white p-8 shadow-md">
+
+
+                                {entries && <MeetResultEditor value={entries} onChange={handleEntriesChange} setResultsValid={setResultsValid} />}
+                                <div className="mt-4 flex gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={handleSaveResults}
+                                        disabled={resultsSaving || !entries || !resultsValid}
+                                        className="rounded-full bg-[#2E6B3F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#255733] disabled:opacity-50"
+                                    >
+                                        {resultsSaving ? "Saving..." : "Save Results"}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            router.back()
+                                        }}
+                                        disabled={resultsSaving}
+                                        className="rounded-full border border-[#12301D]/15 bg-white px-6 py-3 text-sm font-semibold text-[#12301D] transition hover:bg-[#12301D]/5 disabled:opacity-50"
+                                    >
+                                        Cancel
+                                    </button>
                                 </div>
-                            )}
-                            {resultsError && (
-                                <div className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-800">
-                                    {resultsError}
-                                </div>
-                            )}
+                                {resultsSuccess && (
+                                    <div className="mt-4 rounded-lg bg-green-50 p-3 text-sm text-green-800">
+                                        {resultsSuccess}
+                                    </div>
+                                )}
+                                {resultsError && (
+                                    <div className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-800">
+                                        {resultsError}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>
-            </section>
-        </main>
+                </section>
+            </main>
+        </AuthGuard>
     );
 }

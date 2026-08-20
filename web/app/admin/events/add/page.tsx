@@ -9,6 +9,7 @@ import type { EventFormValues } from "@/app/admin/events/types";
 import { emptyEventFormValues } from "@/app/admin/events/types";
 import HeroSection from "@/app/components/ui/HeroSection";
 import AuthGuard from "@/lib/auth/authGuard";
+import authContext from "@/lib/auth/auth";
 
 /*
     Builds a clean payload from the current form state before sending
@@ -42,31 +43,8 @@ export default function AddEventPage() {
     const [success, setSuccess] = React.useState("");
     const [form, setForm] = React.useState(emptyEventFormValues);
 
-    const [isAdmin, setIsAdmin] = React.useState(false);
-    const [authLoading, setAuthLoading] = React.useState(true);
 
-    React.useEffect(() => {
-        async function checkAdmin() {
-            try {
-                const res = await fetch("/api/auth/me", {
-                    credentials: "include",
-                });
-
-                const json = await res.json().catch(() => null);
-
-                const role = (json?.user?.SystemRole || "").toUpperCase();
-
-                setIsAdmin(role === "ADMIN");
-            } catch {
-                setIsAdmin(false);
-            } finally {
-                setAuthLoading(false); // ✅ ADD THIS
-            }
-        }
-
-        checkAdmin();
-    }, []);
-
+    const user = React.useContext(authContext);
 
     function updateField<K extends keyof EventFormValues>(
         key: K,
@@ -204,7 +182,7 @@ export default function AddEventPage() {
                             onChange={updateField}
                             onSubmit={handleSubmit}
                             saving={saving}
-                            personLoading={authLoading}
+                            personLoading={user === undefined}
                             submitLabel="Create Event"
                             error={error}
                             success={success}
@@ -214,7 +192,7 @@ export default function AddEventPage() {
                                 }
                             }
                             isEditMode={false}
-                            canEditPrivateNotes={isAdmin}
+                            canEditPrivateNotes={user !== undefined && user !== "NotAuthenticated" && user.SystemRole === "ADMIN"}
                         />
                     </div>
                 </section>

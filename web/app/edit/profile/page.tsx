@@ -1,6 +1,6 @@
 
 'use client'
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { TextField, Grid, Box, Typography, MenuItem, Paper, Snackbar, Alert } from '@mui/material';
 import { getNames } from 'country-list';
 import parsePhoneNumber from 'libphonenumber-js'
@@ -9,6 +9,7 @@ import { Person } from './types';
 import HeroSection from '@/app/components/ui/HeroSection';
 import AuthGuard from '@/lib/auth/authGuard';
 import Button from '@/app/components/ui/buttons/Button';
+import authContext from '@/lib/auth/auth';
 
 export default function ProfileForm() {
     const [currentProfile, setCurrentProfile] = useState<Person>(new Person({}));
@@ -17,6 +18,7 @@ export default function ProfileForm() {
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
     const countryNames = getNames();
+    const user = useContext(authContext);
     const handleSave = () => {
         axios.post("/api/person/edit", currentProfile);
         setOpenSnackbar(true);
@@ -24,17 +26,12 @@ export default function ProfileForm() {
     };
     useEffect(() => {
         const loadUser = async () => {
-            const meResponse = await axios.get("/api/auth/me");
-            if (!meResponse.data.ok || !meResponse.data.user) {
-                window.location.href = "/login"
-                return;
-            }
-            const personID = meResponse.data.user.PersonID!;
-            const personResponse = await axios.get("/api/person/get/" + personID);
+            if (user === undefined || user === "NotAuthenticated") return;
+            const personResponse = await axios.get("/api/person/get/" + user.PersonID);
             setCurrentProfile(new Person(personResponse.data.data))
         }
         loadUser();
-    }, [])
+    }, [user])
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const setProfileAttribute = (key: keyof Person, value: any) => {
