@@ -35,6 +35,7 @@ export default function MeetResultEditor({
     const [error, setError] = useState<string | null>(null);
     const [adultCalculationError, setAdultCalculationError] = useState(false)
     const [puppyCalculationError, setPuppyCalculationError] = useState(false)
+    const [registrationErrors, setRegistrationErrors] = useState(false)
     const [programs, setPrograms] = useState<string[]>([]);
     const [definedRaces, setDefinedRaces] = useState<RaceDefinition[]>([]);
 
@@ -123,9 +124,9 @@ export default function MeetResultEditor({
                     });
                 });
 
-            setResultsValid(fieldValid && !adultCalculationError && !puppyCalculationError);
+            setResultsValid(fieldValid && !adultCalculationError && !puppyCalculationError && !registrationErrors);
         }
-    }, [value, setResultsValid, adultCalculationError, puppyCalculationError]);
+    }, [value, setResultsValid, adultCalculationError, puppyCalculationError, registrationErrors]);
 
     // Dog search
     const handleSearch = async () => {
@@ -168,7 +169,7 @@ export default function MeetResultEditor({
             shown: false,
             callName: dog.callName,
             grade: dog.grade,
-            average: 0,
+            average: "0",
             cwaNumber: dog.cwaNumber,
             registeredName: dog.registeredName,
             showPoints: "",
@@ -299,7 +300,7 @@ export default function MeetResultEditor({
 
     return (
         <div className="overflow-hidden rounded-2xl border border-black/10 bg-[#F8F9FA]">
-            <RegistrationSection results={value} onChange={handleDogChange} onRemoveDog={handleRemoveDog} />
+            <RegistrationSection results={value} onChange={handleDogChange} onRemoveDog={handleRemoveDog} setHasErrors={setRegistrationErrors} />
 
             <div className="p-4">
                 <button

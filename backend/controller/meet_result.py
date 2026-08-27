@@ -201,7 +201,7 @@ def edit_result_view(meet_number):
                     "showPoints":float(row.get("ShowPoints") or 0),
                     "showPlace": row.get("ShowPlacement") or "0",
                     "grade": row.get("Grade") or "",
-                    "average": int(row.get("Average") or 0),
+                    "average": float(row.get("Average") or 0),
                     "dpcPoints": int(row.get("meetDPC") or 0),
                     "NARXEarned": float(row.get("NARXEarned") or 0),
                     "ARXEarned": float(row.get("ARXEarned") or 0),

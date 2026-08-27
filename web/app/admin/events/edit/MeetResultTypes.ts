@@ -11,7 +11,7 @@ export type DogEntry = {
     shown: boolean;
     callName: string;
     grade: string;
-    average: number;
+    average: string;
     cwaNumber: string;
     registeredName: string;
     showPoints: string;
@@ -82,7 +82,7 @@ export function toBackendFormat(entries: MeetResults): BackendEntry[] {
         showPoints: parseFloat(dog.showPoints) || 0,
         showPlace: dog.showPlace || "0",
         grade: dog.grade,
-        average: dog.average || 0,
+        average: Number(dog.average) || 0,
         dpcPoints: dog.dpcPoints ? parseInt(dog.dpcPoints) || 0 : 0,
         ARXEarned: dog.ARXEarned ? parseInt(dog.ARXEarned) || 0 : 0,
         NARXEarned: dog.NARXEarned ? parseInt(dog.NARXEarned) || 0 : 0,

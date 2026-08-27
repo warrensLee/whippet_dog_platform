@@ -1,18 +1,27 @@
+import { useEffect } from "react";
 import { DogEntry } from "./MeetResultTypes";
 
 type RegistrationSectionProps = {
     results: DogEntry[];
     onChange: (dog: DogEntry) => void;
     onRemoveDog?: (cwaNumber: string) => void;
+    setHasErrors?: (hasErrors: boolean) => void;
 };
 
 
 
-export default function RegistrationSection({ results, onChange, onRemoveDog }: RegistrationSectionProps) {
+export default function RegistrationSection({ results, onChange, onRemoveDog, setHasErrors }: RegistrationSectionProps) {
     function handleRemoveClick(cwaNumber: string) {
         if (onRemoveDog) {
             onRemoveDog(cwaNumber);
         }
+    }
+
+    function isValidAverage(value: unknown): boolean {
+        if (value === "" || value === null || value === undefined || value === "0") return true;
+        const str = String(value).trim();
+        if (str === "") return true;
+        return !isNaN(Number(str)) && isFinite(Number(str));
     }
 
     function getShowPlacementOptions(): string[] {
@@ -36,6 +45,12 @@ export default function RegistrationSection({ results, onChange, onRemoveDog }: 
         }
     }
 
+    useEffect(() => {
+        if (!setHasErrors) return;
+        const hasErrors = results.some(dog => !isValidAverage(dog.average));
+        setHasErrors(hasErrors);
+    }, [results, setHasErrors]);
+
     return (
         <div className="rounded-2xl border border-black/10 bg-[#F8F9FA] p-5 mb-4">
             <h3 className="font-bold text-[#12301D] text-lg mb-4">Registration &amp; Show Results</h3>
@@ -47,6 +62,7 @@ export default function RegistrationSection({ results, onChange, onRemoveDog }: 
                             <th className="text-left py-3 px-3 font-semibold text-[#12301D]">Dog</th>
                             <th className="text-left py-3 px-3 font-semibold text-[#12301D] w-20">CWA</th>
                             <th className="text-left py-3 px-3 font-semibold text-[#12301D] w-24">Grade</th>
+                            <th className="text-left py-3 px-3 font-semibold text-[#12301D] w-20">Average</th>
                             <th className="text-left py-3 px-3 font-semibold text-[#12301D] w-28">Entry Type</th>
                             <th className="text-center py-3 px-3 font-semibold text-[#12301D] w-16">Shown</th>
                             <th className="text-left py-3 px-3 font-semibold text-[#12301D] w-20">Show Place</th>
@@ -56,7 +72,7 @@ export default function RegistrationSection({ results, onChange, onRemoveDog }: 
                     <tbody>
                         {results.length === 0 && (
                             <tr>
-                                <td colSpan={7} className="py-6 text-center text-gray-400 text-sm">
+                                <td colSpan={8} className="py-6 text-center text-gray-400 text-sm">
                                     No dogs registered for this meet yet.
                                 </td>
                             </tr>
@@ -70,7 +86,28 @@ export default function RegistrationSection({ results, onChange, onRemoveDog }: 
                                     )}
                                 </td>
                                 <td className="py-3 px-3 text-xs text-gray-600 font-mono">{dog.cwaNumber}</td>
-                                <td className="py-3 px-3 text-gray-700">{dog.grade}</td>
+                                <td className="py-3 px-3">
+                                    <select
+                                        value={dog.grade}
+                                        onChange={(e) => handlePropertyChange(dog, "grade", e.target.value)}
+                                        className="w-full rounded-lg border border-black/10 bg-white px-1 py-1.5 text-sm text-[#12301D] outline-none focus:ring-2 focus:ring-[#2E6B3F]/30"
+                                    >
+                                        <option value="A">A</option>
+                                        <option value="B">B</option>
+                                        <option value="C">C</option>
+                                        <option value="D">D</option>
+                                        <option value="F">F</option>
+                                        <option value="FTE">FTE</option>
+                                    </select>
+                                </td>
+                                <td className="py-3 px-3">
+                                    <input
+                                        value={dog.average}
+                                        onChange={(e) => handlePropertyChange(dog, "average", e.target.value)
+                                        }
+                                        className={`w-full rounded-lg px-2 py-1.5 text-sm text-[#12301D] text-right outline-none [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${isValidAverage(dog.average) ? "border border-black/10 bg-white focus:ring-2 focus:ring-[#2E6B3F]/30" : "border border-red-400 bg-red-50"}`}
+                                    />
+                                </td>
                                 <td className="py-3 px-3">
                                     <select
                                         value={dog.entryType}
