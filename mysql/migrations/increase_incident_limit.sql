@@ -1,0 +1,1 @@
+ALTER TABLE RaceResults MODIFY COLUMN Incident VARCHAR(20);

@@ -135,7 +135,7 @@ CREATE TABLE `RaceResults` (
     `MeetPoints` DECIMAL(3,2) NOT NULL,
     `AOMEarned` DECIMAL(3,2) NOT NULL,
     `DPCPoints` DECIMAL(3,2) NOT NULL,
-    `Incident` VARCHAR(5),
+    `Incident` VARCHAR(20),
     `LastEditedBy` INT,
     `LastEditedAt` TIMESTAMP,
     UNIQUE (`MeetNumber`, `CWANumber`, `Program`, `RaceNumber`)

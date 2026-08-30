@@ -125,9 +125,11 @@ class RaceResult:
         if len(self.cwa_number) > 10:
             errors.append("CWA number must be 10 characters or less")
         if len(self.program) > 1:
-            errors.append("Program must be 1 characters or less")
+            errors.append("Program must be 1 character")
         if len(self.race_number) > 10:
             errors.append("Race number must be 10 characters or less")
+        if len(self.incident) > 20:
+            errors.append("Incident must be 20 characters or less")
         return errors
 
     def save(self):
