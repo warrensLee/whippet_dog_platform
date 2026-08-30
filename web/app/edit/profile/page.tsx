@@ -1,10 +1,9 @@
 
 'use client'
 import React, { useContext, useEffect, useState } from 'react';
-import { TextField, Grid, Box, Typography, MenuItem, Paper, Snackbar, Alert } from '@mui/material';
+import { TextField, Grid, Box, Typography, MenuItem, Paper, Alert } from '@mui/material';
 import { getNames } from 'country-list';
 import parsePhoneNumber from 'libphonenumber-js'
-import axios from 'axios';
 import { Person } from './types';
 import HeroSection from '@/app/components/ui/HeroSection';
 import AuthGuard from '@/lib/auth/authGuard';
@@ -15,26 +14,53 @@ export default function ProfileForm() {
     const [currentProfile, setCurrentProfile] = useState<Person>(new Person({}));
     const [primaryPhoneError, setPrimaryPhoneError] = useState(false)
     const [secondaryPhoneError, setSecondaryPhoneError] = useState(false)
-    const [openSnackbar, setOpenSnackbar] = useState(false);
-    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [alertMessage, setAlertMessage] = useState('');
+    const [alertSeverity, setAlertSeverity] = useState<"success" | "info" | "error">("info")
+    const [loading, setLoading] = useState(false);
     const countryNames = getNames();
     const user = useContext(authContext);
-    const handleSave = () => {
-        axios.post("/api/person/edit", currentProfile);
-        setOpenSnackbar(true);
-        setSnackbarMessage("Profile saved successfully!");
+    function handleSave() {
+        setLoading(true)
+        setAlertMessage("saving")
+        setAlertSeverity("info")
+        fetch("/api/person/update-information", {
+            method: "POST",
+            headers: {
+                "content-type": "application/json"
+            },
+            body: JSON.stringify(currentProfile)
+        }).then(async (data) => {
+            const response = await data.json()
+            if (response.ok) {
+                setAlertMessage("Update successful")
+                setAlertSeverity("success")
+            } else {
+                setAlertMessage(response.error)
+                setAlertSeverity("error")
+            }
+        }, () => {
+            setAlertMessage("Failed to save information, please try again")
+            setAlertSeverity("error")
+        }).finally(() => {
+            setLoading(false)
+        });
     };
     useEffect(() => {
         const loadUser = async () => {
-            if (user === undefined || user === "NotAuthenticated") return;
-            const personResponse = await axios.get("/api/person/get/" + user.PersonID);
-            setCurrentProfile(new Person(personResponse.data.data))
+            try {
+                if (user === undefined || user === "NotAuthenticated") return;
+                const personResponse = await fetch("/api/person/get-information");
+                const jsonResponse = await (personResponse.json())
+                setCurrentProfile(new Person(jsonResponse.data))
+            } catch {
+                setAlertSeverity("error")
+                setAlertMessage("Failed to load user data")
+            }
         }
         loadUser();
     }, [user])
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const setProfileAttribute = (key: keyof Person, value: any) => {
+    function setProfileAttribute<K extends keyof Person>(key: K, value: Person[K]) {
         setCurrentProfile(prev => ({ ...prev, [key]: value }))
     }
     return (
@@ -42,16 +68,7 @@ export default function ProfileForm() {
             <main className="pt-24 bg-[#1F4D2E]">
                 <HeroSection title={"Edit Profile"} />
                 <section className="bg-[#E7F0E9] pt-12 pb-24 flex-center" style={{ display: "flex", justifyContent: "center", flexDirection: "column", alignItems: "center" }}>
-                    <Snackbar onClose={() => setOpenSnackbar(false)} open={openSnackbar} message={snackbarMessage} autoHideDuration={6000} >
-                        <Alert
-                            onClose={() => setOpenSnackbar(false)}
-                            severity="success"
-                            variant="filled"
-                            sx={{ width: '100%' }}
-                        >
-                            {snackbarMessage}
-                        </Alert>
-                    </Snackbar>
+
                     <Paper sx={{
                         display: "flex",
                         justifyContent: "center", margin: "auto", height: "fit-content", p: 2, border: '1px solid #eee', borderRadius: 2, marginTop: "20px", width: "30vw", minWidth: "600px"
@@ -136,7 +153,7 @@ export default function ProfileForm() {
                                 onChange={(e) => {
                                     setProfileAttribute("primaryPhone", e.target.value)
                                     const parsedNumber = parsePhoneNumber(e.target.value, "US");
-                                    if (!parsedNumber || !parsedNumber.nationalNumber || parsedNumber.nationalNumber.length < 10) {
+                                    if ((!parsedNumber || !parsedNumber.nationalNumber || parsedNumber.nationalNumber.length < 10) && e.target.value != "") {
                                         setPrimaryPhoneError(true);
                                     } else {
                                         setPrimaryPhoneError(false);
@@ -153,14 +170,21 @@ export default function ProfileForm() {
                                 onChange={(e) => {
                                     setProfileAttribute("secondaryPhone", e.target.value)
                                     const parsedNumber = parsePhoneNumber(e.target.value, "US");
-                                    if (!parsedNumber || !parsedNumber.nationalNumber || parsedNumber.nationalNumber.length < 10) {
+                                    if ((!parsedNumber || !parsedNumber.nationalNumber || parsedNumber.nationalNumber.length < 10) && e.target.value != "") {
                                         setSecondaryPhoneError(true);
                                     } else {
                                         setSecondaryPhoneError(false);
                                     }
                                 }}
                             />
-                            <Button type="button" onClick={handleSave} fullWidth>
+                            {alertMessage && <Alert
+                                severity={alertSeverity}
+                                variant="filled"
+                                sx={{ width: '100%' }}
+                            >
+                                {alertMessage}
+                            </Alert>}
+                            <Button type="button" onClick={handleSave} disabled={loading || primaryPhoneError || secondaryPhoneError} fullWidth>
                                 Save
                             </Button>
                         </Box>

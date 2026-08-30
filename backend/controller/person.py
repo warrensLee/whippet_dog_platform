@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from database import fetch_all, fetch_one
 from classes.person import Person
 from classes.change_log import ChangeLog
-from utils.auth_helpers import current_editor_id, current_role
+from utils.auth_helpers import current_editor_id, current_role, current_user
 from utils.error_handler import handle_error
 
 person_bp = Blueprint("person", __name__, url_prefix="/api/person")
@@ -86,6 +86,50 @@ def register_person():
     except Error as e:
         return handle_error(e, "Database error")
 
+# This endpoint is used by all users to update information like their address
+@person_bp.post("/update-information")
+def update_information():
+    try:
+        user = current_user()
+        if not user:
+            return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+        data = request.get_json() or {}
+        person = Person.find_by_identifier(user.get("ID"))
+        before_snapshot = person.to_dict()
+        person.first_name = data.get("firstName")
+        person.last_name = data.get("lastName")
+        person.address_line_one = data.get("addressLineOne")
+        person.address_line_two = data.get("addressLineTwo")
+        person.city = data.get("city")
+        person.state_province = data.get("stateProvince")
+        person.zip_code = data.get("zipCode")
+        person.country = data.get("country")
+        person.primary_phone = data.get("primaryPhone")
+        person.secondary_phone = data.get("secondaryPhone")
+        person.last_edited_by = current_editor_id()
+        person.last_edited_at = datetime.now(timezone.utc)
+
+        validation_errors = person.validate()
+        if validation_errors:
+            return jsonify({"ok": False, "error": ", ".join(validation_errors)}), 400
+
+        person.update()
+        refreshed = Person.find_by_id(user.get("ID"))
+        after_snapshot = refreshed.to_dict() if refreshed else person.to_dict()
+
+        ChangeLog.log(
+            changed_table="Person",
+            record_pk=person.id,
+            operation="UPDATE",
+            changed_by=current_editor_id(),
+            source="api/person/update-information POST",
+            before_obj=before_snapshot,
+            after_obj=after_snapshot,
+        )
+        return jsonify({"ok": True}), 200
+    except Error as e:
+        return handle_error(e, "Database error")
 
 @person_bp.post("/edit")
 def edit_person():
@@ -105,23 +149,8 @@ def edit_person():
     if not existing:
         return jsonify({"ok": False, "error": "Person does not exist"}), 404
 
-    # Prevent locking yourself out
     if "locked" in data and data["locked"] and _is_self(existing):
         return jsonify({"ok": False, "error": "You cannot lock your own account"}), 403
-    
-    # if role.edit_person_scope == UserRole.SELF and current_editor_id() != existing.id:
-    #     return jsonify({"ok": False, "error": "You can only edit your own profile"}), 403
-
-    # # Prevent locking yourself out
-    # if "locked" in data and data["locked"] and current_editor_id() == existing.id:
-    #     return jsonify({"ok": False, "error": "You cannot lock your own account"}), 403
-
-    # Prevent locking the last admin
-    if "locked" in data and data["locked"] and existing.system_role == "ADMIN":
-        if data.get("systemRole", existing.system_role) == "ADMIN":
-            admin_count = Person.count_by_system_role("ADMIN")
-            if admin_count <= 1:
-                return jsonify({"ok": False, "error": "Cannot lock the last admin account"}), 403
 
     before_snapshot = existing.to_dict()
 
@@ -206,6 +235,28 @@ def delete_person():
         return jsonify({"ok": True}), 200
     except Error as e:
         return handle_error(e, "Database error")
+
+@person_bp.get("/get-information")
+def get_information():
+    user = current_user()
+    if not user:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+    person = Person.find_by_identifier(user.get("ID"))
+
+    return jsonify({"ok": True, "data": {
+        "id": person.id,
+        "personId": person.person_id,
+        "firstName": person.first_name,
+        "lastName": person.last_name,
+        "addressLineOne": person.address_line_one,
+        "addressLineTwo": person.address_line_two,
+        "city": person.city,
+        "stateProvince": person.state_province,
+        "zipCode": person.zip_code,
+        "country": person.country,
+        "primaryPhone": person.primary_phone,
+        "secondaryPhone": person.secondary_phone
+    }}), 200
 
 @person_bp.get("/get/<person_id>")
 def get_person(person_id: str):
