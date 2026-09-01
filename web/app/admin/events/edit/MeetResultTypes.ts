@@ -624,10 +624,10 @@ export function recalculateAll(results: MeetResults): MeetResults {
         return dog;
     });
 
-    updated = calculateMeetPoints(updated);
+    //updated = calculateMeetPoints(updated); removed at request of president
     updated = recalculateMeetRankings(updated);
     updated = calculateAom(updated);
-    updated = calculateArxNarx(updated);
+    //updated = calculateArxNarx(updated); removed at request of president
     updated = calculateDpc(updated);
     updated = calculateHcWinner(updated);
     return updated;
