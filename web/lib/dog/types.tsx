@@ -28,6 +28,9 @@ export interface DogDetail {
   manualMeetWinsAdjustment?: number | null;
   manualDPCLegsAdjustment?: number | null;
   manualHighCombinedWinsAdjustment?: number | null;
+  historicalMeetPoints1?: number | null;
+  historicalMeetPoints2?: number | null;
+  historicalMeetPoints3?: number | null;
   adjustedMeetAppearances?: number | null;
   adjustedMeetWins?: number | null;
   adjustedDPCLegs?: number | null;

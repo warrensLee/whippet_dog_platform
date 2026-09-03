@@ -60,6 +60,9 @@ export type DogFormValues =
     manualMeetWinsAdjustment: string;
     manualDPCLegsAdjustment: string;
     manualHighCombinedWinsAdjustment: string;
+    historicalMeetPoints1: string | undefined;
+    historicalMeetPoints2: string | undefined;
+    historicalMeetPoints3: string | undefined;
   };
 
 export type DogListItem =
@@ -118,4 +121,7 @@ export const emptyDogFormValues: DogFormValues =
   manualMeetWinsAdjustment: "0",
   manualDPCLegsAdjustment: "0",
   manualHighCombinedWinsAdjustment: "0",
+  historicalMeetPoints1: undefined,
+  historicalMeetPoints2: undefined,
+  historicalMeetPoints3: undefined,
 };

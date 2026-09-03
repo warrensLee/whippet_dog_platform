@@ -1,0 +1,4 @@
+ALTER TABLE `Dog`
+    ADD COLUMN `HistoricalMeetPoints1` DECIMAL(9,2) DEFAULT NULL,
+    ADD COLUMN `HistoricalMeetPoints2` DECIMAL(9,2) DEFAULT NULL,
+    ADD COLUMN `HistoricalMeetPoints3` DECIMAL(9,2) DEFAULT NULL;

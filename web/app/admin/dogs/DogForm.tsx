@@ -245,8 +245,29 @@ export default function DogForm
             {
                 label: "Registry Type",
                 field: "foreignType",
-            },
+            }
         ];
+
+    /*
+        Render standard fields, mapping null to empty string for input compatibility.
+    */
+    const standardFieldsRendered = standardFields.map(
+        (fieldConfig) => {
+            const value = values[fieldConfig.field];
+            const displayValue = value === null || value === undefined ? "" : value;
+            return (
+                <InputField
+                    key={String(fieldConfig.field)}
+                    label={fieldConfig.label}
+                    field={fieldConfig.field}
+                    value={displayValue as string}
+                    onChange={onChange}
+                    placeholder={fieldConfig.placeholder}
+                    type={fieldConfig.type}
+                />
+            );
+        }
+    );
 
     /*
         Score fields that support manual adjustments. Each entry maps to its
@@ -329,24 +350,7 @@ export default function DogForm
                     readOnly={isEditMode}
                 />
 
-                {
-                    standardFields.map
-                        (
-                            (fieldConfig) => {
-                                return (
-                                    <InputField
-                                        key={String(fieldConfig.field)}
-                                        label={fieldConfig.label}
-                                        field={fieldConfig.field}
-                                        value={values[fieldConfig.field] as string}
-                                        onChange={onChange}
-                                        placeholder={fieldConfig.placeholder}
-                                        type={fieldConfig.type}
-                                    />
-                                );
-                            }
-                        )
-                }
+                {standardFieldsRendered}
 
                 {/* Render score/adjustable fields with manual adjustment shown below */}
                 {
@@ -397,6 +401,32 @@ export default function DogForm
                     onChange={onChange}
                     className="md:col-span-2"
                 />
+                <div className="md:col-span-2 flex flex-row justify-between">
+                    <InputField
+                        label="Historical Meet Points 1"
+                        field="historicalMeetPoints1"
+                        value={values.historicalMeetPoints1 || ''}
+                        onChange={onChange}
+                        placeholder="Historical Meet Points 1"
+                        type="number"
+                    />
+                    <InputField
+                        label="Historical Meet Points 2"
+                        field="historicalMeetPoints2"
+                        value={values.historicalMeetPoints2 || ''}
+                        onChange={onChange}
+                        placeholder="Historical Meet Points 2"
+                        type="number"
+                    />
+                    <InputField
+                        label="Historical Meet Points 3"
+                        field="historicalMeetPoints3"
+                        value={values.historicalMeetPoints3 || ''}
+                        onChange={onChange}
+                        placeholder="Historical Meet Points 3"
+                        type="number"
+                    />
+                </div>
 
                 <div className="md:col-span-2">
                     <div className="flex items-center gap-3">

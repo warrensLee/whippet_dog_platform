@@ -24,11 +24,12 @@ class Dog:
                  registered_name, birthdate, pedigree_link, status, average, current_grade, meet_points, arx_points,
                  narx_points, show_points, dpc_legs, meet_wins, meet_appearences, high_combined_wins, aom_earned, public_notes, private_notes, 
                  dna, sire_dna, dam_dna, kennel_club_champion=False, last_edited_by=None, last_edited_at=None,
-                 dpc_points=0, manual_meet_points_adjustment=0, manual_arx_points_adjustment=0,
-                 manual_narx_points_adjustment=0, manual_show_points_adjustment=0,
-                 manual_dpc_points_adjustment=0, manual_meet_appearances_adjustment=0,
-                 manual_meet_wins_adjustment=0, manual_dpc_legs_adjustment=0,
-                 manual_high_combined_wins_adjustment=0):
+                  dpc_points=0, manual_meet_points_adjustment=0, manual_arx_points_adjustment=0,
+                  manual_narx_points_adjustment=0, manual_show_points_adjustment=0,
+                  manual_dpc_points_adjustment=0, manual_meet_appearances_adjustment=0,
+                  manual_meet_wins_adjustment=0, manual_dpc_legs_adjustment=0,
+                  manual_high_combined_wins_adjustment=0,
+                  historical_meet_points_1=0, historical_meet_points_2=0, historical_meet_points_3=0):
         self.cwa_number = cwa_number
         self.registered_number = registered_number
         self.foreign_type = foreign_type
@@ -58,6 +59,9 @@ class Dog:
         self.manual_meet_wins_adjustment = manual_meet_wins_adjustment
         self.manual_dpc_legs_adjustment = manual_dpc_legs_adjustment
         self.manual_high_combined_wins_adjustment = manual_high_combined_wins_adjustment
+        self.historical_meet_points_1 = historical_meet_points_1
+        self.historical_meet_points_2 = historical_meet_points_2
+        self.historical_meet_points_3 = historical_meet_points_3
         self.public_notes = public_notes
         self.private_notes = private_notes
         self.dna = dna
@@ -356,7 +360,10 @@ class Dog:
             dam_dna=(data.get("damDna") or "").strip() or None,
             kennel_club_champion=data.get("kennelClubChampion"),
             last_edited_by=data.get("lastEditedBy"),
-            last_edited_at=data.get("lastEditedAt")
+            last_edited_at=data.get("lastEditedAt"),
+            historical_meet_points_1=(data.get("historicalMeetPoints1") or "").strip() or None,
+            historical_meet_points_2=(data.get("historicalMeetPoints2") or "").strip() or None,
+            historical_meet_points_3=(data.get("historicalMeetPoints3") or "").strip() or None
         )
     
     @classmethod
@@ -401,7 +408,10 @@ class Dog:
             dam_dna=row.get("DamDNA"),
             kennel_club_champion=bool(row.get("KennelClubChampion")),
             last_edited_by=row.get("LastEditedBy"),
-            last_edited_at=row.get("LastEditedAt")
+            last_edited_at=row.get("LastEditedAt"),
+            historical_meet_points_1=row.get("HistoricalMeetPoints1"),
+            historical_meet_points_2=row.get("HistoricalMeetPoints2"),
+            historical_meet_points_3=row.get("HistoricalMeetPoints3")
         )
 
     @classmethod
@@ -418,7 +428,8 @@ class Dog:
                     ManualNARXPointsAdjustment, ManualShowPointsAdjustment,
                     ManualDPCPointsAdjustment, ManualMeetAppearancesAdjustment,
                     ManualMeetWinsAdjustment, ManualDPCLegsAdjustment,
-                    ManualHighCombinedWinsAdjustment, PublicNotes, PrivateNotes,
+                    ManualHighCombinedWinsAdjustment, HistoricalMeetPoints1, HistoricalMeetPoints2, HistoricalMeetPoints3,
+                    PublicNotes, PrivateNotes,
                     DNA, SireDNA, DamDNA, KennelClubChampion, LastEditedBy, LastEditedAt
             FROM Dog
             WHERE CWANumber = %s
@@ -685,6 +696,9 @@ class Dog:
         float_field(errors, self.manual_meet_wins_adjustment, "Manual Meet Wins Adjustment", min_value=-99999.99, max_value=99999.99)
         float_field(errors, self.manual_dpc_legs_adjustment, "Manual DPC Legs Adjustment", min_value=-99999.99, max_value=99999.99)
         float_field(errors, self.manual_high_combined_wins_adjustment, "Manual High Combined Wins Adjustment", min_value=-99999.99, max_value=99999.99)
+        float_field(errors, self.historical_meet_points_1, "Historical Meet Points 1", min_value=-99999.99, max_value=99999.99, required=False)
+        float_field(errors, self.historical_meet_points_2, "Historical Meet Points 2", min_value=-99999.99, max_value=99999.99)
+        float_field(errors, self.historical_meet_points_3, "Historical Meet Points 3", min_value=-99999.99, max_value=99999.99)
         
         float_field(errors, self.show_points, "Show Points", min_value=0, max_value=32767)
         int_field(errors, self.dpc_legs, "DPC Legs", min_value=0, max_value=32767)
@@ -710,13 +724,14 @@ class Dog:
                     ManualNARXPointsAdjustment, ManualShowPointsAdjustment,
                     ManualDPCPointsAdjustment, ManualMeetAppearancesAdjustment,
                     ManualMeetWinsAdjustment, ManualDPCLegsAdjustment,
-                    ManualHighCombinedWinsAdjustment, PublicNotes, PrivateNotes,
+                    ManualHighCombinedWinsAdjustment, HistoricalMeetPoints1, HistoricalMeetPoints2, HistoricalMeetPoints3,
+                    PublicNotes, PrivateNotes,
                     DNA, SireDNA, DamDNA, KennelClubChampion, LastEditedBy, LastEditedAt
                 )
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,
                         %s, %s, %s, %s, %s, %s, %s, %s, %s,
                         %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
                     self.cwa_number,
@@ -748,6 +763,9 @@ class Dog:
                     self.manual_meet_wins_adjustment,
                     self.manual_dpc_legs_adjustment,
                     self.manual_high_combined_wins_adjustment,
+                    self.historical_meet_points_1,
+                    self.historical_meet_points_2,
+                    self.historical_meet_points_3,
                     self.public_notes or None,
                     self.private_notes or None,
                     self.dna,
@@ -796,6 +814,9 @@ class Dog:
                     ManualMeetWinsAdjustment = %s,
                     ManualDPCLegsAdjustment = %s,
                     ManualHighCombinedWinsAdjustment = %s,
+                    HistoricalMeetPoints1 = %s,
+                    HistoricalMeetPoints2 = %s,
+                    HistoricalMeetPoints3 = %s,
                     PublicNotes = %s,
                     PrivateNotes = %s,
                     DNA = %s,
@@ -835,6 +856,9 @@ class Dog:
                     self.manual_meet_wins_adjustment,
                     self.manual_dpc_legs_adjustment,
                     self.manual_high_combined_wins_adjustment,
+                    self.historical_meet_points_1,
+                    self.historical_meet_points_2,
+                    self.historical_meet_points_3,
                     self.public_notes or None,
                     self.private_notes or None,
                     self.dna,
@@ -916,10 +940,15 @@ class Dog:
             for r in rows
             if r and r.get("MeetPoints") is not None
         ]
-
-        if not points or len(points) < 3:
-            return self.average
-
+        if self.historical_meet_points_1:
+            points.append(float(self.historical_meet_points_1))
+        if self.historical_meet_points_2:
+            points.append(float(self.historical_meet_points_2))
+        if self.historical_meet_points_3:
+            points.append(float(self.historical_meet_points_3))
+        points = points[:3]
+        if len(points) == 0:
+            return 0
         avg = sum(points) / len(points)
         return round(avg, 2)
 
@@ -1044,6 +1073,9 @@ class Dog:
             "manualMeetWinsAdjustment": self.manual_meet_wins_adjustment,
             "manualDPCLegsAdjustment": self.manual_dpc_legs_adjustment,
             "manualHighCombinedWinsAdjustment": self.manual_high_combined_wins_adjustment,
+            "historicalMeetPoints1": self.historical_meet_points_1,
+            "historicalMeetPoints2": self.historical_meet_points_2,
+            "historicalMeetPoints3": self.historical_meet_points_3,
             "adjustedMeetPoints": self.scored_meet_points(),
             "adjustedArxPoints": self.scored_arx_points(),
             "adjustedNarxPoints": self.scored_narx_points(),

@@ -96,6 +96,9 @@ type RawDogGetResponse = {
         meetWins?: string | null;
         meetAppearences?: string | null;
         highCombinedWins?: string | null;
+        historicalMeetPoints1?: string | null;
+        historicalMeetPoints2?: string | null;
+        historicalMeetPoints3?: string | null;
         adjustedArxPoints?: string | null;
         adjustedDPCLegs?: string | null;
         adjustedDpcPoints?: string | null;
@@ -148,6 +151,9 @@ function buildFormFromDog(data: NonNullable<RawDogGetResponse["data"]>): DogForm
         meetWins: normalizeText(data.adjustedMeetWins),
         meetAppearences: normalizeText(data.adjustedMeetAppearances),
         highCombinedWins: normalizeText(data.adjustedHighCombinedWins),
+        historicalMeetPoints1: data.historicalMeetPoints1 ?? undefined,
+        historicalMeetPoints2: data.historicalMeetPoints2 ?? undefined,
+        historicalMeetPoints3: data.historicalMeetPoints3 ?? undefined,
     };
 }
 
@@ -202,6 +208,9 @@ function buildEditPayload(form: DogFormValues): DogFormValues {
         meetWins: form.manualMeetWinsAdjustment.trim(),
         meetAppearences: form.manualMeetAppearancesAdjustment.trim(),
         highCombinedWins: form.manualHighCombinedWinsAdjustment.trim(),
+        historicalMeetPoints1: form.historicalMeetPoints1?.trim() || undefined,
+        historicalMeetPoints2: form.historicalMeetPoints2?.trim() || undefined,
+        historicalMeetPoints3: form.historicalMeetPoints3?.trim() || undefined,
     };
 }
 
@@ -296,10 +305,13 @@ function EditDogPage() {
         Generic form field updater passed down into DogForm.
     */
     function updateField<K extends keyof DogFormValues>(key: K, value: DogFormValues[K]) {
-        setForm((prev) => ({
-            ...prev,
-            [key]: value,
-        }));
+        setForm((prev) => {
+            const updated = {
+                ...prev,
+                [key]: value,
+            };
+            return updated;
+        });
 
         if (success) {
             setSuccess("");

@@ -102,6 +102,7 @@ def edit_dog():
         return deny
 
     data = request.get_json(silent=True) or {}
+    print(data)
     dog = Dog.from_request_data(data)
 
     if not dog.cwa_number:
@@ -125,7 +126,7 @@ def edit_dog():
         return jsonify({"ok": False, "error": ", ".join(validation_errors)}), 400
 
     try:
-        dog.update()
+        dog.update_from_meet_results()
 
         refreshed_dog = Dog.find_by_identifier(dog.cwa_number)
         after_snapshot = refreshed_dog.to_dict() if refreshed_dog else None
@@ -142,7 +143,6 @@ def edit_dog():
 
         #update titles based on dog attributes
         DogTitle.sync_titles_for_dog(dog, current_editor_id(), datetime.now(timezone.utc))
-
         return jsonify({"ok": True}), 200
 
     except Error as e:
