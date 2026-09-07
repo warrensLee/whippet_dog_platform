@@ -62,6 +62,9 @@ function buildCreatePayload(form: DogFormValues): DogFormValues {
         manualDPCLegsAdjustment: adj(form.dpcLegs),
         manualHighCombinedWinsAdjustment: adj(form.highCombinedWins),
         kennelClubChampion: form.kennelClubChampion,
+        historicalMeetPoints1: undefined,
+        historicalMeetPoints2: undefined,
+        historicalMeetPoints3: undefined
     };
 }
 
