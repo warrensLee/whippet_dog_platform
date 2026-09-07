@@ -1,0 +1,493 @@
+# still need to do a little work on this one 
+import csv
+import io
+from datetime import datetime, timezone
+
+from backend.classes.dog_owner import DogOwner
+from backend.classes.dog import Dog
+from backend.classes.meet import Meet
+from backend.classes.person import Person
+from backend.classes.meet_result import MeetResult
+from backend.classes.race_result import RaceResult
+from backend.classes.change_log import ChangeLog
+from backend.classes.dog_title import DogTitle
+from backend.utils.auth_helpers import current_editor_id
+
+class CsvImporter:
+
+    SCORE_ADJUSTMENT_PAIRS = {
+        "meetPoints": "manualMeetPointsAdjustment",
+        "arxPoints": "manualArxPointsAdjustment",
+        "narxPoints": "manualNarxPointsAdjustment",
+        "showPoints": "manualShowPointsAdjustment",
+        "dpcPoints": "manualDpcPointsAdjustment",
+        "dpcLegs": "manualDPCLegsAdjustment",
+        "meetWins": "manualMeetWinsAdjustment",
+        "meetAppearences": "manualMeetAppearancesAdjustment",
+        "highCombinedWins": "manualHighCombinedWinsAdjustment",
+    }
+
+    #TODO: allow aliases to be any case
+    ALIASES = {
+        "dogs": {
+            "cwaNumber": ("cwaNumber", "CWANumber", "CWA NO", "CWA No", "CWA No.", "CWA #"),
+            "registeredName": ("registeredName", "RegisteredName", "REGISTERED NAME", "Registered Name"),
+            "foreignType": {"KennelClub", "foreignType"},
+            "callName": ("callName", "CallName", "CALL NAME", "Call Name", "NAME"),
+            "birthdate": ("birthdate", "Birthdate", "BIRTHDATE", "Birth Date"),
+            "status": ("status", "Status"),
+            "currentGrade": ("currentGrade", "CurrentGrade", "CURRENT GRADE", "Grade"),
+            "kennelClubChampion": ("kennelClubChampion", "KennelClubChampion", "kennelClub", "KENNEL CLUB", "Kennel Club"),
+            "historicalMeetPoints1": ("historicalMeetPoints1", "HistoricalMeetPoints1", "HISTORICAL MEET POINTS 1", "HistoricalMeetPoints1"),
+            "historicalMeetPoints2": ("historicalMeetPoints2", "HistoricalMeetPoints2", "HISTORICAL MEET POINTS 2", "HistoricalMeetPoints2"),
+            "historicalMeetPoints3": ("historicalMeetPoints3", "HistoricalMeetPoints3", "HISTORICAL MEET POINTS 3", "HistoricalMeetPoints3"),
+        },
+        "meets": {
+            "meetNumber": ("meetNumber", "MeetNumber", "MEET NUMBER", "Meet #"),
+            "clubAbbreviation": ("clubAbbreviation", "ClubAbbreviation", "club", "Club", "CLUB"),
+            "meetDate": ("meetDate", "MeetDate", "MEET DATE", "Date"),
+            "raceSecretary": ("raceSecretary", "RaceSecretary", "RACE SECRETARY", "race_secre"),
+            "judge": ("judge", "Judge"),
+            "location": ("location", "Location", "LOCATION"),
+            "yards": ("yards", "Yards", "YARD", "YARDS"),
+        },
+        "meet_results": {
+            "meetNumber": ("meetNumber", "MeetNumber", "MEET NUMBER", "Meet #"),
+            "cwaNumber": ("cwaNumber", "CWANumber", "CWA NO", "CWA No", "CWA #"),
+            "average": ("average", "Average", "AVG"),
+            "conformationPlacement": ("conformationPlacement", "ConformationPlacement", "CONFORMATION PLACEMENT", "Conformation Placement", "Conformation Place"),
+            "matchPoints": ("matchPoints", "MatchPoints", "MATCH POINTS", "Match Points"),
+            "entryType": ("entryType", "EntryType", "ENTRY TYPE", "Entry"),
+            "grade": ("grade", "Grade"),
+            "meetPlacement": ("meetPlacement", "MeetPlacement", "MEET PLACEMENT", "Meet Place", "Place"),
+            "meetPoints": ("meetPoints", "MeetPoints", "MEET POINTS", "Points"),
+            "arxEarned": ("arxEarned", "ARXEarned", "ARX EARNED"),
+            "narxEarned": ("narxEarned", "NARXEarned", "NARX EARNED"),
+            "shown": ("shown", "Shown"),
+            "showPlacement": ("showPlacement", "ShowPlacement", "SHOW PLACEMENT"),
+            "showPoints": ("showPoints", "ShowPoints", "SHOW POINTS"),
+            "dpcLeg": ("dpcLeg", "DPCLeg", "DPC LEG"),
+            "hcScore": ("hcScore", "HCScore", "HC SCORE"),
+            "hcLegEarned": ("hcLegEarned", "HCLegEarned", "HC LEG EARNED"),
+            "aomEarned": ("aomEarned", "AOMEarned", "AOM EARNED"),
+            "dpcPoints": ("dpcPoints", "DPCPoints", "DPC POINTS"),
+        },
+        "race_results": {
+            "meetNumber": ("meetNumber", "MeetNumber", "MEET NUMBER", "Meet #"),
+            "cwaNumber": ("cwaNumber", "CWANumber", "CWA NO", "CWA No", "CWA #"),
+            "program": ("program", "Program", "PROGRAM"),
+            "raceNumber": ("raceNumber", "RaceNumber", "RACE", "Race #", "Race No", "Race No."),
+            "box": ("box", "Box", "BOX"),
+            "placement": ("placement", "Placement", "PLACE", "Place"),
+            "meetPoints": ("meetPoints", "MeetPoints", "MEET POINTS", "Points"),
+            "aomEarned": ("aomEarned", "AOMEarned", "AOM EARNED"),
+            "dpcPoints": ("dpcPoints", "DPCPoints", "DPC POINTS", "DPC"),
+            "incident": ("incident", "Incident", "INCIDENT"),
+        },
+        "dog_owners": {
+            "cwaId": ("cwaId", "CWAID", "CWA ID", "cwa_id", "cwaid"),
+            "email": ("email", "Email", "EMAIL", "EmailAddress", "emailAddress"),
+        },
+        "dog_titles": {
+            "cwaNumber": ("cwaNumber", "CWANumber", "CWA NO", "CWA No", "CWA No.", "CWA #"),
+            "title": ("title", "Title", "TITLE"),
+            "titleNumber": ("titleNumber", "TitleNumber", "TITLE NUMBER", "Title #"),
+            "titleDate": ("titleDate", "TitleDate", "TITLE DATE", "Title Date"),
+            "namePrefix": ("namePrefix", "NamePrefix", "NAME PREFIX", "Name Prefix"),
+            "nameSuffix": ("nameSuffix", "NameSuffix", "NAME SUFFIX", "Name Suffix"),
+        },
+        "people": {}
+    }
+
+    PASSTHROUGH = {
+        "dogs": ["registeredNumber", "foreignType", "pedigreeLink",
+                 "average", "meetPoints", "arxPoints", "narxPoints", "showPoints", "dpcLegs",
+                 "meetWins", "meetAppearences", "highCombinedWins", "dpcPoints",
+                  "manualMeetPointsAdjustment", "manualArxPointsAdjustment",
+                  "manualNarxPointsAdjustment", "manualShowPointsAdjustment",
+                  "manualDpcPointsAdjustment", "historicalMeetPoints1",
+                  "historicalMeetPoints2", "historicalMeetPoints3",
+                  "notes", "dna", "sireDna", "damDna"],
+        "meets": [],
+        "meet_results": [],
+        "race_results": [],
+        "dog_owners": [],
+        "dog_titles": [],
+        "people": ["firstName", "lastName", "email"],
+    }
+
+    ENTITIES = {
+        "dogs": {
+            "model": Dog, "table_name": "Dog", "pk_fields": ["cwaNumber"],
+            "exists": lambda pk: Dog.exists(pk["cwaNumber"]),
+            "find": lambda pk: Dog.find_by_identifier(pk["cwaNumber"]),
+        },
+        "meets": {
+            "model": Meet, "table_name": "Meet", "pk_fields": ["meetNumber"],
+            "exists": lambda pk: Meet.exists(pk["meetNumber"]),
+            "find": lambda pk: Meet.find_by_identifier(pk["meetNumber"]),
+        },
+        "meet_results": {
+            "model": MeetResult, "table_name": "MeetResults", "pk_fields": ["meetNumber", "cwaNumber"],
+            "exists": lambda pk: MeetResult.exists(pk["meetNumber"], pk["cwaNumber"]),
+            "find": lambda pk: MeetResult.find_by_identifier(pk["meetNumber"], pk["cwaNumber"]),
+        },
+        "people": {
+            "model" : Person, "table_name": "Person",
+            "pk_fields" :["firstName", "lastName", "email"],
+            "exists": lambda pk: Person.find_by_email(pk["email"]) is not None,
+            "find": lambda pk: Person.find_by_email(pk["email"]),
+        },
+        "race_results": {
+            "model": RaceResult, "table_name": "RaceResults",
+            "pk_fields": ["meetNumber", "cwaNumber", "program", "raceNumber"],
+            "exists": lambda pk: RaceResult.exists(pk["meetNumber"], pk["cwaNumber"], pk["program"], pk["raceNumber"]),
+            "find": lambda pk: RaceResult.find_by_identifier(pk["meetNumber"], pk["cwaNumber"], pk["program"], pk["raceNumber"]),
+        },
+        "dog_owners": {
+            "model": DogOwner, "table_name": "DogOwners",
+            "pk_fields": ["cwaId", "email"],
+            "exists": lambda pk: DogOwner.exists_by_email(pk["cwaId"], pk["email"]),
+            "find": lambda pk: DogOwner.find_by_email(pk["cwaId"], pk["email"]),
+        },
+        "dog_titles": {
+            "model": DogTitle, "table_name": "DogTitles",
+            "pk_fields": ["cwaNumber", "title"],
+            "exists": lambda pk: DogTitle.exists(pk["cwaNumber"], pk["title"]),
+            "find": lambda pk: DogTitle.find_by_identifier(pk["cwaNumber"], pk["title"]),
+        },
+    }
+
+    POST_SAVE_HOOKS = {
+        "dogs": lambda obj, editor_id, now: _sync_titles_from_dog(obj, editor_id, now),
+        "meet_results": lambda obj, editor_id, now: _sync_from_meet_result(obj, editor_id, now),
+        "race_results": lambda obj, editor_id, now: _sync_from_race_result(obj, editor_id, now),
+    }
+
+    def detect_type(self, filename):
+        name = (filename or "").lower()
+        type_map = {
+            "meet_result": "meet_results",
+            "meetresult": "meet_results",
+            "race_result": "race_results",
+            "raceresult": "race_results",
+            "dog_owner": "dog_owners",
+            "dogowner": "dog_owners",
+            "dog_title": "dog_titles",
+            "dogtitle": "dog_titles",
+            "meet": "meets",
+            "dog": "dogs",
+        }
+        for key in sorted(type_map, key=len, reverse=True):
+            if key in name:
+                return type_map[key]
+        raise ValueError("Cannot determine import type from filename")
+
+    def get_field(self, row, *names):
+        for n in names:
+            if n in row and row[n] is not None and str(row[n]).strip():
+                return str(row[n]).strip()
+        return None
+
+    def row_to_payload(self, row, import_type, use_adjustment=False):
+        payload = {key: self.get_field(row, *names) for key, names in self.ALIASES[import_type].items()}
+        for key in self.PASSTHROUGH[import_type]:
+            if key in row and row[key] is not None and str(row[key]).strip():
+                payload[key] = str(row[key]).strip()
+
+        if import_type == "meet_results":
+            def yn(v):
+                return "1" if (v or "").strip().upper() in ("1", "YES", "Y", "TRUE") else "0"
+            for field in ["shown", "dpcLeg", "hcLegEarned"]:
+                payload[field] = yn(payload.get(field))
+            if payload.get("shown") == "0":
+                payload["showPlacement"] = payload.get("showPlacement") or "0"
+                payload["showPoints"] = payload.get("showPoints") or "0"
+
+        return payload
+
+    def import_rows(self, import_type, filename, rows, *, mode, use_adjustment=False):
+        if import_type not in self.ENTITIES:
+            raise ValueError(f"Unknown CSV type: {import_type}")
+        result = self._import_entity(rows, mode=mode, import_type=import_type, use_adjustment=use_adjustment, **self.ENTITIES[import_type])
+        return {"file": filename, "type": import_type, "rows": len(rows), "mode": mode, "useAdjustment": use_adjustment, **result}
+
+    def _import_entity(self, rows, *, mode, import_type, model, table_name, pk_fields, exists, find, use_adjustment=False):
+        inserted = updated = skipped = failed = 0
+        row_errors = []
+        editor_id = current_editor_id()
+        now = datetime.now(timezone.utc)
+        seen = set()
+        hook = self.POST_SAVE_HOOKS.get(import_type)
+        changed_deferred = set()
+
+        for idx, row in enumerate(rows, start=2):
+            if not any(str(v).strip() for v in (row or {}).values() if v is not None):
+                continue
+
+            payload = self.row_to_payload(row, import_type, use_adjustment=use_adjustment)
+            pk = {}
+            missing = []
+            for field in pk_fields:
+                value = (payload.get(field) or "").strip()
+                if not value:
+                    missing.append(field)
+                else:
+                    pk[field] = value
+
+            if missing:
+                failed += 1
+                row_errors.append({"row": idx, "error": f"Missing required field(s): {', '.join(missing)}"})
+                continue
+
+            pk_key = tuple(sorted(pk.items()))
+            if pk_key in seen:
+                failed += 1
+                row_errors.append({"row": idx, "error": f"Duplicate PK in CSV: {self._pk_string(pk)}"})
+                continue
+            seen.add(pk_key)
+
+            obj = model.from_request_data(payload)
+            if hasattr(obj, "last_edited_by"):
+                obj.last_edited_by = editor_id
+            if hasattr(obj, "last_edited_at"):
+                obj.last_edited_at = now
+
+            errors = obj.validate() if hasattr(obj, "validate") else []
+            if errors:
+                failed += 1
+                row_errors.append({"row": idx, "error": ", ".join(errors), "pk": self._pk_string(pk)})
+                continue
+
+            record_exists = exists(pk)
+            if (mode == "insert" or (mode == "update" and import_type == "people")) and record_exists:
+                skipped += 1
+                continue
+
+            operation = "UPDATE" if record_exists else "INSERT"
+            before_snapshot = None
+
+            if import_type == "dogs" and use_adjustment:
+                score_to_raw = {
+                    "meetPoints": "meet_points",
+                    "arxPoints": "arx_points",
+                    "narxPoints": "narx_points",
+                    "showPoints": "show_points",
+                    "dpcPoints": "dpc_points",
+                    "dpcLegs": "dpc_legs",
+                    "meetWins": "meet_wins",
+                    "meetAppearences": "meet_appearances",
+                    "highCombinedWins": "high_combined_wins",
+                }
+                adj_attr_map = {
+                    "meet_points": "manual_meet_points_adjustment",
+                    "arx_points": "manual_arx_points_adjustment",
+                    "narx_points": "manual_narx_points_adjustment",
+                    "show_points": "manual_show_points_adjustment",
+                    "dpc_points": "manual_dpc_points_adjustment",
+                    "dpc_legs": "manual_dpc_legs_adjustment",
+                    "meet_wins": "manual_meet_wins_adjustment",
+                    "meet_appearances": "manual_meet_appearances_adjustment",
+                    "high_combined_wins": "manual_high_combined_wins_adjustment",
+                }
+                if record_exists:
+                    db_obj = find(pk)
+                    for score_field, raw_attr in score_to_raw.items():
+                        if score_field in payload:
+                            obj.__setattr__(raw_attr, getattr(db_obj, raw_attr, 0))
+                            obj.__setattr__(adj_attr_map[raw_attr], float(payload[score_field] or 0 ))
+                else:
+                    for score_field, raw_attr in score_to_raw.items():
+                        if score_field in payload:
+                            obj.__setattr__(raw_attr, 0)
+                            obj.__setattr__(adj_attr_map[raw_attr], float(payload[score_field] or 0))
+            if record_exists:
+                existing = find(pk)
+                before_snapshot = existing.to_dict() if hasattr(existing, "to_dict") else None
+                obj.update()
+                updated += 1
+            else:
+                obj.save()
+                inserted += 1
+
+            refreshed = find(pk)
+            after_snapshot = refreshed.to_dict() if refreshed and hasattr(refreshed, "to_dict") else (
+                obj.to_dict() if hasattr(obj, "to_dict") else None
+            )
+
+            ChangeLog.log(
+                changed_table=table_name,
+                record_pk=self._pk_string(pk),
+                operation=operation,
+                changed_by=editor_id,
+                source="api/import POST",
+                before_obj=before_snapshot,
+                after_obj=after_snapshot,
+            )
+
+            changed = (operation == "INSERT") or (before_snapshot != after_snapshot)
+
+            if not changed:
+                continue
+
+            if import_type == "meet_results":
+                cwa = payload.get("cwaNumber")
+                if cwa:
+                    changed_deferred.add(cwa)
+
+            elif import_type == "race_results":
+                cwa = payload.get("cwaNumber")
+                meet = payload.get("meetNumber")
+                if cwa and meet:
+                    changed_deferred.add((cwa, meet))
+
+            elif hook:
+                hook(refreshed or obj, editor_id, now)
+            
+            if import_type == "dogs" and mode == "update":
+                obj.update_from_meet_results()
+                DogTitle.sync_titles_for_dog(obj, editor_id, now, send_email=False)
+
+        affected_dogs = set()
+        for item in changed_deferred:
+            if import_type == "race_results":
+                cwa, meet = item
+
+                dog = Dog.find_by_identifier(cwa)
+                if not dog:
+                    continue
+
+                meet_result = MeetResult.find_by_identifier(meet, cwa)
+
+                if not meet_result:
+                    meet_result = MeetResult.from_request_data({
+                        "meetNumber": meet,
+                        "cwaNumber": cwa,
+                        "average": "0.00",
+                        "grade": dog.current_grade or "FTE",
+                        "meetPlacement": "0",
+                        "conformationPlacement": "0",
+                        "matchPoints": "0",
+                        "meetPoints": "0.00",
+                        "arxEarned": "0.00",
+                        "narxEarned": "0.00",
+                        "shown": "0",
+                        "showPlacement": "0",
+                        "showPoints": "0",
+                        "dpcLeg": "0",
+                        "hcScore": "0",
+                        "hcLegEarned": "0",
+                        "aomEarned": "0.00",
+                        "dpcPoints": "0.00",
+                    })
+                    meet_result.last_edited_by = editor_id
+                    meet_result.last_edited_at = now
+
+                    errors = meet_result.validate()
+                    if errors:
+                        continue
+
+                    meet_result.save()
+
+                    ChangeLog.log(
+                        changed_table="MeetResults",
+                        record_pk=f"cwaNumber={cwa}|meetNumber={meet}",
+                        operation="INSERT",
+                        changed_by=editor_id,
+                        source="api/import POST",
+                        before_obj=None,
+                        after_obj=meet_result.to_dict() if hasattr(meet_result, "to_dict") else None,
+                    )
+
+                    meet_result = MeetResult.find_by_identifier(meet, cwa)
+                    if not meet_result:
+                        continue
+
+                before_snapshot = meet_result.to_dict() if hasattr(meet_result, "to_dict") else None
+                meet_result.update_from_race_results()
+                after = MeetResult.find_by_identifier(meet, cwa)
+                after_snapshot = after.to_dict() if after and hasattr(after, "to_dict") else None
+
+                ChangeLog.log(
+                    changed_table="MeetResults",
+                    record_pk=f"cwaNumber={cwa}|meetNumber={meet}",
+                    operation="UPDATE",
+                    changed_by=editor_id,
+                    source="api/import POST",
+                    before_obj=before_snapshot,
+                    after_obj=after_snapshot,
+                )
+
+                dog.update_from_meet_results()
+                DogTitle.sync_titles_for_dog(dog, editor_id, now, send_email=False)
+
+            else:
+                affected_dogs.add(item)
+
+        for cwa in affected_dogs:
+            dog = Dog.find_by_identifier(cwa)
+            if dog:
+                dog.update_from_meet_results()
+                DogTitle.sync_titles_for_dog(dog, editor_id, now, send_email=False)
+
+        return {
+            "inserted": inserted,
+            "updated": updated,
+            "skipped": skipped,
+            "failed": failed,
+            "rowErrors": row_errors,
+        }
+    
+    def _pk_string(self, pk):
+        return "|".join(f"{k}={pk[k]}" for k in sorted(pk.keys()))
+
+    def run(self, file_storage, *, import_type=None, mode="update", use_adjustment=False):
+        filename = getattr(file_storage, "filename", "") or "upload.csv"
+        if not import_type:
+            import_type = self.detect_type(filename)
+
+        raw = file_storage.read()
+        if not raw:
+            raise ValueError("Uploaded file is empty")
+
+        try:
+            text = raw.decode("utf-8-sig")
+        except Exception:
+            text = raw.decode("utf-8", errors="replace")
+
+        rows = list(csv.DictReader(io.StringIO(text)))
+        return self.import_rows(import_type=import_type, filename=filename, rows=rows, mode=mode, use_adjustment=use_adjustment)
+
+
+def _sync_titles_from_dog(dog_obj, editor_id, now):
+    """Sync titles when dog is updated"""
+    DogTitle.sync_titles_for_dog(dog_obj, editor_id, now, send_email=False)
+
+
+def _sync_from_meet_result(meet_result_obj, editor_id, now):
+    cwa_number = getattr(meet_result_obj, "cwa_number", None)
+    if not cwa_number:
+        return
+    
+    dog = Dog.find_by_identifier(cwa_number)
+    if dog:
+        dog.update_from_meet_results()
+        DogTitle.sync_titles_for_dog(dog, editor_id, now, send_email=False)
+
+
+def _sync_from_race_result(race_result_obj, editor_id, now):
+    """Update meet result, dog stats, and titles when race result is saved"""
+    meet_number = getattr(race_result_obj, "meet_number", None)
+    cwa_number = getattr(race_result_obj, "cwa_number", None)
+    
+    if not meet_number or not cwa_number:
+        return
+    
+    meet_result = MeetResult.find_by_identifier(meet_number, cwa_number)
+    if meet_result:
+        meet_result.update_from_race_results()
+    
+    dog = Dog.find_by_identifier(cwa_number)
+    if dog:
+        dog.update_from_meet_results()
+        DogTitle.sync_titles_for_dog(dog, editor_id, now, send_email=False)

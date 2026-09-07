@@ -1,0 +1,1244 @@
+from backend.database import fetch_one, fetch_all, execute
+from mysql.connector import Error
+from datetime import datetime
+from backend.utils.validators import (require, int_field, float_field, fk_exists, enum_field, str_field)
+from backend.classes.meet_result import MeetResult
+from backend.classes.race_result import RaceResult
+from enum import StrEnum
+
+def _float_or_zero(value):
+    return float(value) if value not in (None, "") else 0.0
+
+def _int_or_zero(value):
+    return int(float(value)) if value not in (None, "") else 0
+
+class Dog:
+    PUPPY_AGE_MONTHS = 8
+    ADULT_AGE_MONTHS = 14
+    VETERAN_AGE_MONTHS = 84
+
+    VALID_STATUSES = {"Active", "Inactive"}
+    VALID_GRADES = {"FTE", "D", "C", "B", "A"}
+
+    def __init__(self, cwa_number, registered_number, foreign_type, call_name,
+                 registered_name, birthdate, pedigree_link, status, average, current_grade, meet_points, arx_points,
+                 narx_points, show_points, dpc_legs, meet_wins, meet_appearences, high_combined_wins, aom_earned, public_notes, private_notes, 
+                 dna, sire_dna, dam_dna, kennel_club_champion=False, last_edited_by=None, last_edited_at=None,
+                  dpc_points=0, manual_meet_points_adjustment=0, manual_arx_points_adjustment=0,
+                  manual_narx_points_adjustment=0, manual_show_points_adjustment=0,
+                  manual_dpc_points_adjustment=0, manual_meet_appearances_adjustment=0,
+                  manual_meet_wins_adjustment=0, manual_dpc_legs_adjustment=0,
+                  manual_high_combined_wins_adjustment=0,
+                  historical_meet_points_1=0, historical_meet_points_2=0, historical_meet_points_3=0):
+        self.cwa_number = cwa_number
+        self.registered_number = registered_number
+        self.foreign_type = foreign_type
+        self.call_name = call_name
+        self.registered_name = registered_name
+        self.birthdate = birthdate
+        self.pedigree_link = pedigree_link
+        self.status = status
+        self.average = average
+        self.current_grade = current_grade
+        self.meet_points = meet_points
+        self.arx_points = arx_points
+        self.narx_points = narx_points
+        self.show_points = show_points
+        self.dpc_legs = dpc_legs
+        self.meet_wins = meet_wins
+        self.meet_appearences = meet_appearences
+        self.high_combined_wins = high_combined_wins
+        self.aom_earned = aom_earned
+        self.dpc_points = dpc_points
+        self.manual_meet_points_adjustment = manual_meet_points_adjustment
+        self.manual_arx_points_adjustment = manual_arx_points_adjustment
+        self.manual_narx_points_adjustment = manual_narx_points_adjustment
+        self.manual_show_points_adjustment = manual_show_points_adjustment
+        self.manual_dpc_points_adjustment = manual_dpc_points_adjustment
+        self.manual_meet_appearances_adjustment = manual_meet_appearances_adjustment
+        self.manual_meet_wins_adjustment = manual_meet_wins_adjustment
+        self.manual_dpc_legs_adjustment = manual_dpc_legs_adjustment
+        self.manual_high_combined_wins_adjustment = manual_high_combined_wins_adjustment
+        self.historical_meet_points_1 = historical_meet_points_1
+        self.historical_meet_points_2 = historical_meet_points_2
+        self.historical_meet_points_3 = historical_meet_points_3
+        self.public_notes = public_notes
+        self.private_notes = private_notes
+        self.dna = dna
+        self.sire_dna = sire_dna
+        self.dam_dna = dam_dna
+        self.kennel_club_champion = kennel_club_champion
+        self.last_edited_by = last_edited_by
+        self.last_edited_at = last_edited_at
+
+        self.meet_points = _float_or_zero(self.meet_points)
+        self.arx_points = _float_or_zero(self.arx_points)
+        self.narx_points = _float_or_zero(self.narx_points)
+        self.dpc_points = _float_or_zero(self.dpc_points)
+        self.manual_meet_points_adjustment = _float_or_zero(self.manual_meet_points_adjustment)
+        self.manual_arx_points_adjustment = _float_or_zero(self.manual_arx_points_adjustment)
+        self.manual_narx_points_adjustment = _float_or_zero(self.manual_narx_points_adjustment)
+        self.manual_show_points_adjustment = _float_or_zero(self.manual_show_points_adjustment)
+        self.manual_dpc_points_adjustment = _float_or_zero(self.manual_dpc_points_adjustment)
+        self.manual_meet_appearances_adjustment = _float_or_zero(self.manual_meet_appearances_adjustment)
+        self.manual_meet_wins_adjustment = _float_or_zero(self.manual_meet_wins_adjustment)
+        self.manual_dpc_legs_adjustment = _float_or_zero(self.manual_dpc_legs_adjustment)
+        self.manual_high_combined_wins_adjustment = _float_or_zero(self.manual_high_combined_wins_adjustment)
+
+        self.show_points = float(self.show_points or 0)
+        self.dpc_legs = _int_or_zero(self.dpc_legs)
+        self.meet_wins = _float_or_zero(self.meet_wins)
+        self.meet_appearences = _int_or_zero(self.meet_appearences)
+        self.high_combined_wins = _int_or_zero(self.high_combined_wins)
+        self.aom_earned = _int_or_zero(self.aom_earned)
+
+    def scored_meet_points(self):
+        return self.meet_points + self.manual_meet_points_adjustment
+
+    def scored_arx_points(self):
+        return self.arx_points + self.manual_arx_points_adjustment
+
+    def scored_narx_points(self):
+        return self.narx_points + self.manual_narx_points_adjustment
+
+    def scored_show_points(self):
+        return self.show_points + self.manual_show_points_adjustment
+
+    def scored_dpc_points(self):
+        return self.dpc_points + self.manual_dpc_points_adjustment
+
+    def scored_meet_appearances(self):
+        return self.meet_appearences + self.manual_meet_appearances_adjustment
+
+    def scored_meet_wins(self):
+        return self.meet_wins + self.manual_meet_wins_adjustment
+
+    def scored_dpc_legs(self):
+        return self.dpc_legs + self.manual_dpc_legs_adjustment
+
+    def scored_high_combined_wins(self):
+        return self.high_combined_wins + self.manual_high_combined_wins_adjustment
+    
+    def check_grade(self):
+        '''Check grade of dog based on point average and status.'''
+        if self.is_puppy() or self.meet_appearences == 0:
+            return "FTE"
+        if self.average >= 15.0:
+            if self.status == "Inactive":
+                return "B"
+            return "A"
+        if self.average >= 10.0:
+            if self.status == "Inactive":
+                return "C"
+            return "B"
+        if self.average >= 5.0:
+            if self.status == "Inactive":
+                return "D"
+            return "C"
+        return "D"
+    
+    def check_titles(self):
+        titles = []
+        if(not self.is_puppy()):
+            titles.extend(self.check_arx_titles())
+            titles.extend(self.check_trp_titles())
+            titles.extend(self.check_pr_titles())
+            titles.extend(self.check_narx_titles())
+            titles.extend(self.check_hc_titles())
+        titles.extend(self.check_dpc_titles())
+        return titles
+
+    def check_trp_titles(self):
+        if self.scored_meet_appearances() >= 10 and not self.is_puppy():
+            return ["TRP"]
+        return []
+    
+    def check_arx_titles(self):
+        if self.scored_arx_points() >= 15 and not self.is_puppy():
+            return ["ARX"]
+        return []
+
+    def check_pr_titles(self):
+        '''Check if dog is eligible for Performance Racer (PR) titles.'''
+        titles = []
+        meet_points = self.scored_meet_points()
+        if not self.is_puppy():
+            if meet_points >= 50:
+                titles.append("PR")
+            if meet_points >= 150:
+                titles.append("PR2")
+            if meet_points >= 250:
+                titles.append("PR3")
+            if meet_points >= 350:
+                titles.append("PR4")
+            if meet_points >= 450:
+                titles.append("PRX")
+        return titles
+
+    def check_narx_titles(self):
+        '''Check if dog is eligible for National Racing Excellence (NRX)
+        and Superior Racing Award (SRA) titles.'''
+        titles = []
+        if not self.is_puppy():
+            narx_points = self.scored_narx_points()
+            if narx_points >= 15:
+                titles.append("NARX")
+            if narx_points >= 30:
+                titles.append("NARX2")
+            if narx_points >= 45:
+                titles.append("NARX3")
+            if narx_points >= 60:
+                titles.append("NARX4")
+            if narx_points >= 75:
+                titles.append("SRA")
+            if narx_points >= 150:
+                titles.append("SRA2")
+            if narx_points >= 225:
+                titles.append("SRA3")
+            if narx_points >= 300:
+                titles.append("SRA4")
+            return titles
+    
+    def check_dpc_titles(self):
+        '''Check if dog is eligible for Dual Purpose Championship (DPC) titles.'''
+        titles = []
+
+        dpc_legs = self.scored_dpc_legs()
+        dpc_points = self.scored_dpc_points()
+
+        has_trp = "TRP" in self.check_trp_titles()
+        has_dpc = (dpc_legs >= 5 or dpc_points >= 15 or self.kennel_club_champion) and has_trp
+        has_arx = "ARX" in self.check_arx_titles()
+
+        if has_dpc:
+            titles.append("DPC")
+
+        if has_dpc and has_arx:
+            titles.append("DPCX")
+
+        return titles
+    
+    def check_dpc_titles_old(self):
+        '''Check if dog is eligible for Dual Purpose Championship (DPC) titles.'''
+        titles = []
+        has_registry = bool((self.registered_number or "").strip())
+
+        if self.scored_meet_appearances() >= 10 and (has_registry or self.scored_dpc_legs() >= 5):
+            titles.append("DPC")
+            if self.scored_arx_points() >= 15:
+                titles.append("DPCX")
+            else:
+                titles.append("DPC")
+
+        return titles
+    
+    def check_hc_titles(self):
+        '''Check if dog is eligible for High Combined (HC) titles.'''
+        titles = []
+
+        if not self.is_puppy():
+            if self.scored_high_combined_wins() >= 5:
+                titles.append("HC")
+            if self.scored_high_combined_wins() >= 10:
+                titles.append("HCX")
+            if self.scored_high_combined_wins() >= 15:
+                titles.append("HCX2")
+            if self.scored_high_combined_wins() >= 20:
+                titles.append("HCX3")
+            if self.scored_high_combined_wins() >= 25:
+                titles.append("HCX4")
+        return titles
+    
+    def is_dpc(self):
+        '''Check if dog is a Dual Purpose Champion (DPC).'''
+        return "DPC" in self.check_dpc_titles() or "DPCX" in self.check_dpc_titles()
+    
+    def is_akc_or_ckc(self):
+        '''Check if dog is registered with AKC or CKC.'''
+        return bool((self.registered_number or "").strip())
+
+    def total_placement_points(self, placements):
+        '''Calculate total points based on placements'''
+        meet_points_earned = 0
+        for placement in placements:
+            if placement == "1":
+                meet_points_earned += 5
+            elif placement == "2":
+                meet_points_earned += 3
+            elif placement == "3":
+                meet_points_earned += 2
+            elif placement == "4":
+                meet_points_earned += 1
+            elif placement == "AOM":
+                meet_points_earned += 0.5
+        self.meet_points = meet_points_earned
+        self.update()
+
+    def add_placement_points(self, placement):
+        '''Add points for a single placement'''
+        if placement == "1":
+            self.meet_points += 5
+        elif placement == "2":
+            self.meet_points += 3
+        elif placement == "3":
+            self.meet_points += 2
+        elif placement == "4":
+            self.meet_points += 1
+        elif placement == "AOM":
+            self.meet_points += 0.5
+        self.update()
+    
+    def is_puppy(self):
+        '''Check if dog is a puppy (under PUPPY_AGE_MONTHS).'''
+        if not self.birthdate:
+            return False
+        if isinstance(self.birthdate, str):
+            self.birthdate = datetime.strptime(self.birthdate, "%Y-%m-%d")
+
+        today = datetime.today()
+        age_in_months = ((today.year - self.birthdate.year) * 12) + (today.month - self.birthdate.month)
+        
+        return age_in_months < self.PUPPY_AGE_MONTHS
+    
+    def is_adult(self):
+        if not self.birthdate:
+            return False
+        if isinstance(self.birthdate, str):
+            self.birthdate = datetime.strptime(self.birthdate, "%Y-%m-%d")
+        today = datetime.today()
+        age_in_months = ((today.year - self.birthdate.year) * 12) + (today.month - self.birthdate.month)
+        
+        return age_in_months >= self.ADULT_AGE_MONTHS
+    
+    def is_veteran(self):
+        if not self.birthdate:
+            return False
+        if isinstance(self.birthdate, str):
+            self.birthdate = datetime.strptime(self.birthdate, "%Y-%m-%d")
+        today = datetime.today()
+        age_in_months = ((today.year - self.birthdate.year) * 12) + (today.month - self.birthdate.month)
+        
+        return age_in_months >= self.VETERAN_AGE_MONTHS
+
+    @classmethod
+    def from_request_data(cls, data):
+        """Create a Dog instance from request JSON data."""
+        return cls(
+            cwa_number=(data.get("cwaNumber") or "").strip(),
+            registered_number=(data.get("registeredNumber") or "").strip() or None,
+            foreign_type=(data.get("foreignType") or "").strip() or None,
+            call_name=(data.get("callName") or "").strip(),
+            registered_name=(data.get("registeredName") or "").strip(),
+            birthdate=datetime.strptime((data.get("birthdate") or "").strip(),"%Y-%m-%d") if data.get("birthdate") else None,
+            pedigree_link=(data.get("pedigreeLink") or "").strip() or None,
+            status=(data.get("status") or "").strip(),
+            average=(data.get("average") or "").strip() or None,
+            current_grade=(data.get("currentGrade") or "").strip() or None,
+            meet_points=(data.get("meetPoints") or "").strip() or "0",
+            arx_points=(data.get("arxPoints") or "").strip() or "0",
+            narx_points=(data.get("narxPoints") or "").strip() or "0",
+            show_points=(data.get("showPoints") or "").strip() or "0",
+            dpc_legs=(data.get("dpcLegs") or "").strip() or "0",
+            meet_wins=(data.get("meetWins") or "").strip() or "0",
+            meet_appearences=(data.get("meetAppearences") or "").strip() or "0",
+            high_combined_wins=(data.get("highCombinedWins") or "").strip() or "0",
+            aom_earned=(data.get("aomEarned") or "").strip() or "0",
+            dpc_points=(data.get("dpcPoints") or "").strip() or "0",
+            manual_meet_points_adjustment=(data.get("manualMeetPointsAdjustment") or "").strip() or "0",
+            manual_arx_points_adjustment=(data.get("manualArxPointsAdjustment") or "").strip() or "0",
+            manual_narx_points_adjustment=(data.get("manualNarxPointsAdjustment") or "").strip() or "0",
+            manual_show_points_adjustment=(data.get("manualShowPointsAdjustment") or "").strip() or "0",
+            manual_dpc_points_adjustment=(data.get("manualDpcPointsAdjustment") or "").strip() or "0",
+            manual_meet_appearances_adjustment=(data.get("manualMeetAppearancesAdjustment") or "").strip() or "0",
+            manual_meet_wins_adjustment=(data.get("manualMeetWinsAdjustment") or "").strip() or "0",
+            manual_dpc_legs_adjustment=(data.get("manualDPCLegsAdjustment") or "").strip() or "0",
+            manual_high_combined_wins_adjustment=(data.get("manualHighCombinedWinsAdjustment") or "").strip() or "0",
+            public_notes=(data.get("publicNotes") or "").strip() or None,
+            private_notes=(data.get("privateNotes") or "").strip() or None,
+            dna=(data.get("dna") or "").strip() or None,
+            sire_dna=(data.get("sireDna") or "").strip() or None,
+            dam_dna=(data.get("damDna") or "").strip() or None,
+            kennel_club_champion=data.get("kennelClubChampion"),
+            last_edited_by=data.get("lastEditedBy"),
+            last_edited_at=data.get("lastEditedAt"),
+            historical_meet_points_1=(data.get("historicalMeetPoints1") or "").strip() or None,
+            historical_meet_points_2=(data.get("historicalMeetPoints2") or "").strip() or None,
+            historical_meet_points_3=(data.get("historicalMeetPoints3") or "").strip() or None
+        )
+    
+    @classmethod
+    def from_db_row(cls, row):
+        """Create a Dog instance from a database row."""
+        if not row:
+            return None
+        return cls(
+            cwa_number=row.get("CWANumber"),
+            registered_number=row.get("RegisteredNumber"),
+            foreign_type=row.get("ForeignType"),
+            call_name=row.get("CallName"),
+            registered_name=row.get("RegisteredName"),
+            birthdate=row.get("Birthdate"),
+            pedigree_link=row.get("PedigreeLink"),
+            status=row.get("Status"),
+            average=row.get("Average"),
+            current_grade=row.get("CurrentGrade"),
+            meet_points=row.get("MeetPoints"),
+            arx_points=row.get("ARXPoints"),
+            narx_points=row.get("NARXPoints"),
+            show_points=row.get("ShowPoints"),
+            dpc_legs=row.get("DPCLegs"),
+            meet_wins=row.get("MeetWins"),
+            meet_appearences=row.get("MeetAppearences"),
+            high_combined_wins=row.get("HighCombinedWins"),
+            aom_earned=row.get("AOMEarned"),
+            dpc_points=row.get("DPCPoints"),
+            manual_meet_points_adjustment=row.get("ManualMeetPointsAdjustment"),
+            manual_arx_points_adjustment=row.get("ManualARXPointsAdjustment"),
+            manual_narx_points_adjustment=row.get("ManualNARXPointsAdjustment"),
+            manual_show_points_adjustment=row.get("ManualShowPointsAdjustment"),
+            manual_dpc_points_adjustment=row.get("ManualDPCPointsAdjustment"),
+            manual_meet_appearances_adjustment=row.get("ManualMeetAppearancesAdjustment"),
+            manual_meet_wins_adjustment=row.get("ManualMeetWinsAdjustment"),
+            manual_dpc_legs_adjustment=row.get("ManualDPCLegsAdjustment"),
+            manual_high_combined_wins_adjustment=row.get("ManualHighCombinedWinsAdjustment"),
+            public_notes=row.get("PublicNotes"),
+            private_notes=row.get("PrivateNotes"),
+            dna=row.get("DNA"),
+            sire_dna=row.get("SireDNA"),
+            dam_dna=row.get("DamDNA"),
+            kennel_club_champion=bool(row.get("KennelClubChampion")),
+            last_edited_by=row.get("LastEditedBy"),
+            last_edited_at=row.get("LastEditedAt"),
+            historical_meet_points_1=row.get("HistoricalMeetPoints1"),
+            historical_meet_points_2=row.get("HistoricalMeetPoints2"),
+            historical_meet_points_3=row.get("HistoricalMeetPoints3")
+        )
+
+    @classmethod
+    def find_by_identifier(cls, identifier):
+        """Find a dog by cwa_number."""
+        row = fetch_one(
+            """
+            SELECT CWANumber, RegisteredNumber, ForeignType,
+                    CallName, RegisteredName, Birthdate, PedigreeLink,
+                    Status, Average, CurrentGrade,
+                    MeetPoints, ARXPoints, NARXPoints, ShowPoints,
+                    DPCLegs, MeetWins, MeetAppearences, HighCombinedWins, AOMEarned,
+                    DPCPoints, ManualMeetPointsAdjustment, ManualARXPointsAdjustment,
+                    ManualNARXPointsAdjustment, ManualShowPointsAdjustment,
+                    ManualDPCPointsAdjustment, ManualMeetAppearancesAdjustment,
+                    ManualMeetWinsAdjustment, ManualDPCLegsAdjustment,
+                    ManualHighCombinedWinsAdjustment, HistoricalMeetPoints1, HistoricalMeetPoints2, HistoricalMeetPoints3,
+                    PublicNotes, PrivateNotes,
+                    DNA, SireDNA, DamDNA, KennelClubChampion, LastEditedBy, LastEditedAt
+            FROM Dog
+            WHERE CWANumber = %s
+            LIMIT 1
+            """,
+            (identifier,),
+        )
+        return cls.from_db_row(row)
+
+    @classmethod
+    def search(cls, query, owner_person_id=None, page=1, limit: int | None=None, sort=None):
+        q = (query or "").strip()
+        like = f"%{q}%"
+        orderings = {
+            "nameAsc": "ORDER BY d.RegisteredName ASC",
+            "nameDesc": "ORDER BY d.RegisteredName DESC",
+            "cwaAsc": "ORDER BY d.CWANumber ASC",
+            "cwaDesc": "ORDER BY d.CWANumber DESC",
+            "birthAsc": "ORDER BY d.Birthdate ASC",
+            "birthDesc": "ORDER BY d.Birthdate DESC"
+        }
+        sql = """
+            SELECT
+                d.*,
+                GROUP_CONCAT(
+                    DISTINCT CONCAT_WS(' ', p.FirstName, p.LastName)
+                    ORDER BY p.LastName, p.FirstName
+                    SEPARATOR ', '
+                ) AS ownerName,
+                GROUP_CONCAT(
+                    DISTINCT dt.Title
+                    ORDER BY dt.Title
+                    SEPARATOR ', '
+                ) AS titles
+                FROM Dog d
+            LEFT JOIN DogOwner do ON do.CWAID = d.CWANumber
+            LEFT JOIN Person p ON p.ID = do.PersonID
+            LEFT JOIN DogTitles dt ON dt.CWANumber = d.CWANumber
+            WHERE (
+                d.CWANumber LIKE %s
+                OR d.RegisteredName LIKE %s
+                OR d.RegisteredNumber LIKE %s
+                OR d.CallName LIKE %s
+                OR do.PersonID LIKE %s
+                OR CONCAT(p.FirstName, ' ', p.LastName) LIKE %s
+                OR dt.Title LIKE %s
+            )  
+        """
+        params = [like, like, like, like, like, like, like]
+
+        if owner_person_id:
+            sql += " AND do.PersonID = %s"
+            params.append(owner_person_id)
+        
+        sql += "GROUP BY d.CWANumber " 
+        if sort in orderings:
+            sql += orderings[sort] + " "
+
+        if limit is not None:
+            sql += "LIMIT %s OFFSET %s"
+            params.append(limit)
+            params.append((page-1)*limit)
+
+        rows = fetch_all(sql, params)
+        return rows
+    
+    @classmethod
+    def list_meets_with_results_for_dog(cls, cwa_number: str):
+        cwa_number = (cwa_number or "").strip()
+        if not cwa_number:
+            return []
+
+        meets = fetch_all(
+            """
+            SELECT DISTINCT
+                m.MeetNumber,
+                m.MeetDate,
+                m.ClubAbbreviation,
+                m.Location,
+                m.RaceSecretary,
+                m.Judge,
+                m.Completed,
+                (
+                    SELECT COUNT(*)
+                    FROM Meet grouped
+                    WHERE grouped.ClubAbbreviation = m.ClubAbbreviation
+                      AND grouped.MeetDate = m.MeetDate
+                      AND grouped.Location = m.Location
+                ) AS EventMeetCount
+            FROM Meet m
+            LEFT JOIN MeetResults mr
+            ON mr.MeetNumber = m.MeetNumber AND mr.CWANumber = %s
+            LEFT JOIN RaceResults rr
+            ON rr.MeetNumber = m.MeetNumber AND rr.CWANumber = %s
+            WHERE mr.CWANumber IS NOT NULL OR rr.CWANumber IS NOT NULL
+            ORDER BY m.MeetDate DESC, m.MeetNumber DESC
+            """,
+            (cwa_number, cwa_number),
+        ) or []
+
+        for m in meets:
+            meet_no = m["MeetNumber"]
+
+            meet_results_rows = fetch_all(
+                """
+                SELECT *
+                FROM MeetResults
+                WHERE MeetNumber = %s AND CWANumber = %s
+                ORDER BY MeetNumber DESC
+                """,
+                (meet_no, cwa_number),
+            ) or []
+
+            race_results_rows = fetch_all(
+                """
+                SELECT *
+                FROM RaceResults
+                WHERE MeetNumber = %s AND CWANumber = %s
+                ORDER BY Program DESC, RaceNumber DESC
+                """,
+                (meet_no, cwa_number),
+            ) or []
+
+            m["meetResults"] = [
+                MeetResult.from_db_row(r).to_dict() for r in meet_results_rows
+            ]
+
+            m["raceResults"] = [
+                RaceResult.from_db_row(r).to_dict() for r in race_results_rows
+            ]
+            m["MeetDate"] = m["MeetDate"].strftime("%d-%m-%Y")
+        return meets
+
+    
+    @classmethod
+    def list_meet_results_for_dog(cls, cwa_number):
+        return fetch_all(
+            """
+            SELECT *
+            FROM MeetResult
+            WHERE CWANumber = %s
+            ORDER BY MeetNumber DESC
+            """,
+            (cwa_number,),
+        )
+
+    @classmethod
+    def list_race_results_for_dog(cls, cwa_number):
+        return fetch_all(
+            """
+            SELECT *
+            FROM RaceResult
+            WHERE CWANumber = %s
+            ORDER BY MeetNumber DESC, Program DESC, RaceNumber DESC
+            """,
+            (cwa_number,),
+        )
+    
+    @classmethod
+    def get_meet_wins_and_dpc_wins_for_dog(cls, cwa_number):
+        meet_win_row = fetch_one(
+            """
+            SELECT
+                COUNT(*) AS meetWinCount,
+                MAX(m.MeetDate) AS lastMeetWinDate
+            FROM MeetResults mr
+            JOIN Meet m ON m.MeetNumber = mr.MeetNumber
+            WHERE mr.CWANumber = %s
+              AND mr.MeetPlacement = 1
+            """,
+            (cwa_number,),
+        ) or {}
+
+        meet_win_dates = fetch_all(
+            """
+            SELECT
+                mr.MeetNumber,
+                m.MeetDate
+            FROM MeetResults mr
+            JOIN Meet m ON m.MeetNumber = mr.MeetNumber
+            WHERE mr.CWANumber = %s
+              AND mr.MeetPlacement = 1
+            ORDER BY m.MeetDate DESC
+            """,
+            (cwa_number,),
+        )
+
+        dpc_row = fetch_one(
+            """
+            SELECT
+                COUNT(*) AS dpcLegCount,
+                MAX(m.MeetDate) AS lastDpcLegDate
+            FROM MeetResults mr
+            JOIN Meet m ON m.MeetNumber = mr.MeetNumber
+            WHERE mr.CWANumber = %s
+              AND mr.DPCLeg = 1
+            """,
+            (cwa_number,),
+        ) or {}
+
+        dpc_dates = fetch_all(
+            """
+            SELECT
+                mr.MeetNumber,
+                m.MeetDate
+            FROM MeetResults mr
+            JOIN Meet m ON m.MeetNumber = mr.MeetNumber
+            WHERE mr.CWANumber = %s
+              AND mr.DPCLeg = 1
+            ORDER BY m.MeetDate DESC
+            """,
+            (cwa_number,),
+        )
+
+        return {
+            "cwaNumber": cwa_number,
+            "meetWinCount": (meet_win_row.get("meetWinCount")),
+            "lastMeetWinDate": meet_win_row.get("lastMeetWinDate"),
+            "meetWinDates": meet_win_dates,   
+            "dpcLegCount": (dpc_row.get("dpcLegCount")),
+            "lastDpcLegDate": dpc_row.get("lastDpcLegDate"),
+            "dpcLegDates": dpc_dates,         
+        }
+
+    @classmethod
+    def exists(cls, cwa_number):
+        """Check if a dog with given CWA number already exists."""
+        existing = fetch_one(
+            """
+            SELECT CWANumber
+            FROM Dog
+            WHERE CWANumber = %s
+            LIMIT 1
+            """,
+            (cwa_number,),
+        )
+        return existing is not None
+
+    def validate(self):
+        errors = []
+        
+        str_field(errors, self.cwa_number, "CWA Number", max_length=10, required=True)
+        str_field(errors, self.registered_name, "Registered Name", max_length=200, required=True)
+        str_field(errors, self.call_name, "Call Name", max_length=50)
+        str_field(errors, self.registered_number, "Registered Number", max_length=50)
+        
+        enum_field(errors, self.status, "Status", self.VALID_STATUSES, required=True)
+        enum_field(errors, self.current_grade, "Current Grade", self.VALID_GRADES, required=True)
+        
+        require(errors, self.birthdate, "Birthdate is required")
+        
+        float_field(errors, self.average, "Average", min_value=0, max_value=99999.99)
+        float_field(errors, self.meet_points, "Meet Points", min_value=0, max_value=99999.99)
+        float_field(errors, self.arx_points, "ARX Points", min_value=0, max_value=99999.99)
+        float_field(errors, self.narx_points, "NARX Points", min_value=0, max_value=99999.99)
+        float_field(errors, self.meet_wins, "Meet Wins", min_value=0, max_value=99999.99)
+        float_field(errors, self.dpc_points, "DPC Points", min_value=0, max_value=99999.99)
+        float_field(errors, self.manual_meet_points_adjustment, "Manual Meet Points Adjustment", min_value=-99999.99, max_value=99999.99)
+        float_field(errors, self.manual_arx_points_adjustment, "Manual ARX Points Adjustment", min_value=-99999.99, max_value=99999.99)
+        float_field(errors, self.manual_narx_points_adjustment, "Manual NARX Points Adjustment", min_value=-99999.99, max_value=99999.99)
+        float_field(errors, self.manual_show_points_adjustment, "Manual Show Points Adjustment", min_value=-99999.99, max_value=99999.99)
+        float_field(errors, self.manual_dpc_points_adjustment, "Manual DPC Points Adjustment", min_value=-99999.99, max_value=99999.99)
+        float_field(errors, self.manual_meet_appearances_adjustment, "Manual Meet Appearances Adjustment", min_value=-99999.99, max_value=99999.99)
+        float_field(errors, self.manual_meet_wins_adjustment, "Manual Meet Wins Adjustment", min_value=-99999.99, max_value=99999.99)
+        float_field(errors, self.manual_dpc_legs_adjustment, "Manual DPC Legs Adjustment", min_value=-99999.99, max_value=99999.99)
+        float_field(errors, self.manual_high_combined_wins_adjustment, "Manual High Combined Wins Adjustment", min_value=-99999.99, max_value=99999.99)
+        float_field(errors, self.historical_meet_points_1, "Historical Meet Points 1", min_value=-99999.99, max_value=99999.99, required=False)
+        float_field(errors, self.historical_meet_points_2, "Historical Meet Points 2", min_value=-99999.99, max_value=99999.99)
+        float_field(errors, self.historical_meet_points_3, "Historical Meet Points 3", min_value=-99999.99, max_value=99999.99)
+        
+        float_field(errors, self.show_points, "Show Points", min_value=0, max_value=32767)
+        int_field(errors, self.dpc_legs, "DPC Legs", min_value=0, max_value=32767)
+        int_field(errors, self.meet_appearences, "Meet Appearances", min_value=0, max_value=32767)
+        int_field(errors, self.high_combined_wins, "High Combined Wins", min_value=0, max_value=32767)
+        
+        fk_exists(errors, self.last_edited_by, "Last edited by", "Person", "ID")
+        
+        return errors
+
+    def save(self):
+        """Save dog to database. Returns True on success, raises Error on failure."""
+        try:
+            execute(
+                """
+                INSERT INTO Dog (
+                    CWANumber,RegisteredNumber, ForeignType,
+                    CallName, RegisteredName, Birthdate, PedigreeLink,
+                    Status, Average, CurrentGrade,
+                    MeetPoints, ARXPoints, NARXPoints, ShowPoints,
+                    DPCLegs, MeetWins, MeetAppearences, HighCombinedWins, AOMEarned,
+                    DPCPoints, ManualMeetPointsAdjustment, ManualARXPointsAdjustment,
+                    ManualNARXPointsAdjustment, ManualShowPointsAdjustment,
+                    ManualDPCPointsAdjustment, ManualMeetAppearancesAdjustment,
+                    ManualMeetWinsAdjustment, ManualDPCLegsAdjustment,
+                    ManualHighCombinedWinsAdjustment, HistoricalMeetPoints1, HistoricalMeetPoints2, HistoricalMeetPoints3,
+                    PublicNotes, PrivateNotes,
+                    DNA, SireDNA, DamDNA, KennelClubChampion, LastEditedBy, LastEditedAt
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """,
+                (
+                    self.cwa_number,
+                    self.registered_number,
+                    self.foreign_type,
+                    self.call_name,
+                    self.registered_name,
+                    self.birthdate,
+                    self.pedigree_link,
+                    self.status,
+                    self.average,
+                    self.current_grade,
+                    self.meet_points,
+                    self.arx_points,
+                    self.narx_points,
+                    self.show_points,
+                    self.dpc_legs,
+                    self.meet_wins,
+                    self.meet_appearences,
+                    self.high_combined_wins,
+                    self.aom_earned or 0,
+                    self.dpc_points or 0,
+                    self.manual_meet_points_adjustment,
+                    self.manual_arx_points_adjustment,
+                    self.manual_narx_points_adjustment,
+                    self.manual_show_points_adjustment,
+                    self.manual_dpc_points_adjustment,
+                    self.manual_meet_appearances_adjustment,
+                    self.manual_meet_wins_adjustment,
+                    self.manual_dpc_legs_adjustment,
+                    self.manual_high_combined_wins_adjustment,
+                    self.historical_meet_points_1,
+                    self.historical_meet_points_2,
+                    self.historical_meet_points_3,
+                    self.public_notes or None,
+                    self.private_notes or None,
+                    self.dna,
+                    self.sire_dna,
+                    self.dam_dna,
+                    self.kennel_club_champion,
+                    self.last_edited_by,
+                    self.last_edited_at,
+                ),
+            )
+            return True
+        except Error as e:
+            raise e
+        
+    def update(self):
+        """Update existing dog in database. Returns True on success, raises Error on failure."""
+        try:
+            execute(
+                """
+                UPDATE Dog
+                SET RegisteredNumber = %s,
+                    ForeignType = %s,
+                    CallName = %s,
+                    RegisteredName = %s,
+                    Birthdate = %s,
+                    PedigreeLink = %s,
+                    Status = %s,
+                    Average = %s,
+                    CurrentGrade = %s,
+                    MeetPoints = %s,
+                    ARXPoints = %s,
+                    NARXPoints = %s,
+                    ShowPoints = %s,
+                    DPCLegs = %s,
+                    MeetWins = %s,
+                    MeetAppearences = %s,
+                    HighCombinedWins = %s,
+                    AOMEarned = %s,
+                    DPCPoints = %s,
+                    ManualMeetPointsAdjustment = %s,
+                    ManualARXPointsAdjustment = %s,
+                    ManualNARXPointsAdjustment = %s,
+                    ManualShowPointsAdjustment = %s,
+                    ManualDPCPointsAdjustment = %s,
+                    ManualMeetAppearancesAdjustment = %s,
+                    ManualMeetWinsAdjustment = %s,
+                    ManualDPCLegsAdjustment = %s,
+                    ManualHighCombinedWinsAdjustment = %s,
+                    HistoricalMeetPoints1 = %s,
+                    HistoricalMeetPoints2 = %s,
+                    HistoricalMeetPoints3 = %s,
+                    PublicNotes = %s,
+                    PrivateNotes = %s,
+                    DNA = %s,
+                    SireDNA = %s,
+                    DamDNA = %s,
+                    KennelClubChampion = %s,
+                    LastEditedBy = %s,
+                    LastEditedAt = %s
+                WHERE CWANumber = %s
+                """,
+                (
+                    self.registered_number,
+                    self.foreign_type,
+                    self.call_name,
+                    self.registered_name,
+                    self.birthdate,
+                    self.pedigree_link,
+                    self.status,
+                    self.average,
+                    self.current_grade,
+                    self.meet_points,
+                    self.arx_points,
+                    self.narx_points,
+                    self.show_points,
+                    self.dpc_legs,
+                    self.meet_wins,
+                    self.meet_appearences,
+                    self.high_combined_wins,
+                    self.aom_earned,
+                    self.dpc_points,
+                    self.manual_meet_points_adjustment,
+                    self.manual_arx_points_adjustment,
+                    self.manual_narx_points_adjustment,
+                    self.manual_show_points_adjustment,
+                    self.manual_dpc_points_adjustment,
+                    self.manual_meet_appearances_adjustment,
+                    self.manual_meet_wins_adjustment,
+                    self.manual_dpc_legs_adjustment,
+                    self.manual_high_combined_wins_adjustment,
+                    self.historical_meet_points_1,
+                    self.historical_meet_points_2,
+                    self.historical_meet_points_3,
+                    self.public_notes or None,
+                    self.private_notes or None,
+                    self.dna,
+                    self.sire_dna,
+                    self.dam_dna,
+                    self.kennel_club_champion,
+                    self.last_edited_by,
+                    self.last_edited_at,
+                    self.cwa_number
+                ),
+            )
+            return True
+        except Error as e:
+            raise e
+    
+    @staticmethod
+    def delete(cwa_number):
+        """Delete dog from backend.database. Returns True on success, raises Error on failure."""
+        try:
+            execute(
+                """
+                DELETE FROM Dog
+                WHERE CWANumber = %s
+                """,
+                (cwa_number,),
+            )
+            return True
+        except Error as e:
+            raise e
+    
+    @staticmethod
+    def list_all_dogs():
+        rows = fetch_all(
+            """
+            SELECT *
+            FROM Dog
+            ORDER BY CWANumber
+            """
+        )
+        return [Dog.from_db_row(row) for row in rows]
+    
+    @staticmethod
+    def list_dogs_for_owner(person_id):
+        """
+        Return all dogs owned by the given person_id.
+        """
+        rows = fetch_all(
+            """
+            SELECT d.*
+            FROM Dog d
+            JOIN DogOwner o ON o.CWAID = d.CWANumber
+            WHERE o.PersonID = %s
+            ORDER BY d.CWANumber
+            """,
+            (person_id,),
+        )
+
+        return [Dog.from_db_row(row) for row in rows]
+    
+    def compute_titles(self):
+        return [t for t in self.check_titles() if t]
+    
+    def compute_last_three_meet_average(self):
+        """Compute average MeetPoints from the last 3 meets the dog was entered in."""
+        rows = fetch_all(
+            """
+            SELECT mr.MeetPoints
+            FROM MeetResults mr
+            JOIN Meet m ON m.MeetNumber = mr.MeetNumber
+            WHERE mr.CWANumber = %s
+            ORDER BY m.MeetDate DESC, mr.MeetNumber DESC
+            LIMIT 3
+            """,
+            (self.cwa_number,),
+        ) or []
+
+        points = [
+            float(r["MeetPoints"])
+            for r in rows
+            if r and r.get("MeetPoints") is not None
+        ]
+        if self.historical_meet_points_1:
+            points.append(float(self.historical_meet_points_1))
+        if self.historical_meet_points_2:
+            points.append(float(self.historical_meet_points_2))
+        if self.historical_meet_points_3:
+            points.append(float(self.historical_meet_points_3))
+        points = points[:3]
+        if len(points) == 0:
+            return 0
+        avg = sum(points) / len(points)
+        return round(avg, 2)
+
+    
+    def update_from_meet_results(self):
+        """Recalculate dog stats and titles from all meet results"""
+        if not self.cwa_number:
+            return
+
+        stats = fetch_one("""
+            SELECT 
+                SUM(MeetPoints) as total_meet_points,
+                SUM(ARXEarned) as total_arx,
+                SUM(NARXEarned) as total_narx,
+                SUM(ShowPoints) as total_show_points,
+                SUM(DPCPoints) as total_dpc_points,
+                SUM(DPCLeg) as total_dpc_legs,
+                SUM(CASE WHEN MeetPlacement = 1 THEN 1 ELSE 0 END) as meet_wins,
+                SUM(CASE WHEN EntryType='REG' THEN 1 ELSE 0 END) as meet_appearances,
+                SUM(AOMEarned) as total_aom_earned            
+            FROM MeetResults mr
+            WHERE mr.CWANumber = %s
+              AND NOT EXISTS (
+                  SELECT 1 FROM RaceResults rr
+                  WHERE rr.MeetNumber = mr.MeetNumber
+                    AND rr.CWANumber = mr.CWANumber
+                    AND rr.Incident IS NOT NULL
+                    AND TRIM(rr.Incident) != ''
+              )
+        """, (self.cwa_number,))
+
+        hc_wins_row = fetch_one("""
+            SELECT COUNT(*) as hc_wins
+            FROM MeetResults mr
+            WHERE mr.CWANumber = %s
+            AND mr.MeetPlacement IS NOT NULL
+            AND mr.ConformationPlacement IS NOT NULL
+            AND mr.MeetPlacement + mr.ConformationPlacement = (
+                SELECT MIN(inner_mr.MeetPlacement + inner_mr.ConformationPlacement)
+                FROM MeetResults inner_mr
+                WHERE inner_mr.MeetNumber = mr.MeetNumber
+                    AND inner_mr.MeetPlacement IS NOT NULL
+                    AND inner_mr.ConformationPlacement IS NOT NULL
+            )
+            AND mr.MeetPlacement = (
+                SELECT MIN(inner_mr.MeetPlacement)
+                FROM MeetResults inner_mr
+                WHERE inner_mr.MeetNumber = mr.MeetNumber
+                    AND inner_mr.MeetPlacement IS NOT NULL
+                    AND inner_mr.ConformationPlacement IS NOT NULL
+                    AND inner_mr.MeetPlacement + inner_mr.ConformationPlacement = (
+                        SELECT MIN(inner2.MeetPlacement + inner2.ConformationPlacement)
+                        FROM MeetResults inner2
+                        WHERE inner2.MeetNumber = mr.MeetNumber
+                        AND inner2.MeetPlacement IS NOT NULL
+                        AND inner2.ConformationPlacement IS NOT NULL
+                    )
+            )
+        """, (self.cwa_number,))
+
+        if stats:
+            self.average            = self.compute_last_three_meet_average()
+            self.meet_points        = float(stats['total_meet_points'] or 0)
+            self.arx_points         = float(stats['total_arx'] or 0)
+            self.narx_points        = float(stats['total_narx'] or 0)
+            self.show_points        = float(stats['total_show_points'] or 0)
+            self.dpc_points         = float(stats['total_dpc_points'] or 0)
+            self.dpc_legs           = int(stats['total_dpc_legs'] or 0)
+            self.meet_appearences   = int(stats['meet_appearances'] or 0)
+            self.meet_wins          = int(stats['meet_wins'] or 0)
+            self.high_combined_wins = int((hc_wins_row or {}).get('hc_wins') or 0)
+            self.aom_earned         = int(stats['total_aom_earned'] or 0)
+            self.update()
+
+    def get_owner_emails(self):
+        rows = fetch_all(
+            """
+            SELECT p.EmailAddress
+            FROM DogOwner o
+            JOIN Person p ON p.ID = o.PersonID
+            WHERE o.CWAID = %s
+            """,
+            (self.cwa_number,)
+        ) or []
+
+        return [r["EmailAddress"] for r in rows if r.get("EmailAddress")]
+    
+    def to_session_dict(self):
+        """Convert to minimal dictionary for session storage."""
+        return {
+            "CWANumber": self.cwa_number,
+            "RegisteredName": self.registered_name,
+            "Status": self.status,
+            "CurrentGrade": self.current_grade
+        }
+    
+    def to_dict(self, include_private=True):
+        """Convert to dictionary for JSON responses."""
+        ytd_match = self.get_ytd_show_points(self.cwa_number)
+        data = {
+            "cwaNumber": self.cwa_number,
+            "registeredNumber": self.registered_number,
+            "foreignType": self.foreign_type,
+            "callName": self.call_name,
+            "registeredName": self.registered_name,
+            "birthdate": self.birthdate.strftime("%d-%m-%Y"), 
+            "pedigreeLink": self.pedigree_link,
+            "status": self.status,
+            "average": self.average,
+            "currentGrade": self.current_grade,
+            "meetPoints": self.meet_points,
+            "arxPoints": self.arx_points,
+            "narxPoints": self.narx_points,
+            "showPoints": self.show_points,
+            "dpcPoints": self.dpc_points,
+            "manualMeetPointsAdjustment": self.manual_meet_points_adjustment,
+            "manualArxPointsAdjustment": self.manual_arx_points_adjustment,
+            "manualNarxPointsAdjustment": self.manual_narx_points_adjustment,
+            "manualShowPointsAdjustment": self.manual_show_points_adjustment,
+            "manualDpcPointsAdjustment": self.manual_dpc_points_adjustment,
+            "manualMeetAppearancesAdjustment": self.manual_meet_appearances_adjustment,
+            "manualMeetWinsAdjustment": self.manual_meet_wins_adjustment,
+            "manualDPCLegsAdjustment": self.manual_dpc_legs_adjustment,
+            "manualHighCombinedWinsAdjustment": self.manual_high_combined_wins_adjustment,
+            "historicalMeetPoints1": self.historical_meet_points_1,
+            "historicalMeetPoints2": self.historical_meet_points_2,
+            "historicalMeetPoints3": self.historical_meet_points_3,
+            "adjustedMeetPoints": self.scored_meet_points(),
+            "adjustedArxPoints": self.scored_arx_points(),
+            "adjustedNarxPoints": self.scored_narx_points(),
+            "adjustedShowPoints": self.scored_show_points(),
+            "adjustedDpcPoints": self.scored_dpc_points(),
+            "adjustedMeetAppearances": self.scored_meet_appearances(),
+            "adjustedMeetWins": self.scored_meet_wins(),
+            "adjustedDPCLegs": self.scored_dpc_legs(),
+            "adjustedHighCombinedWins": self.scored_high_combined_wins(),
+            "dpcLegs": self.dpc_legs,
+            "meetWins": self.meet_wins,
+            "meetAppearences": self.meet_appearences,
+            "highCombinedWins": self.high_combined_wins,
+            "ytdShowPoints": ytd_match.get("ytdShowPoints"),
+            "ytdYear": ytd_match.get("year"),
+            "aomEarned": self.aom_earned,
+            "publicNotes": self.public_notes,
+            "dna": self.dna,
+            "sireDna": self.sire_dna,
+            "damDna": self.dam_dna,
+            "kennelClubChampion": self.kennel_club_champion,
+            "lastEditedBy": self.last_edited_by,
+            "lastEditedAt": self.last_edited_at.isoformat() if self.last_edited_at else None
+        }
+
+        if include_private:
+            data["privateNotes"] = self.private_notes
+
+        return data
+
+    @staticmethod
+    def count():
+        stats = fetch_one("""
+            SELECT 
+                COUNT(*)
+            FROM Dog 
+        """)
+        return stats["COUNT(*)"]
+    
+    @classmethod
+    def get_ytd_show_points(cls, cwa_number: str, year: int | None = None):
+        if year is None:
+            year = datetime.now().year
+        
+        row = fetch_one("""
+            SELECT 
+                SUM(ShowPoints) as ytd_show_points
+            FROM MeetResults mr
+            JOIN Meet m ON m.MeetNumber = mr.MeetNumber
+            WHERE mr.CWANumber = %s
+              AND YEAR(m.MeetDate) = %s
+        """, (cwa_number, year)) or {}
+        
+        return {
+            "year": year,
+            "ytdShowPoints": float(row.get("ytd_show_points") or 0)
+        }
+    
+    @classmethod
+    def get_high_combined_wins(cls, cwa_number: str):
+        row = fetch_one("""
+            WITH eligible AS (
+                SELECT
+                    mr.MeetNumber,
+                    mr.CWANumber,
+                    mr.MeetPlacement,
+                    mr.ConformationPlacement,
+                    (mr.MeetPlacement + mr.ConformationPlacement) AS combined_score
+                FROM MeetResults mr
+                WHERE mr.MeetPlacement IS NOT NULL
+                AND mr.ConformationPlacement IS NOT NULL
+                AND mr.MeetPlacement < (
+                    SELECT MAX(x.MeetPlacement)
+                    FROM MeetResults x
+                    WHERE x.MeetNumber = mr.MeetNumber
+                    AND x.MeetPlacement IS NOT NULL
+                )
+                AND mr.ConformationPlacement < (
+                    SELECT MAX(y.ConformationPlacement)
+                    FROM MeetResults y
+                    WHERE y.MeetNumber = mr.MeetNumber
+                    AND y.ConformationPlacement IS NOT NULL
+                )
+            ),
+            winners AS (
+                SELECT e.*
+                FROM eligible e
+                WHERE e.combined_score = (
+                    SELECT MIN(e2.combined_score)
+                    FROM eligible e2
+                    WHERE e2.MeetNumber = e.MeetNumber
+                )
+                AND e.MeetPlacement = (
+                    SELECT MIN(e3.MeetPlacement)
+                    FROM eligible e3
+                    WHERE e3.MeetNumber = e.MeetNumber
+                    AND e3.combined_score = e.combined_score
+                )
+            )
+            SELECT COUNT(*) AS hc_wins
+            FROM winners
+            WHERE CWANumber = %s
+        """, (cwa_number,)) or {}
+
+        return {
+            "cwaNumber": cwa_number,
+            "highCombinedWins": int(row.get("hc_wins") or 0)
+        }
+    
+    @classmethod
+    def get_ytd_high_combined_wins(cls, cwa_number: str, year: int | None = None):
+        if year is None:
+            from datetime import datetime
+            year = datetime.now().year
+
+        row = fetch_one("""
+            WITH eligible AS (
+                SELECT
+                    mr.MeetNumber,
+                    mr.CWANumber,
+                    mr.MeetPlacement,
+                    mr.ConformationPlacement,
+                    (mr.MeetPlacement + mr.ConformationPlacement) AS combined_score
+                FROM MeetResults mr
+                JOIN Meet m ON m.MeetNumber = mr.MeetNumber
+                WHERE YEAR(m.MeetDate) = %s
+                AND mr.MeetPlacement IS NOT NULL
+                AND mr.ConformationPlacement IS NOT NULL
+                AND mr.MeetPlacement < (
+                    SELECT MAX(x.MeetPlacement)
+                    FROM MeetResults x
+                    WHERE x.MeetNumber = mr.MeetNumber
+                    AND x.MeetPlacement IS NOT NULL
+                )
+                AND mr.ConformationPlacement < (
+                    SELECT MAX(y.ConformationPlacement)
+                    FROM MeetResults y
+                    WHERE y.MeetNumber = mr.MeetNumber
+                    AND y.ConformationPlacement IS NOT NULL
+                )
+            ),
+            winners AS (
+                SELECT e.*
+                FROM eligible e
+                WHERE e.combined_score = (
+                    SELECT MIN(e2.combined_score)
+                    FROM eligible e2
+                    WHERE e2.MeetNumber = e.MeetNumber
+                )
+                AND e.MeetPlacement = (
+                    SELECT MIN(e3.MeetPlacement)
+                    FROM eligible e3
+                    WHERE e3.MeetNumber = e.MeetNumber
+                    AND e3.combined_score = e.combined_score
+                )
+            )
+            SELECT COUNT(*) AS ytd_hc_wins
+            FROM winners
+            WHERE CWANumber = %s
+        """, (year, cwa_number)) or {}
+
+        return {
+            "cwaNumber": cwa_number,
+            "year": year,
+            "ytdHighCombinedWins": int(row.get("ytd_hc_wins") or 0)
+        }

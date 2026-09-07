@@ -1,0 +1,138 @@
+from flask import Blueprint, jsonify, request
+from datetime import datetime, timezone
+from mysql.connector import Error
+from backend.classes.dog_owner import DogOwner, list_owner_people_for_dog
+from backend.classes.user_role import UserRole
+from backend.classes.change_log import ChangeLog
+from backend.classes.person import Person
+from backend.database import fetch_one
+from backend.utils.auth_helpers import current_editor_id, current_role, require_scope
+from backend.utils.error_handler import handle_error
+
+dog_owner_bp = Blueprint("dog_owner", __name__, url_prefix="/api/dog_owner")
+
+
+@dog_owner_bp.get("/owners/<cwa_number>")
+def owners_for_dog(cwa_number):
+    data = list_owner_people_for_dog(cwa_number)
+    return jsonify({"ok": True, "data": data}), 200
+
+
+@dog_owner_bp.get("/get")
+def list_dog_owner_links():
+
+    person_id = request.args.get("personID")
+
+    try:
+        person = Person.find_by_id(person_id)
+        if not person:
+            return jsonify({"ok": False, "error": "invalid Person"})
+        rows = DogOwner.list_for_person(person.id)
+        data = [r.to_dict() for r in rows]
+        return jsonify({"ok": True, "data": data}), 200
+
+    except Error as e:
+        return handle_error(e, "Database error")
+
+
+
+@dog_owner_bp.post("/add")
+def add_owner():
+    role = current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+    deny = require_scope(role.edit_dog_scope, "add dog owners")
+    if deny:
+        return deny
+
+    data = request.get_json(silent=True) or {}
+    cwa_id = str(data.get("cwaId") or "").strip()
+    person_id = str(data.get("personId") or "").strip()
+
+    if not cwa_id or not person_id:
+        return jsonify({"ok": False, "error": "cwaId and personId are required"}), 400
+
+    if role.edit_dog_scope == UserRole.SELF and person_id != current_editor_id():
+        return jsonify({"ok": False, "error": "You may only add yourself as an owner"}), 403
+
+    if not fetch_one("SELECT 1 FROM Dog WHERE CWANumber = %s LIMIT 1", (cwa_id,)):
+        return jsonify({"ok": False, "error": "Dog does not exist"}), 404
+
+    if not fetch_one("SELECT 1 FROM Person WHERE ID = %s LIMIT 1", (person_id,)):
+        return jsonify({"ok": False, "error": "Person does not exist"}), 404
+
+    if DogOwner.exists(cwa_id, person_id):
+        return jsonify({"ok": False, "error": "Owner link already exists"}), 409
+
+    owner = DogOwner(
+        cwa_id=cwa_id,
+        person_id=person_id,
+        last_edited_by=current_editor_id(),
+        last_edited_at=datetime.now(timezone.utc),
+    )
+
+    errors = owner.validate()
+    if errors:
+        return jsonify({"ok": False, "error": ", ".join(errors)}), 400
+
+    try:
+        owner.save()
+
+        ChangeLog.log(
+            changed_table="DogOwner",
+            record_pk=f"{cwa_id}:{person_id}",
+            operation="INSERT",
+            changed_by=current_editor_id(),
+            source="api/dog_owner/add POST",
+            before_obj=None,
+            after_obj=owner.to_dict(),
+        )
+
+        return jsonify({"ok": True, "data": owner.to_dict()}), 201
+    except Error as e:
+        return jsonify({"ok": False, "error": f"Database error: {e}"}), 500
+
+
+@dog_owner_bp.post("/delete")
+def remove_owner():
+    role = current_role()
+    if not role:
+        return jsonify({"ok": False, "error": "Not signed in"}), 401
+
+    deny = require_scope(role.edit_dog_scope, "delete dog owners")
+    if deny:
+        return deny
+
+    data = request.get_json(silent=True) or {}
+    cwa_id = str(data.get("cwaId") or "").strip()
+    person_id = str(data.get("personId") or "").strip()
+
+    if not cwa_id or not person_id:
+        return jsonify({"ok": False, "error": "cwaId and personId are required"}), 400
+
+    if role.edit_dog_scope == UserRole.SELF and person_id != current_editor_id():
+        return jsonify({"ok": False, "error": "You may only remove yourself as an owner"}), 403
+
+    existing = DogOwner.find_by_identifier(cwa_id, person_id)
+    if not existing:
+        return jsonify({"ok": False, "error": "Owner link does not exist"}), 404
+
+    before_obj = existing.to_dict()
+
+    try:
+        DogOwner.delete_one(cwa_id, person_id)
+
+        ChangeLog.log(
+            changed_table="DogOwner",
+            record_pk=f"{cwa_id}:{person_id}",
+            operation="DELETE",
+            changed_by=current_editor_id(),
+            source="api/dog_owner/delete POST",
+            before_obj=before_obj,
+            after_obj=None,
+        )
+
+        return jsonify({"ok": True, "data": {"cwaId": cwa_id, "personId": person_id}}), 200
+    except Error as e:
+        return jsonify({"ok": False, "error": f"Database error: {e}"}), 500

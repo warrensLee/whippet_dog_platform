@@ -1,0 +1,355 @@
+from werkzeug.security import generate_password_hash, check_password_hash
+from backend.database import fetch_all, fetch_one, execute
+from mysql.connector import Error
+import re
+from backend.utils.validators import varchar_field 
+
+class Person:
+    def __init__(self, id, person_id, first_name, last_name, email_address, address_line_one,
+                 address_line_two, city, state_province, zip_code, country,
+                 primary_phone, secondary_phone, system_role, password_hash, notes, public_notes, locked,
+                 last_edited_by=None, last_edited_at=None):
+        self.id = id
+        self.person_id = person_id
+        self.first_name = first_name
+        self.last_name = last_name
+        self.email = email_address
+        self.address_line_one = address_line_one
+        self.address_line_two = address_line_two
+        self.city = city
+        self.state_province = state_province
+        self.zip_code = zip_code
+        self.country = country
+        self.public_notes = public_notes
+        self.primary_phone = primary_phone
+        self.secondary_phone = secondary_phone
+        self.system_role = system_role
+        self.password_hash = password_hash
+        self.notes = notes
+        self.locked = locked
+        self.last_edited_by = last_edited_by
+        self.last_edited_at = last_edited_at
+
+    @classmethod
+    def from_request_data(cls, data):
+        """Create a Person instance from request JSON data."""
+        return cls(
+            id=data.get("id"),
+            person_id=(data.get("personId") or "").strip() or None,
+            first_name=(data.get("firstName") or "").strip(),
+            last_name=(data.get("lastName") or "").strip(),
+            email_address=(data.get("email") or "").strip(),
+            address_line_one=(data.get("addressLineOne") or "").strip() or None,
+            address_line_two=(data.get("addressLineTwo") or "").strip() or None,
+            city=(data.get("city") or "").strip() or None,
+            state_province=(data.get("stateProvince") or "").strip() or None,
+            zip_code=(data.get("zipCode") or "").strip() or None,
+            country=(data.get("country") or "").strip() or None,
+            primary_phone=(data.get("primaryPhone") or "").strip() or None,
+            secondary_phone=(data.get("secondaryPhone") or "").strip() or None,
+            system_role=data.get("systemRole", "PUBLIC"),
+            password_hash=None,
+            notes=(data.get("notes") or "").strip() or None,
+            public_notes=(data.get("publicNotes") or "").strip() or None,
+            locked=bool(data.get("locked", False)),
+            last_edited_by=data.get("lastEditedBy"),
+            last_edited_at=data.get("lastEditedAt")
+        )
+    
+    @classmethod
+    def from_db_row(cls, row):
+        """Create a Person instance from a database row."""
+        if not row:
+            return None
+        return cls(
+            id=row.get("ID"),
+            person_id=row.get("PersonID"),
+            first_name=row.get("FirstName"),
+            last_name=row.get("LastName"),
+            email_address=row.get("EmailAddress"),
+            address_line_one=row.get("AddressLineOne"),
+            address_line_two=row.get("AddressLineTwo"),
+            city=row.get("City"),
+            state_province=row.get("StateProvince"),
+            zip_code=row.get("ZipCode"),
+            country=row.get("Country"),
+            primary_phone=row.get("PrimaryPhone"),
+            secondary_phone=row.get("SecondaryPhone"),
+            system_role=row.get("SystemRole"),
+            password_hash=row.get("PasswordHash"),
+            notes=row.get("Notes"),
+            public_notes=row.get("PublicNotes"),
+            locked=bool(row.get("Locked", 0)),
+            last_edited_by=row.get("LastEditedBy"),
+            last_edited_at=row.get("LastEditedAt")
+        )
+
+    @classmethod
+    def find_by_identifier(cls, identifier):
+        """Find a person by person_id or id."""
+        row = fetch_one(
+            """
+            SELECT ID, PersonID, FirstName, LastName, EmailAddress, SystemRole, PasswordHash,
+                    AddressLineOne, AddressLineTwo, City, StateProvince, ZipCode, Country,
+                   PrimaryPhone, SecondaryPhone, Notes, PublicNotes, Locked, LastEditedBy, LastEditedAt
+            FROM Person
+            WHERE PersonID = %s OR ID = %s
+            LIMIT 1
+            """,
+            (identifier,identifier),
+        )
+        return cls.from_db_row(row)
+    
+    @classmethod
+    def find_by_id(cls, identifier):
+        """Find a person by person_id."""
+        row = fetch_one(
+            """
+            SELECT ID, PersonID, FirstName, LastName, EmailAddress, SystemRole, PasswordHash,
+                    AddressLineOne, AddressLineTwo, City, StateProvince, ZipCode, Country,
+                   PrimaryPhone, SecondaryPhone, Notes, PublicNotes, Locked, LastEditedBy, LastEditedAt
+            FROM Person
+            WHERE ID = %s
+            LIMIT 1
+            """,
+            (identifier,),
+        )
+        return cls.from_db_row(row)
+    
+
+    @classmethod
+    def find_by_email(cls, identifier):
+        """Find a person by email."""
+        row = fetch_one(
+            """
+            SELECT ID, PersonID, FirstName, LastName, EmailAddress, SystemRole, PasswordHash,
+                    AddressLineOne, AddressLineTwo, City, StateProvince, ZipCode, Country,
+                   PrimaryPhone, SecondaryPhone, Notes, PublicNotes, Locked, LastEditedBy, LastEditedAt
+            FROM Person
+            WHERE EmailAddress= %s
+            LIMIT 1
+            """,
+            (identifier,),
+        )
+        if row is not None:
+            return cls.from_db_row(row)
+        return None
+    @classmethod
+    def exists(cls, person_id):
+        """Check if a person with given ID already exists."""
+        existing = fetch_one(
+            """
+            SELECT PersonID
+            FROM Person
+            WHERE PersonID = %s
+            LIMIT 1
+            """,
+            (person_id,),
+        )
+        return existing is not None
+
+    def validate(self):
+        """Validate required fields. Returns list of errors (empty if valid)."""
+        errors = []
+        username_regex = r"^[a-zA-Z0-9_]+$"
+        varchar_field(errors,self.first_name,50,"First Name")
+        varchar_field(errors,self.last_name,50,"Last Name")
+        varchar_field(errors, self.email,50, "Email")
+        varchar_field(errors, self.address_line_one,50, "Address Line 1")
+        varchar_field(errors, self.address_line_two,50, "Address Line 2")
+        varchar_field(errors, self.city,50, "City")
+        varchar_field(errors, self.state_province,50, "State/Province")
+        varchar_field(errors, self.zip_code,10, "Zip code")
+        varchar_field(errors, self.country,50, "Country")
+        varchar_field(errors, self.primary_phone,32, "Primary Phone")
+        varchar_field(errors, self.secondary_phone,32, "Secondary Phone")
+        
+        if not self.first_name:
+            errors.append("First name is required")
+        if not self.last_name:
+            errors.append("Last name is required")
+        if self.person_id is not None and (len(str(self.person_id)) > 20 or len(str(self.person_id)) <= 3):
+            errors.append("Username must be between 4 and 20 characters")
+        if self.person_id is not None and not re.match(username_regex, self.person_id):
+            errors.append("Username may only contain A-Z, 0-9, and _")
+        return errors
+
+    def set_password(self, password):
+        """Hash and set the password."""
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        if not self.password_hash:
+            return False
+        return check_password_hash(self.password_hash, password)
+
+
+    def save(self):
+        try:
+            self.id = execute(
+                """
+                INSERT INTO Person (
+                    PersonID, FirstName, LastName, EmailAddress,
+                    AddressLineOne, AddressLineTwo, City, StateProvince,
+                    ZipCode, Country, PrimaryPhone, SecondaryPhone,
+                    SystemRole, PasswordHash, Notes, PublicNotes, Locked,
+                    LastEditedBy, LastEditedAt
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """,
+                (
+                    self.person_id, self.first_name, self.last_name, self.email,
+                    self.address_line_one, self.address_line_two, self.city, self.state_province,
+                    self.zip_code, self.country, self.primary_phone, self.secondary_phone,
+                    self.system_role, self.password_hash, self.notes, self.public_notes, self.locked,
+                    self.last_edited_by, self.last_edited_at
+                ),
+                return_lastrowid=True,
+            )
+            return True
+        except Error as e:
+            raise e
+
+
+    def update(self):
+        """Update existing person in database. Returns True on success, raises Error on failure."""
+        try:
+            execute(
+                """
+                UPDATE Person
+                SET PersonID = %s,
+                    FirstName = %s,
+                    LastName = %s,
+                    EmailAddress = %s,
+                    AddressLineOne = %s,
+                    AddressLineTwo = %s,
+                    City = %s,
+                    StateProvince = %s,
+                    ZipCode = %s,
+                    Country = %s,
+                    PrimaryPhone = %s,
+                    SecondaryPhone = %s,
+                    SystemRole = %s,
+                    PasswordHash = %s,
+                    Notes = %s,
+                    PublicNotes = %s,
+                    Locked = %s,
+                    LastEditedBy = %s,
+                    LastEditedAt = %s
+                WHERE ID = %s
+                """,
+                (
+                    self.person_id, self.first_name, self.last_name, self.email,
+                    self.address_line_one, self.address_line_two, self.city, self.state_province,
+                    self.zip_code, self.country, self.primary_phone, self.secondary_phone,
+                    self.system_role, self.password_hash, self.notes, self.public_notes, self.locked,
+                    self.last_edited_by, self.last_edited_at, self.id  
+                ),
+            )
+            return True
+        except Error as e:
+            raise e
+    
+    def delete(self):
+        """Delete person from backend.database. Returns True on success, raises Error on failure."""
+        try:
+            execute(
+                """
+                DELETE FROM Person
+                WHERE ID = %s
+                """,
+                (self.id,),
+            )
+            return True
+        except Error as e:
+            raise e
+
+    @classmethod
+    def count_by_system_role(cls, role: str) -> int:
+        """Count persons with a given system role."""
+        row = fetch_one(
+            """
+            SELECT COUNT(*) AS cnt
+            FROM Person
+            WHERE SystemRole = %s
+            """,
+            (role,),
+        )
+        return row["cnt"] if row else 0
+    
+    def list_all_persons():
+        """Retrieve all persons from the database."""
+        rows = fetch_all(
+            """
+            SELECT 
+                p.PersonID, 
+                p.PasswordHash,
+                p.FirstName, 
+                p.LastName, 
+                p.EmailAddress, 
+                p.AddressLineOne,
+                p.AddressLineTwo, 
+                p.City, 
+                p.StateProvince, 
+                p.ZipCode, 
+                p.Country,
+                p.PrimaryPhone, 
+                p.SecondaryPhone, 
+                p.SystemRole, 
+                p.Notes,
+                p.PublicNotes,
+                p.Locked,
+                CONCAT(e.FirstName, ' ', e.LastName) AS LastEditedBy,
+                p.LastEditedAt
+            FROM Person p
+            LEFT JOIN Person e 
+                ON p.LastEditedBy = e.ID
+            """
+        )
+        return [Person.from_db_row(row) for row in rows]
+        
+    def to_session_dict(self):
+        """Convert to minimal dictionary for session storage."""
+        return {
+            "ID": self.id,
+            "PersonID": self.person_id,
+            "FirstName": self.first_name,
+            "LastName": self.last_name,
+            "EmailAddress": self.email,
+            "SystemRole": self.system_role
+        }
+
+    def to_dict(self):
+        """Convert to dictionary for JSON responses."""
+        data = {
+            "id": self.id,
+            "personId": self.person_id,
+            "firstName": self.first_name,
+            "lastName": self.last_name,
+            "email": self.email,
+            "addressLineOne": self.address_line_one,
+            "dummy": self.password_hash is None,
+            "addressLineTwo": self.address_line_two,
+            "city": self.city,
+            "stateProvince": self.state_province,
+            "zipCode": self.zip_code,
+            "country": self.country,
+            "primaryPhone": self.primary_phone,
+            "secondaryPhone": self.secondary_phone,
+            "systemRole": self.system_role,
+            "notes": self.notes,
+            "publicNotes": self.public_notes,
+            "locked": self.locked,
+            "lastEditedBy": self.last_edited_by,
+            "lastEditedAt": self.last_edited_at.isoformat() if self.last_edited_at else None
+        }
+        return data
+
+    @staticmethod
+    def count():
+        stats = fetch_one("""
+            SELECT 
+                COUNT(*)
+            FROM Person 
+        """)
+        return stats["COUNT(*)"]

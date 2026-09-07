@@ -29,18 +29,17 @@ services:
       - next_next:/app/.next
 
   backend:
-    image: python:3.14@sha256:d7a925f9eb9639a93e455b9f12c167569358818c0f62b51b88edbc8fcf34c421
+    image: ghcr.io/astral-sh/uv:python3.14-alpine
     user: 1000:1000
     working_dir: /app
     ports:
       - 127.0.0.1:8000:8000
     volumes:
       - ./backend:/app
-      - ./mysql/migrations:/app/mysql/migrations:ro
-    command:
-      /bin/bash -c "python -m venv venv && source venv/bin/activate && pip
-      install -r requirements.txt &&  sleep 30 && gunicorn -b 0.0.0.0:8000
-      --reload --timeout 500 wsgi:app"
+    environment:
+      UV_CACHE_DIR: /tmp/uv-cache
+    command: /bin/sh -c "uv sync && uv run gunicorn -b 0.0.0.0:8000
+      --reload --timeout 500 backend.wsgi:app"
     depends_on: [db]
     env_file: ".env.backend"
 
@@ -55,6 +54,8 @@ services:
       - backend
 
 volumes:
+  uv_cache:
+  python_env:
   data:
   next_cache:
   next_node_modules:

@@ -1,0 +1,430 @@
+'''
+Docstring for meet
+
+TODO:
+'''
+
+from backend.database import fetch_all, fetch_one, execute
+from mysql.connector import Error
+
+def _date_key(value):
+    if not value:
+        return value
+    if hasattr(value, "strftime"):
+        return value.strftime("%Y-%m-%d")
+    return str(value)[:10]
+
+class Meet:
+
+    def __init__(self, meet_number, club_abbreviation, meet_date, race_secretary, judge,
+                 location, yards, public_notes, private_notes, last_edited_by, last_edited_at,
+                 completed=False, event_meet_count=None):
+        self.meet_number = meet_number
+        self.club_abbreviation = club_abbreviation
+        self.meet_date = meet_date
+        self.race_secretary = race_secretary
+        self.judge = judge
+        self.location = location
+        self.yards = yards
+        self.completed = bool(completed)
+        self.event_meet_count = event_meet_count
+        self.public_notes = public_notes
+        self.private_notes = private_notes
+        self.last_edited_by = last_edited_by
+        self.last_edited_at = last_edited_at
+
+    @classmethod
+    def from_request_data(cls, data):
+        """Create a Meet instance from request JSON data."""
+        from backend.classes.person import Person
+        race_secretary_raw = (data.get("raceSecretary") or "").strip()
+        judge_raw = (data.get("judge") or "").strip()
+        race_secretary_id = ""
+        if race_secretary_raw:
+            p = Person.find_by_email(race_secretary_raw)
+            if p:
+                race_secretary_id = str(p.id)
+            else:
+                race_secretary_id = race_secretary_raw
+        judge_id = ""
+        if judge_raw:
+            p = Person.find_by_email(judge_raw)
+            if p:
+                judge_id = str(p.id)
+            else:
+                judge_id = judge_raw
+        return cls(
+            meet_number=(data.get("meetNumber") or "").strip(),
+            club_abbreviation=(data.get("clubAbbreviation") or "").strip(),
+            meet_date=data.get("meetDate"),
+            race_secretary=race_secretary_id or None,
+            judge=judge_id or None,
+            location=(data.get("location") or "").strip(),
+            yards=(data.get("yards") or "").strip(),
+            public_notes=(data.get("publicNotes") or "").strip() or None,
+            private_notes=(data.get("privateNotes") or "").strip() or None,
+            last_edited_by=data.get("lastEditedBy"),
+            last_edited_at=data.get("lastEditedAt"),
+            completed=bool(data.get("completed", False)),
+        )
+    
+    @classmethod
+    def from_db_row(cls, row):
+        """Create a Meet instance from a database row."""
+        if not row:
+            return None
+        return cls(
+            meet_number=row.get("MeetNumber"),
+            club_abbreviation=row.get("ClubAbbreviation"),
+            meet_date=row.get("MeetDate"),
+            race_secretary=row.get("RaceSecretary"),
+            judge=row.get("Judge"),
+            location=row.get("Location"),
+            yards=row.get("Yards"),
+            public_notes=row.get("PublicNotes"),
+            private_notes=row.get("PrivateNotes"),
+            last_edited_by=row.get("LastEditedBy"),
+            last_edited_at=row.get("LastEditedAt"),
+            completed=row.get("Completed"),
+            event_meet_count=row.get("EventMeetCount"),
+        )
+
+    @classmethod
+    def find_by_identifier(cls, identifier):
+        """Find a meet by meet_number."""
+        row = fetch_one(
+            """
+            SELECT
+                m.MeetNumber, m.ClubAbbreviation, m.MeetDate, m.RaceSecretary, m.Judge,
+                m.Location, m.Yards, m.Completed, m.PublicNotes, m.PrivateNotes,
+                m.LastEditedBy, m.LastEditedAt,
+                (
+                    SELECT COUNT(*)
+                    FROM Meet grouped
+                    WHERE grouped.ClubAbbreviation = m.ClubAbbreviation
+                      AND grouped.MeetDate = m.MeetDate
+                      AND grouped.Location = m.Location
+                ) AS EventMeetCount
+            FROM Meet m
+            WHERE m.MeetNumber = %s
+            LIMIT 1
+            """,
+            (identifier,),
+        )
+        return cls.from_db_row(row)
+
+    @classmethod
+    def exists(cls, meet_number):
+        """Check if a meet with given meet number already exists."""
+        existing = fetch_one(
+            """
+            SELECT MeetNumber
+            FROM Meet
+            WHERE MeetNumber = %s
+            LIMIT 1
+            """,
+            (meet_number,),
+        )
+        return existing is not None
+
+    def validate(self):
+        """Validate required fields. Returns list of errors (empty if valid)."""
+        errors = []
+        if not self.meet_number:
+            errors.append("Meet number is required")
+        if not self.club_abbreviation:
+            errors.append("Club abbreviation is required")
+        if not self.meet_date:
+            errors.append("Meet date is required")
+        if not self.location:
+            errors.append("Location is required")
+        if not self.yards:
+            errors.append("Yards are required")
+        if len(self.meet_number) > 20:
+            errors.append("Meet number must be 20 characters or less")
+        if len(self.club_abbreviation) > 10:
+            errors.append("Club abbreviation must be 10 characters or less")
+        if len(self.location) > 20:
+            errors.append("Location must be 20 characters or less")
+        if self.judge and not fetch_one("SELECT PersonID FROM Person WHERE ID = %s", (self.judge,)):
+            errors.append(f"Judge '{self.judge}' does not exist")
+        if self.race_secretary and not fetch_one("SELECT PersonID FROM Person WHERE ID = %s", (self.race_secretary,)):
+            errors.append(f"Race secretary '{self.race_secretary}' does not exist")
+        if self.last_edited_by and not fetch_one("SELECT PersonID FROM Person WHERE ID = %s", (self.last_edited_by,)):
+            errors.append("LastEditedBy must reference an existing Person")
+        return errors
+
+    def save(self):
+        """Save meet to database. Returns True on success, raises Error on failure."""
+        try:
+            execute(
+                """
+                INSERT INTO Meet (
+                    MeetNumber, ClubAbbreviation, MeetDate, RaceSecretary, Judge,
+                    Location, Yards, Completed, PublicNotes, PrivateNotes, LastEditedBy, LastEditedAt
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """,
+                (
+                    self.meet_number,
+                    self.club_abbreviation,
+                    self.meet_date,
+                    self.race_secretary or None,
+                    self.judge or None,
+                    self.location,
+                    self.yards,
+                    self.completed,
+                    self.public_notes or None,
+                    self.private_notes or None,
+                    self.last_edited_by,
+                    self.last_edited_at
+                ),
+            )
+            return True
+        except Error as e:
+            raise e
+
+    def update(self):
+        """Update meet in database. Returns True on success, raises Error on failure."""
+        try:
+            execute(
+                """
+                UPDATE Meet
+                SET ClubAbbreviation = %s,
+                    MeetDate = %s,
+                    RaceSecretary = %s,
+                    Judge = %s,
+                    Location = %s,
+                    Yards = %s,
+                    Completed = %s,
+                    PublicNotes = %s,
+                    PrivateNotes = %s,
+                    LastEditedBy = %s,
+                    LastEditedAt = %s
+                WHERE MeetNumber = %s
+                """,
+                (
+                    self.club_abbreviation,
+                    self.meet_date,
+                    self.race_secretary,
+                    self.judge,
+                    self.location,
+                    self.yards,
+                    self.completed,
+                    self.public_notes or None,
+                    self.private_notes or None,
+                    self.last_edited_by,
+                    self.last_edited_at,
+                    self.meet_number
+                ),
+            )
+            return True
+        except Error as e:
+            raise e
+    
+    def delete(self):
+        """Delete meet from backend.database. Returns True on success, raises Error on failure."""
+        try:
+            execute(
+                """
+                DELETE FROM Meet
+                WHERE MeetNumber = %s
+                """,
+                (self.meet_number,),
+            )
+            return True
+        except Error as e:
+            raise e
+
+    def list_all_meets():
+        """Retrieve all meets from the database."""
+        rows = fetch_all(
+            """
+            SELECT
+                m.MeetNumber, m.ClubAbbreviation, m.MeetDate, m.RaceSecretary, m.Judge,
+                m.Location, m.Yards, m.Completed, m.PublicNotes, m.PrivateNotes,
+                m.LastEditedBy, m.LastEditedAt,
+                (
+                    SELECT COUNT(*)
+                    FROM Meet grouped
+                    WHERE grouped.ClubAbbreviation = m.ClubAbbreviation
+                      AND grouped.MeetDate = m.MeetDate
+                      AND grouped.Location = m.Location
+                ) AS EventMeetCount
+            FROM Meet m
+            """
+        )
+        return [Meet.from_db_row(row) for row in rows]
+        
+    def to_session_dict(self):
+        """Convert to minimal dictionary for session storage."""
+        return {
+            "meetNumber": self.meet_number,
+            "clubAbbreviation": self.club_abbreviation,
+            "meetDate": self.meet_date,
+            "location": self.location,
+        }
+
+    def to_dict(self, include_private=True):
+        """Convert to dictionary for JSON responses."""
+        judge_name = self._get_full_name(self.judge) if self.judge else None
+        race_secretary_name = self._get_full_name(self.race_secretary) if self.race_secretary else None
+        
+        data = {
+            "meetNumber": self.meet_number,
+            "clubAbbreviation": self.club_abbreviation,
+            "meetDate": self.meet_date.strftime("%d-%m-%Y"),
+            "raceSecretary": self.race_secretary,
+            "raceSecretaryName": race_secretary_name,
+            "judge": self.judge,
+            "judgeName": judge_name,
+            "location": self.location,
+            "yards": self.yards,
+            "completed": self.completed,
+            "eventMeetCount": self.get_event_meet_count(),
+            "publicNotes": self.public_notes,
+            "lastEditedBy": self.last_edited_by,
+            "lastEditedAt": self.last_edited_at.isoformat() if self.last_edited_at else None
+        }
+
+        if include_private:
+            data["privateNotes"] = self.private_notes
+
+        return data
+
+    def _get_full_name(self, person_id):
+        """Get full name for a person ID."""
+        if not person_id:
+            return None
+        row = fetch_one(
+            "SELECT FirstName, LastName FROM Person WHERE ID = %s",
+            (person_id,)
+        )
+        if row:
+            return f"{row.get('FirstName')} {row.get('LastName')}".strip()
+        return None
+
+    def get_event_meet_count(self):
+        if self.event_meet_count is not None:
+            return self.event_meet_count
+        if not self.club_abbreviation or not self.meet_date or not self.location:
+            return 0
+        row = fetch_one(
+            """
+            SELECT COUNT(*) AS EventMeetCount
+            FROM Meet
+            WHERE ClubAbbreviation = %s
+              AND MeetDate = %s
+              AND Location = %s
+            """,
+            (self.club_abbreviation, _date_key(self.meet_date), self.location),
+        ) or {}
+        self.event_meet_count = int(row.get("EventMeetCount") or 0)
+        return self.event_meet_count
+
+    @classmethod
+    def sync_completed_status_for_group(cls, club_abbreviation, meet_date, location):
+        if not club_abbreviation or not meet_date or not location:
+            return
+
+        date_key = _date_key(meet_date)
+        row = fetch_one(
+            """
+            SELECT COUNT(*) AS EventMeetCount
+            FROM Meet
+            WHERE ClubAbbreviation = %s
+              AND MeetDate = %s
+              AND Location = %s
+            """,
+            (club_abbreviation, date_key, location),
+        ) or {}
+
+        completed = 1 if int(row.get("EventMeetCount") or 0) >= 3 else 0
+        execute(
+            """
+            UPDATE Meet
+            SET Completed = %s
+            WHERE ClubAbbreviation = %s
+              AND MeetDate = %s
+              AND Location = %s
+            """,
+            (completed, club_abbreviation, date_key, location),
+        )
+
+    @classmethod
+    def sync_completed_status_for_meet_number(cls, meet_number):
+        meet = cls.find_by_identifier(meet_number)
+        if meet:
+            cls.sync_completed_status_for_group(meet.club_abbreviation, meet.meet_date, meet.location)
+        
+    @staticmethod
+    def count():
+        stats = fetch_one("""
+            SELECT 
+                COUNT(*)
+            FROM Meet 
+        """)
+        return stats["COUNT(*)"]
+
+    @staticmethod
+    def search(query, sort = "dateDesc", page = 1, limit = None):
+
+        orderings = {
+            "dateAsc": "ORDER BY m.MeetDate ASC",
+            "dateDesc": "ORDER BY m.MeetDate DESC",
+            "numberAsc": "ORDER BY m.MeetNumber ASC",
+            "numberDesc": "ORDER BY m.MeetNumber DESC",
+            "locationAsc": "ORDER BY m.Location ASC",
+            "locationDesc": "ORDER BY m.Location DESC",
+            "clubAsc": "ORDER BY m.ClubAbbreviation ASC",
+            "clubDesc": "ORDER BY m.ClubAbbreviation DESC",
+        }
+        q = (query or "").strip()
+        like = f"%{q}%"
+
+        sql = """
+            SELECT 
+                m.MeetNumber, m.ClubAbbreviation, m.MeetDate, m.RaceSecretary,
+                CONCAT(pf.FirstName, ' ', pf.LastName) AS RaceSecretaryName,
+                m.Judge, CONCAT(jj.FirstName, ' ', jj.LastName) AS JudgeName,
+                m.Location, m.Yards, m.Completed, m.PublicNotes, m.PrivateNotes, m.LastEditedBy, m.LastEditedAt,
+                (
+                    SELECT COUNT(*)
+                    FROM Meet grouped
+                    WHERE grouped.ClubAbbreviation = m.ClubAbbreviation
+                      AND grouped.MeetDate = m.MeetDate
+                      AND grouped.Location = m.Location
+                ) AS EventMeetCount
+            FROM Meet m
+            LEFT JOIN Person pf ON m.RaceSecretary = pf.ID
+            LEFT JOIN Person jj ON m.Judge = jj.ID
+            WHERE 
+                m.MeetNumber LIKE %s
+                OR m.ClubAbbreviation LIKE %s
+                OR m.MeetDate LIKE %s
+                OR m.RaceSecretary LIKE %s
+                OR m.Judge LIKE %s
+                OR m.Location LIKE %s
+                OR m.Yards LIKE %s
+                OR m.PublicNotes LIKE %s
+        """
+        params = [like, like, like, like, like, like, like, like]
+        if sort not in orderings:
+            sort = "dateDesc"
+        sql += " " + orderings[sort]
+        if limit is not None:
+           sql = sql + " LIMIT %s OFFSET %s"
+           params.append(limit)
+           params.append((page-1)*limit)
+        rows = fetch_all(sql, params)
+        return rows
+    
+    @classmethod
+    def get_dogs_for_meet(cls, meet_number):
+        rows = fetch_all("""
+            SELECT d.*
+            FROM Dog d
+            JOIN MeetResults mr ON mr.CWANumber = d.CWANumber
+            WHERE mr.MeetNumber = %s
+        """, (meet_number,))
+        return rows or []
