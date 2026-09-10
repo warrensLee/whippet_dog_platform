@@ -252,7 +252,8 @@ class DogTitle:
                 for email in dog.get_owner_emails():
                     send_titles_email(email, pdf_bytes, f"{dog.registered_name}_{title}.pdf")
             
-            ChangeLog.log(
+            if editor_id is not None:
+                ChangeLog.log(
                 changed_table="DogTitles",
                 record_pk=f"{dog.cwa_number}:{title}",
                 operation="INSERT",
@@ -260,7 +261,7 @@ class DogTitle:
                 source="sync_titles_for_dog",
                 before_obj=None,
                 after_obj=new_title.to_dict()
-            )
+                )
 
     @classmethod
     def list_for_dog(cls, cwa_number):

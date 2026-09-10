@@ -22,91 +22,6 @@ def _is_judge_or_secretary(meet_number: str) -> bool:
         return False
     return meet.judge == pid or meet.race_secretary == pid
 
-def _meet_stats(cwa_number: str) -> dict:
-    row = fetch_one(
-        """
-        SELECT
-            COALESCE(SUM(MeetPoints),0) AS meet_points,
-            COALESCE(SUM(ARXEarned),0)  AS arx_points,
-            COALESCE(SUM(NARXEarned),0) AS narx_points,
-            COALESCE(SUM(ShowPoints),0) AS show_points,
-            COALESCE(SUM(DPCLeg),0)     AS dpc_legs,
-            COALESCE(SUM(CASE WHEN MeetPlacement=1 THEN 1 ELSE 0 END),0) AS meet_wins,
-            COALESCE(SUM(CASE WHEN EntryType='REG' THEN 1 ELSE 0 END),0) AS meet_appearences,
-            COALESCE(SUM(DPCPoints),0)  AS dpc_points
-        FROM MeetResults mr
-        WHERE mr.CWANumber=%s
-          AND NOT EXISTS (
-              SELECT 1 FROM RaceResults rr
-              WHERE rr.MeetNumber = mr.MeetNumber
-                AND rr.CWANumber = mr.CWANumber
-                AND rr.Incident IS NOT NULL
-                AND TRIM(rr.Incident) != ''
-          )
-        """,
-        (cwa_number,),
-    ) or {}
-
-    hc_row = fetch_one(
-        """
-        SELECT COUNT(*) as hc_wins
-        FROM MeetResults mr
-        WHERE mr.CWANumber = %s
-          AND mr.MeetPlacement IS NOT NULL
-          AND mr.ConformationPlacement IS NOT NULL
-          AND mr.MeetPlacement + mr.ConformationPlacement = (
-              SELECT MIN(inner_mr.MeetPlacement + inner_mr.ConformationPlacement)
-              FROM MeetResults inner_mr
-              WHERE inner_mr.MeetNumber = mr.MeetNumber
-                AND inner_mr.MeetPlacement IS NOT NULL
-                AND inner_mr.ConformationPlacement IS NOT NULL
-          )
-          AND mr.MeetPlacement = (
-              SELECT MIN(inner_mr.MeetPlacement)
-              FROM MeetResults inner_mr
-              WHERE inner_mr.MeetNumber = mr.MeetNumber
-                AND inner_mr.MeetPlacement IS NOT NULL
-                AND inner_mr.ConformationPlacement IS NOT NULL
-                AND inner_mr.MeetPlacement + inner_mr.ConformationPlacement = (
-                    SELECT MIN(inner2.MeetPlacement + inner2.ConformationPlacement)
-                    FROM MeetResults inner2
-                    WHERE inner2.MeetNumber = mr.MeetNumber
-                      AND inner2.MeetPlacement IS NOT NULL
-                      AND inner2.ConformationPlacement IS NOT NULL
-                )
-          )
-        """,
-        (cwa_number,),
-    ) or {}
-
-    return {
-        "meet_points": float(row.get("meet_points") or 0),
-        "arx_points": float(row.get("arx_points") or 0),
-        "narx_points": float(row.get("narx_points") or 0),
-        "show_points": float(row.get("show_points") or 0),
-        "dpc_legs": float(row.get("dpc_legs") or 0),
-        "meet_wins": float(row.get("meet_wins") or 0),
-        "meet_appearences": float(row.get("meet_appearences") or 0),
-        "dpc_points": float(row.get("dpc_points") or 0),
-        "high_combined_wins": int(hc_row.get("hc_wins") or 0),
-    }
-
-def _apply_meet_stats_delta(dog: Dog, old: dict, new: dict, editor_id: str, now: datetime):
-    dog.meet_points = float(dog.meet_points or 0) - old["meet_points"] + new["meet_points"]
-    dog.arx_points = float(dog.arx_points or 0) - old["arx_points"] + new["arx_points"]
-    dog.narx_points = float(dog.narx_points or 0) - old["narx_points"] + new["narx_points"]
-    dog.show_points = float(dog.show_points or 0) - float(old["show_points"]) + float(new["show_points"])
-    dog.dpc_points = float(getattr(dog, "dpc_points", 0) or 0) - old["dpc_points"] + new["dpc_points"]
-    dog.dpc_legs = int(dog.dpc_legs or 0) - int(old["dpc_legs"]) + int(new["dpc_legs"])
-    dog.meet_wins = int(dog.meet_wins or 0) - int(old["meet_wins"]) + int(new["meet_wins"])
-    dog.meet_appearences = int(dog.meet_appearences or 0) - int(old["meet_appearences"]) + int(new["meet_appearences"])
-    dog.high_combined_wins = int(new["high_combined_wins"])
-    if hasattr(dog, "compute_last_three_meet_average"):
-        dog.average = dog.compute_last_three_meet_average()
-    dog.current_grade = dog.check_grade()
-    dog.update()
-    DogTitle.sync_titles_for_dog(dog, editor_id, now)
-
 def _get_race_entries(meet_number: str, program: str, race_number: str):
     rows = fetch_all(
         """
@@ -267,11 +182,8 @@ def bulk_update_edit_result_view(meet_number):
             "SELECT DISTINCT CWANumber FROM MeetResults WHERE MeetNumber = %s",
             (meet_number,),
         ) or []
-        all_in_meet_set = {row["CWANumber"] for row in all_in_meet}
+        all_in_meet_set = {x for x in [row["CWANumber"] for row in all_in_meet] + [n for n in cwa_numbers]}
 
-        old_stats = {}
-        for cwa in all_in_meet_set:
-            old_stats[cwa] = _meet_stats(cwa)
 
         execute("DELETE FROM RaceResults WHERE MeetNumber = %s", (meet_number,))
         execute("DELETE FROM MeetResults WHERE MeetNumber = %s", (meet_number,))
@@ -347,31 +259,13 @@ def bulk_update_edit_result_view(meet_number):
 
             new_result = MeetResult(meet_number, cwa_number, average, grade, int(meet_placement_str) if meet_placement_str and meet_placement_str.isdigit() else 0, 0, 0, meet_points_val, arx_earned, narx_earned, shown, show_placement, show_points, dpc_leg, 0, 1 if hcWinner else 0, aomEarned, dpc_points, entry_type, editor_id, now)
             new_result.save()
-            #new_result.update_from_race_results()
-        
-        default_new = {
-            "meet_points": 0, "arx_points": 0, "narx_points": 0,
-            "show_points": 0, "dpc_legs": 0, "meet_wins": 0,
-            "meet_appearences": 0, "dpc_points": 0, "high_combined_wins": 0
-        }
 
-        for cwa in cwa_numbers:
+        for cwa in all_in_meet_set:
             dog = Dog.find_by_identifier(cwa)
             if dog:
-                new_stats = _meet_stats(cwa)
-                old = old_stats.get(cwa, default_new)
-                _apply_meet_stats_delta(dog, old, new_stats, editor_id, now)
                 dog.update_from_meet_results()
+                DogTitle.sync_titles_for_dog(dog, None, None)
 
-        removed_cwas = all_in_meet_set - set(cwa_numbers)
-        for cwa in removed_cwas:
-            dog = Dog.find_by_identifier(cwa)
-            if dog:
-                _apply_meet_stats_delta(dog, old_stats[cwa], default_new, editor_id, now)
-                dog.update_from_meet_results()
-
-        #RaceResult.calculate_dpc_leg_for_meet(meet_number)
-        #RaceResult.calculate_hc_leg_for_meet(meet_number)
 
         return jsonify({"ok": True}), 200
 

@@ -1021,6 +1021,7 @@ class Dog:
             self.meet_wins          = int(stats['meet_wins'] or 0)
             self.high_combined_wins = int((hc_wins_row or {}).get('hc_wins') or 0)
             self.aom_earned         = int(stats['total_aom_earned'] or 0)
+            self.current_grade      = self.check_grade()
             self.update()
 
     def get_owner_emails(self):
