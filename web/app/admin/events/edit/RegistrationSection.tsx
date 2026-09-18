@@ -40,6 +40,8 @@ export default function RegistrationSection({ results, onChange, onRemoveDog, se
             onChange({ ...dog, showPlace: value as DogEntry["showPlace"], showPoints: "0" });
         } else if (key === "shown" && value === false) {
             onChange({ ...dog, shown: false, showPoints: "0", showPlace: "" });
+        } else if (key === "shown" && value === true) {
+            onChange({ ...dog, shown: true, showPoints: "0", showPlace: "N/A" });
         } else {
             onChange({ ...dog, [key]: value });
         }

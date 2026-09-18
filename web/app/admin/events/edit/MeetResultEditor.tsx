@@ -201,7 +201,7 @@ export default function MeetResultEditor({
 
     function handleDogChange(dog: DogEntry) {
         const updated = value.map(d => (d.cwaNumber === dog.cwaNumber ? dog : d));
-        onChange(updated);
+        onChange(recalculateAll(updated));
     }
 
     function handleHcLegChange(dogs: DogEntry[], cwaNumber: string, checked: boolean) {
