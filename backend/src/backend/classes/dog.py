@@ -1243,3 +1243,11 @@ class Dog:
             "year": year,
             "ytdHighCombinedWins": int(row.get("ytd_hc_wins") or 0)
         }
+
+    @classmethod
+    def get_dogs_for_meet(cls, meet_number):
+        rows = fetch_all("""
+            SELECT CWANumber FROM MeetResults
+            WHERE MeetNumber = %s
+        """, (meet_number,))
+        return [Dog.find_by_identifier(row.get("CWANumber")) for row in rows]

@@ -271,7 +271,7 @@ ALTER TABLE `Meet`
 
 ALTER TABLE `RaceResults`
     ADD CONSTRAINT `fk_RaceResults_Meet`
-        FOREIGN KEY (`MeetNumber`) REFERENCES `Meet` (`MeetNumber`);
+        FOREIGN KEY (`MeetNumber`) REFERENCES `Meet` (`MeetNumber`) ON DELETE CASCADE;
 
 ALTER TABLE `RaceResults`
     ADD CONSTRAINT `fk_RaceResults_Dog`
@@ -279,7 +279,7 @@ ALTER TABLE `RaceResults`
 
 ALTER TABLE `MeetResults`
     ADD CONSTRAINT `fk_MeetResults_Meet`
-        FOREIGN KEY (`MeetNumber`) REFERENCES `Meet` (`MeetNumber`);
+        FOREIGN KEY (`MeetNumber`) REFERENCES `Meet` (`MeetNumber`) ON DELETE CASCADE;
 
 ALTER TABLE `MeetResults`
     ADD CONSTRAINT `fk_MeetResults_Dog`

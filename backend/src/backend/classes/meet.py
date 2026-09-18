@@ -419,12 +419,3 @@ class Meet:
         rows = fetch_all(sql, params)
         return rows
     
-    @classmethod
-    def get_dogs_for_meet(cls, meet_number):
-        rows = fetch_all("""
-            SELECT d.*
-            FROM Dog d
-            JOIN MeetResults mr ON mr.CWANumber = d.CWANumber
-            WHERE mr.MeetNumber = %s
-        """, (meet_number,))
-        return rows or []

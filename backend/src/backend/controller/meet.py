@@ -1,3 +1,4 @@
+from backend.classes.dog import Dog
 from flask import Blueprint, json, jsonify, request, Response
 import csv
 import io
@@ -155,6 +156,7 @@ def delete_meet():
     data = request.get_json(silent=True) or {}
     meet_number = (data.get("meetNumber") or "").strip()
 
+    #TODO: remove unnecessary confirm argument
     if data.get("confirm") is not True:
         return jsonify({"ok": False, "error": "Confirmation required"}), 400
     if not meet_number:
@@ -170,10 +172,12 @@ def delete_meet():
 
         before_snapshot = meet.to_dict()
         old_group = (meet.club_abbreviation, meet.meet_date, meet.location)
-
+        dogs = Dog.get_dogs_for_meet(meet.meet_number)  
         meet.delete()
         Meet.sync_completed_status_for_group(*old_group)
-
+        for dog in dogs:
+            if dog is not None:
+                dog.update_from_meet_results()
         ChangeLog.log(
             changed_table="Meet",
             record_pk=meet_number,
