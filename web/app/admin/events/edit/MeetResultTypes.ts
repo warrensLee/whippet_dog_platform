@@ -190,14 +190,12 @@ export function renumberRacesInProgram(results: MeetResults, program: string, de
 export function renumberPrograms(results: MeetResults, definedPrograms: string[]): { results: MeetResults; definedPrograms: string[] } {
     if (definedPrograms.length < 2) return { results, definedPrograms };
 
-    const newPrograms = [...definedPrograms].sort((a, b) => parseInt(a) - parseInt(b));
-
     const programMap = new Map<string, string>();
-    for (let i = 0; i < newPrograms.length; i++) {
-        programMap.set(newPrograms[i], String(i + 1));
+    for (let i = 0; i < definedPrograms.length; i++) {
+        programMap.set(definedPrograms[i], String(i + 1));
     }
 
-    const updatedPrograms = newPrograms.map((_, i) => String(i + 1));
+    const updatedPrograms = definedPrograms.map((_, i) => String(i + 1));
 
     const updated = results.map(dog => {
         const newRaces = dog.races.map(race => {
@@ -211,6 +209,82 @@ export function renumberPrograms(results: MeetResults, definedPrograms: string[]
     });
 
     return { results: updated, definedPrograms: updatedPrograms };
+}
+
+export function swapPrograms(
+    results: MeetResults,
+    definedPrograms: string[],
+    definedRaces: RaceDefinition[],
+    programA: string,
+    programB: string,
+): { results: MeetResults; definedPrograms: string[]; definedRaces: RaceDefinition[] } {
+    const indexA = definedPrograms.indexOf(programA);
+    const indexB = definedPrograms.indexOf(programB);
+    if (indexA === -1 || indexB === -1) {
+        return { results, definedPrograms, definedRaces };
+    }
+
+    const swapped = [...definedPrograms];
+    swapped[indexA] = programB;
+    swapped[indexB] = programA;
+
+    const programMap = new Map<string, string>();
+    for (let i = 0; i < swapped.length; i++) {
+        programMap.set(swapped[i], String(i + 1));
+    }
+
+    const updatedPrograms = swapped.map((_, i) => String(i + 1));
+
+    const updatedResults = results.map(dog => {
+        const newRaces = dog.races.map(race => {
+            const newProgram = programMap.get(race.program);
+            if (newProgram) {
+                return { ...race, program: newProgram };
+            }
+            return race;
+        });
+        return { ...dog, races: newRaces };
+    });
+
+    const updatedDefinedRaces = definedRaces.map(r => ({
+        ...r,
+        program: programMap.get(r.program) ?? r.program,
+    }));
+
+    return { results: updatedResults, definedPrograms: updatedPrograms, definedRaces: updatedDefinedRaces };
+}
+
+export function swapRaces(
+    results: MeetResults,
+    definedRaces: RaceDefinition[],
+    program: string,
+    raceA: string,
+    raceB: string,
+): { definedRaces: RaceDefinition[]; results: MeetResults } {
+    const idxA = definedRaces.findIndex(d => d.program === program && d.race === raceA);
+    const idxB = definedRaces.findIndex(d => d.program === program && d.race === raceB);
+    if (idxA === -1 || idxB === -1) {
+        return { definedRaces, results };
+    }
+
+    const updatedDefinedRaces = [...definedRaces];
+    const raceADef = { ...updatedDefinedRaces[idxA], program, race: raceA };
+    const raceBDef = { ...updatedDefinedRaces[idxB], program, race: raceB };
+    updatedDefinedRaces[idxA] = raceBDef;
+    updatedDefinedRaces[idxB] = raceADef;
+
+    const updatedResults = results.map(dog => ({
+        ...dog,
+        races: dog.races.map(race => {
+            if (race.program === program) {
+                if (race.race === raceA) return { ...race, race: raceB };
+                if (race.race === raceB) return { ...race, race: raceA };
+            }
+            return race;
+        }),
+    }));
+
+    return { definedRaces: updatedDefinedRaces, results: updatedResults };
 }
 
 export function removeRaceAndRenumber(results: MeetResults, program: string, raceNumber: string, definedRaces: RaceDefinition[]): { results: MeetResults; definedRaces: RaceDefinition[] } {
@@ -230,11 +304,13 @@ export function removeRaceAndRenumber(results: MeetResults, program: string, rac
     const allRemaining = [...new Set([...definedNumbers, ...dataRaceNumbers])].sort((a, b) => parseInt(a) - parseInt(b));
 
     const raceToNewNumber = new Map<string, string>();
-    const newDefinedRacesRenumbered: RaceDefinition[] = [];
     for (let i = 0; i < allRemaining.length; i++) {
         raceToNewNumber.set(allRemaining[i], String(i + 1));
-        newDefinedRacesRenumbered.push({ program, race: String(i + 1) });
     }
+
+    const updatedDefinedRaces = newDefinedRaces.map(d =>
+        d.program === program ? { ...d, race: raceToNewNumber.get(d.race) ?? d.race } : d
+    );
 
     const updated = results.map(dog => {
         const programRaces = dog.races.filter(r => r.program === program && r.race !== raceNumber);
@@ -247,7 +323,7 @@ export function removeRaceAndRenumber(results: MeetResults, program: string, rac
         return { ...dog, races: newRaces };
     });
 
-    return { results: updated, definedRaces: newDefinedRacesRenumbered };
+    return { results: updated, definedRaces: updatedDefinedRaces };
 }
 
 export function removeProgramAndRenumber(results: MeetResults, programToRemove: string, definedRaces: RaceDefinition[], definedPrograms: string[]): { results: MeetResults; definedRaces: RaceDefinition[]; definedPrograms: string[] } {

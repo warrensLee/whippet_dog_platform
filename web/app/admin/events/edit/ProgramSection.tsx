@@ -6,6 +6,7 @@ type ProgramSectionProps = {
     program: string;
     results: DogEntry[];
     definedRaces: { program: string; race: string }[];
+    definedPrograms: string[];
     onRaceDogChange: (
         program: string,
         raceNumber: string,
@@ -20,21 +21,27 @@ type ProgramSectionProps = {
     onAddRace: (program: string) => void;
     onRemoveRace: (program: string, raceNumber: string) => void;
     onRemoveProgram: (program: string) => void;
+    onMoveProgram: (program: string, direction: "up" | "down") => void;
+    onMoveRace: (program: string, raceNumber: string, direction: "up" | "down") => void;
 };
 
 export default function ProgramSection({
     program,
     results,
     definedRaces,
+    definedPrograms,
     onRaceDogChange,
     onRaceDogRemove,
     onAddDogToRace,
     onAddRace,
     onRemoveRace,
     onRemoveProgram,
+    onMoveProgram,
+    onMoveRace,
 }: ProgramSectionProps) {
     const [collapsed, setCollapsed] = useState(false);
     const definedRaceNumbers = getDefinedRacesForProgram(definedRaces, program);
+    const programIdx = definedPrograms.indexOf(program);
     const title = `Program ${program}`;
 
     function getDogsInRace(raceNumber: string): DogEntry[] {
@@ -52,7 +59,23 @@ export default function ProgramSection({
                 >
                     {title} {collapsed ? "▸" : "▾"}
                 </h3>
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-center">
+                    <button
+                        onClick={() => onMoveProgram(program, "up")}
+                        disabled={programIdx <= 0}
+                        className="rounded-full w-7 h-7 flex items-center justify-center bg-gray-200 text-sm font-bold text-gray-600 shadow-sm transition hover:bg-gray-300 disabled:opacity-30 disabled:cursor-not-allowed"
+                        title="Move program up"
+                    >
+                        ↑
+                    </button>
+                    <button
+                        onClick={() => onMoveProgram(program, "down")}
+                        disabled={programIdx >= definedPrograms.length - 1}
+                        className="rounded-full w-7 h-7 flex items-center justify-center bg-gray-200 text-sm font-bold text-gray-600 shadow-sm transition hover:bg-gray-300 disabled:opacity-30 disabled:cursor-not-allowed"
+                        title="Move program down"
+                    >
+                        ↓
+                    </button>
                     <button
                         onClick={() => onRemoveProgram(program)}
                         className="rounded-full bg-red-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-red-700"
@@ -76,7 +99,7 @@ export default function ProgramSection({
                         </p>
                     )}
 
-                    {definedRaceNumbers.map(raceNumber => {
+                    {definedRaceNumbers.map((raceNumber, idx) => {
                         const dogsInRace = getDogsInRace(raceNumber);
 
                         return (
@@ -90,6 +113,9 @@ export default function ProgramSection({
                                 onRaceDogRemove={onRaceDogRemove}
                                 onAddDogToRace={onAddDogToRace}
                                 onRemoveRace={onRemoveRace}
+                                onMoveRace={onMoveRace}
+                                raceIdx={idx}
+                                totalRaces={definedRaceNumbers.length}
                             />
                         );
                     })}

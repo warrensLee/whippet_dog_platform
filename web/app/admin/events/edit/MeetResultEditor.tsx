@@ -7,6 +7,9 @@ import {
     addRaceDefinition,
     removeRaceAndRenumber,
     removeProgramAndRenumber,
+    swapPrograms,
+    swapRaces,
+    getDefinedRacesForProgram
 } from "./MeetResultTypes";
 import RegistrationSection from "./RegistrationSection";
 import ProgramSection from "./ProgramSection";
@@ -298,6 +301,28 @@ export default function MeetResultEditor({
         onChange(updated);
     }
 
+    function handleMoveProgram(program: string, direction: "up" | "down") {
+        const idx = programs.indexOf(program);
+        const targetIdx = direction === "up" ? idx - 1 : idx + 1;
+        if (targetIdx < 0 || targetIdx >= programs.length) return;
+        const target = programs[targetIdx];
+        const { results: updated, definedPrograms: newPrograms, definedRaces: newRaces } = swapPrograms(value, programs, definedRaces, program, target);
+        setPrograms(newPrograms);
+        setDefinedRaces(newRaces);
+        onChange(updated);
+    }
+
+    function handleMoveRace(program: string, raceNumber: string, direction: "up" | "down") {
+        const programRaces = getDefinedRacesForProgram(definedRaces, program);
+        const idx = programRaces.indexOf(raceNumber);
+        const targetIdx = direction === "up" ? idx - 1 : idx + 1;
+        if (targetIdx < 0 || targetIdx >= programRaces.length) return;
+        const targetRace = programRaces[targetIdx];
+        const { results: updated, definedRaces: newRaces } = swapRaces(value, definedRaces, program, raceNumber, targetRace);
+        setDefinedRaces(newRaces);
+        onChange(updated);
+    }
+
     return (
         <div className="overflow-hidden rounded-2xl border border-black/10 bg-[#F8F9FA]">
             <RegistrationSection results={value} onChange={handleDogChange} onRemoveDog={handleRemoveDog} setHasErrors={setRegistrationErrors} />
@@ -337,12 +362,15 @@ export default function MeetResultEditor({
                     program={program}
                     results={value}
                     definedRaces={definedRaces}
+                    definedPrograms={programs}
                     onRaceDogChange={handleRaceDogChange}
                     onRaceDogRemove={handleRaceDogRemove}
                     onAddDogToRace={handleAddDogToRace}
                     onAddRace={handleAddRace}
                     onRemoveRace={handleRemoveRace}
                     onRemoveProgram={handleRemoveProgram}
+                    onMoveProgram={handleMoveProgram}
+                    onMoveRace={handleMoveRace}
                 />
             ))}
 

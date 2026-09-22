@@ -18,8 +18,10 @@ type RaceSectionProps = {
     ) => void;
     onAddDogToRace: (program: string, raceNumber: string, cwaNumber: string) => void;
     onRemoveRace: (program: string, raceNumber: string) => void;
+    onMoveRace: (program: string, raceNumber: string, direction: "up" | "down") => void;
+    raceIdx: number;
+    totalRaces: number;
 };
-
 
 export default function RaceSection({
     program,
@@ -30,6 +32,9 @@ export default function RaceSection({
     onRaceDogRemove,
     onAddDogToRace,
     onRemoveRace,
+    onMoveRace,
+    raceIdx,
+    totalRaces,
 }: RaceSectionProps) {
     const [showAddDog, setShowAddDog] = useState(false);
     const [selectedDogCwa, setSelectedDogCwa] = useState("");
@@ -113,7 +118,23 @@ export default function RaceSection({
         <div className="rounded-xl border border-black/10 bg-white p-4 mb-3">
             <div className="flex items-center justify-between mb-3">
                 <h4 className="font-semibold text-[#12301D] text-base">Race {raceNumber}</h4>
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-center">
+                    <button
+                        onClick={() => onMoveRace(program, raceNumber, "up")}
+                        disabled={raceIdx <= 0}
+                        className="rounded-full w-7 h-7 flex items-center justify-center bg-gray-200 text-sm font-bold text-gray-600 shadow-sm transition hover:bg-gray-300 disabled:opacity-30 disabled:cursor-not-allowed"
+                        title="Move race up"
+                    >
+                        ↑
+                    </button>
+                    <button
+                        onClick={() => onMoveRace(program, raceNumber, "down")}
+                        disabled={raceIdx >= totalRaces - 1}
+                        className="rounded-full w-7 h-7 flex items-center justify-center bg-gray-200 text-sm font-bold text-gray-600 shadow-sm transition hover:bg-gray-300 disabled:opacity-30 disabled:cursor-not-allowed"
+                        title="Move race down"
+                    >
+                        ↓
+                    </button>
                     <button
                         onClick={() => onRemoveRace(program, raceNumber)}
                         className="rounded-full bg-red-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-red-700"
