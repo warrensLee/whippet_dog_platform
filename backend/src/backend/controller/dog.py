@@ -57,7 +57,7 @@ def register_dog():
         )
 
         #update titles based on dog attributes
-        DogTitle.sync_titles_for_dog(dog, current_editor_id(), datetime.now(timezone.utc))
+        DogTitle.sync_titles_for_dog(dog, current_editor_id(), datetime.now(timezone.utc), send_email=False)
 
         return jsonify({"ok": True}), 201
 
@@ -71,10 +71,6 @@ def public_notes():
     if not role:
         return  jsonify({"ok": False, "error": "Not signed in"}), 401
 
-    deny = require_scope(role.edit_dog_scope, "edit dogs")
-    if deny:
-        return deny
-
     data = request.get_json(silent=True) or {}
     if "dog" not in data or "public_notes" not in data:
         return jsonify({"ok": False, "error": "Invalid Request"}), 400
@@ -84,8 +80,8 @@ def public_notes():
     if not dog:
         return jsonify({"ok": False, "error": "invalid dog ID"}), 400
 
-    if role.edit_dog_scope == UserRole.SELF and not _is_owner(dog.cwa_number):
-        return jsonify({"ok": False, "error": "Not allowed to edit this dog"}), 403
+    if not _is_owner(dog.cwa_number):
+        return jsonify({"ok": False, "error": "You do not own this dog"}), 403
 
     dog.public_notes = data["public_notes"]
     dog.update()
@@ -142,7 +138,7 @@ def edit_dog():
         )
 
         #update titles based on dog attributes
-        DogTitle.sync_titles_for_dog(dog, current_editor_id(), datetime.now(timezone.utc))
+        DogTitle.sync_titles_for_dog(dog, current_editor_id(), datetime.now(timezone.utc), send_email=False)
         return jsonify({"ok": True}), 200
 
     except Error as e:

@@ -248,10 +248,12 @@ class DogTitle:
             new_title.save()
 
             if send_email:
-                pdf_bytes = generate_title_pdf(dog, title)
-                for email in dog.get_owner_emails():
-                    send_titles_email(email, pdf_bytes, f"{dog.registered_name}_{title}.pdf")
-            
+                emails = dog.get_owner_emails()
+                if len(emails) > 0:
+                    pdf_bytes = generate_title_pdf(dog, title)
+                    for email in emails:
+                        send_titles_email(email, pdf_bytes, f"{dog.registered_name}_{title}.pdf")
+                
             if editor_id is not None:
                 ChangeLog.log(
                 changed_table="DogTitles",
