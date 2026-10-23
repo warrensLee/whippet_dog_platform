@@ -5,20 +5,12 @@ import * as React from "react";
 import type { EventFormValues } from "@/app/admin/events/types";
 import RichTextEditor from "@/lib/richtext/RichTextEditor";
 import PersonField, { PersonSearchResult } from "@/app/components/ui/PersonField";
-import Button from "@/app/components/ui/buttons/Button";
-import SecondaryButton from "@/app/components/ui/buttons/SecondaryButton";
 type Props = {
     values: EventFormValues;
     onChange: <K extends keyof EventFormValues>(
         key: K,
         value: EventFormValues[K]
     ) => void;
-    onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
-    saving: boolean;
-    submitLabel: string;
-    error: string;
-    success: string;
-    onCancel: () => void;
     isEditMode?: boolean;
     canEditPrivateNotes?: boolean;
     personLoading?: boolean;
@@ -57,9 +49,7 @@ function PersonSelectField({
 
     return (
         <div className={className}>
-            <label className="mb-2 block text-sm font-medium text-[#12301D]">
-                {label}
-            </label>
+            <FieldLabel label={label} />
             <PersonField value={value} onChange={onChange} readOnly={loading} />
         </div>
     );
@@ -97,6 +87,8 @@ function InputField({
     );
 }
 
+//TODO: This should require a seperate "required" parameter instead of checking for a *, 
+//it may also be good to refactor this and use it in other places
 function FieldLabel({ label }: { label: string }) {
     const required = label.endsWith(" *");
     const cleanLabel = required ? label.slice(0, -2) : label;
@@ -112,12 +104,6 @@ function FieldLabel({ label }: { label: string }) {
 export default function EventForm({
     values,
     onChange,
-    onSubmit,
-    saving,
-    submitLabel,
-    error,
-    success,
-    onCancel,
     isEditMode = false,
     canEditPrivateNotes = false,
     personLoading = false,
@@ -150,9 +136,8 @@ export default function EventForm({
         ];
 
     return (
-        <form
-            onSubmit={onSubmit}
-            className="rounded-3xl border border-black/10 bg-white/90 p-6 shadow-sm backdrop-blur md:p-8"
+        <div
+            className="rounded-3xl border-black/10 bg-white/90 p-6 md:p-6"
         >
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                 <InputField
@@ -180,41 +165,19 @@ export default function EventForm({
             <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
                 <PersonSelectField
                     label="Race Secretary *"
+                    className="text-sm"
                     value={values.raceSecretary}
                     onChange={(result) => onChange("raceSecretary", result)}
                     loading={personLoading}
                 />
                 <PersonSelectField
                     label="Judge *"
+                    className="text-sm"
                     value={values.judge}
                     onChange={(result) => onChange("judge", result)}
                     loading={personLoading}
                 />
             </div>
-
-            {/* Current Disfunctional  */}
-
-            {/* {isEditMode && (
-                <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
-                    <div className="rounded-2xl border border-black/10 bg-[#F8FBF9] px-4 py-3">
-                        <div className="text-xs font-semibold uppercase tracking-wide text-[#12301D]/55">
-                            Event Status
-                        </div>
-                        <div className="mt-1 text-sm font-bold text-[#12301D]">
-                            {values.completed ? "Completed" : "In Progress"}
-                        </div>
-                    </div>
-
-                    <div className="rounded-2xl border border-black/10 bg-[#F8FBF9] px-4 py-3">
-                        <div className="text-xs font-semibold uppercase tracking-wide text-[#12301D]/55">
-                            Meets in Event
-                        </div>
-                        <div className="mt-1 text-sm font-bold text-[#12301D]">
-                            {values.eventMeetCount ?? 0} / 3
-                        </div>
-                    </div>
-                </div>
-            )} */}
 
             <div className="mt-6 space-y-5">
                 <label className="mb-2 block text-sm font-medium text-[#12301D]">
@@ -229,35 +192,6 @@ export default function EventForm({
                         <RichTextEditor value={values.privateNotes} style={{}} onChange={(s) => onChange("privateNotes", s)} /></div>
                 )}
             </div>
-
-            {(error || success) && (
-                <div
-                    className={[
-                        "mt-5 rounded-2xl border px-4 py-3 text-sm",
-                        error
-                            ? "border-red-200 bg-red-50 text-red-700"
-                            : "border-green-200 bg-green-50 text-green-700",
-                    ].join(" ")}
-                >
-                    {error || success}
-                </div>
-            )}
-
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Button
-                    type="submit"
-                    disabled={saving}
-                >
-                    {saving ? "Saving..." : submitLabel}
-                </Button>
-
-                <SecondaryButton
-                    type="button"
-                    onClick={onCancel}
-                >
-                    Cancel
-                </SecondaryButton>
-            </div>
-        </form>
+        </div>
     );
 }

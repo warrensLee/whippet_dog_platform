@@ -1,4 +1,3 @@
-// admin/events/edit?meetNumber=
 "use client";
 
 import Link from "next/link";
@@ -15,12 +14,6 @@ import AuthGuard from "@/lib/auth/authGuard";
 import authContext from "@/lib/auth/auth";
 import { Suspense, useCallback, useContext, useEffect, useState } from "react";
 
-/*
-    Safely converts incoming unknown values to strings.
-
-    This helps normalize API data before putting it into form state.
-    If the backend gives us null/undefined, we fall back to an empty string.
-*/
 function normalizeText(x: unknown): string {
     if (typeof x === "string") {
         return x;
@@ -33,10 +26,6 @@ function normalizeText(x: unknown): string {
     return "";
 }
 
-/*
-    Fetches person details from the backend using their personId.
-    Converts the response into a PersonSearchResult object.
-*/
 async function fetchPersonById(personId: string): Promise<PersonSearchResult | null> {
     if (!personId) return null;
 
@@ -63,10 +52,6 @@ async function fetchPersonById(personId: string): Promise<PersonSearchResult | n
     return null;
 }
 
-/*
-    Converts dates to the correct format,
-    ensuring that it is in form: YYYY-MM-DD
-*/
 function toDateInputValue(value?: string) {
     if (!value) {
         return "";
@@ -158,6 +143,7 @@ function EditEventPage() {
     const router = useRouter();
 
     const meetNumber = String(params.get("meetNumber") ?? "").trim();
+    const isNew = meetNumber === "";
     const user = useContext(authContext);
 
     const [loading, setLoading] = useState(true);
@@ -166,10 +152,10 @@ function EditEventPage() {
     const [success, setSuccess] = useState("");
     const [form, setForm] = useState<EventFormValues>(emptyEventFormValues);
     const [initialForm, setInitialForm] = useState<EventFormValues>(emptyEventFormValues);
-    const [entries, setEntries] = useState<MeetResults>()
+    const [entries, setEntries] = useState<MeetResults>([])
 
     async function saveMeetResults(entriesToSave: MeetResults) {
-        const response = await fetch(`/api/meet_result/edit_result_view/${meetNumber}`, {
+        const response = await fetch(`/api/meet_result/edit_result_view/${form.meetNumber}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -246,10 +232,6 @@ function EditEventPage() {
         });
     }, [meetNumber]);
 
-    /*
-        Checks whether the current user is signed in and allowed
-        to manage Event records.
-    */
 
     useEffect(
         () => {
@@ -314,9 +296,6 @@ function EditEventPage() {
         [meetNumber]
     );
 
-    /*
-        Generic form field updater passed down into EventForm.
-    */
     function updateField<K extends keyof EventFormValues>
         (
             key: K,
@@ -338,50 +317,19 @@ function EditEventPage() {
         setSuccess("");
     }
 
-    const [resultsSaving, setResultsSaving] = useState(false);
-    const [resultsSuccess, setResultsSuccess] = useState("");
-    const [resultsError, setResultsError] = useState("");
     const [resultsValid, setResultsValid] = useState(true);
-
-    async function handleSaveResults() {
-        if (!entries) {
-            setError("No results to save");
-            return;
-        }
-
-        if (!resultsValid) {
-            setResultsError("Please fix validation errors (missing fields) before saving.");
-            return;
-        }
-
-        setResultsSaving(true);
-        setResultsError("");
-        setResultsSuccess("");
-
-        try {
-            await saveMeetResults(entries);
-            setResultsSuccess("Results saved successfully.");
-        } catch (e) {
-            setResultsError(
-                e instanceof Error ? e.message : "Failed to save results."
-            );
-        } finally {
-            setResultsSaving(false);
-        }
-    }
 
     const handleEntriesChange = useCallback((newEntries: MeetResults) => {
         setEntries(newEntries);
-        setResultsError("");
-        setResultsSuccess("");
+        setError("");
+        setSuccess("");
     }, []);
 
-    /*
-        Handles form submission and sends the cleaned payload
-        to the edit API route.
-    */
-    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-        e.preventDefault();
+    async function handleSubmit() {
+        if (!resultsValid) {
+            setError("Please fix validation errors (missing fields) in the meet results before saving.");
+            return false;
+        }
         setSaving(true);
         setError("");
         setSuccess("");
@@ -390,7 +338,7 @@ function EditEventPage() {
             const payload = buildEditPayload(form);
 
             const res = await fetch(
-                "/api/meet/edit",
+                isNew ? "/api/meet/add" : "/api/meet/edit",
                 {
                     method: "POST",
                     headers:
@@ -425,10 +373,11 @@ function EditEventPage() {
                 publicNotes: form.publicNotes.trim(),
                 privateNotes: form.privateNotes.trim(),
             };
+            await saveMeetResults(entries);
 
             setForm(cleanedForm);
             setInitialForm(cleanedForm);
-            setSuccess("Event information updated successfully.");
+            return true;
         }
         catch (e) {
             setError(
@@ -440,6 +389,7 @@ function EditEventPage() {
         finally {
             setSaving(false);
         }
+        return false;
     }
 
 
@@ -447,15 +397,9 @@ function EditEventPage() {
     return (
         <AuthGuard>
             <main className="pt-24 bg-[#1F4D2E]">
-                {/* 
-                Hero section for the main search entry area.
-
-                I kept this visually strong so the page feels more polished
-                and less like a plain database dump.
-            */}
                 <HeroSection
-                    title="Edit Event"
-                    subtitle="Update Event information securely through the admin panel."
+                    title={isNew ? "Add Event" : "Edit Event"}
+                    subtitle="Update Event information and results"
                     topContent={
                         <div className="mt-4 flex flex-wrap justify-center gap-3">
                             <Link
@@ -465,24 +409,17 @@ function EditEventPage() {
                                 Back to Admin Events
                             </Link>
 
-                            <Link
+                            {!isNew && <Link
                                 href={`/meet?id=${encodeURIComponent(form.meetNumber || meetNumber)}`}
                                 className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
                             >
                                 View Event Page
-                            </Link>
+                            </Link>}
                         </div>
                     }
                 >
-
-                    <div className="-mt-6 text-white/80 text-sm">
-                        Editing record: <span className="font-semibold text-white">{form.meetNumber || meetNumber}</span>
-                    </div>
-
-
                 </HeroSection>
 
-                {/* Main form section */}
                 <section className="bg-[#E7F0E9] pt-12 pb-24">
                     <div className="max-w-5xl mx-auto px-4">
                         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -517,65 +454,59 @@ function EditEventPage() {
                             </div>
                         </div>
 
-                        <EventForm
-                            values={form}
-                            onChange={updateField}
-                            onSubmit={handleSubmit}
-                            saving={saving}
-                            personLoading={loading}
-                            submitLabel="Save Changes"
-                            error={error}
-                            success={success}
-                            onCancel={
-                                () => {
-                                    router.push("/admin/events");
-                                }
-                            }
-                            isEditMode={true}
-                            canEditPrivateNotes={user !== undefined && user !== "NotAuthenticated" && user.SystemRole === "ADMIN"}
-                        />
-                        <h2 className="mt-10 text-2xl font-bold text-[#12301D]">Programs & Race Results</h2>
-                        <div className="mt-1 h-1 w-14 rounded-full bg-[#2E6B3F]/70" />
-                        <div className="mt-10">
-                            <div className="rounded-2xl border border-black/10 bg-white p-8 shadow-md">
+                        <div className="rounded-2xl border border-black/10 bg-white p-8 shadow-md">
+                            <EventForm
+                                values={form}
+                                onChange={updateField}
+                                personLoading={loading}
+                                isEditMode={!isNew}
+                                canEditPrivateNotes={user !== undefined && user !== "NotAuthenticated" && user.SystemRole === "ADMIN"}
+                            />
+                            <MeetResultEditor value={entries} onChange={handleEntriesChange} setResultsValid={setResultsValid} />
+                            <div className="mt-4 flex gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        handleSubmit().then((e) => {
+                                            if (e) {
+                                                setTimeout(() => {
+                                                    router.push("/admin/events/edit?meetNumber=" + form.meetNumber)
+                                                }, 2000)
+                                            }
 
-
-                                {entries && <MeetResultEditor value={entries} onChange={handleEntriesChange} setResultsValid={setResultsValid} />}
-                                <div className="mt-4 flex gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={handleSaveResults}
-                                        disabled={resultsSaving || !entries || !resultsValid}
-                                        className="rounded-full bg-[#2E6B3F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#255733] disabled:opacity-50"
-                                    >
-                                        {resultsSaving ? "Saving..." : "Save Results"}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            router.back()
-                                        }}
-                                        disabled={resultsSaving}
-                                        className="rounded-full border border-[#12301D]/15 bg-white px-6 py-3 text-sm font-semibold text-[#12301D] transition hover:bg-[#12301D]/5 disabled:opacity-50"
-                                    >
-                                        Cancel
-                                    </button>
-                                </div>
-                                {resultsSuccess && (
-                                    <div className="mt-4 rounded-lg bg-green-50 p-3 text-sm text-green-800">
-                                        {resultsSuccess}
-                                    </div>
-                                )}
-                                {resultsError && (
-                                    <div className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-800">
-                                        {resultsError}
-                                    </div>
-                                )}
+                                        })
+                                    }
+                                    }
+                                    disabled={!entries || !resultsValid || saving}
+                                    className="rounded-full bg-[#2E6B3F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#255733] disabled:opacity-50"
+                                >
+                                    {saving ? "Saving..." : "Save"}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        router.back()
+                                    }}
+                                    disabled={saving}
+                                    className="rounded-full border border-[#12301D]/15 bg-white px-6 py-3 text-sm font-semibold text-[#12301D] transition hover:bg-[#12301D]/5 disabled:opacity-50"
+                                >
+                                    Cancel
+                                </button>
                             </div>
+                            {success && (
+                                <div className="mt-4 rounded-lg bg-green-50 p-3 text-sm text-green-800">
+                                    {success}
+                                </div>
+                            )}
+                            {error && (
+                                <div className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-800">
+                                    {error}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </section>
             </main>
-        </AuthGuard>
+        </AuthGuard >
     );
 }

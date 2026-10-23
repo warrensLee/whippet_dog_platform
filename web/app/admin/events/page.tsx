@@ -456,7 +456,7 @@ function AdminEventsPage() {
 
                                 <div className="flex flex-wrap gap-3">
                                     <Link
-                                        href="/admin/events/add"
+                                        href="/admin/events/edit"
                                         className="rounded-full bg-[#2E6B3F] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#255733] transition"
                                     >
                                         Add Event
