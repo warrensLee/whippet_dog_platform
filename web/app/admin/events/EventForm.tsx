@@ -5,29 +5,16 @@ import * as React from "react";
 import type { EventFormValues } from "@/app/admin/events/types";
 import RichTextEditor from "@/lib/richtext/RichTextEditor";
 import PersonField, { PersonSearchResult } from "@/app/components/ui/PersonField";
+import FieldLabel from "@/app/components/ui/FieldLabel";
+import InputField from "@/app/components/ui/InputField";
 type Props = {
     values: EventFormValues;
-    onChange: <K extends keyof EventFormValues>(
-        key: K,
-        value: EventFormValues[K]
+    onChange: (
+        value: EventFormValues
     ) => void;
     isEditMode?: boolean;
     canEditPrivateNotes?: boolean;
     personLoading?: boolean;
-};
-
-type InputFieldProps = {
-    label: string;
-    field: keyof EventFormValues;
-    value: string;
-    onChange: <K extends keyof EventFormValues>(
-        key: K,
-        value: EventFormValues[K]
-    ) => void;
-    placeholder?: string;
-    type?: string;
-    readOnly?: boolean;
-    className?: string;
 };
 
 type PersonSelectFieldProps = {
@@ -38,6 +25,7 @@ type PersonSelectFieldProps = {
     ) => void;
     loading: boolean
     className?: string;
+    required?: boolean
 };
 function PersonSelectField({
     label,
@@ -45,61 +33,17 @@ function PersonSelectField({
     onChange,
     loading = false,
     className = "",
+    required = false
 }: PersonSelectFieldProps) {
 
     return (
         <div className={className}>
-            <FieldLabel label={label} />
+            <FieldLabel label={label} required={required} />
             <PersonField value={value} onChange={onChange} readOnly={loading} />
         </div>
     );
 }
 
-function InputField({
-    label,
-    field,
-    value,
-    onChange,
-    placeholder,
-    type = "text",
-    readOnly = false,
-    className = "",
-}: InputFieldProps) {
-    return (
-        <div className={className}>
-            <label className="mb-2 block text-sm font-medium text-[#12301D]">
-                <FieldLabel label={label} />
-            </label>
-
-            <input
-                type={type}
-                value={value}
-                onChange={(e) => onChange(field, e.target.value)}
-                placeholder={placeholder}
-                readOnly={readOnly}
-                className={
-                    readOnly
-                        ? "mt-1 block w-full rounded-md border px-3 py-2 bg-gray-100 text-gray-500 cursor-not-allowed"
-                        : "w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
-                }
-            />
-        </div>
-    );
-}
-
-//TODO: This should require a seperate "required" parameter instead of checking for a *, 
-//it may also be good to refactor this and use it in other places
-function FieldLabel({ label }: { label: string }) {
-    const required = label.endsWith(" *");
-    const cleanLabel = required ? label.slice(0, -2) : label;
-
-    return (
-        <>
-            {cleanLabel}
-            {required && <span className="text-red-600 font-bold"> *</span>}
-        </>
-    );
-}
 
 export default function EventForm({
     values,
@@ -108,32 +52,10 @@ export default function EventForm({
     canEditPrivateNotes = false,
     personLoading = false,
 }: Props) {
-    const standardFields: Array<{
-        label: string;
-        field: keyof EventFormValues;
-        placeholder?: string;
-        type?: string;
-    }> = [
-            {
-                label: "Club Abbreviation *",
-                field: "clubAbbreviation",
-                placeholder: "AAWC, BWA, CMANYWHIPS, DWC, WINE, SMART, etc.",
-            },
-            {
-                label: "Location *",
-                field: "location",
-            },
-            {
-                label: "Meet Date *",
-                field: "meetDate",
-                type: "date",
-            },
-            {
-                label: "Yards *",
-                field: "yards",
-                type: "text",
-            },
-        ];
+
+    function updateField<K extends keyof EventFormValues>(key: K, value: EventFormValues[K]) {
+        onChange({ ...values, [key]: value, });
+    }
 
     return (
         <div
@@ -141,41 +63,58 @@ export default function EventForm({
         >
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                 <InputField
-                    label="Meet Number *"
-                    field="meetNumber"
+                    label="Meet Number"
                     value={values.meetNumber}
-                    onChange={onChange}
+                    onChange={(v) => updateField("meetNumber", v)}
                     placeholder="1234, 3124, 8754, etc."
                     readOnly={isEditMode}
+                    required={true}
                 />
-
-                {standardFields.map((fieldConfig) => (
-                    <InputField
-                        key={String(fieldConfig.field)}
-                        label={fieldConfig.label}
-                        field={fieldConfig.field}
-                        value={values[fieldConfig.field] as string}
-                        onChange={onChange}
-                        placeholder={fieldConfig.placeholder}
-                        type={fieldConfig.type}
-                    />
-                ))}
+                <InputField
+                    label="Club Abbreviation"
+                    value={values.clubAbbreviation as string}
+                    onChange={(v) => updateField("clubAbbreviation", v)}
+                    placeholder="AAWC, BWA, CMANYWHIPS, DWC, WINE, SMART, etc."
+                    required={true}
+                />
+                <InputField
+                    label="Location"
+                    value={values.location as string}
+                    onChange={(v) => updateField("location", v)}
+                    required={true}
+                />
+                <InputField
+                    label="Meet Date"
+                    value={values.meetDate as string}
+                    onChange={(v) => updateField("meetDate", v)}
+                    type="date"
+                    required={true}
+                />
+                <InputField
+                    label="Yards"
+                    value={values.yards as string}
+                    onChange={(v) => updateField("yards", v)}
+                    type="text"
+                    required={true}
+                />
             </div>
 
             <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
                 <PersonSelectField
-                    label="Race Secretary *"
+                    label="Race Secretary"
                     className="text-sm"
                     value={values.raceSecretary}
-                    onChange={(result) => onChange("raceSecretary", result)}
+                    onChange={(result) => updateField("raceSecretary", result)}
                     loading={personLoading}
+                    required={true}
                 />
                 <PersonSelectField
-                    label="Judge *"
+                    label="Judge"
                     className="text-sm"
                     value={values.judge}
-                    onChange={(result) => onChange("judge", result)}
+                    onChange={(result) => updateField("judge", result)}
                     loading={personLoading}
+                    required={true}
                 />
             </div>
 
@@ -183,13 +122,13 @@ export default function EventForm({
                 <label className="mb-2 block text-sm font-medium text-[#12301D]">
                     Public Notes
                 </label>
-                <RichTextEditor value={values.publicNotes} style={{}} onChange={(s) => onChange("publicNotes", s)} />
+                <RichTextEditor value={values.publicNotes} style={{}} onChange={(s) => updateField("publicNotes", s)} />
 
                 {canEditPrivateNotes && (
                     <div><label className="mb-2 block text-sm font-medium text-[#12301D]">
                         Private Notes
                     </label>
-                        <RichTextEditor value={values.privateNotes} style={{}} onChange={(s) => onChange("privateNotes", s)} /></div>
+                        <RichTextEditor value={values.privateNotes} style={{}} onChange={(s) => updateField("privateNotes", s)} /></div>
                 )}
             </div>
         </div>

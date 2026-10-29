@@ -4,7 +4,8 @@
 import * as React from "react";
 import type { DogFormValues } from "@/app/admin/dogs/types";
 import RichTextEditor from "@/lib/richtext/RichTextEditor";
-
+import FieldLabel from "@/app/components/ui/FieldLabel"
+import InputField from "@/app/components/ui/InputField";
 type Props =
     {
         values: DogFormValues;
@@ -26,23 +27,6 @@ type Props =
         isEditMode?: boolean;
     };
 
-type InputFieldProps =
-    {
-        label: string;
-        field: keyof DogFormValues;
-        value: string;
-        onChange: <K extends keyof DogFormValues>
-            (
-                key: K,
-                value: DogFormValues[K]
-            ) => void;
-        placeholder?: string;
-        type?: string;
-        readOnly?: boolean;
-        className?: string;
-    };
-
-
 type SelectFieldProps =
     {
         label: string;
@@ -56,63 +40,8 @@ type SelectFieldProps =
         options: string[];
         placeholder?: string;
         className?: string;
+        required: boolean
     };
-
-function FieldLabel({ label }: { label: string }) {
-    const required = label.endsWith(" *");
-    const cleanLabel = required ? label.slice(0, -2) : label;
-
-    return (
-        <>
-            {cleanLabel}
-            {required && <span className="text-red-600 font-bold"> *</span>}
-        </>
-    );
-}
-
-/*
-    Reusable single-line input field.
-
-    Used for most normal text/date inputs in the dog form.
-*/
-function InputField
-    (
-        {
-            label,
-            field,
-            value,
-            onChange,
-            placeholder,
-            type = "text",
-            readOnly = false,
-            className = "",
-        }: InputFieldProps
-    ) {
-    return (
-        <div className={className}>
-            <label className="mb-2 block text-sm font-medium text-[#12301D]">
-                <FieldLabel label={label} />
-            </label>
-
-            <input
-                type={type}
-                value={value}
-                onChange={
-                    (e) => {
-                        onChange(field, e.target.value);
-                    }
-                }
-                placeholder={placeholder}
-                readOnly={readOnly}
-                className={
-                    readOnly
-                        ? "mt-1 block w-full rounded-md border px-3 py-2 bg-gray-100 text-gray-500 cursor-not-allowed"
-                        : "w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
-                }
-            />
-        </div>
-    );
-}
 
 function SelectField
     (
@@ -124,12 +53,13 @@ function SelectField
             options,
             placeholder = "Select an option",
             className = "",
+            required = false,
         }: SelectFieldProps
     ) {
     return (
         <div className={className}>
             <label className="mb-2 block text-sm font-medium text-[#12301D]">
-                <FieldLabel label={label} />
+                <FieldLabel label={label} required={required} />
             </label>
 
             <select
@@ -191,83 +121,6 @@ export default function DogForm
             "Active",
             "Inactive",
         ];
-
-    /*
-        standardFields is a config list that defines the label, form field key, 
-        and other properties for each of the many standard text/date/number inputs 
-        in the form.
-
-        In short these inputs are still standard text/date/number fields, but 
-        they have a lot of overlap in styling and behavior, so it made sense 
-        to map them from a config list instead of hardcoding each one.
-    */
-    const standardFields:
-        Array<
-            {
-                label: string;
-                field: keyof DogFormValues;
-                placeholder?: string;
-                type?: string;
-            }
-        > =
-        [
-            {
-
-                label: "Registered Name *",
-                field: "registeredName",
-            },
-            {
-                label: "Call Name *",
-                field: "callName",
-                placeholder: "One name like Bob, Sally, etc.",
-            },
-            {
-                label: "Birthdate *",
-                field: "birthdate",
-                type: "date",
-            },
-            {
-                label: "Registered Number",
-                field: "registeredNumber",
-            },
-            {
-                label: "DNA",
-                field: "dna",
-            },
-            {
-                label: "Sire DNA",
-                field: "sireDna",
-            },
-            {
-                label: "Dam DNA",
-                field: "damDna",
-            },
-            {
-                label: "Registry Type",
-                field: "foreignType",
-            }
-        ];
-
-    /*
-        Render standard fields, mapping null to empty string for input compatibility.
-    */
-    const standardFieldsRendered = standardFields.map(
-        (fieldConfig) => {
-            const value = values[fieldConfig.field];
-            const displayValue = value === null || value === undefined ? "" : value;
-            return (
-                <InputField
-                    key={String(fieldConfig.field)}
-                    label={fieldConfig.label}
-                    field={fieldConfig.field}
-                    value={displayValue as string}
-                    onChange={onChange}
-                    placeholder={fieldConfig.placeholder}
-                    type={fieldConfig.type}
-                />
-            );
-        }
-    );
 
     /*
         Score fields that support manual adjustments. Each entry maps to its
@@ -342,17 +195,65 @@ export default function DogForm
                     so it stays as its own field outside the mapped list.
                 */}
                 <InputField
-                    label="CWA Number *"
-                    field="cwaNumber"
+                    label="CWA Number"
                     value={values.cwaNumber}
-                    onChange={onChange}
+                    onChange={(v) => onChange("cwaNumber", v)}
                     placeholder="1234, 3124, 8754, etc."
                     readOnly={isEditMode}
+                    required={true}
                 />
 
-                {standardFieldsRendered}
+                <InputField
+                    label="Registered Name"
+                    value={(values.registeredName ?? "") as string}
+                    onChange={(v) => onChange("registeredName", v)}
+                    required={true}
+                />,
+                <InputField
+                    label="Call Name"
+                    value={(values.callName ?? "") as string}
+                    onChange={(v) => onChange("callName", v)}
+                    placeholder="One name like Bob, Sally, etc."
+                    required={true}
+                />,
+                <InputField
+                    label="Birthdate"
+                    value={(values.birthdate ?? "") as string}
+                    onChange={(v) => onChange("birthdate", v)}
+                    type="date"
+                    required={true}
+                />,
+                <InputField
+                    label="Registered Number"
+                    value={(values.registeredNumber ?? "") as string}
+                    onChange={(v) => onChange("registeredNumber", v)}
+                    required={false}
+                />,
+                <InputField
+                    label="DNA"
+                    value={(values.dna ?? "") as string}
+                    onChange={(v) => onChange("dna", v)}
+                    required={false}
+                />,
+                <InputField
+                    label="Sire DNA"
+                    value={(values.sireDna ?? "") as string}
+                    onChange={(v) => onChange("sireDna", v)}
+                    required={false}
+                />,
+                <InputField
+                    label="Dam DNA"
+                    value={(values.damDna ?? "") as string}
+                    onChange={(v) => onChange("damDna", v)}
+                    required={false}
+                />,
+                <InputField
+                    label="Registry Type"
+                    value={(values.foreignType ?? "") as string}
+                    onChange={(v) => onChange("foreignType", v)}
+                    required={false}
+                />
 
-                {/* Render score/adjustable fields with manual adjustment shown below */}
                 {
                     scoreFields.map
                         (
@@ -362,10 +263,10 @@ export default function DogForm
                                     <div key={String(fieldConfig.field)}>
                                         <InputField
                                             label={fieldConfig.label}
-                                            field={fieldConfig.field}
                                             value={values[fieldConfig.field] as string}
-                                            onChange={onChange}
+                                            onChange={(v) => onChange(fieldConfig.field, v)}
                                             type="number"
+                                            required={false}
                                         />
                                         <div className="mt-1.5 text-xs text-gray-500">
                                             Manual adjustment: {values[fieldConfig.field] as unknown as number - adjustmentValue}
@@ -377,52 +278,50 @@ export default function DogForm
                 }
 
                 <SelectField
-                    label="Grade *"
+                    label="Grade"
                     field="currentGrade"
                     value={values.currentGrade}
                     onChange={onChange}
                     options={gradeOptions}
                     placeholder="Select a grade"
+                    required={true}
                 />
 
                 <SelectField
-                    label="Status *"
+                    label="Status"
                     field="status"
                     value={values.status}
                     onChange={onChange}
                     options={statusOptions}
                     placeholder="Select a status"
+                    required={true}
                 />
 
                 <InputField
                     label="Pedigree Link"
-                    field="pedigreeLink"
+                    onChange={(v) => onChange("pedigreeLink", v)}
                     value={values.pedigreeLink}
-                    onChange={onChange}
                     className="md:col-span-2"
                 />
                 <div className="md:col-span-2 flex flex-row justify-between">
                     <InputField
                         label="Historical Meet Points 1"
-                        field="historicalMeetPoints1"
                         value={values.historicalMeetPoints1 || ''}
-                        onChange={onChange}
+                        onChange={(v) => onChange("historicalMeetPoints1", v)}
                         placeholder="Historical Meet Points 1"
                         type="number"
                     />
                     <InputField
                         label="Historical Meet Points 2"
-                        field="historicalMeetPoints2"
                         value={values.historicalMeetPoints2 || ''}
-                        onChange={onChange}
+                        onChange={(v) => onChange("historicalMeetPoints2", v)}
                         placeholder="Historical Meet Points 2"
                         type="number"
                     />
                     <InputField
                         label="Historical Meet Points 3"
-                        field="historicalMeetPoints3"
                         value={values.historicalMeetPoints3 || ''}
-                        onChange={onChange}
+                        onChange={(v) => onChange("historicalMeetPoints3", v)}
                         placeholder="Historical Meet Points 3"
                         type="number"
                     />

@@ -296,21 +296,6 @@ function EditEventPage() {
         [meetNumber]
     );
 
-    function updateField<K extends keyof EventFormValues>
-        (
-            key: K,
-            value: EventFormValues[K]
-        ) {
-        setForm(
-            (prev) => {
-                return {
-                    ...prev,
-                    [key]: value,
-                };
-            }
-        );
-    }
-
     function handleResetForm() {
         setForm(initialForm);
         setError("");
@@ -457,7 +442,7 @@ function EditEventPage() {
                         <div className="rounded-2xl border border-black/10 bg-white p-8 shadow-md">
                             <EventForm
                                 values={form}
-                                onChange={updateField}
+                                onChange={(v) => setForm(v)}
                                 personLoading={loading}
                                 isEditMode={!isNew}
                                 canEditPrivateNotes={user !== undefined && user !== "NotAuthenticated" && user.SystemRole === "ADMIN"}
