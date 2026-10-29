@@ -98,7 +98,6 @@ export default function RegistrationSection({ results, onChange, onRemoveDog, se
                                         <option value="B">B</option>
                                         <option value="C">C</option>
                                         <option value="D">D</option>
-                                        <option value="F">F</option>
                                         <option value="FTE">FTE</option>
                                     </select>
                                 </td>
