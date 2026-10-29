@@ -704,7 +704,7 @@ export function recalculateAll(results: MeetResults): MeetResults {
     updated = recalculateMeetRankings(updated);
     updated = calculateAom(updated);
     //updated = calculateArxNarx(updated); removed at request of president
+    //updated = calculateHcWinner(updated);
     updated = calculateDpc(updated);
-    updated = calculateHcWinner(updated);
     return updated;
 }
