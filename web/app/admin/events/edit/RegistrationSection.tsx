@@ -25,7 +25,7 @@ export default function RegistrationSection({ results, onChange, onRemoveDog, se
     }
 
     function getShowPlacementOptions(): string[] {
-        const count = results.filter((r) => r.shown).length
+        const count = Math.min(results.filter((r) => r.shown).length, 4)
         const opts: string[] = [];
         for (let i = 1; i <= count; i++) opts.push(String(i));
         opts.push("AOM1");
