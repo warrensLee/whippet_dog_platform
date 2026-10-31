@@ -1,3 +1,4 @@
+from typing import cast
 from backend.classes.dog import Dog
 from flask import Blueprint, json, jsonify, request, Response
 import csv
@@ -7,7 +8,7 @@ from datetime import datetime, timezone
 from backend.classes.meet import Meet
 from backend.classes.change_log import ChangeLog
 from backend.classes.user_role import UserRole
-from backend.utils.auth_helpers import current_editor_id, current_role, require_scope
+from backend.utils.auth_helpers import current_editor_id, current_role, require_scope, require_logged_in, require_admin
 from backend.utils.error_handler import handle_error
 from backend.database import fetch_all
 
@@ -25,15 +26,9 @@ def _is_meet_owner(meet: Meet):
 
 
 @meet_bp.post("/add")
+@require_scope("edit_meet_scope", "create meets")
 def register_meet():
     role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    deny = require_scope(role.edit_meet_scope, "create meets")
-    if deny:
-        return deny
-
     data = request.get_json(silent=True) or {}
     meet = Meet.from_request_data(data)
 
@@ -75,15 +70,9 @@ def register_meet():
 
 
 @meet_bp.post("/edit")
+@require_scope("edit_meet_scope", "edit meets")
 def edit_meet():
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    deny = require_scope(role.edit_meet_scope, "edit meets")
-    if deny:
-        return deny
-
+    role = cast(UserRole,current_role())
     data = request.get_json(silent=True) or {}
     meet_number = (data.get("meetNumber") or "").strip()
     if not meet_number:
@@ -144,15 +133,9 @@ def edit_meet():
 
 
 @meet_bp.post("/delete")
+@require_scope("edit_meet_scope", "delete meets")
 def delete_meet():
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    deny = require_scope(role.edit_meet_scope, "delete meets")
-    if deny:
-        return deny
-
+    role = cast(UserRole,current_role())
     data = request.get_json(silent=True) or {}
     meet_number = (data.get("meetNumber") or "").strip()
 

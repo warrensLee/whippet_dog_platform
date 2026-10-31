@@ -97,6 +97,7 @@ def test_add_no_personID(admin_session, dog_factory):
     assert resp.json["error"] ==  "Person does not exist"
     assert resp.status_code == 404
     assert not resp.json["ok"]
+
 def test_add_not_self(privileged_client_factory):
     client = privileged_client_factory(1,2,2)
     resp = client.post("/api/dog_owner/add", json={"cwaId": "123", "personId": "21234"})
@@ -105,7 +106,7 @@ def test_add_not_self(privileged_client_factory):
     assert resp.json["error"] == "You may only add yourself as an owner"
 
 def test_add_existing_link(privileged_client_factory, dog_factory, create_dummy_account):
-    client = privileged_client_factory(3,2,2)
+    client = privileged_client_factory(2,1,1)
     dog = dog_factory()
     owner = create_dummy_account("234@234.com")
     link = DogOwner(dog.cwa_number, owner.id) 
@@ -117,7 +118,7 @@ def test_add_existing_link(privileged_client_factory, dog_factory, create_dummy_
     assert resp.json["error"] == "Owner link already exists"
 
 def test_add_ok(privileged_client_factory, dog_factory, create_dummy_account):
-    client = privileged_client_factory(3,2,2)
+    client = privileged_client_factory(2,1,1)
     dog = dog_factory()
     owner = create_dummy_account("234@234.com")
     resp = client.post("/api/dog_owner/add", json={"cwaId": dog.cwa_number, "personId": owner.id})
@@ -165,7 +166,7 @@ def test_delete_not_self(privileged_client_factory):
     assert resp.json["error"] == "You may only remove yourself as an owner"
 
 def test_delete_ok(privileged_client_factory, dog_factory, create_dummy_account):
-    client = privileged_client_factory(3,2,2)
+    client = privileged_client_factory(2,1,1)
     dog = dog_factory()
     owner = create_dummy_account("234@234.com")
     link = DogOwner(dog.cwa_number, owner.id) 
@@ -178,7 +179,7 @@ def test_delete_ok(privileged_client_factory, dog_factory, create_dummy_account)
     assert resp.json["data"]["personId"] == str(owner.id)
 
 def test_delete_no_existing_link(privileged_client_factory, dog_factory, create_dummy_account):
-    client = privileged_client_factory(3,2,2)
+    client = privileged_client_factory(2,1,1)
     dog = dog_factory()
     owner = create_dummy_account("234@234.com")
     resp = client.post("/api/dog_owner/delete", json={"cwaId": dog.cwa_number, "personId": owner.id})

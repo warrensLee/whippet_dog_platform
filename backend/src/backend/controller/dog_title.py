@@ -1,3 +1,4 @@
+from typing import cast
 from flask import Blueprint, jsonify, request
 from mysql.connector import Error
 from datetime import datetime, timezone
@@ -25,19 +26,12 @@ def _is_owner(cwa_number):
 
 
 @dog_title_bp.post("/add")
+@require_scope("edit_dog_scope", "add dog titles")
 def add_dog_title(send_email=True):
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    deny = require_scope(role.edit_dog_scope, "add dog titles")
-    if deny:
-        return deny
-
     data = request.get_json(silent=True) or {}
     dog_title = DogTitle.from_request_data(data)
 
-    if role.edit_dog_scope == UserRole.SELF:
+    if cast(UserRole,current_role()).edit_dog_scope == UserRole.SELF:
         if not _is_owner(dog_title.cwa_number):
             return jsonify({
                 "ok": False,
@@ -86,15 +80,8 @@ def add_dog_title(send_email=True):
 
 #TODO: Remove confirm argument
 @dog_title_bp.post("/delete")
+@require_scope("edit_dog_scope", "delete dog titles")
 def delete_dog_title():
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    deny = require_scope(role.edit_dog_scope, "delete dog titles")
-    if deny:
-        return deny
-
     data = request.get_json(silent=True) or {}
     cwa_number = (data.get("cwaNumber") or "").strip()
     title = (data.get("title") or "").strip()
@@ -106,7 +93,7 @@ def delete_dog_title():
     if not title:
         return jsonify({"ok": False, "error": "title is required"}), 400
 
-    if role.edit_dog_scope == UserRole.SELF:
+    if cast(UserRole,current_role()).edit_dog_scope == UserRole.SELF:
         if not _is_owner(cwa_number):
             return jsonify({
                 "ok": False,

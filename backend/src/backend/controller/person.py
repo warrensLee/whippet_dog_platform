@@ -1,10 +1,12 @@
+from backend.classes.user_role import UserRole
+from typing import cast
 from flask import Blueprint, jsonify, request
 from mysql.connector import Error
 from datetime import datetime, timezone
 from backend.database import fetch_all, fetch_one
 from backend.classes.person import Person
 from backend.classes.change_log import ChangeLog
-from backend.utils.auth_helpers import current_editor_id, current_role, current_user
+from backend.utils.auth_helpers import current_editor_id, current_role, current_user, require_logged_in, require_admin
 from backend.utils.error_handler import handle_error
 
 person_bp = Blueprint("person", __name__, url_prefix="/api/person")
@@ -39,14 +41,8 @@ def _has_role(person_id, role_name):
         return False
 
 @person_bp.post("/add")
+@require_admin
 def register_person():
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    if role.title != "ADMIN":
-        return jsonify({"ok": False, "error": "Not authorized to create people"}), 403
-
     data = request.get_json(silent=True) or {}
     
     password = (data.get("password") or "").strip()
@@ -88,14 +84,11 @@ def register_person():
 
 # This endpoint is used by all users to update information like their address
 @person_bp.post("/update-information")
+@require_logged_in
 def update_information():
     try:
-        user = current_user()
-        if not user:
-            return jsonify({"ok": False, "error": "Not signed in"}), 401
-
         data = request.get_json() or {}
-        person = Person.find_by_identifier(user.get("ID"))
+        person = Person.find_by_identifier(current_editor_id())
         before_snapshot = person.to_dict()
         person.first_name = data.get("firstName")
         person.last_name = data.get("lastName")
@@ -115,7 +108,7 @@ def update_information():
             return jsonify({"ok": False, "error": ", ".join(validation_errors)}), 400
 
         person.update()
-        refreshed = Person.find_by_id(user.get("ID"))
+        refreshed = Person.find_by_id(current_editor_id())
         after_snapshot = refreshed.to_dict() if refreshed else person.to_dict()
 
         ChangeLog.log(
@@ -132,14 +125,8 @@ def update_information():
         return handle_error(e, "Database error")
 
 @person_bp.post("/edit")
+@require_admin
 def edit_person():
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    if role.title != "ADMIN":
-        return jsonify({"ok": False, "error": "Not authorized to edit people"}), 403
-
     data = request.get_json(silent=True) or {}
     record_id = data.get("id")
     if not record_id:
@@ -185,14 +172,8 @@ def edit_person():
         return handle_error(e, "Database error")
 
 @person_bp.post("/delete")
+@require_admin
 def delete_person():
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    if role.title != "ADMIN":
-        return jsonify({"ok": False, "error": "Not authorized to delete people"}), 403
-
     data = request.get_json(silent=True) or {}
     record_id = data.get("id")
     confirm_id = data.get("confirmId")
@@ -237,11 +218,9 @@ def delete_person():
         return handle_error(e, "Database error")
 
 @person_bp.get("/get-information")
+@require_logged_in
 def get_information():
-    user = current_user()
-    if not user:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
-    person = Person.find_by_identifier(user.get("ID"))
+    person = Person.find_by_identifier(current_editor_id())
 
     return jsonify({"ok": True, "data": {
         "id": person.id,
@@ -259,14 +238,13 @@ def get_information():
     }}), 200
 
 @person_bp.get("/get/<person_id>")
+@require_logged_in
 def get_person(person_id: str):
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
     person = Person.find_by_identifier(person_id)
     if not person:
         return jsonify({"ok": False, "error": "Person does not exist"}), 404
 
+    role = cast(UserRole,current_role())
     if role.title != "ADMIN" and not _is_self(person):
         return jsonify({"ok": False, "error": "Not authorized "}), 403
     
@@ -291,14 +269,8 @@ def get_person_name(person_id: str):
 
 
 @person_bp.get("/get")
+@require_admin
 def list_all_persons():
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    if role.title != "ADMIN":
-        return jsonify({"ok": False, "error": "Not authorized to list all people"}), 403
-
     try:
         persons = Person.list_all_persons()
         persons_data = [p.to_dict() for p in persons]
@@ -308,14 +280,8 @@ def list_all_persons():
 
 
 @person_bp.get("/search")
+@require_admin
 def search_people():
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    if role.title != "ADMIN":
-        return jsonify({"ok": False, "error": "Not authorized to search people"}), 403
-
     q = (request.args.get("q") or "").strip()
 
     sql = """
@@ -377,16 +343,13 @@ def search_people():
         return handle_error(e, "Database error")
 
 @person_bp.get("/mine")
+@require_logged_in
 def get_my_person():
-    current_id = current_editor_id()
-    if not current_id:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
-
     try:
-        person = Person.find_by_id(current_id)
+        person = Person.find_by_id(current_editor_id())
 
         if not person:
-            person = Person.find_by_identifier(current_id)
+            person = Person.find_by_identifier(current_editor_id())
 
         if not person:
             return jsonify({"ok": False, "error": "Person does not exist"}), 404
@@ -397,12 +360,10 @@ def get_my_person():
 
 
 @person_bp.post("/update-profile")
+@require_logged_in
 def update_profile():
     try:
-        current_id = current_editor_id()
-        if not current_id:
-            return jsonify({"ok": False, "error": "Not signed in"}), 401   
-        person = Person.find_by_id(current_id)
+        person = Person.find_by_id(current_editor_id())
         person.public_notes = request.data.decode("utf-8")
         person.update()
         return jsonify({"ok": True})
@@ -411,14 +372,8 @@ def update_profile():
         return jsonify({"ok": False, "error" : "internal server error"})
 
 @person_bp.post("/reset-password")
+@require_admin
 def reset_password():
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    if role.title != "ADMIN":
-        return jsonify({"ok": False, "error": "Not authorized to reset passwords"}), 403
-
     data = request.get_json(silent=True) or {}
     person_id = (data.get("personId") or "").strip()
     new_password = (data.get("newPassword") or "").strip()

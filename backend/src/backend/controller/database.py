@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request, Response
 from datetime import datetime
 import os
-from backend.utils.auth_helpers import current_role
+from backend.utils.auth_helpers import current_role, require_admin
 from backend.utils.error_handler import handle_error
 from backend.database import fetch_all, fetch_one, get_conn
 from backend.classes.dog import Dog
@@ -78,12 +78,9 @@ def zstd_wrapper(text_stream):
 
 
 @database_bp.get("/dump")
+@require_admin
 def dump_database():
     try:
-        role = current_role()
-        if not role or role.title != "ADMIN":
-            return jsonify({"ok": False, "error": "Not authorized to dump the database"}), 403
-
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
         return Response(
             zstd_wrapper(generate_sql()),
@@ -140,6 +137,7 @@ def restore_from_commands(statements):
             cur.close()
 
 @database_bp.post("/restore")
+@require_admin
 def restore_database():
     
     def chunked_reader():
@@ -150,9 +148,6 @@ def restore_database():
                 break
             yield chunk
     try:
-        role = current_role()
-        if not role or role.title != "ADMIN":
-            return jsonify({"ok": False, "error": "Not authorized to restore the database"}), 403
         restore_from_commands(iter_commands(zstd_decompression_wrapper(chunked_reader())))
         return jsonify({"ok": True}), 200 
     except Exception as e:

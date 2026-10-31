@@ -1,3 +1,6 @@
+from typing import cast
+from backend.utils.auth_helpers import Session
+from backend.utils.auth_helpers import current_user
 from flask import Blueprint, jsonify, request, session
 from mysql.connector import Error
 import secrets
@@ -12,7 +15,7 @@ from backend.classes.registration_invite import RegistrationInvite
 from backend.utils.email_service import send_invite_email
 from backend.utils.email_service import send_reset_email
 from backend.utils.turnstile import validate_turnstile
-from backend.utils.auth_helpers import current_user
+from backend.utils.auth_helpers import require_admin, require_logged_in
 from backend.utils.error_handler import handle_error
 
 
@@ -147,15 +150,8 @@ def register():
         return handle_error(e, "Database error")
     
 @auth_bp.post("/invite")
+@require_admin
 def invite_user():
-    current_user = session.get("user") or {}
-    if not current_user.get("PersonID"):
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    role_title = (current_user.get("SystemRole") or "").strip().upper()
-    if role_title != "ADMIN":
-        return jsonify({"ok": False, "error": "Not authorized"}), 403
-
     data = request.get_json(silent=True) or {}
     email = (data.get("email") or "").strip()
 
@@ -180,7 +176,7 @@ def invite_user():
             email=email,
             token=token,
             expires_at=expires_at,
-            created_by=current_user["ID"]
+            created_by=cast(Session,current_user()).id
         )
         send_invite_email(email, token)
 
@@ -335,6 +331,7 @@ def reset_password():
     return jsonify({"ok": True, "message": "Password reset successful"}), 200
 
 @auth_bp.post("/change-password")
+@require_logged_in
 def change_password():
     data = request.get_json(silent=True) or {}
     password = data.get("password") 
@@ -344,11 +341,10 @@ def change_password():
     if not password or not new_password:
         return jsonify({"ok": False, "error": "Missing password or new password"}),200 
 
-
     person = current_user()
     if not person:
         return jsonify({"ok": False, "error": "User not found"}),200 
-    person = Person.find_by_identifier(person["PersonID"])
+    person = Person.find_by_identifier(person.person_id)
     if not person.check_password(password):
         return jsonify({"ok": False, "error": "Current Password is incorrect"}),200 
 
@@ -360,15 +356,8 @@ def change_password():
     return jsonify({"ok": True, "message": "Password reset successful"}), 200
 
 @auth_bp.post("/invite-claim-dummy")
+@require_admin
 def invite_claim_dummy():
-    current_user = session.get("user") or {}
-    if not current_user.get("PersonID"):
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    role_title = (current_user.get("SystemRole") or "").strip().upper()
-    if role_title != "ADMIN":
-        return jsonify({"ok": False, "error": "Not authorized"}), 403
-
     data = request.get_json(silent=True) or {}
     record_id = data.get("id")
     email = (data.get("email") or "").strip()
@@ -389,7 +378,7 @@ def invite_claim_dummy():
         email=email,
         token=token,
         expires_at=expires_at,
-        created_by=current_user["ID"],
+        created_by=cast(Session,current_user()).id,
         person_id=person.id
     )
 

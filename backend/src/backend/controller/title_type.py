@@ -11,15 +11,8 @@ from backend.utils.error_handler import handle_error
 title_type_bp = Blueprint("title_type", __name__, url_prefix="/api/title_type")
 
 @title_type_bp.post("/add")
+@require_scope("edit_title_type_scope", "edit title types")
 def add_title_type():
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    deny = require_scope(role.edit_title_type_scope, "edit title types")
-    if deny:
-        return deny
-
     data = request.get_json(silent=True) or {}
     title_type = TitleType.from_request_data(data)
 
@@ -53,15 +46,8 @@ def add_title_type():
 
 
 @title_type_bp.post("/edit")
+@require_scope("edit_title_type_scope", "edit title types")
 def edit_title_type():
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    deny = require_scope(role.edit_title_type_scope, "edit title types")
-    if deny:
-        return deny
-
     data = request.get_json(silent=True) or {}
 
     original_title = (data.get("originalTitle") or "").strip()
@@ -115,15 +101,8 @@ def edit_title_type():
 
 
 @title_type_bp.post("/delete")
+@require_scope("edit_title_type_scope", "edit title types")
 def delete_title_type():
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    deny = require_scope(role.edit_title_type_scope, "edit title types")
-    if deny:
-        return deny
-
     data = request.get_json(silent=True) or {}
     title = (data.get("title") or "").strip()
 
@@ -156,14 +135,6 @@ def delete_title_type():
 
 @title_type_bp.get("/get")
 def get_all_title_types():
-    # role = current_role()
-    # if not role:
-    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    # deny = require_scope(role.view_title_type_scope, "view title types")
-    # if deny:
-    #     return deny
-
     try:
         title_types = TitleType.list_all_title_types()
         data = [t.to_dict() for t in title_types]

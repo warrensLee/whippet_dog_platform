@@ -1,3 +1,4 @@
+from typing import cast
 from flask import Blueprint, jsonify, request
 from mysql.connector import Error
 from datetime import datetime, timezone
@@ -157,16 +158,9 @@ def edit_result_view(meet_number):
 
 
 @meet_result_bp.post("/edit_result_view/<meet_number>")
+@require_scope("edit_meet_scope", "edit meet results")
 def bulk_update_edit_result_view(meet_number):
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    deny = require_scope(role.edit_meet_scope, "edit meet results")
-    if deny:
-        return deny
-
-    if role.edit_meet_scope == UserRole.SELF and not _is_judge_or_secretary(meet_number):
+    if cast(UserRole,current_role()).edit_meet_scope == UserRole.SELF and not _is_judge_or_secretary(meet_number):
         return jsonify({"ok": False, "error": "You can only edit meet results for meets where you are a judge or race secretary"}), 403
 
     data = request.get_json(silent=True) or {}

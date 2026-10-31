@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request
 from mysql.connector import Error
 from backend.classes.user_role import UserRole
 from backend.classes.change_log import ChangeLog
-from backend.utils.auth_helpers import current_editor_id, current_role
+from backend.utils.auth_helpers import current_editor_id, current_role, require_admin
 from backend.utils.error_handler import handle_error
 
 user_role_bp = Blueprint("user_role", __name__, url_prefix="/api/user_role")
@@ -20,32 +20,12 @@ def _is_own_role(my_role, target_role):
 
 @user_role_bp.get("/get")
 def list_user_roles():
-    # role = current_role()
-    # if not role:
-    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    # deny = require_scope(role.view_user_role_scope, "view user roles")
-    # if deny:
-    #     return deny
-
-    # if role.view_user_role_scope == UserRole.ALL:
     roles = UserRole.list_all_user_roles()
     return jsonify({"ok": True, "data": [r.to_dict() for r in roles]}), 200
 
-    # if role.view_user_role_scope == UserRole.SELF:
-    #     return jsonify({"ok": True, "data": [role.to_dict()]}), 200
-
-    # return jsonify({"ok": False, "error": "Not allowed"}), 403
-
 @user_role_bp.post("/add")
+@require_admin
 def register_user_role():
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    if role.title != "ADMIN":
-        return jsonify({"ok": False, "error": "Not authorized to create user roles"}), 403
-
     data = request.get_json(silent=True) or {}
     user_role = UserRole.from_request_data(data)
 
@@ -83,14 +63,8 @@ def register_user_role():
 
 
 @user_role_bp.post("/edit")
+@require_admin
 def edit_user_role():
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    if role.title != "ADMIN":
-        return jsonify({"ok": False, "error": "Not authorized to edit user roles"}), 403
-
     data = request.get_json(silent=True) or {}
     role_id = data.get("roleId") or data.get("id")
     if role_id is None:
@@ -133,14 +107,8 @@ def edit_user_role():
 
 
 @user_role_bp.post("/delete")
+@require_admin
 def delete_user_role():
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    if role.title != "ADMIN":
-        return jsonify({"ok": False, "error": "Not authorized to delete user roles"}), 403
-
     data = request.get_json(silent=True) or {}
     role_id = data.get("roleId") or data.get("id")
     if role_id is None:

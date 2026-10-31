@@ -1,3 +1,4 @@
+from typing import cast
 from flask import Blueprint, jsonify, request
 from datetime import datetime, timezone
 from mysql.connector import Error
@@ -37,15 +38,8 @@ def list_dog_owner_links():
 
 
 @dog_owner_bp.post("/add")
+@require_scope("edit_dog_scope", "add dog owners")
 def add_owner():
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    deny = require_scope(role.edit_dog_scope, "add dog owners")
-    if deny:
-        return deny
-
     data = request.get_json(silent=True) or {}
     cwa_id = str(data.get("cwaId") or "").strip()
     person_id = str(data.get("personId") or "").strip()
@@ -53,7 +47,7 @@ def add_owner():
     if not cwa_id or not person_id:
         return jsonify({"ok": False, "error": "cwaId and personId are required"}), 400
 
-    if role.edit_dog_scope == UserRole.SELF and person_id != current_editor_id():
+    if cast(UserRole,current_role()).edit_dog_scope == UserRole.SELF and person_id != current_editor_id():
         return jsonify({"ok": False, "error": "You may only add yourself as an owner"}), 403
 
     if not fetch_one("SELECT 1 FROM Dog WHERE CWANumber = %s LIMIT 1", (cwa_id,)):
@@ -95,15 +89,8 @@ def add_owner():
 
 
 @dog_owner_bp.post("/delete")
+@require_scope("edit_dog_scope", "delete dog owners")
 def remove_owner():
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    deny = require_scope(role.edit_dog_scope, "delete dog owners")
-    if deny:
-        return deny
-
     data = request.get_json(silent=True) or {}
     cwa_id = str(data.get("cwaId") or "").strip()
     person_id = str(data.get("personId") or "").strip()
@@ -111,7 +98,7 @@ def remove_owner():
     if not cwa_id or not person_id:
         return jsonify({"ok": False, "error": "cwaId and personId are required"}), 400
 
-    if role.edit_dog_scope == UserRole.SELF and person_id != current_editor_id():
+    if cast(UserRole,current_role()).edit_dog_scope == UserRole.SELF and person_id != current_editor_id():
         return jsonify({"ok": False, "error": "You may only remove yourself as an owner"}), 403
 
     existing = DogOwner.find_by_identifier(cwa_id, person_id)

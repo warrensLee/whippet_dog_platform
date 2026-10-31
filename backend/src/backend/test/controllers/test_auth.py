@@ -414,13 +414,13 @@ def test_change_password_not_logged_in(client):
         "password":"test",
         "new_password":"Password123!"
     })
-    assert response.status_code == 200
+    assert response.status_code == 401
     assert not response.json["ok"]
-    assert response.json["error"] == "User not found"
+    assert response.json["error"] == "Not signed in"
 
 
-def test_change_password_no_password(client):
-    response = client.post("/api/auth/change-password", json={
+def test_change_password_no_password(public_user_session):
+    response = public_user_session.post("/api/auth/change-password", json={
         "new_password":"Password123!"
     })
     assert response.status_code == 200
@@ -428,11 +428,11 @@ def test_change_password_no_password(client):
     assert response.json["error"] == "Missing password or new password"
 
 
-def test_change_password_no_new_password(client):
-    response = client.post("/api/auth/change-password", json={
+def test_change_password_no_new_password(public_user_session):
+    response = public_user_session.post("/api/auth/change-password", json={
         "password":"Password123!"
     })
-    assert response.status_code == 200
+    assert response.status_code == 200 
     assert not response.json["ok"]
     assert response.json["error"] == "Missing password or new password"
 
@@ -540,7 +540,7 @@ def test_invite_not_admin(all_privileges_session):
     response = all_privileges_session.post("/api/auth/invite", json={"email":"test2@test2.com"})
     assert response.status_code == 403
     assert not response.json["ok"]
-    assert response.json["error"] == "Not authorized"
+    assert response.json["error"] == "You must be an admin to perform this action"
 
 def test_invite_no_email(admin_session): 
     response = admin_session.post("/api/auth/invite", json={})
@@ -587,7 +587,7 @@ def test_invite_claim_dummy_not_admin(all_privileges_session):
     response = all_privileges_session.post("/api/auth/invite-claim-dummy", json={"email":"testsdf@fsdfes.com", "id":"1"})
     assert response.status_code == 403
     assert not response.json["ok"]
-    assert response.json["error"] == "Not authorized"
+    assert response.json["error"] == "You must be an admin to perform this action"
 
 def test_invite_claim_dummy_no_email(admin_session):
     response = admin_session.post("/api/auth/invite-claim-dummy", json={"id":"testsdf@fsdfes.com"})

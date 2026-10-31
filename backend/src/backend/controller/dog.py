@@ -1,3 +1,4 @@
+from typing import cast
 from flask import Blueprint, jsonify, request
 from mysql.connector import Error
 from datetime import datetime, timezone
@@ -8,7 +9,7 @@ from backend.classes.race_result import RaceResult
 from backend.classes.meet_result import MeetResult
 from backend.classes.change_log import ChangeLog
 from backend.classes.user_role import UserRole
-from backend.utils.auth_helpers import current_editor_id, current_role, require_scope
+from backend.utils.auth_helpers import current_editor_id, current_role, require_scope, require_logged_in, require_admin
 from backend.utils.error_handler import handle_error
 from backend.classes.title_type import TitleType 
 
@@ -22,15 +23,8 @@ def _is_owner(cwa_number):
 
 
 @dog_bp.post("/add")
+@require_scope("edit_dog_scope", "create dogs")
 def register_dog():
-    role = current_role()
-    if not role:
-        return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    deny = require_scope(role.edit_dog_scope, "create dogs")
-    if deny:
-        return deny
-
     data = request.get_json(silent=True) or {}
     dog = Dog.from_request_data(data)
 
@@ -66,11 +60,8 @@ def register_dog():
 
 
 @dog_bp.post("/public_notes") 
+@require_logged_in
 def public_notes():
-    role = current_role()
-    if not role:
-        return  jsonify({"ok": False, "error": "Not signed in"}), 401
-
     data = request.get_json(silent=True) or {}
     if "dog" not in data or "public_notes" not in data:
         return jsonify({"ok": False, "error": "Invalid Request"}), 400
@@ -88,17 +79,11 @@ def public_notes():
     return jsonify({"ok": True}), 200
 
 @dog_bp.post("/edit")
+@require_scope("edit_dog_scope", "edit dogs")
 def edit_dog():
-    role = current_role()
-    if not role:
-        return  jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    deny = require_scope(role.edit_dog_scope, "edit dogs")
-    if deny:
-        return deny
-
     data = request.get_json(silent=True) or {}
-    print(data)
+    role = current_role()
+    assert role is not None
     dog = Dog.from_request_data(data)
 
     if not dog.cwa_number:
@@ -146,15 +131,8 @@ def edit_dog():
 
 
 @dog_bp.post("/delete")
+@require_scope("edit_dog_scope", "delete dogs")
 def delete_dog():
-    role = current_role()
-    if not role:
-        return  jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    deny = require_scope(role.edit_dog_scope, "delete dogs")
-    if deny:
-        return deny
-
     data = request.get_json(silent=True) or {}
     dog = Dog.from_request_data(data)
 
@@ -168,6 +146,7 @@ def delete_dog():
         if not dog:
             return jsonify({"ok": False, "error": "Dog does not exist"}), 404
 
+        role = cast(UserRole,current_role())
         if role.edit_dog_scope == UserRole.SELF and not _is_owner(dog.cwa_number):
             return jsonify({"ok": False, "error": "Not allowed to delete this dog"}), 403
 
@@ -268,23 +247,8 @@ def get_dog(cwa_number):
 
 @dog_bp.get("/get")
 def list_all_dogs():
-    # role = current_role()
-    # if not role:
-    #     return  jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    # deny = require_scope(role.view_dog_scope, "view dogs")
-    # if deny:
-    #     return deny
-
     try:
-        # if role.view_dog_scope == UserRole.ALL:
         dogs = Dog.list_all_dogs()
-        # else:
-        #     pid = current_editor_person_id()()
-        #     if not pid:
-        #         return  jsonify({"ok": False, "error": "Not signed in"}), 401
-        #     dogs = Dog.list_dogs_for_owner(pid)
-
         dogs_data = [dog.to_dict() for dog in dogs]
         return jsonify({"ok": True, "data": dogs_data}), 200
 
@@ -306,20 +270,9 @@ def list_dog_title_descriptions(cwa_number):
 
 @dog_bp.get("/titles/<cwa_number>")
 def list_dog_titles(cwa_number):
-    # role = current_role()
-    # if not role:
-    #     return  jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    # deny = require_scope(role.view_dog_titles_scope, "view dog titles")
-    # if deny:
-    #     return deny
-
     dog = Dog.find_by_identifier(cwa_number)
     if not dog:
         return jsonify({"ok": False, "error": "Dog does not exist"}), 404
-
-    # if role.view_dog_titles_scope == UserRole.SELF and not _is_owner(cwa_number):
-    #     return jsonify({"ok": False, "error": "Not allowed to view titles for this dog"}), 403
 
     try:
         dog_titles = [x.title for x in DogTitle.list_for_dog(cwa_number)]
@@ -329,17 +282,6 @@ def list_dog_titles(cwa_number):
 
 @dog_bp.get("/grade/<cwa_number>")
 def get_dog_grade(cwa_number):
-    # role = current_role()
-    # if not role:
-    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    # deny = require_scope(role.view_dog_scope, "view dogs")
-    # if deny:
-    #     return deny
-    
-    # if role.view_dog_scope == UserRole.SELF and not _is_owner(cwa_number):
-    #     return jsonify({"ok": False, "error": "Not allowed to view this dog"}), 403
-    
     try:
         dog = Dog.find_by_identifier(cwa_number)
         if not dog:
@@ -362,14 +304,6 @@ def get_dog_grade(cwa_number):
 
 @dog_bp.get("/search")
 def search_dogs():
-    #role = current_role()
-    # if not role:
-    #     return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-    # deny = require_scope(role.view_dog_scope, "search dogs")
-    # if deny:
-    #     return deny
-
     q = (request.args.get("q") or "").strip()
     owner = request.args.get("owner", None)
     sort = request.args.get("sort", None)
@@ -404,17 +338,6 @@ def search_dogs():
 
 @dog_bp.get("/meets/<cwa_number>")
 def list_meets_for_dog(cwa_number):
-     # role = current_role()
-     # if not role:
-     #     return jsonify({"ok": False, "error": "Not signed in"}), 401
-
-     # deny = require_scope(role.view_meet_scope, "view meets")
-     # if deny:
-     #     return deny
-
-     # if role.view_meet_scope == UserRole.SELF and not _is_owner(cwa_number):
-     #     return jsonify({"ok": False, "error": "Not allowed to view meets for this dog"}), 403
-
      try:
          meets = Dog.list_meets_with_results_for_dog(cwa_number)  
          return jsonify({"ok": True, "data": meets}), 200
@@ -427,10 +350,8 @@ def list_meets_for_dog(cwa_number):
     DO NOT DELETE
 '''
 @dog_bp.get("/reload_all_stats")
+@require_admin
 def reload_all_stats():
-    role = current_role()
-    if not role or role.title != "ADMIN":
-        return jsonify({"ok":False, "message": "unauthorized"})
     for dog in Dog.list_all_dogs():
         if dog is not None:
             dog.update_from_meet_results()

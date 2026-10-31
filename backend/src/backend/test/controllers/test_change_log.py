@@ -14,14 +14,14 @@ def change_log_object():
 def test_list_all_change_logs_not_admin(all_privileges_session):
     response = all_privileges_session.get("/api/change_log/get")
     assert not response.json["ok"]
-    assert response.json["error"] == "Not authorized"
+    assert response.json["error"] == "You must be an admin to perform this action"
     assert response.status_code == 403
 
 
 def test_get_change_log_not_admin(all_privileges_session):
     response = all_privileges_session.get("/api/change_log/get/0")
     assert not response.json["ok"]
-    assert response.json["error"] == "Not authorized"
+    assert response.json["error"] == "You must be an admin to perform this action"
     assert response.status_code == 403
 
 def test_list_all_change_logs(admin_session, change_log_object):
