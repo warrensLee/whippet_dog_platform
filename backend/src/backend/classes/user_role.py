@@ -1,5 +1,6 @@
 from backend.database import fetch_all, fetch_one, execute
 
+
 class UserRole:
     NONE = 0
     SELF = 1

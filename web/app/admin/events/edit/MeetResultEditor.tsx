@@ -14,13 +14,8 @@ import {
 import RegistrationSection from "./RegistrationSection";
 import ProgramSection from "./ProgramSection";
 import CalculationsSection from "./CalculationsSection";
+import DogSearchDialog, { SearchDogResult } from "./DogSearchDialog";
 
-type SearchDogResult = {
-    cwaNumber: string;
-    registeredName: string;
-    callName: string;
-    grade: string;
-};
 
 export default function MeetResultEditor({
     value,
@@ -32,9 +27,6 @@ export default function MeetResultEditor({
     setResultsValid?: (valid: boolean) => void;
 }) {
     const [searchOpen, setSearchOpen] = useState(false);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [searchResults, setSearchResults] = useState<SearchDogResult[]>([]);
-    const [searching, setSearching] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [adultCalculationError, setAdultCalculationError] = useState(false)
     const [puppyCalculationError, setPuppyCalculationError] = useState(false)
@@ -131,36 +123,6 @@ export default function MeetResultEditor({
         }
     }, [value, setResultsValid, adultCalculationError, puppyCalculationError, registrationErrors]);
 
-    // Dog search
-    const handleSearch = async () => {
-        if (!searchQuery.trim()) {
-            setSearchResults([]);
-            return;
-        }
-        setSearching(true);
-        try {
-            const res = await fetch(`/api/dog/search?q=${encodeURIComponent(searchQuery)}`, {
-                cache: "no-store",
-                credentials: "include",
-            });
-            const json = await res.json().catch(() => null);
-            if (!res.ok || !json?.ok) throw new Error(json?.error || "Search failed");
-            const mapped = (json.items || []).map((item: Record<string, unknown>) => ({
-                cwaNumber: String(item.id ?? ""),
-                registeredName: String(item.name ?? ""),
-                callName: String(item.callName ?? ""),
-                grade: String(item.grade ?? ""),
-            }));
-            setSearchResults(mapped);
-        } catch (e: unknown) {
-            const msg = e instanceof Error ? e.message : "Search error";
-            console.error("Search error:", msg);
-            setSearchResults([]);
-        } finally {
-            setSearching(false);
-        }
-    };
-
     function handleAddDog(dog: SearchDogResult) {
         const exists = value.some(d => d.cwaNumber === dog.cwaNumber);
         if (exists) {
@@ -196,10 +158,6 @@ export default function MeetResultEditor({
 
         const updated = [...value, newDog];
         onChange(updated);
-        setSearchOpen(false);
-        setSearchQuery("");
-        setSearchResults([]);
-        setError(null);
     }
 
     function handleDogChange(dog: DogEntry) {
@@ -334,7 +292,7 @@ export default function MeetResultEditor({
                     }}
                     className="rounded-full bg-[#2E6B3F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#255733] w-full"
                 >
-                    + Add Dog to Meet
+                    + Add Dogs to Meet
                 </button>
             </div>
 
@@ -378,71 +336,7 @@ export default function MeetResultEditor({
             <CalculationsSection title="Puppy Results" results={value.filter((v) => v.entryType == "PUPPY")} onChange={handleDogChange} onDpcLegChange={handleDpcLegChange} onHcLegChange={handleHcLegChange} setCalculationErrors={setPuppyCalculationError} />
 
             {/* Dog Search Dialog */}
-            {searchOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col">
-                        <div className="flex items-center justify-between p-5 border-b border-black/10">
-                            <h3 className="font-bold text-[#12301D]">Add Dog</h3>
-                            <button
-                                onClick={() => {
-                                    setSearchOpen(false);
-                                    setSearchQuery("");
-                                    setSearchResults([]);
-                                }}
-                                className="text-gray-400 hover:text-gray-600 text-xl"
-                            >
-                                ×
-                            </button>
-                        </div>
-                        <div className="p-5 flex-1 overflow-y-auto">
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="mb-2 block text-sm font-medium text-[#12301D]">
-                                        Search by Name, Call Name, or CWA ID
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        onKeyDown={() => {
-                                            handleSearch();
-                                        }}
-                                        className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-[#12301D] outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
-                                        autoFocus
-                                    />
-                                </div>
-                                <div className="max-h-64 overflow-y-auto">
-                                    {searchResults.map(dog => (
-                                        <button
-                                            key={dog.cwaNumber}
-                                            onClick={() => handleAddDog(dog)}
-                                            className="w-full text-left rounded-lg border border-black/10 bg-white p-3 transition hover:bg-gray-50 mb-2"
-                                        >
-                                            <div className="font-semibold text-[#12301D]">{dog.registeredName}</div>
-                                            {dog.callName && (
-                                                <div className="text-sm text-gray-500">
-                                                    Call: {dog.callName}
-                                                </div>
-                                            )}
-                                            <div className="text-sm text-gray-500">
-                                                CWA: {dog.cwaNumber}
-                                            </div>
-                                            {dog.grade && (
-                                                <div className="text-sm text-gray-500">
-                                                    Grade: {dog.grade}
-                                                </div>
-                                            )}
-                                        </button>
-                                    ))}
-                                    {searchResults.length === 0 && searchQuery && !searching && (
-                                        <div className="text-center text-gray-400 py-4 text-sm">No dogs found</div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <DogSearchDialog open={searchOpen} onClose={() => setSearchOpen(false)} onAddDog={handleAddDog} />
 
             {error && (
                 <div className="m-4 rounded-lg bg-red-50 px-4 py-3 text-red-700 text-sm">
