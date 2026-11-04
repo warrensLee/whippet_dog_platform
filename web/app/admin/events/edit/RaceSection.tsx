@@ -1,6 +1,6 @@
 import { DogEntry } from "./MeetResultTypes";
-import { useState, useMemo } from "react";
-
+import { useState, useMemo, useRef } from "react";
+import { SearchDogResult } from "./DogSearchDialog";
 type RaceSectionProps = {
     program: string;
     raceNumber: string;
@@ -37,13 +37,24 @@ export default function RaceSection({
     totalRaces,
 }: RaceSectionProps) {
     const [showAddDog, setShowAddDog] = useState(false);
-    const [selectedDogCwa, setSelectedDogCwa] = useState("");
+    const [searchQuery, setSearchQuery] = useState("");
+    const searchInputRef = useRef<HTMLInputElement>(null);
 
     const inRaceCwaNumbers = useMemo(() => new Set(dogs.map(d => d.cwaNumber)), [dogs]);
     const availableDogs = useMemo(() => results.filter(d => !inRaceCwaNumbers.has(d.cwaNumber)), [results, inRaceCwaNumbers]);
 
+    const searchResults = useMemo(() => {
+        if (!searchQuery.trim()) return availableDogs;
+        const q = searchQuery.toLowerCase();
+        return availableDogs.filter(dog =>
+            dog.callName.toLowerCase().includes(q) ||
+            dog.registeredName.toLowerCase().includes(q) ||
+            dog.cwaNumber.includes(q)
+        );
+    }, [searchQuery, availableDogs]);
+
     const sortedDogs = useMemo(() =>
-        dogs.sort((da, db) => {
+        [...dogs].sort((da, db) => {
             const daPlace = Number(da.races.find((r) => r.program === program && r.race === raceNumber)?.placement) || Infinity
             const dbPlace = Number(db.races.find((r) => r.program === program && r.race === raceNumber)?.placement) || Infinity
             return daPlace - dbPlace
@@ -107,11 +118,9 @@ export default function RaceSection({
         onRaceDogChange(program, raceNumber, updated);
     }
 
-    function handleAddSelectedDog() {
-        if (!selectedDogCwa) return;
-        onAddDogToRace(program, raceNumber, selectedDogCwa);
-        setSelectedDogCwa("");
-        setShowAddDog(false);
+    function handleSelectDog(dog: SearchDogResult) {
+        onAddDogToRace(program, raceNumber, dog.cwaNumber);
+        setSearchQuery("");
     }
 
     return (
@@ -144,7 +153,10 @@ export default function RaceSection({
                     <button
                         onClick={() => {
                             setShowAddDog(!showAddDog);
-                            setSelectedDogCwa("");
+                            setSearchQuery("");
+                            if (!showAddDog) {
+                                setTimeout(() => searchInputRef.current?.focus(), 0);
+                            }
                         }}
                         className="rounded-full bg-[#2E6B3F] px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#255733]"
                     >
@@ -154,28 +166,57 @@ export default function RaceSection({
             </div>
 
             {showAddDog && (
-                <div className="mb-3">
-                    <select
-                        value={selectedDogCwa}
-                        onChange={(e) => setSelectedDogCwa(e.target.value)}
+                <div className="mb-3 relative">
+                    <input
+                        ref={searchInputRef}
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => {
+                            setSearchQuery(e.target.value);
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key == "Enter") {
+                                e.preventDefault()
+                                if (searchResults.length > 0)
+                                    handleSelectDog(searchResults[0])
+                            }
+                        }}
+                        placeholder="Search by call name, registered name, or CWA number. Enter quick adds the first result"
                         className="w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-sm text-[#12301D] outline-none focus:ring-2 focus:ring-[#2E6B3F]/30"
-                    >
-                        <option value="">Select a dog...</option>
-                        {availableDogs.map(dog => (
-                            <option key={dog.cwaNumber} value={dog.cwaNumber}>
-                                {dog.callName}{dog.callName !== dog.registeredName ? ` (${dog.registeredName})` : ""} — {dog.cwaNumber}
-                            </option>
-                        ))}
-                    </select>
-                    {availableDogs.length === 0 && (
+                    />
+                    {searchQuery && searchResults.length > 0 && (
+                        <ul className="absolute z-10 mt-1 w-full rounded-lg border border-black/10 bg-white shadow-lg max-h-60 overflow-y-auto">
+                            {searchResults.map((dog, idx) => (
+                                <li
+                                    key={dog.cwaNumber}
+                                    onClick={() => handleSelectDog(dog)}
+                                    className={`px-3 py-2 text-sm cursor-pointer transition bg-gray-10 hover:bg-gray-200` + (idx == 0 ? "border-black border-2" : "")}
+                                >
+                                    <div className="font-medium text-[#12301D]">
+                                        {dog.callName}
+                                        {dog.callName !== dog.registeredName && (
+                                            <span className="text-gray-500 ml-1">({dog.registeredName})</span>
+                                        )}
+                                    </div>
+                                    <div className="text-xs text-gray-500">CWA: {dog.cwaNumber}</div>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                    {availableDogs.length === 0 && !searchQuery && (
                         <p className="mt-2 text-xs text-gray-400">All dogs already in this race</p>
                     )}
+                    {searchQuery && searchResults.length === 0 && (
+                        <p className="mt-2 text-xs text-gray-400">No dogs found</p>
+                    )}
                     <button
-                        onClick={handleAddSelectedDog}
-                        disabled={!selectedDogCwa}
-                        className="mt-2 rounded-full bg-[#2E6B3F] px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#255733] disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={() => {
+                            setShowAddDog(false);
+                            setSearchQuery("");
+                        }}
+                        className="mt-2 rounded-full bg-[#2E6B3F] px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#255733]"
                     >
-                        Add to Race
+                        Close
                     </button>
                 </div>
             )}

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { MeetResults } from "./MeetResultTypes";
 import Button from "@/app/components/ui/buttons/Button";
 
 export type SearchDogResult = {
