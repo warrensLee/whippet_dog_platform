@@ -34,7 +34,7 @@ function AdminEventsPage() {
     const q = (sp.get("q") ?? "").trim();
     const page = clampInteger(Number(sp.get("page") ?? "1"), 1, 1_000_000);
     const limit = clampInteger(Number(sp.get("limit") ?? "12"), 1, 50);
-    const sort = (sp.get("sort") ?? "meetNumberAsc").trim();
+    const sort = (sp.get("sort") ?? "numberAsc").trim();
 
 
     const [data, setData] = React.useState<EventSearchResponse | null>(null);
@@ -59,7 +59,7 @@ function AdminEventsPage() {
                     usp.set("owner", String(user.ID))
                 }
                 const res = await fetch(
-                    `/api/meet/get?${usp.toString()}`,
+                    `/api/meet/search?${usp.toString()}`,
                     {
                         cache: "no-store",
                         credentials: "include",
@@ -76,13 +76,7 @@ function AdminEventsPage() {
                     throw new Error(json?.error || `Request failed (${res.status})`);
                 }
 
-                const mapped: EventSearchResponse =
-                {
-                    ok: json.ok,
-                    data: json.data ?? [],
-                };
-
-                setData(mapped);
+                setData(json);
             }
             catch (e) {
                 setError(
@@ -107,7 +101,7 @@ function AdminEventsPage() {
 
     React.useEffect(
         () => {
-            const validIds = new Set((data?.data ?? []).map((e) => e.meetNumber));
+            const validIds = new Set((data?.items ?? []).map((e) => e.meetNumber));
 
             setSelectedEvents((prev) => {
                 return prev.filter((id) => validIds.has(id));
@@ -175,8 +169,8 @@ function AdminEventsPage() {
     }
 
 
-    const items = data?.data ?? [];
-    const total = items.length;
+    const items = data?.items ?? [];
+    const total = data?.total ?? 0
 
     const sortedItems = [...items].sort(
         (a, b) => {
@@ -391,10 +385,10 @@ function AdminEventsPage() {
                                             defaultValue={sort}
                                             className="rounded-full border border-black/10 bg-white px-4 py-2 text-sm text-[#12301D] shadow-sm outline-none focus:ring-4 focus:ring-[#2E6B3F]/20"
                                         >
-                                            <option value="meetNumberAsc">Meet Number Asc</option>
-                                            <option value="meetNumberDesc">Meet Number Desc</option>
-                                            <option value="meetDateAsc">Meet Date Asc</option>
-                                            <option value="meetDateDesc">Meet Date Desc</option>
+                                            <option value="numberAsc">Meet Number Asc</option>
+                                            <option value="numberDesc">Meet Number Desc</option>
+                                            <option value="dateAsc">Meet Date Asc</option>
+                                            <option value="dateDesc">Meet Date Desc</option>
                                         </select>
 
                                         <button
