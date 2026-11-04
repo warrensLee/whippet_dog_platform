@@ -82,12 +82,7 @@ export default function ProgramSection({
                     >
                         Delete Program
                     </button>
-                    <button
-                        onClick={() => onAddRace(program)}
-                        className="rounded-full bg-[#2E6B3F] px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#255733]"
-                    >
-                        + Add Race
-                    </button>
+
                 </div>
             </div>
 
@@ -119,7 +114,14 @@ export default function ProgramSection({
                             />
                         );
                     })}
+                    <button
+                        onClick={() => onAddRace(program)}
+                        className="w-full rounded-full bg-[#2E6B3F] px-4 py-2 font-semibold text-white shadow-sm transition hover:bg-[#255733]"
+                    >
+                        + Add Race
+                    </button>
                 </>
+
             )}
         </div>
     );

@@ -36,33 +36,36 @@ export default function MeetResultEditor({
 
     const prevValueRef = useRef<MeetResults>(value);
 
-    // Initialize programs and defined races from existing data (once on mount)
+    // Initialize programs and defined races from existing data (once when data is available)
     const hasInitializedRef = useRef(false);
     useEffect(() => {
-        if (hasInitializedRef.current) return;
-        hasInitializedRef.current = true;
-        if (!value || !Array.isArray(value) || value.length === 0) return;
+        const update = async () => {
+            if (hasInitializedRef.current) return;
+            if (!value || !Array.isArray(value) || value.length === 0) return;
 
-        const existingPrograms = new Set<string>();
-        const races: RaceDefinition[] = [];
-        for (const dog of value) {
-            for (const race of dog.races) {
-                if (race.program.trim()) {
-                    existingPrograms.add(race.program.trim());
-                    races.push({ program: race.program.trim(), race: race.race.trim() });
+            const existingPrograms = new Set<string>();
+            const races: RaceDefinition[] = [];
+            for (const dog of value) {
+                for (const race of dog.races) {
+                    if (race.program.trim()) {
+                        existingPrograms.add(race.program.trim());
+                        races.push({ program: race.program.trim(), race: race.race.trim() });
+                    }
                 }
             }
+            const programArray = Array.from(existingPrograms)
+                .map(Number)
+                .sort((a, b) => a - b)
+                .map(String);
+            if (programArray.length > 0) {
+                setPrograms(programArray);
+            }
+            if (races.length > 0) {
+                setDefinedRaces(races);
+            }
+            hasInitializedRef.current = true;
         }
-        const programArray = Array.from(existingPrograms)
-            .map(Number)
-            .sort((a, b) => a - b)
-            .map(String);
-        if (programArray.length > 0) {
-            setPrograms(programArray);
-        }
-        if (races.length > 0) {
-            setDefinedRaces(races);
-        }
+        update()
     }, [value]);
 
     // Auto-calculation cascade
@@ -299,12 +302,7 @@ export default function MeetResultEditor({
             <div className="px-5 pt-2">
                 <div className="flex items-center justify-between mb-3">
                     <h3 className="font-bold text-[#12301D] text-lg">Programs</h3>
-                    <button
-                        onClick={handleAddProgram}
-                        className="rounded-full bg-[#2E6B3F] px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#255733]"
-                    >
-                        + Add Program
-                    </button>
+
                 </div>
             </div>
 
@@ -331,7 +329,12 @@ export default function MeetResultEditor({
                     onMoveRace={handleMoveRace}
                 />
             ))}
-
+            <button
+                onClick={handleAddProgram}
+                className="w-full rounded-full bg-[#2E6B3F] px-4 py-2 font-semibold text-white shadow-sm transition hover:bg-[#255733]"
+            >
+                + Add Program
+            </button>
             <CalculationsSection title="Final Results" results={value.filter((v) => v.entryType == "REG")} onChange={handleDogChange} onDpcLegChange={handleDpcLegChange} onHcLegChange={handleHcLegChange} setCalculationErrors={setAdultCalculationError} />
             <CalculationsSection title="Puppy Results" results={value.filter((v) => v.entryType == "PUPPY")} onChange={handleDogChange} onDpcLegChange={handleDpcLegChange} onHcLegChange={handleHcLegChange} setCalculationErrors={setPuppyCalculationError} />
 
