@@ -66,7 +66,7 @@ def edit_result_view(meet_number):
                 rr.Box,
                 rr.Placement,
                 rr.Incident,
-                rr.CWANumber,
+                mr.CWANumber,
                 mr.EntryType,
                 mr.ARXEarned,
                 mr.NARXEarned,
@@ -87,14 +87,14 @@ def edit_result_view(meet_number):
                  dd.ARXPoints,
                  dd.NARXPoints,
                  dd.DPCPoints AS dogDPC
-            FROM RaceResults rr
-            LEFT JOIN MeetResults mr 
-                ON rr.CWANumber = mr.CWANumber 
-                AND rr.MeetNumber = mr.MeetNumber
+            FROM MeetResults mr
             LEFT JOIN Dog dd
                 ON dd.CWANumber = mr.CWANumber
-            WHERE rr.MeetNumber = %s
-            ORDER BY rr.CWANumber ASC, rr.Program ASC, rr.RaceNumber ASC
+            LEFT JOIN RaceResults rr
+                ON rr.CWANumber = mr.CWANumber 
+                AND rr.MeetNumber = mr.MeetNumber
+            WHERE mr.MeetNumber = %s
+            ORDER BY mr.CWANumber ASC, rr.Program ASC, rr.RaceNumber ASC
             """,
             (meet_number,),
         ) or []
@@ -133,8 +133,11 @@ def edit_result_view(meet_number):
                     "dpcTitle": bool(int(row.get("dogDPC") or 0) >= 15),
                 }
             
-            program = row.get("Program") or "1"
-            race = row.get("RaceNumber") or "1"
+            # Skip rows where the dog has no race (rr fields are NULL from LEFT JOIN)
+            program = row.get("Program")
+            race = row.get("RaceNumber")
+            if not program or not race:
+                continue
 
             if program not in race_data:
                 race_data[program] = {}
@@ -143,7 +146,7 @@ def edit_result_view(meet_number):
                 race_data[program][race] = []
             
             race_data[program][race].append({
-                "dog": row.get("CWANumber") or "",
+                "dog": cwa_number or "",
                 "box": row.get("Box") or "",
                 "placement": row.get("Placement") or "",
                 "incident": row.get("Incident") or ""
