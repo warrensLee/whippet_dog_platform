@@ -1,7 +1,7 @@
 // @/admin/events/types.tsx
 // What will be a result from a search? What does a user search for?
 // This will be where we define parameters that will be used in searching and filtering!
-// TODO: look at and make sure all of these types are actually needed
+
 import { PersonSearchResult } from "@/app/components/ui/PersonField";
 
 
@@ -45,7 +45,7 @@ export type EventListItem = {
     meetNumber: string;
     clubAbbreviation: string;
     meetDate: string;
-    raceSecretary?: string;
+    raceSecretaryId?: string;
     raceSecretaryName?: string;
     judgeId?: string;
     judgeName?: string;
@@ -59,8 +59,7 @@ export type EventListItem = {
 
 export type EventSearchResponse = {
     ok: boolean;
-    items: EventListItem[];
-    total: number
+    data: EventListItem[];
 };
 
 export const emptyEventFormValues: EventFormValues = {
