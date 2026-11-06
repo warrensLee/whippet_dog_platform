@@ -693,6 +693,8 @@ export function calculateAom(results: MeetResults): MeetResults {
 }
 
 export function recalculateAll(results: MeetResults): MeetResults {
+    return results
+    /*
     let updated = results.map(dog => {
         if (dog.shown && dog.showPlace) {
             return { ...dog, showPoints: String(calculateShowPoints(dog.showPlace)) };
@@ -707,4 +709,5 @@ export function recalculateAll(results: MeetResults): MeetResults {
     //updated = calculateHcWinner(updated);
     updated = calculateDpc(updated);
     return updated;
+*/
 }
