@@ -6,7 +6,7 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-FROM nginx:1.29@sha256:1881968aff6f7cdcc4b888c00a11f4ce241ad7ec957e0cb4a9e19e93a3ff87ea
+FROM nginx:1.30.7
 RUN mkdir /app 
 WORKDIR /app
 COPY --from=0 /app/out .
